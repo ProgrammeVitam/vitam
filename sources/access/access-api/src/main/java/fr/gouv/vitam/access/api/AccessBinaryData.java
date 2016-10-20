@@ -34,7 +34,7 @@
  */
 package fr.gouv.vitam.access.api;
 
-import java.io.InputStream;
+import javax.ws.rs.core.Response;
 
 /**
  * Access Binary Data model internal response
@@ -42,19 +42,19 @@ import java.io.InputStream;
 public class AccessBinaryData {
     private String filename;
     private String mimetype;
-    private InputStream inputStream;
+    private Response response;
 
     /**
      * Constructor
      * @param filename
      * @param mimetype
-     * @param inputStream
+     * @param response
      */
-    public AccessBinaryData(String filename, String mimetype, InputStream inputStream) {
+    public AccessBinaryData(String filename, String mimetype, Response response) {
         super();
         this.filename = filename;
         this.mimetype = mimetype;
-        this.inputStream = inputStream;
+        this.response = response;
     }
     
     /**
@@ -72,9 +72,9 @@ public class AccessBinaryData {
     }
 
     /**
-     * @return the inputStream
+     * @return the original Response
      */
-    public InputStream getInputStream() {
-        return inputStream;
+    public Response getOriginalResponse() {
+        return response;
     }
 }

@@ -38,7 +38,9 @@ public class ElasticsearchNode {
     /**
      * ElasticsearchNode empty constructor for YAMLFactory
      */
-    public ElasticsearchNode() {}
+    public ElasticsearchNode() {
+        // Empty
+    }
 
     /**
      * @param hostName

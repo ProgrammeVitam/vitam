@@ -134,7 +134,7 @@ public class InsertUnitMetaDataClientTest extends JerseyTest {
         client.insertUnit(QUERY);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_emptyRequest_When_Insert_ThenReturn_BadRequest() throws Exception {
         client.insertUnit("");
     }

@@ -91,16 +91,6 @@ public interface AccessResource extends VitamResource {
 
     /**
      * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
-     *
-     * @param headers http request headers
-     * @param idObjectGroup the ObjectGroup id
-     * @param query the DSL query as json
-     * @return an http response containing an InputStream of the Object if it is found or a json serialized error
-     */
-    Response getObjectStream(HttpHeaders headers, String idObjectGroup, String query);
-
-    /**
-     * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
      * (Async version)
      * 
      * @param headers
@@ -110,17 +100,6 @@ public interface AccessResource extends VitamResource {
      */
     void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         String query, @Suspended final AsyncResponse asyncResponse);
-
-    /**
-     * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
-     * String query) if the "GET" value is found in method override http header. Return an error otherwise.
-     *
-     * @param headers http request headers
-     * @param idObjectGroup the ObjectGroup id
-     * @param query the DSL query as json
-     * @return an http response containing an InputStream of the Object if it is found or a json serialized error
-     */
-    Response getObjectStreamPost(HttpHeaders headers, String idObjectGroup, String query);
 
     /**
      * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,

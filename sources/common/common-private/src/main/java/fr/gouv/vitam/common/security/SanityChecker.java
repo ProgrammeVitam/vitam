@@ -57,7 +57,6 @@ import com.google.json.JsonSanitizer;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -117,17 +116,13 @@ public class SanityChecker {
     // Default ASCII for Param check
     private static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
     // ISSUE with integration
-    private static Validator ESAPI;
-
-    static {
-        init();
-    }
+    private static final Validator ESAPI = init();
 
     private SanityChecker() {
         // Empty constructor
     }
 
-    private static final void init() {
+    private static final Validator init() {
         RULES.add(CDATA_TAG_UNESCAPED);
         RULES.add(CDATA_TAG_ESCAPED);
         RULES.add(ENTITY_TAG_UNESCAPED);
@@ -135,7 +130,7 @@ public class SanityChecker {
         RULES.add(SCRIPT_TAG_UNESCAPED);
         RULES.add(SCRIPT_TAG_ESCAPED);
         // ISSUE with integration
-        ESAPI = new DefaultValidator();
+        return new DefaultValidator();
     }
 
     /**
@@ -209,16 +204,15 @@ public class SanityChecker {
         }
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         if (requestHeaders != null && !requestHeaders.isEmpty()) {
-            for (final VitamHttpHeader vitamHttpHeader : VitamHttpHeader.values()) {
-                final List<String> values = requestHeaders.get(vitamHttpHeader.getName());
+            for (final String header : requestHeaders.keySet()) {
+                final List<String> values = requestHeaders.get(header);
                 if (values != null && values.stream().anyMatch(value -> isIssueOnParam(value))) {
-                    throw new InvalidParseOperationException(String.format("%s header has wrong value", vitamHttpHeader
-                        .getName()));
+                    throw new InvalidParseOperationException(String.format("%s header has wrong value", header));
                 }
             }
         }
     }
-    
+
     private static boolean isIssueOnParam(String param) {
         try {
             checkParam(param);

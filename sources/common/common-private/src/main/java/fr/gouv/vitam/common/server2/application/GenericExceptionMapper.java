@@ -40,7 +40,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -56,29 +59,33 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     @Override
     public Response toResponse(Throwable exception) {
         final VitamError vitamError = new VitamError(VitamCodeHelper.getCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
+        String description = exception.getMessage();
+        if (Strings.isNullOrEmpty(description)) {
+            description = StringUtils.getClassName(exception);
+        }
         vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getMessage())
-            .setDescription(exception.getLocalizedMessage())
+            .setDescription(description)
             .setState(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.name())
             .setHttpCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getStatus().getStatusCode());
         if (exception instanceof BadRequestException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.BAD_REQUEST.getStatusCode());
         } else if (exception instanceof ForbiddenException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.FORBIDDEN.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.FORBIDDEN.getStatusCode());
         } else if (exception instanceof NotAcceptableException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.NOT_ACCEPTABLE.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.NOT_ACCEPTABLE.getStatusCode());
         } else if (exception instanceof NotAllowedException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         } else if (exception instanceof NotAuthorizedException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.UNAUTHORIZED.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.UNAUTHORIZED.getStatusCode());
         } else if (exception instanceof NotFoundException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.NOT_FOUND.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.NOT_FOUND.getStatusCode());
         } else if (exception instanceof NotSupportedException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
         } else if (exception instanceof RedirectionException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.SEE_OTHER.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.SEE_OTHER.getStatusCode());
         } else if (exception instanceof ServiceUnavailableException) {
-            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+            vitamError.setMessage(description).setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         }
         LOGGER.error(vitamError.toString(), exception);
         return Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)

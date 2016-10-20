@@ -30,6 +30,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -59,8 +61,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
-import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 
@@ -139,6 +141,7 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
 
     // Define your Resource class if necessary
     @Path(RESOURCE_PATH)
+    @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
@@ -205,30 +208,17 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
         @Consumes(MediaType.TEXT_PLAIN)
         @Produces(MediaType.APPLICATION_JSON)
         public void postAsync(String arg, @Suspended final AsyncResponse asyncResponse) {
-            final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
-            futureResponseHelper.startAsyncRunnable(new AsyncRunnable() {
-
-                @Override
-                public Response run() {
-                    final Response response = expectedResponse.post();
-                    try {
-                        Thread.sleep(10);
-                    } catch (final InterruptedException e) {
-                        // ignore
-                    }
-                    // Fake remote received response from an inner client
-                    setInnerClientResponseToCloseOnSent(response);
-                    if (response.getStatus() >= 500) {
-                        throw new IllegalArgumentException("Error");
-                    } else if (response.getStatus() >= 400) {
-                        return Response.status(response.getStatus())
-                            .entity(DEFAULT_XML_CONFIGURATION_FILE).build();
-                    } else {
-                        return Response.status(response.getStatus())
-                            .entity(DEFAULT_XML_CONFIGURATION_FILE).build();
-                    }
-                }
-            });
+            final Response response = expectedResponse.post();
+            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            if (response.getStatus() >= 500) {
+                throw new IllegalArgumentException("Error");
+            } else if (response.getStatus() >= 400) {
+                helper.writeErrorResponse(Response.status(response.getStatus())
+                    .entity("Error")
+                    .build());
+            } else {
+                helper.writeResponse(Response.status(response.getStatus()));
+            }
         }
     }
     // ************************************ //
@@ -345,21 +335,22 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
 
     @Test
     public void asyncCommandWithBodyRestTestClient() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
+        when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
                 .addHeader("X-Request-Id", "abcd")
                 .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
                 .status(Status.OK).when().post("resourceasync", String.class));
-        when(mock.post())
-            .thenReturn(Response.status(Status.BAD_REQUEST).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
-        assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
+        response = ResponseHelper.getOutboundResponse(Status.BAD_REQUEST, DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN, null);
+        when(mock.post()).thenReturn(response);
+        assertEquals("Error",
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
                 .addHeader("X-Request-Id", "abcd")
                 .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
                 .status(Status.BAD_REQUEST).when().post("resourceasync", String.class));
-        when(mock.post())
-            .thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
+        response = ResponseHelper.getOutboundResponse(Status.INTERNAL_SERVER_ERROR, DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN, null);
+        when(mock.post()).thenReturn(response);
         // Here no equality since an exception raises a 500 error
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
             .addHeader("X-Request-Id", "abcd")

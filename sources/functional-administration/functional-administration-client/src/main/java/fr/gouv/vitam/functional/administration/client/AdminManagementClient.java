@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -146,7 +145,7 @@ public interface AdminManagementClient {
         IOException;
     
     /**
-     * @param AccessionRegisterDetail register
+     * @param register AccessionRegisterDetail 
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
      */

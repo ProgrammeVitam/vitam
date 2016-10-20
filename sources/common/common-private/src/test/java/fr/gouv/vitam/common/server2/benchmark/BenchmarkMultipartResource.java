@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResou
  * Benchmark Resource
  */
 @Path("/benchmark")
+@javax.ws.rs.ApplicationPath("webresources")
 public class BenchmarkMultipartResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkMultipartResource.class);
 
@@ -96,8 +97,8 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     /**
      * upload using POST
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.POST)
@@ -111,8 +112,8 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     /**
      * upload using PUT
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.PUT)
@@ -126,8 +127,8 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     /**
      * upload using GET
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.GET)
@@ -141,8 +142,8 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     /**
      * upload using DELETE
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.DELETE)
@@ -155,9 +156,10 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
 
     /**
      * multipart using POST
-     *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * 
+     * @param sipDisposition
+     * @param stream data input stream
+     * @param check
      * @return Response
      */
     @Path("multipart" + HttpMethod.POST)

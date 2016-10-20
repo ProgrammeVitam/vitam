@@ -61,11 +61,13 @@ import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
  * Logbook LifeCycles implementation base class
  */
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
     private final MongoDbAccess mongoDbAccess;
 
-    private Map<String, MongoCursor<?>> mapXCursor = new HashMap<>();
+    /**
+     * This is valid as Static final since this has to be shared among all requests
+     */
+    private static final Map<String, MongoCursor<?>> mapXCursor = new HashMap<>();
 
 
     /**

@@ -33,15 +33,23 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.Future;
 
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotAcceptableException;
+import javax.ws.rs.NotAllowedException;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -49,12 +57,15 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 
 public class DefaultClientTest extends VitamJerseyTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
     private DefaultClient client;
@@ -122,6 +133,7 @@ public class DefaultClientTest extends VitamJerseyTest {
 
     // Define your Resource class if necessary
     @Path(RESOURCE_PATH)
+    @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
@@ -228,5 +240,60 @@ public class DefaultClientTest extends VitamJerseyTest {
     public void failsStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.SERVICE_UNAVAILABLE).build());
         client.checkStatus();
+    }
+
+    @Test
+    public void testVariousFails() throws Exception {
+        Response response;
+        try {
+            when(mock.get()).thenThrow(new ForbiddenException());
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new NotAcceptableException());
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.NOT_ACCEPTABLE.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new NotAllowedException("POST"));
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new NotAuthorizedException(Response.status(Status.UNAUTHORIZED).build()));
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new NotSupportedException());
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new ServiceUnavailableException());
+            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
+        try {
+            when(mock.get()).thenThrow(new NotFoundException());
+            response =
+                client.performRequest(HttpMethod.GET, "/statusNotFound", null, MediaType.APPLICATION_JSON_TYPE, true);
+            assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        } catch (Exception e) {
+            // Ignore
+        }
     }
 }

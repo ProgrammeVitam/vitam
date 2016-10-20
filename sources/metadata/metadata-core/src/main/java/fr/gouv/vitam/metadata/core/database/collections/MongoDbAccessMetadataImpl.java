@@ -58,6 +58,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
+     * @param esClient Elasticsearch client
      */
 
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,

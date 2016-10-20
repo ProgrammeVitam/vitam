@@ -38,6 +38,9 @@ public class URLCodec {
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
     private static final String DELEMITER_SEPARATED_VALUES = ";";
     
+    private URLCodec() {
+        // Empty
+    }
     /**
      * encode URL using secret
      * 
@@ -45,6 +48,7 @@ public class URLCodec {
      * @param url
      * @param timestamp
      * @param secret
+     * @param digestType 
      * @return Platform-Id
      */
     public static String encodeURL(String httpMethod, String url, String timestamp, String secret,

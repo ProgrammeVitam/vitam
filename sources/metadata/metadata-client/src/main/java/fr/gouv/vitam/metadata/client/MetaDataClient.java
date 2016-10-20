@@ -33,8 +33,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -93,8 +91,10 @@ public class MetaDataClient {
     public String insertUnit(String insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException {
-        if (StringUtils.isEmpty(insertQuery)) {
-            throw new IllegalArgumentException(INSERT_UNITS_QUERY_NULL);
+        try {
+            ParametersChecker.checkParameter(INSERT_UNITS_QUERY_NULL, insertQuery);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
 
         final Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
@@ -136,9 +136,10 @@ public class MetaDataClient {
      */
     public JsonNode selectUnits(String selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException {
-
-        if (StringUtils.isEmpty(selectQuery)) {
-            throw new InvalidParseOperationException(SELECT_UNITS_QUERY_NULL);
+        try {
+            ParametersChecker.checkParameter(SELECT_UNITS_QUERY_NULL, selectQuery);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
         final Response response =
             client.target(url).path("units").request(MediaType.APPLICATION_JSON)
@@ -168,19 +169,15 @@ public class MetaDataClient {
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
-     * @throws IllegalArgumentException thrown when unit id is null or blank
      */
     public JsonNode selectUnitbyId(String selectQuery, String unitId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        IllegalArgumentException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException {
         // check parameters before call web service
         // check select query
-        if (StringUtils.isBlank(selectQuery)) {
-            throw new InvalidParseOperationException(SELECT_UNITS_QUERY_NULL);
-        }
-        // check unit id
-        if (StringUtils.isBlank(unitId)) {
-            throw new IllegalArgumentException(BLANK_PARAM);
+        try {
+            ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
 
         final Response response =
@@ -209,16 +206,19 @@ public class MetaDataClient {
      *        null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
-     * @throws InvalidParseOperationException thrown when the Query is badly formatted
+     * @throws InvalidParseOperationException thrown when the Query is badly formatted or objectGroupId is empty
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
-     * @throws IllegalArgumentException thrown when objectGroupId or selectQuery id is null or blank
      * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
      */
     public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        IllegalArgumentException, MetadataInvalidSelectException {
-        ParametersChecker.checkParameter(SELECT_OBJECT_GROUP_QUERY_NULL, selectQuery);
-        ParametersChecker.checkParameter(BLANK_PARAM, objectGroupId);
+        MetadataInvalidSelectException {
+        try {
+            ParametersChecker.checkParameter(SELECT_OBJECT_GROUP_QUERY_NULL, selectQuery);
+            ParametersChecker.checkParameter(BLANK_PARAM, objectGroupId);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
 
         final Response response =
             client.target(url).path("objectgroups/" + objectGroupId).request(MediaType.APPLICATION_JSON)
@@ -242,23 +242,23 @@ public class MetaDataClient {
     /**
      * Update units by query (DSL) and path unit id
      *
-     * @param query : update query {@link Select} as String <br>
+     * @param updateQuery  update query {@link Select} as String <br>
      *        Null is not allowed
-     * @param unitId : unit id <br>
+     * @param unitId  unit id <br>
      *        null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
-     * @throws IllegalArgumentException thrown when unit id is null or blank
      */
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        IllegalArgumentException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException {
         // check parameters before call web service
         // check update query
-        if (StringUtils.isBlank(updateQuery)) {
-            throw new InvalidParseOperationException(UPDATE_UNITS_QUERY_NULL);
+        try {
+            ParametersChecker.checkParameter(UPDATE_UNITS_QUERY_NULL, updateQuery, unitId);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
 
         final Response response =

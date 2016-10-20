@@ -55,6 +55,7 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
  * This class is resource provider of ProcessManagement
  */
 @Path("/processing/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);

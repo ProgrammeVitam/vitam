@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -95,20 +94,20 @@ public interface AccessModule {
     /**
      * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
      * 
-     * @param runnable to use to set the original response
      * @param idObjectGroup The Object Group Id
      * @param queryJson the DSL query
      * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
      * @param version the version number to get
      * @param tenantId the tenant id
-     * @return The object requested as an InputStream and its original filename and mimetype
+     * @return The object requested as an InputStream within a Response from remote server and its original filename and
+     *         mimetype
      *
      * @throws MetaDataNotFoundException If the ObjectGroup could not be find
      * @throws StorageNotFoundException If the object is not found in storage
      * @throws InvalidParseOperationException when a query is badly structured
      * @throws AccessExecutionException For other technical errors
      */
-    AccessBinaryData getOneObjectFromObjectGroup(AsyncRunnable runnable, String idObjectGroup, JsonNode queryJson,
+    AccessBinaryData getOneObjectFromObjectGroup(String idObjectGroup, JsonNode queryJson,
         String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessExecutionException;

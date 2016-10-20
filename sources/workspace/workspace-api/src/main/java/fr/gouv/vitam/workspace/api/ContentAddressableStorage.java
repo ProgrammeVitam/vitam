@@ -196,8 +196,8 @@ public interface ContentAddressableStorage {
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
      *
-     * @param containerName, not null allowed container where this exists.
-     * @param folderName, not null allowed fully qualified folder name relative to the container.
+     * @param containerName not null allowed container where this exists.
+     * @param folderName not null allowed fully qualified folder name relative to the container.
      *
      * @return a list of URI
      *

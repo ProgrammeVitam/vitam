@@ -77,6 +77,7 @@ public class DefaultSslClientTest {
 
 
     @Path(BASE_URI)
+    @javax.ws.rs.ApplicationPath("webresources")
     private static class SslResource extends ApplicationStatusResource {
 
         // Empty

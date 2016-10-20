@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 /**
  * SSL Key
  */
+//FIXME to remove once V2 done
 public class SSLKey {
 
     private static final String PARAMETERS = "SSLKey parameters";

@@ -63,7 +63,9 @@ public class UploadResponseDTO {
     /**
      * Constructor UploadResponseDTO
      */
-    public UploadResponseDTO() {}
+    public UploadResponseDTO() {
+        // Empty
+    }
 
     /**
      * Getter FileName
@@ -76,8 +78,8 @@ public class UploadResponseDTO {
 
     /**
      * @param fileName file name to set
+     * @return this
      */
-    // TODO commentaire @return
     public UploadResponseDTO setFileName(String fileName) {
         this.fileName = fileName;
         return this;
@@ -96,6 +98,7 @@ public class UploadResponseDTO {
      * Setter Message
      *
      * @param message
+     * @return this
      */
     public UploadResponseDTO setMessage(String message) {
         this.message = message;
@@ -115,6 +118,7 @@ public class UploadResponseDTO {
      * Setter HttpCode
      *
      * @param httpCode
+     * @return this
      */
     public UploadResponseDTO setHttpCode(int httpCode) {
         this.httpCode = httpCode;
@@ -134,6 +138,7 @@ public class UploadResponseDTO {
      * Setter Vitam Code
      *
      * @param vitamCode
+     * @return this
      */
     public UploadResponseDTO setVitamCode(String vitamCode) {
         this.vitamCode = vitamCode;
@@ -153,6 +158,7 @@ public class UploadResponseDTO {
      * Setter EngineCode
      *
      * @param engineCode
+     * @return this
      */
     public UploadResponseDTO setEngineCode(String engineCode) {
         this.engineCode = engineCode;
@@ -173,6 +179,7 @@ public class UploadResponseDTO {
      * Setter Vitam Status
      *
      * @param vitamStatus
+     * @return this
      */
     public UploadResponseDTO setVitamStatus(String vitamStatus) {
         this.vitamStatus = vitamStatus;
@@ -192,6 +199,7 @@ public class UploadResponseDTO {
      * Setter EngineStatus
      *
      * @param engineStatus
+     * @return this
      */
     public UploadResponseDTO setEngineStatus(String engineStatus) {
         this.engineStatus = engineStatus;

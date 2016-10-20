@@ -39,7 +39,6 @@ import java.io.InputStream;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -77,7 +76,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 @RunWith(PowerMockRunner.class)
@@ -487,10 +485,11 @@ public class AccessModuleImplTest {
             anyObject()))
                 .thenReturn(responseMock);
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
         assertNotNull(abd);
-        final InputStream binaryMaster = abd.getInputStream();
-        assertNotNull(binaryMaster);
+        final Response binaryMasterResponse = abd.getOriginalResponse();
+        assertNotNull(binaryMasterResponse);
+        final InputStream binaryMaster = binaryMasterResponse.readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream(FAKE_METADATA_RESULT);
         assertTrue(IOUtils.contentEquals(binaryMaster, stream2));
     }
@@ -499,13 +498,13 @@ public class AccessModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
-        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessExecutionException.class)
@@ -516,7 +515,7 @@ public class AccessModuleImplTest {
             anyObject()))
                 .thenThrow(new StorageServerClientException("Test wanted exception"));
         accessModuleImpl = new AccessModuleImpl(conf, storageClient);
-        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
 }

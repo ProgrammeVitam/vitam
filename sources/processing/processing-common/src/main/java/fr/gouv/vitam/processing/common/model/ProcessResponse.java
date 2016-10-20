@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -158,7 +156,7 @@ public class ProcessResponse implements EngineResponse {
     /**
      * getGlobalProcessStatusCode, return the global status of workflow processing
      *
-     * @param responses, list of step response
+     * @param responses list of step response
      * @return the status of StatusCode type
      */
     public StatusCode getGlobalProcessStatusCode(List<EngineResponse> responses) {
@@ -182,7 +180,7 @@ public class ProcessResponse implements EngineResponse {
     /**
      * getGlobalProcessOutcomeMessage, return the all outcome message of workflow processing
      *
-     * @param responses, message list
+     * @param responses message list
      * @return the global message
      */
     public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
@@ -212,7 +210,7 @@ public class ProcessResponse implements EngineResponse {
             }
         }
 
-        if (StringUtils.isEmpty(globalOutcomeMessage)) {
+        if (globalOutcomeMessage.length() == 0) {
             globalOutcomeMessage.append("DefaultMessage");
         }
         return globalOutcomeMessage.toString();

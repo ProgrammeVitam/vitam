@@ -34,6 +34,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,13 +59,18 @@ public class AdminStatusResource implements VitamResource {
      * Status for Administration resource path
      */
     public static final String STATUS_URL = VitamConfiguration.STATUS_URL;
+    /**
+     * Autotest for Administration resource path
+     */
+    public static final String AUTOTEST_URL = "/autotest";
     private final VitamStatusService statusService;
+    private final VitamServiceRegistry autotestService;
 
     /**
      * Constructor AdminStatusResource using implicit BasicVitamStatusServiceImpl
      */
     public AdminStatusResource() {
-        statusService = new BasicVitamStatusServiceImpl();
+        this(new BasicVitamStatusServiceImpl());
     }
 
     /**
@@ -72,13 +79,34 @@ public class AdminStatusResource implements VitamResource {
      * @param statusService
      */
     public AdminStatusResource(VitamStatusService statusService) {
+        this(statusService, new VitamServiceRegistry().register(statusService));
+    }
+
+    /**
+     * Constructor AdminStatusResource
+     *
+     * @param statusService
+     * @param autotestService 
+     */
+    public AdminStatusResource(VitamStatusService statusService, VitamServiceRegistry autotestService) {
         this.statusService = statusService;
+        this.autotestService = autotestService;
+    }
+
+    /**
+     * Constructor AdminStatusResource
+     *
+     * @param autotestService 
+     */
+    public AdminStatusResource(VitamServiceRegistry autotestService) {
+        this.statusService = new BasicVitamStatusServiceImpl();
+        this.autotestService = autotestService;
     }
 
     /**
      * Return a response status
      *
-     * @return Response containing the status of the service
+     * @return Response containing the status of the service in AdminStatusMessage form
      */
     @Path(STATUS_URL)
     @GET
@@ -100,5 +128,18 @@ public class AdminStatusResource implements VitamResource {
             LOGGER.error(e);
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
+    }
+    
+    /**
+     * @return the full status including dependencies in VitamError form
+     */
+    @Path(AUTOTEST_URL)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response adminAutotest() {
+        ObjectNode status;
+        status = autotestService.getAutotestStatus();
+        return Response.status(status.get("httpCode").asInt())
+            .entity(status).build();
     }
 }

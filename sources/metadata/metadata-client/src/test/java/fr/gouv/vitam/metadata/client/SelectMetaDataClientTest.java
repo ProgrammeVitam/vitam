@@ -196,13 +196,13 @@ public class SelectMetaDataClientTest extends JerseyTest {
         client.selectObjectGrouptbyId(QUERY_ID, "ogId");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_blankQuery_whenSelectObjectGroupById_ThenReturn_MetadataInvalidSelectException()
         throws Exception {
         client.selectObjectGrouptbyId("", "");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_QueryAndBlankUnitId_whenSelectObjectGroupById_ThenReturn_internal_server_error()
         throws Exception {
         client.selectObjectGrouptbyId(QUERY_ID, "");

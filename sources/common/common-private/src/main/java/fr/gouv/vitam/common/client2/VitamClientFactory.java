@@ -64,6 +64,8 @@ import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutorProvider;
 
 /**
  * General VitamClientFactory for non SSL client
@@ -117,6 +119,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private VitamClientType vitamClientType = VitamClientType.MOCK;
     PoolingHttpClientConnectionManager chunkedPoolingManager;
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
+    VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getInstance();
 
     /**
      * Constructor with standard configuration
@@ -387,6 +390,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         Logger.getLogger(JerseyInvocation.class.getName()).setLevel(Level.OFF);
         config.register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
+            .register(new VitamThreadPoolExecutorProvider("Vitam"))
             // Not supported MultiPartFeature.class
             .property(ClientProperties.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize())
             .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.CHUNKED)
@@ -407,6 +411,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             .property(VitamClientProperties.DISABLE_AUTOMATIC_RETRIES, true)
             .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
         config.connectorProvider(new ApacheConnectorProvider());
+    }
+
+    /**
+     * 
+     * @return the VitamThreadPoolExecutor used by the server
+     */
+    public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {
+        return vitamThreadPoolExecutor;
     }
 
     /**

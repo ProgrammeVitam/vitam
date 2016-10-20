@@ -259,6 +259,8 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+        } catch (RuntimeException e) {
+            throw new IOException(e);
         }
     }
 
@@ -277,6 +279,8 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return mapper.readValue(yamlFileReader, typeReference);
+        } catch (RuntimeException e) {
+            throw new IOException(e);
         }
     }
 
@@ -293,7 +297,11 @@ public final class PropertiesUtils {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return clasz.cast(mapper.readValue(yamlInputStream, clasz));
+        try {
+            return clasz.cast(mapper.readValue(yamlInputStream, clasz));
+        } catch (RuntimeException e) {
+            throw new IOException(e);
+        }
     }
 
     /**

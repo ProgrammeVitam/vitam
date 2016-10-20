@@ -27,22 +27,28 @@
 package fr.gouv.vitam.common.client2;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
+import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 
 /**
  * Abstract Partial client class for all vitam clients
  */
 public class DefaultAdminClient extends AbstractCommonClient implements AdminClient {
+    private static final String THE_REQUESTED_SERVICE_IS_UNAVAILABLE = "The requested service is unavailable";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultAdminClient.class);
     private final String adminUrl;
 
@@ -79,6 +85,40 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
+        } catch (ProcessingException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return new AdminStatusMessage().setStatus(false);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public VitamError adminAutotest() throws VitamClientException {
+        Response response = null;
+        String name = StringUtils.getClassName(this.clientFactory);
+        VitamError message = new VitamError("000000").setDescription(name)
+            .setContext(name).setDescription(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
+            .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
+            .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
+        try {
+            final Builder builder =
+                buildRequest(HttpMethod.GET, adminUrl, AdminStatusResource.AUTOTEST_URL, null,
+                    MediaType.APPLICATION_JSON_TYPE, true);
+            response = builder.method(HttpMethod.GET);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (response.hasEntity()) {
+                message = response.readEntity(VitamError.class);
+            }
+            if (status == Status.OK || status == Status.SERVICE_UNAVAILABLE) {
+                return message;
+            }
+            final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
+            LOGGER.error(messageText);
+            throw new VitamClientException(messageText);
+        } catch (ProcessingException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return message;
         } finally {
             consumeAnyEntityAndClose(response);
         }

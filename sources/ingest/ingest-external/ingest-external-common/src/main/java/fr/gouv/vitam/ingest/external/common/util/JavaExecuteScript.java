@@ -46,14 +46,15 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
  */
 public class JavaExecuteScript {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JavaExecuteScript.class);
-    // private static final long timeoutScanDelay = 60000;
 
     /**
      * Return status when execute the shell script scan-clamav.sh for scanning the file
      *
      * @param cmd the command line that will be executed
      * @param arg the file to scan
+     * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
+     * @throws IngestExternalException 
      * @throws IngestExternException
      * @throws FileNotFoundException
      */

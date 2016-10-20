@@ -36,7 +36,6 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
@@ -48,6 +47,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -129,7 +130,7 @@ public class ServerApplication {
             throw new VitamApplicationServerException("Configuration not found");
         }
 
-        if (!StringUtils.isBlank(configuration.getJettyConfig())) {
+        if (!Strings.isNullOrEmpty(configuration.getJettyConfig())) {
             final String jettyConfig = configuration.getJettyConfig();
             vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         } else {
@@ -205,6 +206,7 @@ public class ServerApplication {
 
     /**
      * Sets the WebApplicationConfig attribute
+     * @param webConfiguration 
      *
      */
     public static void setWebApplicationConfig(WebApplicationConfig webConfiguration) {

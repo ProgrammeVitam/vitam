@@ -87,7 +87,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String GETTING_FORMAT_IDENTIFIER_KO =
         "Format n'existe pas";
 
-    public static final String PRONOM_NAMESPACE = "pronom";
+    private static final String PRONOM_NAMESPACE = "pronom";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
@@ -205,8 +205,6 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
             logbookParametersList.add(endParameters);
-
-            IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
 
             if (!isFileInfected) {
                 LogbookParameters startedSiegFriedParameters = LogbookParametersFactory.newLogbookOperationParameters(

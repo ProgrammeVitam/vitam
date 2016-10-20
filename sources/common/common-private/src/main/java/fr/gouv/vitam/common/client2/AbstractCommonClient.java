@@ -337,4 +337,12 @@ abstract class AbstractCommonClient implements BasicClient {
     boolean getChunkedMode() {
         return clientFactory.getChunkedMode();
     }
+    
+    /**
+     * 
+     * @return the VitamClientFactory
+     */
+    public VitamClientFactory<?> getVitamClientFactory() {
+        return clientFactory;
+    }
 }

@@ -41,6 +41,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,7 +53,6 @@ import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,8 +65,8 @@ import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server2.application.FutureResponseHelper;
-import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -75,10 +75,15 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
  * AccessResourceImpl implements AccessResource
  */
 @Path("/access/v1")
-@Consumes("application/json")
-@Produces("application/json")
+@javax.ws.rs.ApplicationPath("webresources")
 public class AccessResourceImpl extends ApplicationStatusResource implements AccessResource {
 
+    private static final String THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER =
+        "There is no 'X-Http-Method-Override:GET' as a header";
+    private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
+    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
+        "Execution of DSL Vitam from Access ongoing...";
+    private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImpl.class);
@@ -117,21 +122,21 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnits(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
         JsonNode result = null;
         JsonNode queryJson = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
                 GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
+                SanityChecker.checkJsonAll(queryJson);
                 result = accessModule.selectUnit(queryJson);
             } else {
-                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
+                throw new AccessExecutionException(THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER);
             }
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Bad request Exception ", e);
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -144,7 +149,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
                 .entity(getErrorEntity(status))
                 .build();
         }
-        LOGGER.debug("End of execution of DSL Vitam from Access");
+        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
     }
 
@@ -158,23 +163,24 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitById(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("id_unit") String id_unit) {
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
+        @PathParam("id_unit") String idUnit) {
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
         JsonNode queryJson = null;
         JsonNode result = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
                 GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
-                result = accessModule.selectUnitbyId(queryJson, id_unit);
+                SanityChecker.checkJsonAll(queryJson);
+                SanityChecker.checkParameter(idUnit);
+                result = accessModule.selectUnitbyId(queryJson, idUnit);
             } else {
-                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
+                throw new AccessExecutionException(THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER);
             }
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Bad request Exception ", e);
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -187,7 +193,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
                 .entity(getErrorEntity(status))
                 .build();
         }
-        LOGGER.debug("End of execution of DSL Vitam from Access");
+        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
     }
 
@@ -195,7 +201,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
      * update archive units by Id with Json query
      *
      * @param queryDsl DSK, null not allowed
-     * @param id_unit units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @Override
@@ -203,20 +209,21 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitById(String queryDsl, @PathParam("id_unit") String id_unit) {
+    public Response updateUnitById(String queryDsl, @PathParam("id_unit") String idUnit) {
 
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
         JsonNode queryJson = null;
         JsonNode result = null;
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
             GlobalDatasParser.sanityRequestCheck(queryDsl);
             queryJson = JsonHandler.getFromString(queryDsl);
-            result = accessModule.updateUnitbyId(queryJson, id_unit);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idUnit);
+            result = accessModule.updateUnitbyId(queryJson, idUnit);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Bad request Exception ", e);
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -229,7 +236,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
                 .entity(getErrorEntity(status))
                 .build();
         }
-        LOGGER.debug("End of execution of DSL Vitam from Access");
+        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
     }
 
@@ -242,13 +249,14 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
         JsonNode result;
         Status status;
         try {
-            ParametersChecker.checkParameter("Must have a dsl query", query);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+            GlobalDatasParser.sanityRequestCheck(query);
             final JsonNode queryJson = JsonHandler.getFromString(query);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idObjectGroup);
             result = accessModule.selectObjectGroupById(queryJson, idObjectGroup);
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
-            status = Status.BAD_REQUEST;
+            status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -276,172 +284,101 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
         return getObjectGroup(idObjectGroup, query);
     }
 
-    @Override
-    /*
-    @GET
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    */
-    // FIXME DEADCODE
-    public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        String query) {
+    private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup, String query,
+        boolean post) {
+        if (post) {
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.PRECONDITION_FAILED)
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+            }
+            final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+            if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
+                        .toString()).build());
+            }
+        }
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
         final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
-        AccessBinaryData abd;
+        AsyncInputStreamHelper helper = null;
         try {
-            HttpHeaderHelper.checkVitamHeaders(headers);
-            ParametersChecker.checkParameter("Must have a dsl query", query);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+            SanityChecker.checkHeaders(headers);
+            GlobalDatasParser.sanityRequestCheck(query);
             final JsonNode queryJson = JsonHandler.getFromString(query);
-            abd = accessModule.getOneObjectFromObjectGroup(null, idObjectGroup, queryJson, xQualifier,
-                Integer.valueOf(xVersion), xTenantId);
-        } catch (final InvalidParseOperationException exc) {
+            HttpHeaderHelper.checkVitamHeaders(headers);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idObjectGroup);
+            AccessBinaryData receivedAbd =
+                accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier,
+                    Integer.valueOf(xVersion), xTenantId);
+            helper = new AsyncInputStreamHelper(asyncResponse, receivedAbd.getOriginalResponse());
+            ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, xQualifier)
+                .header(GlobalDataRest.X_VERSION, xVersion)
+                .header("Content-Disposition", "attachment; filename=\"" + receivedAbd.getFilename() + "\"")
+                .type(receivedAbd.getMimetype());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
-        } catch (final IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
+            Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .build();
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         } catch (final AccessExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                .toString()).build();
+            Response errorResponse =
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                    .toString()).build();
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
+            Response errorResponse =
+                Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         }
-        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion)
-            .header("Content-Disposition", "attachment; filename=\"" + abd.getFilename() + "\"")
-            .entity(abd.getInputStream())
-            .type(abd.getMimetype()).build();
-    }
-    
-    private class AsyncRunnableObjectStream extends AsyncRunnable {
-        private final HttpHeaders headers;
-        private final String idObjectGroup;
-        private final String query;
-        private final boolean post;
-        
-        /**
-         * @param headers
-         * @param idObjectGroup
-         * @param query
-         * @param post 
-         */
-        public AsyncRunnableObjectStream(HttpHeaders headers, String idObjectGroup, String query, boolean post) {
-            this.headers = headers;
-            this.idObjectGroup = idObjectGroup;
-            this.query = query;
-            this.post = post;
-        }
-
-        @Override
-        public Response run() {
-            if (post) {
-                if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-                    return Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-                }
-                final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-                if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
-                    return Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
-                        .toString()).build();
-                }
-            }
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
-                LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                    .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-                return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-            }
-            final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
-            final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-            final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
-            AccessBinaryData abd;
-            try {
-                HttpHeaderHelper.checkVitamHeaders(headers);
-                ParametersChecker.checkParameter("Must have a dsl query", query);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
-                final JsonNode queryJson = JsonHandler.getFromString(query);
-                abd = accessModule.getOneObjectFromObjectGroup(this, idObjectGroup, queryJson, xQualifier,
-                    Integer.valueOf(xVersion), xTenantId);
-            } catch (final InvalidParseOperationException exc) {
-                LOGGER.error(exc);
-                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
-            } catch (final IllegalArgumentException exc) {
-                LOGGER.error(exc);
-                return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-            } catch (final AccessExecutionException exc) {
-                LOGGER.error(exc.getMessage(), exc);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
-                    .toString()).build();
-            } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
-                LOGGER.error(exc);
-                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
-            }
-            return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion)
-                .header("Content-Disposition", "attachment; filename=\"" + abd.getFilename() + "\"")
-                .entity(abd.getInputStream())
-                .type(abd.getMimetype()).build();
-        }
-        
     }
 
     @Override
     @GET
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    // @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         String query, @Suspended final AsyncResponse asyncResponse) {
-        final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
-        futureResponseHelper.startAsyncRunnable(new AsyncRunnableObjectStream(headers, idObjectGroup, query, false));
-    }
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
-    @Override
-    /*
-    @POST
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    */
-    // FIXME DEADCODE
-    public Response getObjectStreamPost(@Context HttpHeaders headers,
-        @PathParam("id_object_group") String idObjectGroup, String query) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-        }
-        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if (!"GET".equalsIgnoreCase(xHttpOverride)) {
-            return Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
-                .toString()).build();
-        }
-        return getObjectStream(headers, idObjectGroup, query);
+            @Override
+            public void run() {
+                asyncObjectStream(asyncResponse, headers, idObjectGroup, query, false);
+            }
+        });
     }
 
     @Override
     @POST
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    // @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamPostAsync(@Context HttpHeaders headers,
-        @PathParam("id_object_group") String idObjectGroup, String query, @Suspended final AsyncResponse asyncResponse) {
-        final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
-        futureResponseHelper.startAsyncRunnable(new AsyncRunnableObjectStream(headers, idObjectGroup, query, true));
+        @PathParam("id_object_group") String idObjectGroup, String query,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                asyncObjectStream(asyncResponse, headers, idObjectGroup, query, true);
+            }
+        });
     }
 
     private RequestResponseError getErrorEntity(Status status) {

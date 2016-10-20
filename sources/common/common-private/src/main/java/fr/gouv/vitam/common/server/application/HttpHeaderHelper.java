@@ -49,9 +49,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * http header management common vitam.
  */
 public final class HttpHeaderHelper {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HttpHeaderHelper.class);
 
+    private static final String NAME_CANNOT_BE_NULL = "Name cannot be null";
+    private static final String HEADERS_CANNOT_BE_NULL = "Headers cannot be null";
     private static final String CASE_INSENSITIVE = "(?i)";
 
     private HttpHeaderHelper() {
@@ -67,7 +68,7 @@ public final class HttpHeaderHelper {
      * @throws IllegalArgumentException if headers or name is null
      */
     public static List<String> getHeaderValues(HttpHeaders headers, VitamHttpHeader name) {
-        ParametersChecker.checkParameter("Name cannot be null", name);
+        ParametersChecker.checkParameter(NAME_CANNOT_BE_NULL, name);
         return getHeaderValues(headers, name.getName());
     }
 
@@ -80,8 +81,8 @@ public final class HttpHeaderHelper {
      * @throws IllegalArgumentException if headers is null or name is null or empty
      */
     public static List<String> getHeaderValues(HttpHeaders headers, String name) {
-        ParametersChecker.checkParameter("Name cannot be null", name);
-        ParametersChecker.checkParameter("Headers cannot be null", headers);
+        ParametersChecker.checkParameter(NAME_CANNOT_BE_NULL, name);
+        ParametersChecker.checkParameter(HEADERS_CANNOT_BE_NULL, headers);
         return headers.getRequestHeader(name);
     }
 
@@ -95,7 +96,7 @@ public final class HttpHeaderHelper {
      */
     public static boolean hasValuesFor(HttpHeaders headers, VitamHttpHeader vitamHeader) {
         ParametersChecker.checkParameter("Header name cannot be null", vitamHeader);
-        ParametersChecker.checkParameter("Headers cannot be null", headers);
+        ParametersChecker.checkParameter(HEADERS_CANNOT_BE_NULL, headers);
         final List<String> values = headers.getRequestHeader(vitamHeader.getName());
         return values != null && !values.isEmpty();
     }
@@ -110,7 +111,7 @@ public final class HttpHeaderHelper {
      * @throws IllegalArgumentException if headers is null
      */
     public static void checkVitamHeaders(HttpHeaders headers) {
-        ParametersChecker.checkParameter("Headers cannot be null", headers);
+        ParametersChecker.checkParameter(HEADERS_CANNOT_BE_NULL, headers);
         final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         checkVitamHeadersMap(requestHeaders);
     }
@@ -153,7 +154,7 @@ public final class HttpHeaderHelper {
      *         This exception contains all errors in its message.
      */
     public static void validateHeaderValue(HttpHeaders headers, MultivaluedHashMap<String, String> wantedHeaders) {
-        ParametersChecker.checkParameter("Headers cannot be null", headers);
+        ParametersChecker.checkParameter(HEADERS_CANNOT_BE_NULL, headers);
 
         final List<String> errorDetails = new ArrayList<>();
 

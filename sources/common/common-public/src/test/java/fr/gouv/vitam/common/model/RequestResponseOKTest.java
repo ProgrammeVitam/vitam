@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RequestResponseOKTest {
 
-    private ArrayList<String> results;
+    private ArrayList<JsonNode> results;
     private JsonNode query;
 
     @Test

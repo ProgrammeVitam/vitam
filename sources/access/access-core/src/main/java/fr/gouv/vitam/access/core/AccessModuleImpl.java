@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.core;
 
-import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -60,7 +57,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -206,9 +202,7 @@ public class AccessModuleImpl implements AccessModule {
         throws InvalidParseOperationException, AccessExecutionException {
         JsonNode jsonNode;
         ParametersChecker.checkParameter("Data category ", dataCategory);
-        if (StringUtils.isBlank(idDocument)) {
-            throw new IllegalArgumentException();
-        }
+        ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
         try {
             metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
@@ -239,7 +233,7 @@ public class AccessModuleImpl implements AccessModule {
     }
 
     @Override
-    public AccessBinaryData getOneObjectFromObjectGroup(AsyncRunnable runnable, String idObjectGroup,
+    public AccessBinaryData getOneObjectFromObjectGroup(String idObjectGroup,
         JsonNode queryJson, String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessExecutionException,
         InvalidParseOperationException {
@@ -292,10 +286,7 @@ public class AccessModuleImpl implements AccessModule {
         try {
             Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
-            if (runnable != null) {
-                runnable.setInnerClientResponseToCloseOnSent(response);
-            }
-            return new AccessBinaryData(filename, mimetype, response.readEntity(InputStream.class));
+            return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
             throw new AccessExecutionException(e);
         }
@@ -315,10 +306,8 @@ public class AccessModuleImpl implements AccessModule {
         throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
-        if (StringUtils.isEmpty(idUnit)) {
-            throw new IllegalArgumentException(ID_CHECK_FAILED);
-        }
-
+        ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
+        
         // Check Request is really an Update
         RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
         if (!(parser instanceof UpdateParserMultiple)) {

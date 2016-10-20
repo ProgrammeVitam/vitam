@@ -54,7 +54,7 @@
                                 <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:any namespace="##local" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+                        <xsd:any namespace="##local" processContents="lax" minOccurs="0"/>
                     </xsd:choice>
                 </xsd:choice>
             </xsd:sequence>

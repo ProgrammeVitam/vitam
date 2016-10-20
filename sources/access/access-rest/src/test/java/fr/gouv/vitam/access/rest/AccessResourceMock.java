@@ -35,7 +35,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -50,7 +49,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 @Path("/accessMock")
 @Consumes("application/json")
 @Produces("application/json")
-@javax.ws.rs.ApplicationPath("webresources")
 public class AccessResourceMock implements AccessResource {
 
     /**
@@ -111,26 +109,6 @@ public class AccessResourceMock implements AccessResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-        @PathParam("id_object_group") String idObjectGroup, String query) {
-        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
-    }
-
-    @Override
-    @GET
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        String query) {
-        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
-    }
-
-    @Override
-    @POST
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectStreamPost(@Context HttpHeaders headers,
         @PathParam("id_object_group") String idObjectGroup, String query) {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }

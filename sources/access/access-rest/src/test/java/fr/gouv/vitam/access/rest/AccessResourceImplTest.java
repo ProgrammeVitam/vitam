@@ -42,15 +42,9 @@ import java.util.Map;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -69,15 +63,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 // TODO: there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong (should be a
 // fix me)
 public class AccessResourceImplTest {
+    // LOGGER
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImplTest.class);
 
     // URI
     private static final String ACCESS_CONF = "access-test.conf";
@@ -106,8 +100,6 @@ public class AccessResourceImplTest {
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
     private static final String ID = "identifier4";
-    // LOGGER
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImplTest.class);
 
     private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
 
@@ -119,6 +111,7 @@ public class AccessResourceImplTest {
 
     private static AccessModule mock;
 
+    private static int step = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -314,7 +307,6 @@ public class AccessResourceImplTest {
 
     @Test
     public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
-
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
@@ -327,7 +319,6 @@ public class AccessResourceImplTest {
 
     @Test
     public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
-
         given()
             .contentType(ContentType.JSON)
             .body("")
@@ -339,7 +330,6 @@ public class AccessResourceImplTest {
 
     @Test
     public void given_queryThatThrowException_when_updateByID() {
-
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
@@ -454,7 +444,7 @@ public class AccessResourceImplTest {
     public void getObjectGroupBadRequest() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body("test").when()
             .get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -483,27 +473,47 @@ public class AccessResourceImplTest {
     @Test
     public void getObjectStreamOk() throws Exception {
         reset(mock);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Length", "4");
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
-                .thenReturn(new AccessBinaryData("test", MediaType.APPLICATION_OCTET_STREAM, new ByteArrayInputStream("test".getBytes())));
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenReturn(abd);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_OCTET_STREAM);
+            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
+
+        reset(mock);
+        headers.put("Content-Length", "");
+        response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        abd = new AccessBinaryData("test.pdf", "application/pdf", response);
+        when(
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenReturn(abd);
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
     }
 
     @Test
     public void getObjectStreamPostOK() throws Exception {
         reset(mock);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Length", "4");
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
-                .thenReturn(new AccessBinaryData("test", MediaType.APPLICATION_OCTET_STREAM, new ByteArrayInputStream("test".getBytes())));
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenReturn(abd);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_OCTET_STREAM);
+            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
     }
 
     @Test
@@ -539,14 +549,14 @@ public class AccessResourceImplTest {
     public void getObjectStreamBadRequest() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body("test").when().get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectStreamNotFound() throws Exception {
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -555,7 +565,7 @@ public class AccessResourceImplTest {
 
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new MetaDataNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -568,7 +578,7 @@ public class AccessResourceImplTest {
     public void getObjectStreamInternalServerError() throws Exception {
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new AccessExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
