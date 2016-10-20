@@ -182,6 +182,14 @@ public class DbRequestTest {
         "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
         "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
+    private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
+        "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
+    private static final String REQUEST_UPDATE_INDEX_TEST =
+        "{$roots:['aeaqaaaaaet33ntwablhaaku6z67pzqaaaas'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+    private static final String REQUEST_SELECT_TEST_ES_UPDATE =
+        "{$query: { $match : { 'id' : 'aeaqaaaaaet33ntwablhaaku6z67pzqaaaas' , '$max_expansions' : 1  } }}";
+    private static final String REQUEST_INSERT_TEST_ES_UPDATE =
+        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"title\": \"Archive3\" }";
 
 
     /**
@@ -1247,6 +1255,53 @@ public class DbRequestTest {
         LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
 
+    }
+
+
+    @Test
+    public void testUpdateUnitResult() throws Exception {
+        // insert title ARchive 3
+        final DbRequest dbRequest = new DbRequest();
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        Insert insert = new Insert();
+        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+
+        // update title Archive 3 to Archive 2
+        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST);
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple();
+        updateParser.parse(updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateRequest);
+        final Result result2 = dbRequest.execRequest(updateParser, null);
+        LOGGER.debug("result2", result2.getNbResult());
+        assertEquals(1, result2.nbResult);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+
+        // check old value should not exist in the collection
+        final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
+        final SelectParserMultiple selectParser2 = new SelectParserMultiple();
+        Select select1 = new Select();
+        select1.addQueries(match("title", "Archive3").setDepthLimit(1))
+            .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
+        selectParser2.parse(select1.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest2);
+        final Result resultSelectRel6 = dbRequest.execRequest(selectParser2, null);
+        assertEquals(0, resultSelectRel6.nbResult);
+
+        // check new value should exist in the collection
+        final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        Select select = new Select();
+        select.addQueries(match("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel5.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
+            resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)

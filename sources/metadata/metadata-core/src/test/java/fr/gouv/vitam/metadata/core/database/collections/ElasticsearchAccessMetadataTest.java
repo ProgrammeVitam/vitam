@@ -69,6 +69,12 @@ public class ElasticsearchAccessMetadataTest {
     private static final int TENANT_ID = 0;
     private static final String S1 = "{ \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String S2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
+    private static final String S3 =
+        "{$roots:[\"id2\"],$query:[],$filter:{},$action:[{$set:{\"title\":\"Archive2\"}}]}";
+    private static final String S4 = "{$query: { $or : [ { $match : { 'id' : 'id2' , '$max_expansions' : 1  } } ] }}";
+    private static final String S6 = "{$match:{ \"id \": \"id2 \"}}";
+    private static final String S5 =
+        "{$bool : {$must : {$match : {\"title\" : {$query : \"Archive3\",$type : \"boolean\"}}},$filter : {$terms : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -143,7 +149,20 @@ public class ElasticsearchAccessMetadataTest {
         // delete index
         assertEquals(true, esClient.deleteIndex(MetadataCollections.C_UNIT));
 
-
-        final Unit unit1 = new Unit(S1);
     }
+
+    @Test
+    public void testElasticsearchUpdateAccessMetadatas() throws Exception {
+
+        // add index
+        assertEquals(true, esClient.addIndex(MetadataCollections.C_UNIT));
+        // add unit
+        String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, id, S1));
+
+        // update index
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_UNIT, id, S3));
+
+    }
+
 }

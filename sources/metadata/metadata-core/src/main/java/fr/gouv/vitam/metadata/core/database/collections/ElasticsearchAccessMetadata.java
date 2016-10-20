@@ -54,6 +54,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -164,7 +165,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             .getVersion() > 0;
     }
 
-
     /**
      * Add a set of entries in the ElasticSearch index. <br>
      * Used in reload from scratch.
@@ -215,6 +215,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         return eunit;
     }
 
+
     /**
      * Add one VitamDocument to indexation immediately
      *
@@ -240,6 +241,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
         return addEntryIndex(collection, id, esJson);
     }
+
 
     /**
      * Used for iterative reload in restore operation (using bulk).
@@ -270,6 +272,79 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         newdoc.clear();
         return nb;
+    }
+
+
+    /**
+     * Update an entry in the ElasticSearch index
+     *
+     * @param collection
+     * @param id
+     * @param json
+     * @return True if ok
+     * @throws Exception
+     */
+    final boolean updateEntryIndex(final MetadataCollections collection,
+        final String id, final String json) throws Exception {
+        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+        return client.prepareUpdate(collection.getName().toLowerCase(), type, id)
+            .setDoc(json).execute()
+            .actionGet().getVersion() > 0;
+    }
+
+    /**
+     * updateBulkUnitsEntriesIndexes
+     * 
+     * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
+     * 
+     * @param cursor :containing all Units to be indexed
+     */
+    final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) {
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final Unit unit = getFiltered(cursor.next());
+            final String id = unit.getId();
+            unit.remove(VitamDocument.ID);
+
+            final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+
+            bulkRequest.add(client.prepareUpdate(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
+                id).setDoc(dbObject.toString()));
+        }
+        final BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES previous update in error: " + bulkResponse.buildFailureMessage());
+        }
+    }
+
+    /**
+     * 
+     * updateBulkOGEntriesIndexes
+     * 
+     * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
+     * 
+     * @param cursor :containing all OG to be indexed
+     */
+    final void updateBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) {
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final ObjectGroup objectGroup = cursor.next();
+
+            final String id = objectGroup.getId();
+            objectGroup.remove(VitamDocument.ID);
+
+            final String mongoJson = objectGroup.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+
+            bulkRequest.add(
+                client.prepareUpdate(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
+                    id).setDoc(dbObject.toString()));
+        }
+        final BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES previous update in error: " + bulkResponse.buildFailureMessage());
+        }
     }
 
     /**
