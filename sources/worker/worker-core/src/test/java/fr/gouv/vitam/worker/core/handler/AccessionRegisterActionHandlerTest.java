@@ -34,7 +34,7 @@ public class AccessionRegisterActionHandlerTest {
     @Test
     public void testResponseOK()
         throws Exception {
-        AdminManagementClientFactory.getInstance().changeConfigurationFile("");
+        AdminManagementClientFactory.getInstance().changeMode(null);        
         action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP));

@@ -51,6 +51,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
@@ -62,14 +63,13 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 /**
  * Accession Register Handler
  */
-public class AccessionRegisterActionHandler extends ActionHandler {
+public class AccessionRegisterActionHandler extends ActionHandler implements AutoCloseable{
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIO handlerIO;
 
     private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
-    private static AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
     public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
@@ -103,13 +103,12 @@ public class AccessionRegisterActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
-
-        try {
+        try(AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()){
             checkMandatoryIOParameter(handler);
             AccessionRegisterDetail register = generateAccessionRegister(params);
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
-        } catch (ProcessingException e) {
+        } catch (ProcessingException | AdminManagementClientServerException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             itemStatus.increment(StatusCode.KO);
         } catch (AccessionRegisterException | DatabaseConflictException e) {
@@ -197,5 +196,9 @@ public class AccessionRegisterActionHandler extends ActionHandler {
         }
 
         return register;
+    }
+
+    @Override
+    public void close() throws Exception {
     }
 }

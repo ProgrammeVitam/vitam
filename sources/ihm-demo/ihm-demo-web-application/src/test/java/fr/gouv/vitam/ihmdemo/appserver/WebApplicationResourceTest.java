@@ -464,7 +464,7 @@ public class WebApplicationResourceTest {
             PowerMockito.mock(AdminManagementClientFactory.class);
         doThrow(ReferentialException.class).when(adminManagementClient).importFormat(anyObject());
         // doNothing().when(adminManagementClient).importFormat(anyObject());
-        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
@@ -487,7 +487,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminManagementClientFactory.class);
         doNothing().when(adminManagementClient).importFormat(anyObject());
-        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
@@ -532,7 +532,7 @@ public class WebApplicationResourceTest {
         doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -548,7 +548,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -563,7 +563,7 @@ public class WebApplicationResourceTest {
         doThrow(new ReferentialException("")).when(adminClient).getFormats(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -577,7 +577,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormatByID(anyObject());
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -591,7 +591,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         doThrow(new ReferentialException("")).when(adminClient).getFormatByID(anyObject());
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -606,7 +606,7 @@ public class WebApplicationResourceTest {
         doNothing().when(adminClient).deleteFormat();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().config(RestAssured.config()
@@ -624,7 +624,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
@@ -849,7 +849,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminManagementClientFactory.class);
         doThrow(ReferentialException.class).when(adminManagementClient).importRulesFile(anyObject());
-        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
@@ -872,7 +872,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminManagementClientFactory.class);
         doNothing().when(adminManagementClient).importRulesFile(anyObject());
-        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream =
@@ -896,7 +896,7 @@ public class WebApplicationResourceTest {
         doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRule(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -912,7 +912,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -927,7 +927,7 @@ public class WebApplicationResourceTest {
         doThrow(new FileRulesException("")).when(adminClient).getRule(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -941,7 +941,7 @@ public class WebApplicationResourceTest {
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         doThrow(new FileRulesException("")).when(adminClient).getRuleByID(anyObject());
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -956,7 +956,7 @@ public class WebApplicationResourceTest {
         doNothing().when(adminClient).deleteRulesFile();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().config(RestAssured.config()
@@ -974,7 +974,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
-        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");

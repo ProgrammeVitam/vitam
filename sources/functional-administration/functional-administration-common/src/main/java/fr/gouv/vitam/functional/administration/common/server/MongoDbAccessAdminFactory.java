@@ -34,7 +34,7 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 
 /**
  * Factory to get MongoDbAccess for Admin
@@ -55,9 +55,10 @@ public final class MongoDbAccessAdminFactory {
             classList.add(e.getClasz());
         }
         FunctionalAdminCollections.class.getEnumConstants();
-        
+
         MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+            MongoDbAccess.createMongoClient2(configuration, VitamCollection.getMongoClientOptions(classList));
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), true);
     }
+
 }

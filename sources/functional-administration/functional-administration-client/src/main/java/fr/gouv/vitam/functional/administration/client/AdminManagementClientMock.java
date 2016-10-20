@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -54,7 +55,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 /**
  * Mock client implementation for AdminManagement
  */
-public class AdminManagementClientMock implements AdminManagementClient {
+public class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
     private FileFormat createFileFormat(String _id) {
@@ -89,17 +90,11 @@ public class AdminManagementClientMock implements AdminManagementClient {
     }
 
     @Override
-    public Status status() {
-        return Status.OK;
-    }
-
-    @Override
     public Status checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("Check file format request:");
         StreamUtils.closeSilently(stream);
-        return status();
-
+        return Status.OK;
     }
 
     @Override
@@ -141,8 +136,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
-        return status();
-
+        return Status.OK;
     }
 
     @Override
@@ -197,7 +191,5 @@ public class AdminManagementClientMock implements AdminManagementClient {
         }
         LOGGER.info("AccessionRegister: " + result);
     }
-
-
 
 }

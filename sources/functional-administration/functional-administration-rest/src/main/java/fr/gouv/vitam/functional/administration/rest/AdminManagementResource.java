@@ -58,10 +58,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
+
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -80,10 +83,8 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
-    private final ReferentialFormatFileImpl formatManagement;
-    private final RulesManagerFileImpl rulesFileManagement;
-    private ReferentialAccessionRegisterImpl accessionRegisterManagement;
-    private final DbConfiguration adminConfiguration;
+
+    private final DbConfigurationImpl adminConfiguration;
 
     /**
      * Constructor
@@ -92,16 +93,17 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-        if (configuration.isDbAuthentication()){
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), true, configuration.getDbUserName(), configuration.getDbPassword());            
+
+        if (configuration.isDbAuthentication()) {
+            this.adminConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
         } else {
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+            this.adminConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                    configuration.getDbName());
         }
-        formatManagement = new ReferentialFormatFileImpl(adminConfiguration);
-        rulesFileManagement = new RulesManagerFileImpl(adminConfiguration);
-        accessionRegisterManagement = new ReferentialAccessionRegisterImpl(adminConfiguration);
+
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -115,17 +117,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-
-        try {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
             formatManagement.checkFile(xmlPronom);
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(status)
-                .build();
+            return Response.status(status).entity(status).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.OK).build();
     }
 
 
@@ -139,8 +142,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        try {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
             formatManagement.importFile(xmlPronom);
+            return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             final Status status = Status.PRECONDITION_FAILED;
@@ -153,8 +157,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(status)
+                .build();
         }
-        return Response.status(Status.OK).entity(Status.OK.name()).build();
+
     }
 
     /**
@@ -165,8 +175,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() throws FileFormatException {
-        formatManagement.deleteCollection();
-        return Response.status(Status.OK).build();
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+            formatManagement.deleteCollection();
+            return Response.status(Status.OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
     }
 
     /**
@@ -177,26 +193,28 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @POST
     @Path("format/{id_format}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findFileFormatByID(@PathParam("id_format") String formatId)
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
-        try {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
-
             if (fileFormat == null) {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
+            return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
     }
 
     /**
@@ -213,9 +231,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
-        try {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
+            return Response.status(Status.OK)
+                .entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList))).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -223,10 +243,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e.getMessage());
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-
-        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList)))
-            .build();
     }
 
     private String fileFormatListToJsonString(List<FileFormat> formatList)
@@ -256,16 +277,21 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
 
-        try {
-            rulesFileManagement.checkFile(rulesStream);
+        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(adminConfiguration)) {
+            rulesManagerFileImpl.checkFile(rulesStream);
+            return Response.status(Status.OK).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
                 .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.OK).build();
+
     }
 
 
@@ -283,8 +309,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response importRulesFile(InputStream rulesStream)
         throws InvalidParseOperationException, ReferentialException, IOException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-        try {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
             rulesFileManagement.importFile(rulesStream);
+            return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
             final Status status = Status.PRECONDITION_FAILED;
@@ -297,8 +324,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.OK).entity(Status.OK.name()).build();
+
     }
 
     /**
@@ -309,8 +340,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() throws FileRulesException {
-        rulesFileManagement.deleteCollection();
-        return Response.status(Status.OK).build();
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
+            rulesFileManagement.deleteCollection();
+            return Response.status(Status.OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
+
     }
 
     /**
@@ -325,7 +363,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     @POST
     @Path("rules/{id_rule}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findRuleByID(@PathParam("id_rule") String ruleId)
         throws InvalidParseOperationException, IOException,
@@ -333,20 +370,24 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         List<FileRules> fileRules = null;
         JsonNode result = null;
-        try {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = findRulesByRuleValueQueryBuilder(ruleId);
             fileRules = rulesFileManagement.findDocuments(result);
             if (fileRules == null || fileRules.size() > 1) {
                 throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
+            return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
 
         } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
     }
 
     /**
@@ -384,9 +425,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<FileRules> filerulesList = new ArrayList<FileRules>();
-        try {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
+            return Response.status(Status.OK)
+                .entity(JsonHandler.getFromString(fileRulesListToJsonString(filerulesList)))
+                .build();
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -394,14 +439,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e.getMessage());
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-
-        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileRulesListToJsonString(filerulesList)))
-            .build();
     }
-    
+
     /**
-     * @param AccessionRegisterDetail object 
+     * @param AccessionRegisterDetail object
      * @return Response jersey response
      */
     @Path("accession-register/create")
@@ -410,13 +456,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAccessionRegister(AccessionRegisterDetail accessionRegister) {
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
-        try {
+        try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
+            return Response.status(Status.CREATED).build();
         } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
         }
-        return Response.status(Status.CREATED).build();
     }
 
     private String fileRulesListToJsonString(List<FileRules> rulesList)

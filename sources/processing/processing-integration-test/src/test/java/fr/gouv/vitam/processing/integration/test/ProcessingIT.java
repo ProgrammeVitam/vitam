@@ -61,6 +61,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -127,6 +128,7 @@ public class ProcessingIT {
     // private static VitamServer workerApplication;
     private static MetaDataApplication medtadataApplication;
     private static WorkerApplication wkrapplication;
+    private static AdminManagementApplication adminApplication;
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -198,7 +200,8 @@ public class ProcessingIT {
             .build());
         mongod = mongodExecutable.start();
 
-        AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
+        //AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
+
         // launch metadata
         medtadataApplication = new MetaDataApplication();
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
@@ -222,12 +225,12 @@ public class ProcessingIT {
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
-        // launch functional Admin
-        SystemPropertyUtil.set(JETTY_FUNCTIONAL_ADMIN_PORT, Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
-        AdminManagementApplication.startApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+        // launch functional Admin server
+        AdminManagementApplication adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+        adminApplication.start();
 
-
-        AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+        AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
         adminClient.importFormat(PropertiesUtils.getResourceAsStream("integration/DROID_SignatureFile_V88.xml"));
 
         processMonitoring = ProcessMonitoringImpl.getInstance();

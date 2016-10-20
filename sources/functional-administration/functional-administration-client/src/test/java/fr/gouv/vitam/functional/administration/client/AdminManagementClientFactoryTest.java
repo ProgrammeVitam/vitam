@@ -26,31 +26,103 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 public class AdminManagementClientFactoryTest {
 
-    @Test
-    public void givenRestClient() {
+    public void initFileConfiguration() {
         AdminManagementClientFactory
-            .setConfiguration(AdminManagementClientFactory.AdminManagementClientType.REST_CLIENT, "localhost", 8082);
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        assertNotNull(client);
+            .changeMode(AdminManagementClientFactory.changeConfigurationFile("functional-administration-client.conf"));
     }
 
     @Test
-    public void givenMockClient() {
-        AdminManagementClientFactory
-            .setConfiguration(AdminManagementClientFactory.AdminManagementClientType.MOCK_CLIENT, "localhost", 8082);
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+    public void getClientInstanceTest() {
+        try {
+            AdminManagementClientFactory.changeMode(new ClientConfigurationImpl(null, 10));;
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+
+        }
+
+        try {
+            AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+
+        }
+        try {
+            AdminManagementClientFactory.changeMode(new ClientConfigurationImpl());
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+
+        }
+
+        AdminManagementClientFactory.changeMode(null);
+
+        final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient();
         assertNotNull(client);
+
+        final AdminManagementClient client2 =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertNotNull(client2);
+        assertNotSame(client, client2);
+
+        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
+        final AdminManagementClient client3 =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client3 instanceof AdminManagementClientRest);
+
+    }
+
+    @Test
+    public void changeDefaultClientTypeTest() {
+        final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client instanceof AdminManagementClientRest);
+        assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
+
+        AdminManagementClientFactory.changeMode(null);
+        final AdminManagementClient client2 =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client2 instanceof AdminManagementClientMock);
+        assertEquals(VitamClientType.MOCK, AdminManagementClientFactory.getInstance().getVitamClientType());
+
+        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
+        final AdminManagementClient client3 =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client3 instanceof AdminManagementClientRest);
+        assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenClientWhenWrongTypeThenThrowException() {
-        AdminManagementClientFactory.setConfiguration(null, null, 0);
+    public void changeClientTypeAndGetExceptionTest() {
+        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", 100));
+        AdminManagementClientFactory.getInstance().setVitamClientType(VitamClientType.valueOf("BAD"));
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
     }
 
+    @Test
+    public void testInitWithoutConfigurationFile() {
+        // assume that a fake file is like no file
+        AdminManagementClientFactory.changeMode(
+            AdminManagementClientFactory.changeConfigurationFile("tmp"));
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client instanceof AdminManagementClientMock);
+        assertEquals(VitamClientType.MOCK, AdminManagementClientFactory.getInstance().getVitamClientType());
+    }
+
+    @Test
+    public void testInitWithConfigurationFile() {
+        final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient();
+        assertTrue(client instanceof AdminManagementClientRest);
+        assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
+    }
 }
