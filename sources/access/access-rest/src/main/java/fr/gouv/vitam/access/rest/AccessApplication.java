@@ -32,24 +32,18 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
+import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.config.AccessConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.waf.WafFilter;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.VitamServer;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 
 
 /**
@@ -59,15 +53,27 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessApplication.class);
     private static final String CONF_FILE_NAME = "access.conf";
-    private static final String MODULE_NAME = "Access";
+    private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
-    private static VitamServer vitamServer;
+    // Only for Junit FIXME
+    static AccessModule mock = null;
 
     /**
      * AccessApplication constructor
+     * 
+     * @param configuration
      */
-    public AccessApplication() {
-        super(AccessApplication.class, AccessConfiguration.class);
+    public AccessApplication(String configuration) {
+        super(AccessConfiguration.class, configuration);
+    }
+
+    /**
+     * AccessApplication constructor
+     * 
+     * @param configuration
+     */
+    AccessApplication(AccessConfiguration configuration) {
+        super(AccessConfiguration.class, configuration);
     }
 
     /**
@@ -82,117 +88,35 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
                 throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     CONF_FILE_NAME));
             }
-
-            startApplication(args[0]);
-
-            if (vitamServer != null && vitamServer.isStarted()) {
-                vitamServer.join();
-            }
-
+            final AccessApplication application = new AccessApplication(args[0]);
+            application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    private static void run(AccessConfiguration configuration) throws VitamApplicationServerException {
-        final ServletContextHandler context = getAccessServletContext(configuration);
-        final String jettyConfig = configuration.getJettyConfig();
-        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-        vitamServer.configure(context);
-
-        try {
-            vitamServer.getServer().start();
-        } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-            throw new VitamApplicationServerException(
-                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-        }
-    }
-
-    private static ServletContextHandler getAccessServletContext(AccessConfiguration configuration) {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        resourceConfig.register(new AccessResourceImpl(configuration));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-
+    @Override
+    protected void setFilter(ServletContextHandler context) {
         context.addFilter(WafFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
             DispatcherType.FORWARD, DispatcherType.ERROR));
-        return context;
     }
 
-    /**
-     * Prepare the application an run or started.
-     *
-     * @param configFile
-     * @return the VitamServer
-     * @throws IllegalStateException
-     */
-    public static void startApplication(String configFile) throws VitamException {
-        try {
-            final AccessApplication application = new AccessApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(configFile));
-            run(application.getConfiguration());
-
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-            throw new VitamException(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-        }
-    }
-
-
-
-    /**
-     * Implement this method to construct your application specific handler
-     *
-     * @return the generated Handler
-     */
+    
     @Override
-    protected Handler buildApplicationHandler() {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new AccessResourceImpl(getConfiguration()));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        return context;
+    protected int getSession() {
+        return ServletContextHandler.SESSIONS;
     }
 
-    /**
-     * Must return the name as a string of your configuration file. Example : "access.conf"
-     *
-     * @return the name of the application configuration file
-     */
     @Override
-    protected String getConfigFilename() {
-        return CONF_FILE_NAME;
-    }
-
-    /**
-     * retrieve the vitam server
-     *
-     * @return vitam server
-     */
-    public static VitamServer getVitamServer() {
-        return vitamServer;
-    }
-
-    /**
-     * Stops the vitam server
-     *
-     * @throws Exception
-     */
-    public static void stop() throws Exception {
-        if (vitamServer != null && vitamServer.isStarted()) {
-            vitamServer.stop();
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        if (mock != null) {
+            resourceConfig.register(new AccessResourceImpl(mock))
+                .register(new AdminStatusResource());
+        } else {
+            resourceConfig.register(new AccessResourceImpl(getConfiguration()))
+                .register(new AdminStatusResource());
         }
     }
 }

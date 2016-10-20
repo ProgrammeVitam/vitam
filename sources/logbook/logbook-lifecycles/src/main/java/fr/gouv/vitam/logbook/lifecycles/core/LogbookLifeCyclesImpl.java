@@ -27,13 +27,20 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -42,6 +49,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -55,6 +64,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
     private final MongoDbAccess mongoDbAccess;
+
+    private Map<String, MongoCursor<?>> mapXCursor = new HashMap<>();
 
 
     /**
@@ -124,9 +135,109 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
+    public String createCursorUnit(String operationId, JsonNode select)
+        throws LogbookDatabaseException {
+        String newxcursorid;
+        // First time call
+        newxcursorid = GUIDFactory.newGUID().toString();
+        MongoCursor<LogbookLifeCycleUnit> cursor;
+        try {
+            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            parser.parse(select);
+            Select selectRequest = parser.getRequest();
+            Select newRequest = new Select();
+            newRequest.setQuery(
+                QueryHelper.and().add(selectRequest.getQuery(),
+                    QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId)));
+            newRequest.setFilter(selectRequest.getFilter()).setProjection(selectRequest.getProjection());
+            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(newRequest);
+            mapXCursor.put(newxcursorid, cursor);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new LogbookDatabaseException(e);
+        }
+        return newxcursorid;
+    }
+
+    @Override
+    public LogbookLifeCycleUnit getCursorUnitNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        try {
+            @SuppressWarnings("unchecked")
+            MongoCursor<LogbookLifeCycleUnit> cursor = (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
+            if (cursor != null) {
+                if (cursor.hasNext()) {
+                    return cursor.next();
+                }
+                cursor.close();
+                mapXCursor.remove(cursorId);
+                throw new LogbookNotFoundException("No more entries");
+            }
+        } catch (ClassCastException e) {
+            throw new LogbookDatabaseException("Cursor not linked to Unit", e);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
+    }
+
+    @Override
+    public String createCursorObjectGroup(String operationId, JsonNode select)
+        throws LogbookDatabaseException {
+        String newxcursorid;
+        // First time call
+        newxcursorid = GUIDFactory.newGUID().toString();
+        MongoCursor<LogbookLifeCycleObjectGroup> cursor;
+        try {
+            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            parser.parse(select);
+            Select selectRequest = parser.getRequest();
+            Select newRequest = new Select();
+            newRequest.setQuery(
+                QueryHelper.and().add(selectRequest.getQuery(),
+                    QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId)));
+            newRequest.setFilter(selectRequest.getFilter()).setProjection(selectRequest.getProjection());
+            cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(newRequest);
+            mapXCursor.put(newxcursorid, cursor);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new LogbookDatabaseException(e);
+        }
+        return newxcursorid;
+    }
+
+    @Override
+    public LogbookLifeCycleObjectGroup getCursorObjectGroupNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        try {
+            @SuppressWarnings("unchecked")
+            MongoCursor<LogbookLifeCycleObjectGroup> cursor =
+                (MongoCursor<LogbookLifeCycleObjectGroup>) mapXCursor.get(cursorId);
+            if (cursor != null) {
+                if (cursor.hasNext()) {
+                    return cursor.next();
+                }
+                cursor.close();
+                mapXCursor.remove(cursorId);
+                throw new LogbookNotFoundException("No more entries");
+            }
+        } catch (ClassCastException e) {
+            throw new LogbookDatabaseException("Cursor not linked to ObjectGroup", e);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
+    }
+
+    @Override
+    public void finalizeCursor(String cursorId) throws LogbookDatabaseException {
+        MongoCursor<?> cursor = mapXCursor.get(cursorId);
+        if (cursor != null) {
+            cursor.close();
+            mapXCursor.remove(cursorId);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
+    }
+
+    @Override
     public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook = mongoDbAccess.getLogbookLifeCycleObjectGroups(select)) {
+        try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook =
+            mongoDbAccess.getLogbookLifeCycleObjectGroups(select)) {
             final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");

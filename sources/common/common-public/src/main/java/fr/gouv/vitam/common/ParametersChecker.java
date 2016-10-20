@@ -54,7 +54,7 @@ public final class ParametersChecker {
             throw new IllegalArgumentException(errorMessage);
         }
         for (final String parameter : parameters) {
-            if (Strings.isNullOrEmpty(parameter)) {
+            if (Strings.isNullOrEmpty(parameter) || parameter.trim().isEmpty()) {
                 throw new IllegalArgumentException(errorMessage);
             }
         }

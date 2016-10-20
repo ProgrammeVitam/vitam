@@ -34,6 +34,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -132,6 +133,18 @@ public class AccessResourceMock implements AccessResource {
     public Response getObjectStreamPost(@Context HttpHeaders headers,
         @PathParam("id_object_group") String idObjectGroup, String query) {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
+    }
+
+    @Override
+    public void getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, String query,
+        AsyncResponse asyncResponse) {
+        asyncResponse.resume(Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build());
+    }
+
+    @Override
+    public void getObjectStreamPostAsync(HttpHeaders headers, String idObjectGroup, String query,
+        AsyncResponse asyncResponse) {
+        asyncResponse.resume(Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build());
     }
 
 }

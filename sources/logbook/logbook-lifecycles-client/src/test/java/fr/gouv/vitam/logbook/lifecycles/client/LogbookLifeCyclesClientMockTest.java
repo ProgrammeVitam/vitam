@@ -223,16 +223,4 @@ public class LogbookLifeCyclesClientMockTest {
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             LogbookParameterName.objectIdentifierIncome.name());
     }
-
-    @Test
-    public void selectTest() throws LogbookClientException, InvalidParseOperationException {
-        LogbookLifeCyclesClientFactory.changeMode(null);
-
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
-        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
-            client.selectLifeCycles(request).get("result").get(1).get("_id").asText());
-        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",
-            client.selectLifeCyclesById("eventIdentifier").get("result").get("_id").asText());
-    }
 }

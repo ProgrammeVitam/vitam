@@ -170,8 +170,8 @@ public interface LogbookLifeCycles {
 
     /**
      * Select logbook life cycle by the lifecycle's ID
-     *
-     * @param idObject
+     * 
+     * @param idUnit
      * @return the logbook LifeCycle found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
@@ -188,4 +188,56 @@ public interface LogbookLifeCycles {
      */
     LogbookLifeCycleObjectGroup getObjectGroupById(String idObject)
         throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Create a cursor for all Unit Lifecycles from one operation
+     * 
+     * @param operationId
+     * @param select
+     * @return the X-Cursor-Id
+     * @throws LogbookDatabaseException
+     */
+    public String createCursorUnit(String operationId, JsonNode select)
+        throws LogbookDatabaseException;
+
+    /**
+     * Get the next available Unit Lifecycle
+     * 
+     * @param cursorId
+     * @return the next available
+     * @throws LogbookNotFoundException if there is no more entry
+     * @throws LogbookDatabaseException if the cursor is not found
+     */
+    public LogbookLifeCycleUnit getCursorUnitNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException;
+
+    /**
+     * Create a cursor for all ObjectGroup Lifecycles from one operation
+     * 
+     * @param operationId
+     * @param select
+     * @return the X-Cursor-Id
+     * @throws LogbookDatabaseException
+     */
+    public String createCursorObjectGroup(String operationId, JsonNode select)
+        throws LogbookDatabaseException;
+
+    /**
+     * Get the next available ObjectGroup Lifecycle
+     * 
+     * @param cursorId
+     * @return the next available
+     * @throws LogbookNotFoundException if there is no more entry
+     * @throws LogbookDatabaseException if the cursor is not found
+     */
+    public LogbookLifeCycleObjectGroup getCursorObjectGroupNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException;
+
+    /**
+     * Finalize the cursor
+     * 
+     * @param cursorId
+     * @throws LogbookDatabaseException
+     */
+    public void finalizeCursor(String cursorId) throws LogbookDatabaseException;
 }

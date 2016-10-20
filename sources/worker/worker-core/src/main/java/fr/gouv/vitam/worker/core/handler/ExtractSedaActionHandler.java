@@ -161,7 +161,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
-    private static final String TAG_DATA_OBJECT_VERSION = "DataObjectVersion";
     private static final String GLOBAL_SEDA_PARAMETERS_FILE = "globalSEDAParameters.json";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
@@ -302,25 +301,31 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
                 }
-                
+
                 if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart().equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+                    event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
                     String orgAgId = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
-                
+
                 if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart().equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
+                    event.asStartElement().getName().getLocalPart()
+                        .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
                     String orgAgId = reader.getElementText();
-                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
-                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
-                
+
                 // We add all the end but the start and end document and the event in the DataObjectPackage structure
                 if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
                     event.getEventType() != XMLStreamConstants.END_DOCUMENT) {
@@ -377,11 +382,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
 
             // Save binaryDataObjectIdToGuid Map
-            HandlerUtils.saveMap(containerId, binaryDataObjectIdToGuid, (String) handlerIO.getOutput().get(BDO_ID_TO_GUID_IO_RANK),
+            HandlerUtils.saveMap(containerId, binaryDataObjectIdToGuid,
+                (String) handlerIO.getOutput().get(BDO_ID_TO_GUID_IO_RANK),
                 client, true);
 
             // Save objectGroupIdToUnitId Map
-            HandlerUtils.saveMap(containerId, objectGroupIdToUnitId, (String) handlerIO.getOutput().get(OG_ID_TO_UNID_ID_IO_RANK),
+            HandlerUtils.saveMap(containerId, objectGroupIdToUnitId,
+                (String) handlerIO.getOutput().get(OG_ID_TO_UNID_ID_IO_RANK),
                 client, true);
             // Save binaryDataObjectIdToVersionDataObject Map
             HandlerUtils.saveMap(containerId, binaryDataObjectIdToVersionDataObject,
@@ -618,7 +625,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final Iterator<?> it = startElement.getAttributes();
             String binaryObjectId = "";
             BinaryObjectInfo bo = new BinaryObjectInfo();
-            
+
             if (it.hasNext()) {
                 binaryObjectId = ((Attribute) it.next()).getValue();
                 binaryDataObjectIdToGuid.put(binaryObjectId, elementGuid);
@@ -637,7 +644,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (BINARY_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                         writer.add(event);
                         writer.add(eventFactory.createEndDocument());
-                        objectGuidToBinaryObject.put(elementGuid, bo); 
+                        objectGuidToBinaryObject.put(elementGuid, bo);
                         break;
                     }
                 }
@@ -646,74 +653,91 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final String localPart = event.asStartElement().getName().getLocalPart();
 
                     // extract info for version DBO
-                    if (TAG_DATA_OBJECT_VERSION.equals(localPart)) {
-                        final String version = reader.getElementText();
-                        binaryDataObjectIdToVersionDataObject.put(binaryObjectId, version);
-                        writer.add(eventFactory.createStartElement("", "", localPart));
-                        writer.add(eventFactory.createCharacters(version));
-                        writer.add(eventFactory.createEndElement("", "", localPart));
-                    } else if (DATA_OBJECT_GROUPID.equals(localPart)) {
-                        groupGuid = GUIDFactory.newGUID().toString();
-                        final String groupId = reader.getElementText();
-                        // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
-                        // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
-                        if (objectGroupIdToGuidTmp.get(groupId) != null) {
-                            groupGuid = objectGroupIdToGuidTmp.get(groupId);
-                            objectGroupIdToGuidTmp.remove(groupId);
+                    switch (localPart) {
+                        case SedaConstants.TAG_DO_VERSION: {
+                            final String version = reader.getElementText();
+                            binaryDataObjectIdToVersionDataObject.put(binaryObjectId, version);
+                            bo.setVersion(version);
+                            writer.add(eventFactory.createStartElement("", "", localPart));
+                            writer.add(eventFactory.createCharacters(version));
+                            writer.add(eventFactory.createEndElement("", "", localPart));
+                            break;
                         }
-                        binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
-                        objectGroupIdToGuid.put(groupId, groupGuid);
+                        case DATA_OBJECT_GROUPID: {
+                            groupGuid = GUIDFactory.newGUID().toString();
+                            final String groupId = reader.getElementText();
+                            // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
+                            // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
+                            if (objectGroupIdToGuidTmp.get(groupId) != null) {
+                                groupGuid = objectGroupIdToGuidTmp.get(groupId);
+                                objectGroupIdToGuidTmp.remove(groupId);
+                            }
+                            binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
+                            objectGroupIdToGuid.put(groupId, groupGuid);
 
-                        // Create OG lifeCycle
-                        createObjectGroupLifeCycle(groupGuid, containerId);
-                        if (objectGroupIdToBinaryDataObjectId.get(groupId) == null) {
-                            final List<String> binaryOjectList = new ArrayList<String>();
-                            binaryOjectList.add(binaryObjectId);
-                            objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
-                        } else {
-                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
+                            // Create OG lifeCycle
+                            createObjectGroupLifeCycle(groupGuid, containerId);
+                            if (objectGroupIdToBinaryDataObjectId.get(groupId) == null) {
+                                final List<String> binaryOjectList = new ArrayList<String>();
+                                binaryOjectList.add(binaryObjectId);
+                                objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
+                            } else {
+                                objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
+                            }
+
+                            // Create new startElement for group with new guid
+                            writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                            writer.add(eventFactory.createCharacters(groupGuid));
+                            writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                            break;
                         }
+                        case SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID: {
+                            final String groupId = reader.getElementText();
+                            String groupGuidTmp = GUIDFactory.newGUID().toString();
+                            binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
+                            // The DataObjectGroupReferenceID is after DataObjectGroupID in the XML flow
+                            if (objectGroupIdToBinaryDataObjectId.get(groupId) != null) {
+                                objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
+                                groupGuidTmp = objectGroupIdToGuid.get(groupId);
+                            } else {
+                                // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
+                                final List<String> binaryOjectList = new ArrayList<String>();
+                                binaryOjectList.add(binaryObjectId);
+                                objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
+                                objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
 
-                        // Create new startElement for group with new guid
-                        writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                        writer.add(eventFactory.createCharacters(groupGuid));
-                        writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
-                    } else if (SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID.equals(localPart)) {
-                        final String groupId = reader.getElementText();
-                        String groupGuidTmp = GUIDFactory.newGUID().toString();
-                        binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
-                        // The DataObjectGroupReferenceID is after DataObjectGroupID in the XML flow
-                        if (objectGroupIdToBinaryDataObjectId.get(groupId) != null) {
-                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
-                            groupGuidTmp = objectGroupIdToGuid.get(groupId);
-                        } else {
-                            // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
-                            final List<String> binaryOjectList = new ArrayList<String>();
-                            binaryOjectList.add(binaryObjectId);
-                            objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
-                            objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
+                            }
 
+                            // Create new startElement for group with new guid
+                            writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                            writer.add(eventFactory.createCharacters(groupGuidTmp));
+                            writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                            break;
                         }
+                        case SedaConstants.TAG_URI: {
+                            final String uri = reader.getElementText();
+                            bo.setUri(uri);
+                            break;
+                        }
+                        case SedaConstants.TAG_SIZE: {
+                            final long size = Long.parseLong(reader.getElementText());
+                            bo.setSize(size);
+                            break;
+                        }
+                        case SedaConstants.TAG_DIGEST: {
+                            final String messageDigest = reader.getElementText();
+                            bo.setMessageDigest(messageDigest);
+                            final Iterator<?> it1 = event.asStartElement().getAttributes();
 
-                        // Create new startElement for group with new guid
-                        writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                        writer.add(eventFactory.createCharacters(groupGuidTmp));
-                        writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
-                    } else if (SedaConstants.TAG_URI.equals(localPart)) {
-                        final String uri = reader.getElementText();
-                        bo.setUri(uri);
-                    } else if (SedaConstants.TAG_DIGEST.equals(localPart)) {
-                        final String messageDigest = reader.getElementText();
-                        bo.setMessageDigest(messageDigest);
-                        final Iterator<?> it1 = event.asStartElement().getAttributes();
-                        
-                        if (it1.hasNext()){
-                            String al = ((Attribute) it1.next()).getValue();
-                            DigestType d = DigestType.fromValue(al);
-                            bo.setAlgo(d);
-                       }                 
-                    } else {
-                        writer.add(eventFactory.createStartElement("", "", localPart));
+                            if (it1.hasNext()) {
+                                String al = ((Attribute) it1.next()).getValue();
+                                DigestType d = DigestType.fromValue(al);
+                                bo.setAlgo(d);
+                            }
+                            break;
+                        }
+                        default:
+                            writer.add(eventFactory.createStartElement("", "", localPart));
                     }
 
                     writable = false;
@@ -771,6 +795,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws InvalidParseOperationException {
         final File tmpJsonFile = PropertiesUtils.fileFromTmpFolder(jsonFileName);
         final JsonNode jsonBDO = JsonHandler.getFromFile(tmpJsonFile);
+        // FIXME are you sure it is ALWAYS a BINARY MASTER here ?
         binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId, BINARY_MASTER);
         JsonNode objectNode = mapNewTechnicalDataObjectGroupToBDO(jsonBDO, binaryDataOjectId);
         objectNode = addExtraField(objectNode);
@@ -1208,7 +1233,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 (String) handlerIO.getOutput().get(BDO_ID_TO_OG_ID_IO_RANK), client,
                 true);
             // Save objectGroupIdToGuid
-            HandlerUtils.saveMap(containerId, objectGroupIdToGuid, (String) handlerIO.getOutput().get(OG_ID_TO_GUID_IO_RANK), client,
+            HandlerUtils.saveMap(containerId, objectGroupIdToGuid,
+                (String) handlerIO.getOutput().get(OG_ID_TO_GUID_IO_RANK), client,
                 true);
         } catch (final IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
@@ -1231,9 +1257,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final File binaryObjectFile = PropertiesUtils
                         .fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     final JsonNode binaryNode = JsonHandler.getFromFile(binaryObjectFile).get("BinaryDataObject");
-                    String nodeCategory = "BinaryMaster";
-                    if (binaryNode.get("DataObjectVersion") != null) {
-                        nodeCategory = binaryNode.get("DataObjectVersion").asText();
+                    String nodeCategory = BINARY_MASTER;
+                    if (binaryNode.get(SedaConstants.TAG_DO_VERSION) != null) {
+                        nodeCategory = binaryNode.get(SedaConstants.TAG_DO_VERSION).asText();
                     }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategoryArray == null) {
@@ -1335,8 +1361,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 String guid = binaryDataObjectIdToGuid.get(id);
                 ((ObjectNode) node).put(SedaConstants.PREFIX_ID, guid);
                 ((ObjectNode) node).put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(guid).getUri());
-                ((ObjectNode) node).put(SedaConstants.TAG_DIGEST, objectGuidToBinaryObject.get(guid).getMessageDigest());
-                ((ObjectNode) node).put(SedaConstants.ALGORITHM, objectGuidToBinaryObject.get(guid).getAlgo().getName());
+                ((ObjectNode) node).put(SedaConstants.TAG_DIGEST,
+                    objectGuidToBinaryObject.get(guid).getMessageDigest());
+                ((ObjectNode) node).put(SedaConstants.ALGORITHM,
+                    objectGuidToBinaryObject.get(guid).getAlgo().getName());
                 arrayNode.add(node);
             }
             binaryNode.set(SedaConstants.TAG_VERSIONS, arrayNode);

@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractSSLClient;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -374,6 +375,44 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
             }
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
+        }
+    }
+
+
+    @Override
+    public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+        throws StorageServerClientException, StorageNotFoundException {
+        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
+        Response response = null;
+        boolean ok = false;
+        try {
+            response =
+                performGenericRequest("/" + type.getCollectionName() + "/" + guid, null,
+                    MediaType.APPLICATION_OCTET_STREAM, getDefaultHeaders(tenantId, strategyId), HttpMethod.GET,
+                    MediaType.APPLICATION_JSON);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    ok = true;
+                    return response;
+                case NOT_FOUND:
+                    throw new StorageNotFoundException(VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " +
+                        status.getReasonPhrase());
+                case PRECONDITION_FAILED:
+                    throw new StorageServerClientException(
+                        VitamCodeHelper.getCode(VitamCode.STORAGE_MISSING_HEADER) + ": " + status.getReasonPhrase());
+                default:
+                    final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                        status.getReasonPhrase();
+                    LOGGER.error(log);
+                    throw new StorageServerClientException(log);
+            }
+        } finally {
+            if (! ok) {
+                DefaultClient.staticConsumeAnyEntityAndClose(response);
+            }
         }
     }
 

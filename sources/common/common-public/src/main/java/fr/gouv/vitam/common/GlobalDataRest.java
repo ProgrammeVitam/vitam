@@ -89,6 +89,19 @@ public class GlobalDataRest {
      */
     public static final String X_TIMESTAMP = "X-Timestamp";
 
+    /**
+     * Ask to request using a http based cursor
+     */
+    public static final String X_CURSOR = "X-Cursor";
+    /**
+     * Identifier for a Http based cursor
+     */
+    public static final String X_CURSOR_ID = "X-Cursor-Id";
+    /**
+     * Timeout (in epoch) for Http based cursor
+     */
+    public static final String X_CURSOR_TIMEOUT = "X-Cursor-Timeout";
+    
     private GlobalDataRest() {
         // empty
     }

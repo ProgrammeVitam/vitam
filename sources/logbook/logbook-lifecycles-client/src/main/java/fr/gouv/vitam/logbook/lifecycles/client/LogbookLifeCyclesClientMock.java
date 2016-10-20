@@ -170,23 +170,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectLifeCycles(String select) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.debug("Select request:" + select);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
-        response.setQuery(JsonHandler.getFromString(select));
-        response.setResult(JsonHandler.getFromString('[' + MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
-    }
-
-    @Override
-    public JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
-    }
-
-    @Override
     public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));

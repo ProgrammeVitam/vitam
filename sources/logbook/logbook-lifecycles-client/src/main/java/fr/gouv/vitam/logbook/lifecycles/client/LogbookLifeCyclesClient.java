@@ -102,22 +102,6 @@ public interface LogbookLifeCyclesClient extends BasicClient {
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     /**
-     * @param select
-     * @return logbook LifeCycle as String
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     */
-    JsonNode selectLifeCycles(String select) throws LogbookClientException, InvalidParseOperationException;
-
-    /**
-     * @param id
-     * @return logbook LifeCycle as String
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     */
-    JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException;
-
-    /**
      * returns the unit life cycle
      *
      * @param id unit life cycle id

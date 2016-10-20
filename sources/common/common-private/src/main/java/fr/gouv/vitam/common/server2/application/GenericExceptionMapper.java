@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.common.server2.application;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.NotAcceptableException;
+import javax.ws.rs.NotAllowedException;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.NotSupportedException;
+import javax.ws.rs.RedirectionException;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -50,9 +59,29 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getMessage())
             .setDescription(exception.getLocalizedMessage())
-            .setState(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.name());
+            .setState(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.name())
+            .setHttpCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getStatus().getStatusCode());
+        if (exception instanceof BadRequestException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+        } else if (exception instanceof ForbiddenException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.FORBIDDEN.getStatusCode());
+        } else if (exception instanceof NotAcceptableException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.NOT_ACCEPTABLE.getStatusCode());
+        } else if (exception instanceof NotAllowedException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+        } else if (exception instanceof NotAuthorizedException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.UNAUTHORIZED.getStatusCode());
+        } else if (exception instanceof NotFoundException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.NOT_FOUND.getStatusCode());
+        } else if (exception instanceof NotSupportedException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+        } else if (exception instanceof RedirectionException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.SEE_OTHER.getStatusCode());
+        } else if (exception instanceof ServiceUnavailableException) {
+            vitamError.setMessage(exception.getMessage()).setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        }
         LOGGER.error(vitamError.toString(), exception);
-        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
+        return Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
             .build();
     }
 

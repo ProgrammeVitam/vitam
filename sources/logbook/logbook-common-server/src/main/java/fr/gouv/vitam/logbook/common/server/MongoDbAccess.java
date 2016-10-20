@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -414,10 +415,34 @@ public interface MongoDbAccess {
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
+     */
+    MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(Select select)
+        throws LogbookDatabaseException;
+
+    /**
+     * Get a list of Logbook LifeCycle through Closeable MongoCursor
+     *
+     * @param select
+     * @return the Closeable MongoCursor of LogbookLifeCycle
+     *
+     * @throws IllegalArgumentException if argument is null or empty
+     * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
     MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
+
+    /**
+     * Get a list of Logbook LifeCycle through Closeable MongoCursor
+     *
+     * @param select
+     * @return the Closeable MongoCursor of LogbookLifeCycle
+     *
+     * @throws IllegalArgumentException if argument is null or empty
+     * @throws LogbookDatabaseException
+     */
+    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(Select select)
+        throws LogbookDatabaseException;
 
 }

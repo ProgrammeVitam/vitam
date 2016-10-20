@@ -54,7 +54,7 @@ import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResou
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 
-public class DefaultClientTest extends VitamJerseyTest {
+public class VitamRequestIteratorTest extends VitamJerseyTest {
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
     private DefaultClient client;
@@ -62,8 +62,7 @@ public class DefaultClientTest extends VitamJerseyTest {
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
-    public DefaultClientTest() {
-        // The port will be overridden by the VitamJerseyTest
+    public VitamRequestIteratorTest() {
         super(new TestVitamClientFactory<DefaultClient>(1234, RESOURCE_PATH));
     }
 
@@ -136,97 +135,11 @@ public class DefaultClientTest extends VitamJerseyTest {
         public Response status() {
             return expectedResponse.get();
         }
+        
+        
     }
     // ************************************ //
     // End of VitamJerseyTest configuration //
     // ************************************ //
 
-
-    // Now write your tests
-    @Test
-    public void statusExecutionWithouthBody() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.checkStatus();
-    }
-
-    @Test
-    public void constructorWithGivenClient() throws VitamClientException {
-        final Client mock = mock(Client.class);
-        final TestVitamClientFactory<DefaultClient> testMockFactory =
-            new TestVitamClientFactory<>(getServerPort(), RESOURCE_PATH, mock);
-        try (DefaultClient testClient = testMockFactory.getClient()) {
-            assertEquals(mock, testClient.getHttpClient());
-            assertEquals("http://" + HOSTNAME + ":" + getServerPort() + client.getResourcePath(),
-                testClient.getServiceUrl());
-        }
-    }
-
-    @Test
-    public void statusExecutionWithBody() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.NO_CONTENT).build());
-        client.checkStatus();
-        assertTrue("no exception".length() > 0);
-        assertTrue(client.getChunkedMode());
-        assertTrue(client.getHttpClient() == client.getHttpClient(true));
-        assertTrue(getFactory().getDefaultConfigCient() == getFactory().getDefaultConfigCient(true));
-    }
-
-    @Test
-    public void statusExecutionThroughPerformRequest() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add("X-Test", "testvalue");
-        Response message =
-            client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE,
-                false);
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE);
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-    }
-
-    @Test
-    public void statusExecutionThroughPerformAsyncRequest() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add("X-Test", "testvalue");
-        Future<Response> future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null,
-            null, MediaType.APPLICATION_JSON_TYPE);
-        Response message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE,
-            new InvocationCallback<Response>() {
-
-                @Override
-                public void completed(Response response) {
-                    // Completed
-                }
-
-                @Override
-                public void failed(Throwable throwable) {
-                    // Failed
-                    SysErrLogger.FAKE_LOGGER.syserr("Failed Status in Async Callback", throwable);
-                }
-            });
-        message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-    }
-
-    @Test(expected = VitamApplicationServerException.class)
-    public void failsStatusExecution() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Response.Status.SERVICE_UNAVAILABLE).build());
-        client.checkStatus();
-    }
 }

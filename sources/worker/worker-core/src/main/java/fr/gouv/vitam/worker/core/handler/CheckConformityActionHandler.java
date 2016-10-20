@@ -77,11 +77,6 @@ public class CheckConformityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CheckConformity";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    public static final String JSON_EXTENSION = ".json";
-    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
-        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    public static final String TXT_EXTENSION = ".txt";
     private static final int BINARY_OBJECT_INFO_RANK = 0;
     private HandlerIO handlerIO;
     private String eventDetailData;
@@ -101,6 +96,9 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final int ALGO_RANK = 0;
     private static final String INCOME = "MessageIdentifier du manifest";
 
+    /**
+     * Constructor
+     */
     public CheckConformityActionHandler() {
         // Nothing
     }
@@ -337,6 +335,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             return binaryObjects;
         }
         for (JsonNode version : versions) {
+            LOGGER.warn(version.toString());
             for (JsonNode jsonBinaryObject : version) {
                 binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
                     new BinaryObjectInfo()
