@@ -9,7 +9,7 @@
 	                <a class="panel-header" data-toggle="collapse" href="#boxSearch">
 	                    <h2>Référentiel des règles de gestion</h2>
 	                </a>
-					<div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
+					<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="filerulesCtrl.getFileRules()">
 	                <div class="col-md-12">
 	                        <div class="form-group col-md-12">
 	                            <label for="entryName">Intitulé</label>
@@ -28,10 +28,10 @@
 								</select>
 	                        </div>
 	                    </div>
-                         <button class="btn btn-primary center-block"  type="button submit"  ng-click="filerulesCtrl.getFileRules()">
+                         <button class="btn btn-primary center-block"  type="button submit" >
                          <i class="material-icons pull-left">search</i>
                           <span>Rechercher</span></button>
-						 </div>
+						 </form>
 						 <button ng-if="filerulesCtrl.fileNotFoundError" class="btn btn-danger" type="button" style="margin: 0 0 10px 150px">
         	{{filerulesCtrl.errorMessage}} </button>
 	            </div>

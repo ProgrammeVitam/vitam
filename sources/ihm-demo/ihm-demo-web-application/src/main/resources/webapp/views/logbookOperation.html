@@ -10,7 +10,7 @@
 			<h2>Journal des Opérations</h2>
 		</a>
 
-		<div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
+		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="logctrl.getList()">
 			<div class="form-group col-md-8">
 				<label for="entryName">ID</label>
 				<input ng-model="logctrl.searchID" type="text" name="entryName" class="form-control" />
@@ -29,14 +29,14 @@
 					<option value="masterdata">Données de base</option>
 				</select>
             </div>
-            <button class="btn btn-primary center-block" ng-click="logctrl.getList()">
+            <button class="btn btn-primary center-block" type="submit">
             	<i class="material-icons pull-left">search</i>
             	<span>Rechercher</span>
             </button>
             <button ng-if="logctrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
                 {{logctrl.errorMessage}}
             </button>
-        </div>
+        </form>
 	</div>
 
 	<!-- Pagination -->
