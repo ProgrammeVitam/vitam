@@ -72,10 +72,9 @@
 			<artifactId>mockito-all</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- build docker dependency -->
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>default-driver</artifactId>
+			<artifactId>storage-default-driver</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>
