@@ -185,7 +185,7 @@
 		<jaxb2.version>1.0.2</jaxb2.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<netty.version>4.1.5.Final</netty.version>
-
+		<commons-compress.version>1.12</commons-compress.version>
 		<skipITs>false</skipITs>
 	</properties>
 
@@ -1027,6 +1027,12 @@
 				<groupId>com.fasterxml.jackson.dataformat</groupId>
 				<artifactId>jackson-dataformat-csv</artifactId>
 				<version>${jackson.version}</version>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+			<dependency>
+			    <groupId>org.apache.commons</groupId>
+			    <artifactId>commons-compress</artifactId>
+			    <version>${commons-compress.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

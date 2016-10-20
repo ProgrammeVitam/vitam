@@ -54,6 +54,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -109,7 +110,7 @@ public class IngestInternalClientRestTest extends JerseyTest {
 
         @Path("/status")
         @GET
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes({MediaType.APPLICATION_JSON, CommonMediaType.ZIP, CommonMediaType.TAR, CommonMediaType.GZIP})
         @Produces(MediaType.APPLICATION_JSON)
         public Response status() {
             return expectedResponse.get();
@@ -168,10 +169,12 @@ public class IngestInternalClientRestTest extends JerseyTest {
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
+
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response = client.upload(operationList, inputStream);
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+
     }
 
     @Test(expected = VitamException.class)
@@ -206,7 +209,8 @@ public class IngestInternalClientRestTest extends JerseyTest {
         final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        client.upload(operationList, null);
+        client.upload(ingestGuid, operationList, null, CommonMediaType.ZIP);
+
     }
 
     @Test(expected = VitamException.class)
@@ -239,10 +243,9 @@ public class IngestInternalClientRestTest extends JerseyTest {
         operationList.add(externalOperationParameters2);
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
-
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        client.upload(operationList, inputStream);
+        client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
     }
 
     @Test(expected = VitamException.class)
@@ -273,10 +276,9 @@ public class IngestInternalClientRestTest extends JerseyTest {
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        client.upload(operationList, inputStream);
+        client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
     }
 }

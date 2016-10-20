@@ -38,6 +38,7 @@ public class IngestExternalConfiguration {
     private boolean authentication = true;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
+    private String siegfriedConfig;
 
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
@@ -160,4 +161,23 @@ public class IngestExternalConfiguration {
         this.timeoutScanDelay = timeoutScanDelay;
         return this;
     }
+
+    /**
+     * @return the siegfriedConfig
+     */
+    public String getSiegfriedConfig() {
+        return siegfriedConfig;
+    }
+
+    /**
+     * @param siegfriedConfig the siegfriedConfig to set
+     *
+     * @return IngestExternalConfiguration
+     */
+    public IngestExternalConfiguration setSiegfriedConfig(String siegfriedConfig) {
+        this.siegfriedConfig = siegfriedConfig;
+        return this;
+    }
+
+
 }

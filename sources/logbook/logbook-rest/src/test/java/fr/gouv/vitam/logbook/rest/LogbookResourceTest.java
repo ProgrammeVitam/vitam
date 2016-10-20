@@ -368,4 +368,6 @@ public class LogbookResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
+
+
 }

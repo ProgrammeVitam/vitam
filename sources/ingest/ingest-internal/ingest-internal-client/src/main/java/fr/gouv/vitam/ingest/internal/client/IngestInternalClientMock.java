@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -58,7 +59,8 @@ public class IngestInternalClientMock implements IngestInternalClient {
     }
 
     @Override
-    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+    public Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
+        String archiveType)
         throws VitamException, XMLStreamException {
         // Do not check inputStream since it can be null
         ParametersChecker.checkParameter("Params cannot be null", logbookParametersList);

@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -43,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -82,10 +84,10 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -142,23 +144,23 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     }
 
     /**
-     *
-     * @param uploadedInputStream
-     * @param fileDetail
-     * @return
-     * @throws XMLStreamException
+     * 
+     * 
+     * Upload compressed SIP as Stream, will be uncompressed in workspace
+     * 
+     * @param xRequestId @param partList @throws XMLStreamException @return {@link Response} @throws
      */
     @Override
     @POST
     @Path("/upload")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes({MediaType.MULTIPART_FORM_DATA, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList)
+    public Response uploadSipAsStream(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
+        @FormDataParam("part") List<FormDataBodyPart> partList)
         throws XMLStreamException {
 
         Response response;
         String fileName = StringUtils.EMPTY;
-        GUID guid;
         try (LogbookOperationsClient logbookOperationsClient2 =
             LogbookOperationsClientFactory.getInstance().getClient()) {
             logbookOperationsClient = logbookOperationsClient2;
@@ -169,15 +171,13 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
             ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter",
                 logbookOperationParametersList);
+            ParametersChecker.checkParameter("xRequestId is a Mandatory parameter", xRequestId);
             final int tenantId = 0; // default tenanId
-            // guid for the container in the workspace
-            guid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0)
-                .getMapParameters().get(LogbookParameterName.eventIdentifier));
 
-            final GUID containerGUID = guid;
-            final GUID ingestGuid = guid;
+            final GUID containerGUID = GUIDReader.getGUID(xRequestId);
+            final GUID ingestGuid = containerGUID;
+
             logbookInitialisation(logbookOperationsClient, ingestGuid, containerGUID, tenantId);
-
             // Log Ingest External operations
             VITAM_LOGGER.debug("Log Ingest External operations");
 
@@ -197,6 +197,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             if (partList.size() == 2) {
                 uploadedInputStream = partList.get(1).getValueAs(InputStream.class);
 
+                MediaType mediaType = partList.get(1).getMediaType();
+
+                String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 
                 ParametersChecker.checkParameter("HTTP Request must contains 2 multiparts part", uploadedInputStream);
 
@@ -206,7 +209,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
                     "Début de l'action " + INGEST_INT_UPLOAD);
-                pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), uploadedInputStream,
+                // push uploaded sip as stream
+                pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), archiveMimeType,
+                    uploadedInputStream,
                     parameters);
                 final String uploadSIPMsg = " Succes de la récupération du SIP : fichier " + fileName +
                     " au format conforme";
@@ -219,22 +224,22 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 if (processingOk) {
                     response = Response.status(Status.OK)
                         .entity(getAtrFromStorage(containerGUID.getId()))
-                        .header(GlobalDataRest.X_REQUEST_ID, guid)
+                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                         .build();
                 } else {
                     response = Response.status(Status.INTERNAL_SERVER_ERROR)
-                        .header(GlobalDataRest.X_REQUEST_ID, guid)
+                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                         .build();
                 }
             } else {
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
                     OutcomeMessage.WORKFLOW_INGEST_KO.value());
                 response = Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .header(GlobalDataRest.X_REQUEST_ID, guid)
+                    .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                     .build();
             }
 
-        } catch (final ContentAddressableStorageZipException e) {
+        } catch (final ContentAddressableStorageCompressedFileException e) {
 
             if (parameters != null) {
                 try {
@@ -266,8 +271,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
-        } catch (final InvalidGuidOperationException | InvalidParseOperationException | ProcessingException |
-            LogbookClientException | StorageClientException | StorageNotFoundException | IOException e) {
+        } catch (final InvalidParseOperationException | ProcessingException |
+            LogbookClientException | StorageClientException | StorageNotFoundException | IOException |
+            InvalidGuidOperationException e) {
 
             if (parameters != null) {
                 try {
@@ -321,13 +327,16 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      * @param urlWorkspace
      * @param containerName
      * @param uploadedInputStream
-     * @throws ContentAddressableStorageServerException
-     * @throws ContentAddressableStorageZipException Thrown if file is not a valid zip
+     * @param archiveMimeType
+     * @throws ContentAddressableStorageException
      */
     private void pushSipStreamToWorkspace(final String urlWorkspace, final String containerName,
+        final String archiveMimeType,
         final InputStream uploadedInputStream, final LogbookParameters parameters)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageZipException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageCompressedFileException, ContentAddressableStorageServerException {
+
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");
         VITAM_LOGGER.debug("Try to push stream to workspace...");
@@ -335,7 +344,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         // call workspace
         if (!workspaceClient.isExistingContainer(containerName)) {
             workspaceClient.createContainer(containerName);
-            workspaceClient.unzipObject(containerName, FOLDER_SIP, uploadedInputStream);
+            workspaceClient.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
         } else {
             throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
         }

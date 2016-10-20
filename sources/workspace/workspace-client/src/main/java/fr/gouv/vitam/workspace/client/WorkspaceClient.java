@@ -62,10 +62,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
@@ -353,18 +353,23 @@ public class WorkspaceClient implements ContentAddressableStorage {
     }
 
     @Override
-    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
+    public void uncompressObject(String containerName, String folderName, String archiveType,
+        InputStream inputStreamObject)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageZipException {
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, folderName);
+            containerName, folderName, archiveType);
+        LOGGER.debug("-- Begin uncompress object in container:" + containerName + "/archiveType:" +
+            archiveType);
 
         if (isExistingContainer(containerName)) {
             if (!isExistingFolder(containerName, folderName)) {
 
                 final Response response =
-                    client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName).request()
-                        .put(Entity.entity(inputStreamObject, MediaType.APPLICATION_OCTET_STREAM));
+                    client.target(serviceUrl)
+                        .path("/containers/" + containerName + "/folders/" + folderName)
+                        .request()
+                        .put(Entity.entity(inputStreamObject, archiveType));
 
                 if (Response.Status.CREATED.getStatusCode() == response.getStatus()) {
                     LOGGER.debug(containerName + File.separator + folderName + " : " +
@@ -379,8 +384,11 @@ public class WorkspaceClient implements ContentAddressableStorage {
                 } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
                     "application/json".equals(response.getHeaderString("Content-Type"))) {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                    throw new ContentAddressableStorageZipException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    throw new ContentAddressableStorageCompressedFileException(
+                        ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 } else {
+
+
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
