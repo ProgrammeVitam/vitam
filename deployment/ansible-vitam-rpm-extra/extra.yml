@@ -1,9 +1,9 @@
 ---
 
 # Vitam solution deployment
-- hosts: vitam
-  roles:
-    - topbeat
+#- hosts: vitam
+#  roles:
+#    - topbeat
 
 - hosts: vitam
   roles:
@@ -13,10 +13,14 @@
   roles:
     - mongo-express
 
-- hosts: library
-  roles:
-    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
+#- hosts: library
+#  roles:
+#    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
 
 - hosts: reverse
   roles:
     - reverse
+
+- hosts: vitam
+  roles:
+    - packetbeat

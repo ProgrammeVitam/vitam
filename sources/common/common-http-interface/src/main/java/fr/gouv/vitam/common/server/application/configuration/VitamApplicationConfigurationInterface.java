@@ -46,5 +46,4 @@ public interface VitamApplicationConfigurationInterface {
      * @return this
      */
     VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
-
 }

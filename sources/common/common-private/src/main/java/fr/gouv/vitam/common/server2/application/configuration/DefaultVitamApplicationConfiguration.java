@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public abstract class DefaultVitamApplicationConfiguration implements VitamApplicationConfiguration {
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     protected String jettyConfig;
-
+    
     @Override
     public String getJettyConfig() {
         return jettyConfig;
@@ -46,5 +46,4 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         this.jettyConfig = jettyConfig;
         return this;
     }
-
 }

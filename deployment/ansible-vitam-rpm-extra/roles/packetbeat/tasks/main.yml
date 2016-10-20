@@ -1,0 +1,48 @@
+#### Packetbeat installation ###
+
+- name: install libpcap (prerequisite for Packetbeat)
+  yum:
+    name: libpcap
+    state: latest
+
+# TODO Run packetbeat as a non-root user, using a specific user with full restrictions 
+- name: install Packetbeat
+  yum:
+    name: packetbeat
+    state: latest
+
+- name: setup Packetbeat configuration file
+  template:
+    src: packetbeat.yml.j2
+    dest: /etc/packetbeat/packetbeat.yml
+    owner: root
+    mode: 0644
+
+- name: create packetbeat index
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/packetbeat'
+    method: PUT
+    body: "{{ lookup('file', '/etc/packetbeat/packetbeat.template.json') }}"
+    body_format: json
+    status_code: 200,201
+
+- name: load kibana dashboards to .kibana elasticsearch index
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{role_path}}/files/ -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+
+- name: restart Kibana
+  service:
+    name: kibana
+    state: restarted
+    enabled: true
+
+- name: add Packetbeat autostart at boot
+  service:
+    name: packetbeat
+    enabled: yes
+    state: started

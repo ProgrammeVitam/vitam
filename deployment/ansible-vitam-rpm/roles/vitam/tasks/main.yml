@@ -1,4 +1,50 @@
 ---
+### elasticsearch log configuration and kibana configuration ###
+- name: load vitam metrics template in Elasticsearch Log
+  when: num_log_hosts > 0
+  run_once: true
+  delegate_to: "{{ vitam_kibana_host }}"
+  uri:
+    url: "http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metrics_template"
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/metrics.template.json') }}"
+    body_format: json
+    status_code: 200,201
+  vars:
+    num_log_hosts: "{{ groups['hosts-log-server'] | length }}"
+
+- name: load dashboards into Elasticsearch log .kibana index
+  when: num_log_hosts > 0
+  run_once: true
+  delegate_to: "{{ vitam_kibana_host }}"
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+    num_log_hosts: "{{ groups['hosts-log-server'] | length }}"
+
+# TODO Get Kibana version dynamically and put it in the URL
+- name: set jersey-metrics-vitam-* as kibana default index pattern
+  when: num_log_hosts > 0
+  run_once: true
+  delegate_to: "{{ vitam_kibana_host }}"
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
+    method: PUT
+    body: '{"defaultIndex": "metrics-vitam-jersey-*"}'
+    body_format: json
+    status_code: 200, 201
+  vars:
+    num_log_hosts: "{{ groups['hosts-log-server'] | length }}"
+
 - name: Install rpm {{ rpm_name }}
   yum:
     name: "{{ rpm_name }}-{{rpm_version}}"
@@ -39,6 +85,7 @@
     - "antisamy-esapi.xml"
     - "jetty-config.xml"
     - "vitam.conf"
+    - "vitam.metrics.conf"
 
 - name: Ensure that the sysconfig sub-directory exists
   file:

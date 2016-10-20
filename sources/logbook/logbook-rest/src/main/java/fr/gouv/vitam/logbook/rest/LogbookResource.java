@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.codahale.metrics.Gauge;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
@@ -138,6 +140,15 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
         Status status;
+        if (AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges().size() == 0) {
+        	AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().register("test", new Gauge<Integer>() {
+
+				@Override
+				public Integer getValue() {
+					return 1;
+				}
+			});
+        }
         try {
             final LogbookOperation result = logbookOperation.getById(operationId);
             return Response.status(Status.OK)

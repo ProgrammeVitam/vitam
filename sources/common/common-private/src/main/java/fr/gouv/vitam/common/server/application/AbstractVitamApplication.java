@@ -26,17 +26,16 @@
  *******************************************************************************/
 
 package fr.gouv.vitam.common.server.application;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
+import org.eclipse.jetty.server.Handler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import org.eclipse.jetty.server.Handler;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
@@ -49,7 +48,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
     private Handler applicationHandler;
     private final Class<A> applicationType;
     private final Class<C> configurationType;
-
+    
     /**
      * Protected constructor assigning application and configuration types Usage example in sub-implementation : class
      * MyApplication extends AbstractVitamApplication<MyApplication, MyApplicationConfiguration> { protected
