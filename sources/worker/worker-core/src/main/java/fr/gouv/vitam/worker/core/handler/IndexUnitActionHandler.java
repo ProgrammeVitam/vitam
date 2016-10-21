@@ -221,7 +221,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
                     final String tag = startElement.getName().getLocalPart();
-                    if (it.hasNext() && tag != TAG_CONTENT) {
+                    if (it.hasNext() && tag != TAG_CONTENT && contentWritable) {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
                         if (ARCHIVE_UNIT.equals(tag)) {
@@ -236,12 +236,15 @@ public class IndexUnitActionHandler extends ActionHandler {
                         eventWritable = false;
                     }
 
-                    if (SedaConstants.PREFIX_OG.equals(tag)) {
-                        contentWritable = true;
-                    }
-
                     if (TAG_MANAGEMENT.equals(tag)) {
                         writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
+                        eventWritable = false;
+                    }
+                    
+                    if (SedaConstants.PREFIX_OG.equals(tag)) {
+                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
+                        writer.add(eventFactory.createCharacters(reader.getElementText()));
+                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
                         eventWritable = false;
                     }
 

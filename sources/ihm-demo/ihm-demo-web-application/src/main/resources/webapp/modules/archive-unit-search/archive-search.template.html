@@ -11,14 +11,14 @@
 
     <div id="boxSearch" class="panel-body panel-collapse collapse in">
       <!-- <div class="tab-content"> -->
-      <div role="tabpanel" class="tab-pane active" id="simpleSearch">
+      <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult($event, titleCriteria)">
         <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
           <div class="input-group">
-            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" />
-            <div class="input-group-addon"><button class="btn btn-primary center-block" ng-click="getSearchResult($event, titleCriteria)"><i class="material-icons pull-left">search</i></button></div>
+            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" onfocus="this.placeholder = ''"/>
+            <div class="input-group-addon"><button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i></button></div>
           </div>
         </div>
-      </div>
+      </form>
 
       <!--
       *
@@ -26,7 +26,7 @@
       *
     -->
 
-    <div role="tabpanel" class="tab-pane active" id="simpleSearch">
+    <div role="tabpanel" class="tab-pane active" id="complexeSearch">
       <div class="clearfix"></div>
       <div class="container col-md-12">
         <div class="panel panel-default col-md-12 ">

@@ -29,7 +29,7 @@
 
 angular.module('ihm.demo')
   .constant("VITAM_URL", "/ihm-demo/v1/api/ingest/upload")
-  .controller('uploadController', function($scope, FileUploader, VITAM_URL, $mdDialog, $route, ihmDemoFactory) {
+  .controller('uploadController', function($scope, FileUploader, VITAM_URL, $mdDialog, $route, $cookies, $location) {
     var uploader = $scope.uploader = new FileUploader({
       queueLimit: 1,
       url : VITAM_URL,
@@ -126,8 +126,14 @@ angular.module('ihm.demo')
       console.info('onProgressAll', progress);
     };
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
-      downloadATR(response, headers);
       console.info('onSuccessItem', fileItem, response, status, headers);
+      if (typeof response === 'string')  {
+        $location.path('/login');
+        $cookies.remove('userCredentials');
+        $cookies.remove('role');
+      } else {
+        downloadATR(response, headers);
+      }
     };
     uploader.onErrorItem = function(fileItem, response, status, headers) {
       console.info('onErrorItem', fileItem, response, status, headers);

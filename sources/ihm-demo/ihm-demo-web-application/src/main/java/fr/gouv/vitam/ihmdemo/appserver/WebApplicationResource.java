@@ -813,7 +813,6 @@ public class WebApplicationResource {
         }
 
         final UsernamePasswordToken token = new UsernamePasswordToken(username, password);
-        token.setRememberMe(true);
 
         try {
             subject.login(token);
