@@ -123,16 +123,16 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-config-resources</id>
 						<phase>validate</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/bin</outputDirectory>
+							<outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
 							<resources>
 								<resource>
-									<directory>src/main/bin</directory>
+									<directory>${basedir}/src/main/conf</directory>
 									<filtering>true</filtering>
 								</resource>
 							</resources>

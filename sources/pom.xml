@@ -533,22 +533,20 @@
 								<directory>/vitam/conf/${unix.name}</directory>
 								<sources>
 									<source>
-										<location>${basedir}/src/main/config</location>
+										<location>${project.build.directory}/conf</location>
 									</source>
 								</sources>
 							</mapping>
-
+							<!-- OMA : disabled as useless now (no files within)
 							<mapping>
 								<directory>/vitam/script/${unix.name}</directory>
 								<sources>
 									<source>
-										<location>${project.build.directory}/bin</location>
+										<location>${project.build.directory}/script</location>
 									</source>
 								</sources>
 							</mapping>
-							<!-- OMA : added for future use -->
-
-
+							-->
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
 								<filemode>644</filemode>
