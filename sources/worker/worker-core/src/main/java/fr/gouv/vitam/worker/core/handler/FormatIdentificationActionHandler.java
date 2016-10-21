@@ -374,55 +374,60 @@ public class FormatIdentificationActionHandler extends ActionHandler {
     private void checkAndUpdateFormatIdentification(String objectId, JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
         final JsonNode refFormat = result.get(0);
-        final JsonNode puid = refFormat.get("PUID");
+        final JsonNode puid = refFormat.get(FileFormat.PUID);
         final StringBuilder diff = new StringBuilder();
         if ((formatIdentification == null || !formatIdentification.isObject()) && puid != null) {
             formatIdentification = JsonHandler.createObjectNode();
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, formatIdentification);
         }
-        if (formatIdentification != null && !puid.equals(formatIdentification.get(SedaConstants.TAG_FORMAT_ID))) {
-            objectCheckFormatResult.setStatus(StatusCode.WARNING);
-            if (formatIdentification.get(SedaConstants.TAG_FORMAT_ID) != null) {
-                diff.append("- PUID : ");
-                diff.append(formatIdentification.get(SedaConstants.TAG_FORMAT_ID));
-                diff.append('\n');
+        if (formatIdentification != null) {
+            JsonNode fiPuid = formatIdentification.get(SedaConstants.TAG_FORMAT_ID);
+            if (!puid.equals(fiPuid)) {
+                objectCheckFormatResult.setStatus(StatusCode.WARNING);
+                if (fiPuid != null && fiPuid.size() != 0) {
+                    diff.append("- PUID : ");
+                    diff.append(fiPuid);
+                    diff.append('\n');
+                }
+                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_ID, puid);
+                diff.append("+ PUID : ");
+                diff.append(puid);
+                metadatasUpdated = true;
             }
-            ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_ID, puid);
-            diff.append("+ PUID : ");
-            diff.append(puid);
-            metadatasUpdated = true;
-        }
-        final JsonNode name = refFormat.get("Name");
-        if (formatIdentification != null && !name.equals(formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL))) {
-            if (diff.length() != 0) {
-                diff.append('\n');
+            final JsonNode name = refFormat.get(FileFormat.NAME);
+            JsonNode fiFormatLitteral = formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
+            if (!name.equals(fiFormatLitteral)) {
+                if (diff.length() != 0) {
+                    diff.append('\n');
+                }
+                if (fiFormatLitteral != null && fiFormatLitteral.size() != 0) {
+                    diff.append("- " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
+                    diff.append(fiFormatLitteral);
+                    diff.append('\n');
+                }
+                objectCheckFormatResult.setStatus(StatusCode.WARNING);
+                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_LITTERAL, name);
+                diff.append("+ " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
+                diff.append(name);
+                metadatasUpdated = true;
             }
-            if (formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) != null) {
-                diff.append("- " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
-                diff.append(formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL));
-                diff.append('\n');
+            final JsonNode mimeType = refFormat.get(FileFormat.MIME_TYPE);
+            JsonNode fiMimeType = formatIdentification.get(SedaConstants.TAG_MIME_TYPE);
+            if (!mimeType.equals(fiMimeType)) {
+                if (diff.length() != 0) {
+                    diff.append('\n');
+                }
+                if (fiMimeType != null && fiMimeType.size() != 0) {
+                    diff.append("- " + SedaConstants.TAG_MIME_TYPE + " : ");
+                    diff.append(fiMimeType);
+                    diff.append('\n');
+                }
+                objectCheckFormatResult.setStatus(StatusCode.WARNING);
+                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_MIME_TYPE, mimeType);
+                diff.append("+ " + SedaConstants.TAG_MIME_TYPE + " : ");
+                diff.append(mimeType);
+                metadatasUpdated = true;
             }
-            objectCheckFormatResult.setStatus(StatusCode.WARNING);
-            ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_LITTERAL, name);
-            diff.append("+ " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
-            diff.append(name);
-            metadatasUpdated = true;
-        }
-        final JsonNode mimeType = refFormat.get("MIMEType");
-        if (formatIdentification != null && !mimeType.equals(formatIdentification.get(SedaConstants.TAG_MIME_TYPE))) {
-            if (diff.length() != 0) {
-                diff.append('\n');
-            }
-            if (formatIdentification.get(SedaConstants.TAG_MIME_TYPE) != null) {
-                diff.append("- " + SedaConstants.TAG_MIME_TYPE + " : ");
-                diff.append(formatIdentification.get(SedaConstants.TAG_MIME_TYPE));
-                diff.append('\n');
-            }
-            objectCheckFormatResult.setStatus(StatusCode.WARNING);
-            ((ObjectNode) formatIdentification).set(SedaConstants.TAG_MIME_TYPE, mimeType);
-            diff.append("+ " + SedaConstants.TAG_MIME_TYPE + " : ");
-            diff.append(mimeType);
-            metadatasUpdated = true;
         }
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
