@@ -32,6 +32,8 @@ import java.util.List;
 
 import org.bson.Document;
 
+import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
@@ -41,17 +43,20 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 public class FileFormat extends VitamDocument<FileFormat> {
 
     public static final String PUID = "PUID";
-    private static final String VERSION_PRONOM = "VersionPronom";
-    private static final String VERSION = "Version";
-    private static final String CREATED_DATE = "CreatedDate";
-    private static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
-    private static final String MIME_TYPE = "MIMEType";
-    private static final String NAME = "Name";
-    private static final String GROUP = "Group";
-    private static final String ALERT = "Alert";
-    private static final String COMMENT = "Comment";
-    private static final String EXTENSION = "Extension";
+    public static final String VERSION_PRONOM = "VersionPronom";
+    public static final String VERSION = "Version";
+    public static final String CREATED_DATE = "CreatedDate";
+    public static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
+    public static final String MIME_TYPE = "MIMEType";
+    public static final String NAME = "Name";
+    public static final String GROUP = "Group";
+    public static final String ALERT = "Alert";
+    public static final String COMMENT = "Comment";
+    public static final String EXTENSION = "Extension";
     private static final long serialVersionUID = 7794456688851515535L;
+
+    private static final String EMPTY_STRING = "";
+
 
 
     /**
@@ -194,6 +199,46 @@ public class FileFormat extends VitamDocument<FileFormat> {
      */
     public FileFormat setGroup(String group) {
         append(GROUP, group);
+        return this;
+    }
+
+    /**
+     * Before database insertion, uses this method to clean all null fields (set to empty string or to empty list
+     * instead of null)
+     *
+     * @return return the current instance of FileFormat;
+     */
+    public FileFormat cleanNullValues() {
+        if (get(VERSION_PRONOM) == null) {
+            append(VERSION_PRONOM, EMPTY_STRING);
+        }
+        if (get(VERSION) == null) {
+            append(VERSION, EMPTY_STRING);
+        }
+        if (get(CREATED_DATE) == null) {
+            append(CREATED_DATE, EMPTY_STRING);
+        }
+        if (get(HAS_PRIORITY_OVER_FILE_FORMAT_ID) == null) {
+            append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, new ArrayList<String>());
+        }
+        if (get(MIME_TYPE) == null) {
+            append(MIME_TYPE, new ArrayList<String>());
+        }
+        if (get(NAME) == null) {
+            append(NAME, EMPTY_STRING);
+        }
+        if (get(GROUP) == null) {
+            append(GROUP, EMPTY_STRING);
+        }
+        if(get(ALERT) == null) {
+            append(ALERT, false);
+        }
+        if (get(COMMENT) == null) {
+            append(COMMENT, EMPTY_STRING);
+        }
+        if (get(EXTENSION) == null) {
+            append(EXTENSION, new ArrayList<String>());
+        }
         return this;
     }
 }

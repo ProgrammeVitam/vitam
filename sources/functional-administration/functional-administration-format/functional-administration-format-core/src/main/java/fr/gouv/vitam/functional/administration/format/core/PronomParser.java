@@ -173,9 +173,7 @@ public class PronomParser {
                             pronomFormat.setExtension(extensions);
                             pronomFormat.setPriorityOverIdList(priorityOverIdList);
                             // Add default value
-                            pronomFormat.setAlert(false);
-                            pronomFormat.setComment("");
-                            pronomFormat.setGroup("");
+                            pronomFormat.cleanNullValues();
 
                             copyAttributesFromFileFormat(pronomFormat, fileFormat0);
                             jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
@@ -235,6 +233,7 @@ public class PronomParser {
             fileFormatDest.clear();
             fileFormatDest.append(CREATED_DATE, fileFormatSource.getString(CREATED_DATE));
             fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
+            fileFormatDest.cleanNullValues();
         }
     }
 }
