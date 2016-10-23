@@ -26,19 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.mongodb;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 
 /**
  * MongoDbAccess interface
  */
-public abstract class MongoDbAccess {
+public abstract class MongoDbAccess implements DatabaseConnection {
 
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
     private MongoDatabase mongoAdmin;
+    private String dbname;
 
     /**
      *
@@ -52,6 +57,18 @@ public abstract class MongoDbAccess {
         this.mongoClient = mongoClient;
         mongoDatabase = mongoClient.getDatabase(dbname);
         mongoAdmin = mongoClient.getDatabase("admin");
+        this.dbname = dbname;
+    }
+
+    @Override
+    public boolean checkConnection() {
+        try {
+            mongoClient.getDatabase(dbname).runCommand(new BasicDBObject("ping", "1"));
+            return true;
+        } catch (MongoException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return false;
+        }
     }
 
     /**
@@ -109,4 +126,8 @@ public abstract class MongoDbAccess {
         mongoClient.close();
     }
 
+    @Override
+    public String toString() {
+        return dbname;
+    }
 }

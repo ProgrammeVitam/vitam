@@ -52,15 +52,16 @@ public class BasicVitamServer implements VitamServer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
         "A problem occurred while attempting to start the server";
+    /**
+     * Default TEST ONLY Jetty config file
+     */
+    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
     private int port;
     private Handler handler;
     private Server server;
     private XmlConfiguration serverConfiguration;
     private boolean configured = false;
-    /**
-     * Default TEST ONLY Jetty config file
-     */
-    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
+    VitamThreadPoolExecutor vitamThreadPoolExecutor = new VitamThreadPoolExecutor();
 
     /**
      * A Vitam server can only be instantiated with a given port to listen to
@@ -71,7 +72,7 @@ public class BasicVitamServer implements VitamServer {
     protected BasicVitamServer(int port) {
         ParametersChecker.checkValue("You must provide a valid port number", port, 1);
         this.port = port;
-        server = new Server(new VitamThreadPoolExecutor());
+        server = new Server(vitamThreadPoolExecutor);
         ServerConnector serverConnector = new ServerConnector(server);
         serverConnector.setPort(port);
         server.addConnector(serverConnector);
@@ -92,7 +93,7 @@ public class BasicVitamServer implements VitamServer {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
             try (final InputStream fis = PropertiesUtils.getConfigAsStream(jettyConfigPath)) {
                 serverConfiguration = new XmlConfiguration(fis);
-                server = new Server();
+                server = new Server(vitamThreadPoolExecutor);
                 server = (Server) serverConfiguration.configure(server);
                 configured = true;
 
@@ -277,5 +278,13 @@ public class BasicVitamServer implements VitamServer {
     public void setHandler(Handler handler) {
         ParametersChecker.checkParameter("Handler must not be nul", handler);
         this.handler = handler;
+    }
+    
+    /**
+     * 
+     * @return the VitamThreadPoolExecutor used by the server
+     */
+    public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {
+        return vitamThreadPoolExecutor;
     }
 }

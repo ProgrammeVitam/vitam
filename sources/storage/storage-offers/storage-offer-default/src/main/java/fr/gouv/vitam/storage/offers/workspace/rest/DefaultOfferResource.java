@@ -65,6 +65,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  * Default offer REST Resource
  */
 @Path("/offer/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);

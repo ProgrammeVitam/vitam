@@ -41,7 +41,7 @@ public interface IngestExternal {
      * TODO add the file name as param from a header
      *
      * @param input the file
-     * @return
+     * @return Response
      * @throws IngestExternalException thrown if an error occured in worklofw
      * @throws XMLStreamException
      */

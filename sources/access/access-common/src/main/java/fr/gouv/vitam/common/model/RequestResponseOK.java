@@ -51,7 +51,7 @@ public final class RequestResponseOK extends RequestResponse {
     /**
      * Add list of results
      *
-     * @param results list
+     * @param resultList list
      * @return RequestResponseOK with mutable results list of String
      */
     public RequestResponseOK addAllResults(List<String> resultList) {

@@ -42,6 +42,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -124,6 +125,7 @@ public class AccessClientRestTest extends VitamJerseyTest {
     }
 
     @Path("/access/v1")
+    @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource implements AccessResource {
         private final ExpectedResults expectedResponse;
 
@@ -192,9 +194,10 @@ public class AccessClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStream(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.get();
+        public void getObjectStreamAsync(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup,
+            String query, @Suspended final AsyncResponse asyncResponse) {
+            asyncResponse.resume(expectedResponse.get());
         }
 
         @Override
@@ -202,20 +205,9 @@ public class AccessClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStreamPost(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.post();
-        }
-        // FIXME should be called instead of upper methods
-        @Override
-        public void getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, String query,
-            AsyncResponse asyncResponse) {
-            asyncResponse.resume(expectedResponse.get());
-        }
-        // FIXME should be called instead of upper methods
-        @Override
-        public void getObjectStreamPostAsync(HttpHeaders headers, String idObjectGroup, String query,
-            AsyncResponse asyncResponse) {
+        public void getObjectStreamPostAsync(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup, String query,
+            @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.post());
         }
 

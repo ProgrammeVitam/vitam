@@ -47,8 +47,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
 
     private static final long serialVersionUID = 3439757375656161919L;
     
-    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
-    public static final String SUBMISSION_AGENCY = "SubmissionAgency";
+    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String SUBMISSION_AGENCY = "SubmissionAgency";
     private static final String START_DATE = "StartDate";
     private static final String END_DATE = "EndDate";
     private static final String LAST_UPDATE = "LastUpdate";
@@ -105,7 +105,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     
     /**
      * @param subAgency
-     * @return
+     * @return this
      */
     public AccessionRegisterDetail setSubmissionAgency(String subAgency) {
         this.append(SUBMISSION_AGENCY, subAgency);
@@ -179,8 +179,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
     
     /**
-     * @param uniqueIdentifier
-     * @return AccessionRegisterDetail
+     * @param total
+     * @return this
      */
     public AccessionRegisterDetail setTotalObjects(RegisterValueDetail total) {
         this.append(TOTAL_OBJECTS, total);

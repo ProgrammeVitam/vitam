@@ -442,9 +442,9 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     /**
      * Extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName: GUID
-     * @param folderName: folder Name
-     * @param archiverType: archive type zip, tar tar.gz
+     * @param containerName GUID
+     * @param folderName folder Name
+     * @param archiverType archive type zip, tar tar.gz
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageCompressedFileException if the file is not a zip or an empty zip
      * @throws ContentAddressableStorageException if an IOException occurs when extracting the file
@@ -478,7 +478,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                     isExistingObject(containerName, folderName + File.separator + archiveEntry.getName()) + " = " +
                     folderName + File.separator + archiveEntry.getName());
                 // after put entry stream open stream to add a next
-                entryInputStream.setClosed(true);
+                entryInputStream.setClosed(false);
             }
             archiveInputStream.close();
             if (isEmpty) {
@@ -529,6 +529,18 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             context.close();
         }
         return jsonNodeObjectInformation;
+    }
+
+    private MediaType getExtensionArchive(String mimeType) throws ContentAddressableStorageCompressedFileException {
+        if (mimeType == null) {
+            throw new IllegalArgumentException(MIMETYPE_NOT_FILLED);
+        }
+        final String[] tab = mimeType.split(";");
+        // problem mimetype with encoding code ;charset=ISO-8859-1
+        if (tab != null && tab.length > 1) {
+            mimeType = tab[0];
+        }
+        return CommonMediaType.valueOf(mimeType);
     }
 
     /**
@@ -599,18 +611,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             closed = isclosed;
         }
 
-    }
-
-    private MediaType getExtensionArchive(String mimeType) throws ContentAddressableStorageCompressedFileException {
-        if (mimeType == null) {
-            throw new IllegalArgumentException(MIMETYPE_NOT_FILLED);
-        }
-        final String[] tab = mimeType.split(";");
-        // problem mimetype with encoding code ;charset=ISO-8859-1
-        if (tab != null && tab.length > 1) {
-            mimeType = tab[0];
-        }
-        return CommonMediaType.valueOf(mimeType);
     }
 
 }

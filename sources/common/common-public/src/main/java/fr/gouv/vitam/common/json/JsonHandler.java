@@ -281,7 +281,23 @@ public final class JsonHandler {
         } catch (final JsonProcessingException e) {
             throw new InvalidParseOperationException(e);
         }
+    }
 
+    /**
+     *
+     * @param jsonNode
+     * @param clasz
+     * @return the corresponding object
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> T getFromJsonNodeLowerCamelCase(JsonNode jsonNode, Class<T> clasz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
+            return OBJECT_MAPPER_LOWER_CAMEL_CASE.treeToValue(jsonNode, clasz);
+        } catch (final JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
     }
 
     /**

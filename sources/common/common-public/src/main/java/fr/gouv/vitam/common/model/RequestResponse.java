@@ -35,16 +35,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public abstract class RequestResponse {
-    private JsonNode query;
+    private JsonNode query = JsonHandler.createObjectNode();
 
     /**
      * @return the query as JsonNode of Response
      */
     public JsonNode getQuery() {
-        if (query != null) {
-            return query;
-        }
-        return JsonHandler.createObjectNode();
+        return query;
     }
 
     /**
@@ -54,7 +51,9 @@ public abstract class RequestResponse {
      * @return the updated RequestResponse Object
      */
     public RequestResponse setQuery(JsonNode query) {
-        this.query = query;
+        if (query != null) {
+            this.query = query;
+        }
         return this;
     }
 }

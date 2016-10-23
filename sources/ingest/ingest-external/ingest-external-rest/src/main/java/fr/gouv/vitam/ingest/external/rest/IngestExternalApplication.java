@@ -100,6 +100,7 @@ public final class IngestExternalApplication
      *
      * @param moduleConf moduleconf
      * @return the VitamServer
+     * @throws VitamException 
      * @throws IllegalStateException
      */
     public static VitamServer startApplication(String moduleConf) throws VitamException {

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -77,7 +77,7 @@ public final class VitamError {
      * @return the VitamError object with the context is filled
      */
     public VitamError setContext(String context) {
-        if (StringUtils.isNotBlank(context)) {
+        if (! Strings.isNullOrEmpty(context)) {
             this.context = context;
         }
         return this;
@@ -121,10 +121,9 @@ public final class VitamError {
 
 
     /**
-     * @param list of errors as List
+     * @param errors list of errors
      * @return the VitamError object with the list of errors is filled
      */
-    // TODO bad comment: parameter name
     public VitamError addAllErrors(List<VitamError> errors) {
         if (this.errors == null || this.errors.isEmpty()) {
             this.errors = new ArrayList<>();

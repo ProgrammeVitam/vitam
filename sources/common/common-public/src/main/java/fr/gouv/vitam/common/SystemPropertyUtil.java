@@ -56,6 +56,7 @@ public final class SystemPropertyUtil {
      */
     static {
         refresh();
+        VitamConfiguration.checkVitamConfiguration();
     }
 
     private SystemPropertyUtil() {
@@ -106,7 +107,6 @@ public final class SystemPropertyUtil {
                     "Currently file.encoding is: " + get(FILE_ENCODING));
             }
         }
-        VitamConfiguration.checkVitamConfiguration();
     }
 
     /**

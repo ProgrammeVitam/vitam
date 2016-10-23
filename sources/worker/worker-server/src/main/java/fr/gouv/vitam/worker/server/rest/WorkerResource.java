@@ -62,6 +62,7 @@ import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;
  * Worker Resource implementation
  */
 @Path("/worker/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
 

@@ -66,6 +66,7 @@ import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
  * Units resource REST API
  */
 @Path("/metadata/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class MetaDataResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
 

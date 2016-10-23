@@ -108,6 +108,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     }
 
     @Path("/logbook/v1")
+    @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource  extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 

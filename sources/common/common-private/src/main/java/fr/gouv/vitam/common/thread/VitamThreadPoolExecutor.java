@@ -27,11 +27,16 @@
 package fr.gouv.vitam.common.thread;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.eclipse.jetty.util.thread.ThreadPool;
+import org.glassfish.jersey.spi.ExecutorServiceProvider;
 
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
@@ -39,7 +44,11 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 /**
  * Vitam ThreadPoolExecutor compatible with Jersey which copy the VitamSession from the main thread to the subthread
  */
-public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool {
+@Named("threadpool")
+public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool, ExecutorServiceProvider {
+    private static final VitamThreadPoolExecutor VITAM_THREAD_POOL_EXECUTOR = new VitamThreadPoolExecutor();
+    
+    VitamThreadFactory factory = new VitamThreadFactory();
 
     /**
      * @param corePoolSize
@@ -48,6 +57,7 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
      * @param unit
      * @param workQueue
      */
+    @Inject @Named("threadpool")
     public VitamThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
         BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, VitamThreadFactory.getInstance());
@@ -56,6 +66,7 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     /**
      * Create a Cached Thread Pool
      */
+    @Inject @Named("threadpool")
     public VitamThreadPoolExecutor() {
         this(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     }
@@ -92,5 +103,26 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         return false;
     }
 
+    @Override
+    public ExecutorService getExecutorService() {
+        return this;
+    }
 
+    @Override
+    public void dispose(ExecutorService executorService) {
+        // Empty ?
+    }
+
+    @Override
+    public void execute(Runnable arg0) {
+        super.execute(factory.newThread(arg0));
+    }
+    
+    /**
+     * 
+     * @return VitamThreadPoolExecutor instance
+     */
+    public static VitamThreadPoolExecutor getInstance() {
+        return VITAM_THREAD_POOL_EXECUTOR;
+    }
 }

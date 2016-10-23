@@ -74,6 +74,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
  * Storage Resource implementation
  */
 @Path("/storage/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class StorageResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
 

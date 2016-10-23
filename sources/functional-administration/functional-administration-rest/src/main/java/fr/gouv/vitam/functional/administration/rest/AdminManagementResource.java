@@ -75,6 +75,7 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
  * FormatManagementResourceImpl implements AccessResource
  */
 @Path("/adminmanagement/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
     private final ReferentialFormatFileImpl formatManagement;

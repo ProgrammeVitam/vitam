@@ -51,13 +51,14 @@ import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResou
  * Benchmark Resource
  */
 @Path("/benchmark")
+@javax.ws.rs.ApplicationPath("webresources")
 public class BenchmarkResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResource.class);
 
     /**
      * Constructor IngestExternalResource
      *
-     * @param ingestExternalConfiguration
+     * @param configuration
      */
     public BenchmarkResource(BenchmarkConfiguration configuration) {
         LOGGER.info("init Ingest External Resource server");
@@ -90,8 +91,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     /**
      * upload using POST
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.POST)
@@ -105,8 +106,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     /**
      * upload using PUT
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.PUT)
@@ -120,8 +121,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     /**
      * upload using GET
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.GET)
@@ -135,8 +136,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     /**
      * upload using DELETE
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.DELETE)

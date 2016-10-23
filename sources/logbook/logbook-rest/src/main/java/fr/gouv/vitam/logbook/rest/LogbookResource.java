@@ -43,16 +43,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -86,6 +88,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
  * Logbook Resource implementation
  */
 @Path("/logbook/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class LogbookResource extends ApplicationStatusResource {
     private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
@@ -366,13 +369,14 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             String cursorId = xcursorId;
-            if (!Strings.isNullOrEmpty(cursorId) && !xcursor) {
+            if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
                 // terminate the cursor
                 logbookLifeCycle.finalizeCursor(cursorId);
-                return Response.status(Status.NO_CONTENT).build();
+                ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             }
             JsonNode nodeQuery = JsonHandler.createObjectNode();
-            if (xcursor && Strings.isNullOrEmpty(cursorId)) {
+            if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
@@ -385,32 +389,34 @@ public class LogbookResource extends ApplicationStatusResource {
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
                     LogbookLifeCycleUnit lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
-                    responseOK.addResult(JsonHandler.unprettyPrint(lcUnit));
+                    responseOK.addResult(JsonHandler.toJsonNode(lcUnit));
                 }
             } catch (LogbookNotFoundException e) {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            return Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+            ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
                 .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
-                    .setHits(nb, 0, nb).setQuery(nodeQuery))
-                .build();
+                    .setHits(nb, 0, nb).setQuery(nodeQuery));
+            return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
+            ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
-                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
-                .build();
+                    .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())));
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
-            return Response.status(status)
+            ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
-                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
-                .build();
+                    .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())));
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
 
@@ -658,13 +664,14 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             String cursorId = xcursorId;
-            if (!Strings.isNullOrEmpty(cursorId) && !xcursor) {
+            if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
                 // terminate the cursor
                 logbookLifeCycle.finalizeCursor(cursorId);
-                return Response.status(Status.NO_CONTENT).build();
+                ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             }
             JsonNode nodeQuery = JsonHandler.createObjectNode();
-            if (xcursor && Strings.isNullOrEmpty(cursorId)) {
+            if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
@@ -677,32 +684,32 @@ public class LogbookResource extends ApplicationStatusResource {
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
                     LogbookLifeCycleObjectGroup lcObjectGroup = logbookLifeCycle.getCursorObjectGroupNext(cursorId);
-                    responseOK.addResult(JsonHandler.unprettyPrint(lcObjectGroup));
+                    responseOK.addResult(JsonHandler.toJsonNode(lcObjectGroup));
                 }
             } catch (LogbookNotFoundException e) {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            return Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+            ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
                 .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
-                    .setHits(nb, 0, nb).setQuery(nodeQuery))
-                .build();
+                    .setHits(nb, 0, nb).setQuery(nodeQuery));
+            return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
+            ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
-                .build();
+                    .setDescription(status.getReasonPhrase())));
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
-            return Response.status(status)
+            ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
-                .build();
+                    .setDescription(status.getReasonPhrase())));
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
 

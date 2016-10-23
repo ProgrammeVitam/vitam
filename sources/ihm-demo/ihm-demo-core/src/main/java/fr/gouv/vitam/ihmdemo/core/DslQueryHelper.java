@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -63,9 +63,7 @@ public final class DslQueryHelper {
         // empty constructor
     }
 
-    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
-    // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
-    // "masquer" l'implémentation.
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String DESCRIPTION = "Description";
@@ -312,7 +310,7 @@ public final class DslQueryHelper {
             booleanQueries.add(match(searchKeys, searchValue));
         }
         // US 509:start AND end date must be filled.
-        if (StringUtils.isNotBlank(endDate) && StringUtils.isNotBlank(startDate)) {
+        if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
             andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
         }
 
@@ -410,7 +408,7 @@ public final class DslQueryHelper {
 
         final BooleanQuery query = or();
 
-        if (StringUtils.isNotBlank(endDate) && StringUtils.isNotBlank(startDate)) {
+        if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
             final BooleanQuery transactedDateBetween = and();
             // search by transacted date
             transactedDateBetween.add(gte(TRANSACTED_DATE, startDate));

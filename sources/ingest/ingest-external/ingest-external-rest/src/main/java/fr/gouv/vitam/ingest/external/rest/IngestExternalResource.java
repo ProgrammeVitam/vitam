@@ -51,6 +51,7 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
  * The Ingest External Resource
  */
 @Path("/ingest-ext/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalImpl ingestExtern;
@@ -70,8 +71,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local TODO : add file name
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
      * @throws XMLStreamException
      */

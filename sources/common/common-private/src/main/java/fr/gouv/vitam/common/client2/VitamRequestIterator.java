@@ -27,15 +27,21 @@
 package fr.gouv.vitam.common.client2;
 
 import java.util.Iterator;
+import java.util.List;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -45,7 +51,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 /**
  * Utility to help with Http based Cursor that implements real Database Cursor on server side
  */
-public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
+public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIterator.class);
 
     private final MockOrRestClient client;
@@ -53,10 +59,11 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
     private final String method;
     private final String path;
     private final MultivaluedHashMap<String, Object> headers;
+    private String xCursorId = null;
     private boolean first = true;
     private boolean closed = false;
     private RequestResponseOK objectResponse = null;
-    private Iterator<String> iterator = null;
+    private Iterator<JsonNode> iterator = null;
 
     /**
      * Constructor
@@ -71,10 +78,16 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
     public VitamRequestIterator(MockOrRestClient client, String method, String path,
         MultivaluedHashMap<String, Object> headers,
         JsonNode request) {
+        ParametersChecker.checkParameter("Arguments method and path could not be null", method, path);
+        ParametersChecker.checkParameter("Argument client could not be null", client);
         this.client = client;
         this.method = method;
         this.path = path;
-        this.headers = headers;
+        if (headers != null) {
+            this.headers = headers;
+        } else {
+            this.headers = new MultivaluedHashMap<>();
+        }
         this.request = request;
     }
 
@@ -85,9 +98,13 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
         }
         // Callback to close the cursor
         closed = true;
+        if (xCursorId == null) {
+            return;
+        }
         Response response = null;
         try {
             headers.add(GlobalDataRest.X_CURSOR, false);
+            headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
             response = client.performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
         } catch (VitamClientInternalException e) {
             throw new BadRequestException(e);
@@ -121,23 +138,23 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
                     case NOT_FOUND:
                         closed = true;
                         return false;
-                    case PARTIAL_CONTENT:
-                        // Multiple with Cursor
-                        String xCurrsorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_REQUEST_ID);
-                        if (xCurrsorId == null) {
-                            throw new BadRequestException("No Cursor returned");
-                        }
-                        headers.add(GlobalDataRest.X_CURSOR_ID, xCurrsorId);
-                        // TODO Ignore for the moment X-Cursor-Timeout
                     case OK:
                         // Unique no Cursor
+                        closed = true;
+                    case PARTIAL_CONTENT:
+                        // Multiple with Cursor
+                        xCursorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_CURSOR_ID);
+                        if (xCursorId == null && !closed) {
+                            throw new BadRequestException("No Cursor returned");
+                        } else {
+                            headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
+                        }
+                        // TODO Ignore for the moment X-Cursor-Timeout
                         objectResponse = response.readEntity(RequestResponseOK.class);
                         iterator = objectResponse.getResults().iterator();
-                        closed = true;
                         return true;
                     default:
                         closed = true;
-                        LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                         throw new BadRequestException(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                 }
             } catch (VitamClientInternalException e) {
@@ -153,6 +170,9 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
                     case NOT_FOUND:
                         closed = true;
                         return false;
+                    case OK:
+                        // End of cursor
+                        closed = true;
                     case PARTIAL_CONTENT:
                         // TODO Ignore for the moment X-Cursor-Timeout
                         objectResponse = response.readEntity(RequestResponseOK.class);
@@ -172,8 +192,8 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
     }
 
     @Override
-    public String next() {
-        String result = null;
+    public JsonNode next() {
+        JsonNode result = null;
         if (objectResponse != null) {
             result = iterator.next();
             if (!iterator.hasNext()) {
@@ -184,4 +204,105 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<String> {
         return result;
     }
 
+    private static boolean checkHeadersConformity(HttpHeaders headers) {
+        if (headers != null) {
+            boolean xcursor;
+            MultivaluedMap<String, String> map = headers.getRequestHeaders();
+            if (!map.containsKey(GlobalDataRest.X_CURSOR)) {
+                throw new IllegalStateException(GlobalDataRest.X_CURSOR + " should be always defined");
+            }
+            if (map.get(GlobalDataRest.X_CURSOR).isEmpty()) {
+                throw new IllegalStateException(GlobalDataRest.X_CURSOR + " should be defined");
+            }
+            xcursor = Boolean.parseBoolean(map.getFirst(GlobalDataRest.X_CURSOR));
+            if (!xcursor && Strings.isNullOrEmpty(getCursorId(headers))) {
+                throw new IllegalStateException(GlobalDataRest.X_CURSOR + " should be true when " +
+                    GlobalDataRest.X_CURSOR_ID + " is not set");
+            }
+            return xcursor;
+        }
+        throw new IllegalStateException("Headers is null");
+    }
+
+    /**
+     * Helper for server side to check if this is a end of cursor
+     * 
+     * @param headers
+     * @return True if the cursor is to be ended on Server side
+     * @throws IllegalStateException if the headers are not consistent
+     */
+    public static boolean isEndOfCursor(HttpHeaders headers) {
+        return !checkHeadersConformity(headers);
+    }
+
+    /**
+     * Helper for server side to check if this is a ending of cursor
+     * 
+     * @param xcursor
+     * @param xcursorId
+     * @return True if the cursor is to be ended on Server side
+     */
+    public static boolean isEndOfCursor(boolean xcursor, String xcursorId) {
+        return !xcursor && !Strings.isNullOrEmpty(xcursorId);
+    }
+
+    /**
+     * Helper for server side to check if this is a creation of cursor
+     * 
+     * @param headers
+     * @return True if the cursor is to be created on Server side
+     * @throws IllegalStateException if the headers are not consistent
+     */
+    public static boolean isNewCursor(HttpHeaders headers) {
+        boolean xcursor = checkHeadersConformity(headers);
+        if (!xcursor) {
+            return false;
+        }
+        List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
+        if (cidlist == null) {
+            return xcursor;
+        }
+        return isNewCursor(xcursor, cidlist.get(0));
+    }
+
+    /**
+     * Helper for server side to check if this is a creation of cursor
+     * 
+     * @param xcursor
+     * @param xcursorId
+     * @return True if the cursor is to be created on Server side
+     */
+    public static boolean isNewCursor(boolean xcursor, String xcursorId) {
+        return xcursor && Strings.isNullOrEmpty(xcursorId);
+    }
+
+    /**
+     * Helper for server side to get the cursor Id
+     * 
+     * @param headers
+     * @return the X-Cursor-ID content
+     */
+    public static String getCursorId(HttpHeaders headers) {
+        List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
+        if (cidlist == null) {
+            return "";
+        }
+        return cidlist.get(0);
+    }
+
+    /**
+     * Helper for server and client to set the needed headers
+     * 
+     * @param builder the current ResponseBuilder
+     * @param active True for create or continue, False for inactive (X-Cursor)
+     * @param xcursorId may be null, else contains the current X-Cursor-Id
+     * @return the ResponseBuilder with the new required header
+     */
+    public static ResponseBuilder setHeaders(ResponseBuilder builder, boolean active, String xcursorId) {
+        builder.header(GlobalDataRest.X_CURSOR, active);
+        if (xcursorId != null) {
+            builder.header(GlobalDataRest.X_CURSOR_ID, xcursorId);
+        }
+        return builder;
+    }
 }

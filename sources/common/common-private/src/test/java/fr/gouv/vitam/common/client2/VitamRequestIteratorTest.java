@@ -27,38 +27,52 @@
 package fr.gouv.vitam.common.client2;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.Future;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 
 public class VitamRequestIteratorTest extends VitamJerseyTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorTest.class);
+    
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
     private DefaultClient client;
-
+    private static boolean startup =  true;
+    
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
@@ -121,6 +135,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
 
     // Define your Resource class if necessary
     @Path(RESOURCE_PATH)
+    @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
@@ -129,17 +144,185 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path(STATUS_URL)
+        @Path("/iterator")
         @Produces(MediaType.APPLICATION_JSON)
-        @Override
-        public Response status() {
-            return expectedResponse.get();
+        public Response iterator(@Context HttpHeaders headers) {
+            Response response = expectedResponse.get();
+            boolean checkStart = VitamRequestIterator.isNewCursor(headers);
+            VitamRequestIterator.isEndOfCursor(headers);
+            assertEquals(startup, checkStart);
+            startup = false;
+            return response;
         }
-        
-        
+
+
     }
     // ************************************ //
     // End of VitamJerseyTest configuration //
     // ************************************ //
+
+    @Test
+    public void testIterator() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setQuery(JsonHandler.createObjectNode());
+            response.setHits(response.getResults().size(), 0, response.getResults().size());
+            ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            builder = Response.status(Status.OK);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            // Ensure next hasNext should be False without exception
+            when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST.getStatusCode()).build());
+            assertFalse(iterator.hasNext());
+        }
+    }
+
+    @Test
+    public void testIteratorEmpty() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ResponseBuilder builder = Response.status(Status.NOT_FOUND);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, null).entity(response).build());
+            assertFalse(iterator.hasNext());
+        }
+    }
+
+    @Test
+    public void testIteratorFailed() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, null).entity(response).build());
+            try {
+                assertFalse(iterator.hasNext());
+                fail("should raized an exception");
+            } catch (BadRequestException e) {
+
+            }
+        }
+    }
+
+    @Test
+    public void testIteratorShortList() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setQuery(JsonHandler.createObjectNode());
+            response.setHits(response.getResults().size(), 0, response.getResults().size());
+            ResponseBuilder builder = Response.status(Status.OK);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, null).entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            assertFalse(iterator.hasNext());
+        }
+    }
+
+    @Test
+    public void testIteratorThirdShort() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setQuery(JsonHandler.createObjectNode());
+            response.setHits(response.getResults().size(), 0, response.getResults().size());
+            ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            builder = Response.status(Status.NOT_FOUND);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").build());
+            assertFalse(iterator.hasNext());
+        }
+    }
+
+    @Test
+    public void testIteratorThirdStopBefore() {
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setQuery(JsonHandler.createObjectNode());
+            response.setHits(response.getResults().size(), 0, response.getResults().size());
+            ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            iterator.close();
+            assertFalse(iterator.hasNext());
+        }
+    }
 
 }

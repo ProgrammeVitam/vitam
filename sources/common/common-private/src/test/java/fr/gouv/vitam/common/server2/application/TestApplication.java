@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.server2.application.resources.VitamStatusService;
 
 /**
@@ -43,9 +44,19 @@ public class TestApplication extends AbstractVitamApplication<TestApplication, T
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestApplication.class);
     private static final String CONF_FILE_NAME = "test.conf";
     private static final String MODULE_NAME = "test";
+    /**
+     * Default root for the application
+     */
     public static final String TEST_RESOURCE_URI = "/test/v1";
 
+    /**
+     * Dedicated VitamStatusService To set up in Junit test if necessary
+     */
     public static VitamStatusService statusService;
+    /**
+     * Dedicated VitamServiceRegistry To set up in Junit test if necessary
+     */
+    public static VitamServiceRegistry serviceRegistry;
 
     /**
      * AccessApplication constructor
@@ -80,11 +91,21 @@ public class TestApplication extends AbstractVitamApplication<TestApplication, T
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         if (statusService == null) {
-            resourceConfig.register(new AdminStatusResource())
+            if (serviceRegistry == null) {
+                resourceConfig.register(new AdminStatusResource())
                 .register(new TestResourceImpl(getConfiguration()));
+            } else {
+                resourceConfig.register(new AdminStatusResource(serviceRegistry))
+                .register(new TestResourceImpl(getConfiguration()));
+            }
         } else {
-            resourceConfig.register(new AdminStatusResource(statusService))
+            if (serviceRegistry == null) {
+                resourceConfig.register(new AdminStatusResource(statusService))
                 .register(new TestResourceImpl(getConfiguration(), statusService));
+            } else {
+                resourceConfig.register(new AdminStatusResource(statusService, serviceRegistry))
+                .register(new TestResourceImpl(getConfiguration(), statusService));
+            }
         }
     }
 }

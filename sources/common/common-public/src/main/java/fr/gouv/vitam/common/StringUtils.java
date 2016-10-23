@@ -76,4 +76,24 @@ public final class StringUtils {
         }
         return result;
     }
+
+    /**
+     * 
+     * @param object
+     * @return the short name of the Class of this object
+     */
+    public static final String getClassName(Object object) {
+        Class<?> clasz = object.getClass();
+        String name = clasz.getSimpleName();
+        if (name != null && ! name.isEmpty()) {
+            return name;
+        } else {
+            name = clasz.getName();
+            int pos = name.lastIndexOf('.');
+            if (pos < 0) {
+                return name;
+            }
+            return name.substring(pos + 1);
+        }
+    }
 }

@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 /**
  * SSL Configuration
  */
+// FIXME to remove once V2 done
 public class SSLConfiguration {
 
     private static final String PARAMETERS = "SSLConfiguration parameters";

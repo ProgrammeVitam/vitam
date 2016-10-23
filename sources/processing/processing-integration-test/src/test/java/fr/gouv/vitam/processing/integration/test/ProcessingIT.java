@@ -412,7 +412,7 @@ public class ProcessingIT {
     }
 
 
-    @Test(expected = ProcessingBadRequestException.class)
+    @Test// Should it be rejected if not specified? (expected = ProcessingBadRequestException.class)
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         final String containerName = GUIDFactory.newManifestGUID(0).getId();
 

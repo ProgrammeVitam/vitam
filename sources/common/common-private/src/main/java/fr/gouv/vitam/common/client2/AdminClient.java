@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.client2;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 
@@ -44,6 +45,15 @@ public interface AdminClient extends BasicClient {
     /**
      * @return the adminUrl
      */
-    public String getAdminUrl();
+    String getAdminUrl();
+
+    /**
+     * Check the dependencies and return a VitamError status where getHttpCode contains either 200 for OK or 503 for
+     * error and a sub list of VitamErrors for each tested subservices
+     * 
+     * @return the VitamError status, both in case of OK or ServiceUnavailable
+     * @throws VitamClientException
+     */
+    VitamError adminAutotest() throws VitamClientException;
 
 }

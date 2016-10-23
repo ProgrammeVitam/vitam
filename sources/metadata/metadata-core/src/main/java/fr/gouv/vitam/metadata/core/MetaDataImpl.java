@@ -36,9 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
@@ -198,7 +197,7 @@ public class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;
-        if (StringUtils.isEmpty(selectQuery)) {
+        if (Strings.isNullOrEmpty(selectQuery)) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
         try {
@@ -246,7 +245,7 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;
-        if (StringUtils.isEmpty(updateQuery)) {
+        if (Strings.isNullOrEmpty(updateQuery)) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
         try {

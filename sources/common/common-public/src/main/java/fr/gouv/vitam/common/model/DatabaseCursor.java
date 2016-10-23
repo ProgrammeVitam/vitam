@@ -39,6 +39,12 @@ public class DatabaseCursor {
     private int limit;
 
     /**
+     * For Json
+     */
+    protected DatabaseCursor() {
+        // Empty
+    }
+    /**
      * DatabaseCursor constructor
      *
      * @param total total of units inserted/modified

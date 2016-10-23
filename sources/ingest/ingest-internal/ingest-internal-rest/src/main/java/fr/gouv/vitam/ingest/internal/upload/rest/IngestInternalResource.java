@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
@@ -41,7 +40,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -97,6 +95,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 @Path("/ingest/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class IngestInternalResource extends ApplicationStatusResource implements UploadService {
 
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
@@ -160,7 +159,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         throws XMLStreamException {
 
         Response response;
-        String fileName = StringUtils.EMPTY;
+        String fileName = "";
         // Cannot use try with resource because we need logbookOperationClient on catch block
         // So do it in java 6 style (finally block)
         LogbookOperationsClient logbookOperationsClient = null;

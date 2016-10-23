@@ -39,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+
 import org.apache.commons.io.IOUtils;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
@@ -234,7 +238,40 @@ public class WorkerIT {
         RestAssured.basePath = METADATA_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
     }
+    
+    private void printAndCheckXmlConfiguration() {
+        LOGGER.warn("XML Configuration: " +
+            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
+            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " + SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
+            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
+            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
+            "\n\tjavax.xml.transform.TransformerFactory: " + SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
+            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
+            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
+        try {
+            LOGGER.warn("XML Implementation: " +
+                "\n\tjavax.xml.parsers.SAXParserFactory: " + javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
+                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " + javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
+                "\n\tjavax.xml.datatype.DatatypeFactory: " + javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
+                "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
+                "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
+                "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
+                "\n\tjavax.xml.transform.TransformerFactory: " + javax.xml.transform.TransformerFactory.newInstance().getClass() +
+                "\n\tjavax.xml.validation.SchemaFactory: " + javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
+                "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
+        } catch (DatatypeConfigurationException | FactoryConfigurationError | TransformerFactoryConfigurationError e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
+    @Test
+    public void testXsdConfiguration() {
+        printAndCheckXmlConfiguration();
+    }
+    
     @Test
     public void testWorkflow() throws Exception {
         CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();

@@ -140,10 +140,25 @@ public class AccessionRegisterActionHandler extends ActionHandler {
             final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(SEDA_PARAMETERS_RANK))
                 .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-            String originalAgency = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE)
-                .get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).textValue();
-            String submissionAgency = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE)
-                .get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER).textValue();
+            String originalAgency = "OriginatingAgencyUnknown";
+            String submissionAgency = "SubmissionAgencyUnknown";
+            if (sedaParameters != null) {
+                JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                if (node != null) {
+                    JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    if (nodeOrigin != null) {
+                        originalAgency = nodeOrigin.asText();
+                    } // Could be empty ?
+                    JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                    if (nodeSubmission != null) {
+                        submissionAgency = nodeSubmission.asText();
+                    } // Could be empty !
+                } else {
+                    throw new ProcessingException("No DataObjectPackage found");
+                }
+            } else {
+                throw new ProcessingException("No ArchiveTransfer found");
+            }
             long objectSize = 0;
             for (final String mapKey : bdoInfoMap.keySet()) {
                 objectSize += JsonHandler.toJsonNode(bdoInfoMap.get(mapKey)).get("Size").longValue();

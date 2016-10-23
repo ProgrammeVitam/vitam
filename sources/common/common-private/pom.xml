@@ -86,12 +86,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/org.opengis.cite.xerces/xercesImpl-xsd11 -->
 		<dependency>
 			<groupId>org.opengis.cite.xerces</groupId>
 			<artifactId>xercesImpl-xsd11</artifactId>
 		</dependency>
-
 	<!-- <dependency>
 			<groupId>xerces</groupId>
 			<artifactId>xercesImpl</artifactId>

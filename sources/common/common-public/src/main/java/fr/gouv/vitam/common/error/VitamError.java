@@ -30,18 +30,22 @@ package fr.gouv.vitam.common.error;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 
 /**
  * VitamError class
  *
- * TODO: Review model ! Ensure consistency with VitamCode ! TODO: refactor to be common since this can be used by many
- * other vitam components
  */
 public class VitamError {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
+    
     private int httpCode;
     private String code;
     private String context;
@@ -49,6 +53,10 @@ public class VitamError {
     private String message;
     private String description;
     private List<VitamError> errors;
+
+    protected VitamError() {
+        // For Json builder
+    }
 
     /**
      * RequestResponseError constructor
@@ -185,5 +193,39 @@ public class VitamError {
     @Override
     public String toString() {
         return JsonHandler.unprettyPrintLowerCamelCase(this);
+    }
+    
+    /**
+     * 
+     * @return the Json representation
+     * @throws InvalidParseOperationException 
+     */
+    public JsonNode toJsonNode() {
+        try {
+            return JsonHandler.getFromString(this.toString());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException(e);
+        }
+    }
+    
+    /**
+     * 
+     * @param string
+     * @return the corresponding VitamError
+     * @throws InvalidParseOperationException
+     */
+    public static VitamError getFromString(String string) throws InvalidParseOperationException {
+        return JsonHandler.getFromStringLowerCamelCase(string, VitamError.class);
+    }
+
+    /**
+     * 
+     * @param node
+     * @return the corresponding VitamError
+     * @throws InvalidParseOperationException
+     */
+    public static VitamError getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
+        return JsonHandler.getFromJsonNodeLowerCamelCase(node, VitamError.class);
     }
 }
