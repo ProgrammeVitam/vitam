@@ -4,7 +4,7 @@ Release:       1%{?dist}
 Summary:       Service files for Vitam mongos cluster configuration nodes
 Group:         Applications/Databases
 License:       AGPL 3.0
-BuildArch:     x86_64
+BuildArch:     noarch
 URL:           http://www.mongodb.org
 Source0:       vitam-mongos.service
 %global        vitam_service_name vitam-mongos
