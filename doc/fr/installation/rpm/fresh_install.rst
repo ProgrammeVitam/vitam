@@ -43,9 +43,9 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les vale
    "consul_domain","nom de domaine consul",""
    "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
    "rpm_version","Version à installer",""
-   "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
-   "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des "vieux" index (valeur en jours)",""
-   "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destuction (valeur en jours)",""
+   "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
+   "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
+   "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
    "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
 
 
@@ -71,23 +71,13 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 Paramétrage de l'antivirus (ingest-externe)
 -------------------------------------------
 
-.. todo:: A rédiger plus correctement. L'idée est de créer un autre shell sous ``ansible-vitam-rpm/roles/vitam/templates/ingest-external`` ; prendre comme modèle le ficheir ``scan-clamav.sh.j2``. Il faudra aussi modifier le fichier ``ansible-vitam-rpm/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
+.. todo:: A rédiger plus correctement. L'idée est de créer un autre shell sous ``ansible-vitam-rpm/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Il faudra aussi modifier le fichier ``ansible-vitam-rpm/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
 
 Paramétrage des certificats (\*-externe)
 -----------------------------------------
 
 Se reporter à l'étape "PKI" du déploiement, décrite plus bas.
 
-
-
-Test de la configuration
-========================
-
-Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
-
-``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
-
-.. note:: cette commande n'est pas recommandée, du fait de limitations de check.
 
 Déploiement
 ===========

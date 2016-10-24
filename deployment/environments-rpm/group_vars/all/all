@@ -100,3 +100,6 @@ vitam_conf_permission: 0640
 
 consul_component: consul
 consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
+
+mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
+mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"

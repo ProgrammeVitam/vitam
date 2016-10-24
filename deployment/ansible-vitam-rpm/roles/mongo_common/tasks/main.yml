@@ -13,14 +13,14 @@
     path: "/etc/tuned/no-thp"
     state: directory
     owner: root
-    mode: 0750
+    mode: "{{vitam_folder_permission}}"
 
 - name: add the tuned conf file
   copy:
     src: tuned.conf
     dest: /etc/tuned/no-thp/tuned.conf
     owner: root
-    mode: 0740
+    mode: "{{vitam_conf_permission}}"
 
 - name: enable the new tuned profile
   command: tuned-adm profile no-thp
