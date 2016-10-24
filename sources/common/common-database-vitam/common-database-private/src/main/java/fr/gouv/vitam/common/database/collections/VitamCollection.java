@@ -139,7 +139,7 @@ public class VitamCollection {
         // http://stackoverflow.com/questions/6520439/how-to-configure-mongodb-java-driver-mongooptions-for-production-use
         return MongoClientOptions.builder().codecRegistry(codecRegistry)
             .connectTimeout(VitamConfiguration.getConnectTimeout())
-            .minConnectionsPerHost(2).connectionsPerHost(VitamConfiguration.getMaxClientPerHost())
+            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getMaxClientPerHost())
             .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
             .threadsAllowedToBlockForConnectionMultiplier(VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
             .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())

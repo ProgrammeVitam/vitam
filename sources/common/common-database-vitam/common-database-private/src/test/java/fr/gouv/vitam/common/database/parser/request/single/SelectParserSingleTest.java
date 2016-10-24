@@ -342,7 +342,7 @@ public class SelectParserSingleTest {
             assertEquals("Projection should not be empty", 1,
                 request.getRequest().getProjection().size());
             // reset
-            select.resetUsageProjection().resetUsedProjection();
+            select.resetUsedProjection();
             request.projectionParse(select.getProjection());
             assertEquals("Projection should be empty", 0,
                 request.getRequest().getProjection().size());

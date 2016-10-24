@@ -55,7 +55,7 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
     private static final String CONF_FILE_NAME = "access.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
-    // Only for Junit FIXME
+    // Only for Junit TODO should be removed or propose something else
     static AccessModule mock = null;
 
     /**

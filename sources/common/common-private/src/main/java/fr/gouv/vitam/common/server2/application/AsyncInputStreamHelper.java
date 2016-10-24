@@ -36,10 +36,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.google.common.base.Strings;
-import com.google.common.io.ByteStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Async Response for InputStream Helper</br>
@@ -145,7 +145,7 @@ public class AsyncInputStreamHelper implements StreamingOutput {
     public void write(OutputStream output) throws IOException {
         if (inputStream != null) {
             try (final InputStream entityStream = inputStream) {
-                ByteStreams.copy(entityStream, output);
+                StreamUtils.copy(entityStream, output);
             }
         }
     }
@@ -159,6 +159,10 @@ public class AsyncInputStreamHelper implements StreamingOutput {
      * @param errorResponse the fully prepared ErrorResponse
      */
     public void writeErrorResponse(Response errorResponse) {
+        if (inputStream != null) {
+            StreamUtils.closeSilently(inputStream);
+            inputStream = null;
+        }
         try {
             writeErrorAsyncResponse(asyncResponse, errorResponse);
         } finally {
@@ -174,18 +178,22 @@ public class AsyncInputStreamHelper implements StreamingOutput {
      * @param responseBuilder the ResponseBuilder initialize with your own parameters and status
      */
     public void writeResponse(ResponseBuilder responseBuilder) {
-        ParametersChecker.checkParameter("ResponseBuilder should not be null", responseBuilder);
-        String contentLength;
-        if (receivedResponse != null) {
-            inputStream = receivedResponse.readEntity(InputStream.class);
-            contentLength = receivedResponse.getHeaderString(CONTENT_LENGTH);
-            if (!Strings.isNullOrEmpty(contentLength)) {
-                responseBuilder.header(CONTENT_LENGTH, contentLength);
+        try {
+            ParametersChecker.checkParameter("ResponseBuilder should not be null", responseBuilder);
+            String contentLength;
+            if (receivedResponse != null) {
+                inputStream = receivedResponse.readEntity(InputStream.class);
+                contentLength = receivedResponse.getHeaderString(CONTENT_LENGTH);
+                if (!Strings.isNullOrEmpty(contentLength)) {
+                    responseBuilder.header(CONTENT_LENGTH, contentLength);
+                }
+            } else if (size != null) {
+                responseBuilder.header(CONTENT_LENGTH, size);
             }
-        } else if (size != null) {
-            responseBuilder.header(CONTENT_LENGTH, size);
+            asyncResponse.resume(responseBuilder.entity(self).build());
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
-        asyncResponse.resume(responseBuilder.entity(self).build());
     }
 
     /**

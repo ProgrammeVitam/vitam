@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  */
 public class VitamConfiguration {
 
-    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration().setDefault();
+    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration();
     /**
      * Property Vitam Config Folder
      */
@@ -141,6 +141,9 @@ public class VitamConfiguration {
     private static boolean filterActivation;
     private int connectTimeout = CONNECT_TIMEOUT;
 
+    static {
+        getConfiguration().setDefault();
+    }
     /**
      * Empty constructor
      */
@@ -169,6 +172,17 @@ public class VitamConfiguration {
      */
     public static VitamConfiguration getConfiguration() {
         return DEFAULT_CONFIGURATION;
+    }
+
+    /**
+     * 
+     * @param vitamConfiguration
+     */
+    void setInternalConfiguration(VitamConfiguration vitamConfiguration) {
+        setConfig(vitamConfiguration.getConfig())
+        .setData(vitamConfiguration.getData())
+        .setLog(vitamConfiguration.getLog())
+        .setTmp(vitamConfiguration.getTmp()).checkValues();
     }
 
     /**
@@ -204,10 +218,7 @@ public class VitamConfiguration {
      * @return this
      */
     VitamConfiguration setDefault() {
-        setConfig(VITAM_CONFIG_FOLDER_DEFAULT)
-            .setData(VITAM_DATA_FOLDER_DEFAULT)
-            .setLog(VITAM_LOG_FOLDER_DEFAULT)
-            .setTmp(VITAM_TMP_FOLDER_DEFAULT);
+        checkVitamConfiguration();
         checkValues();
         return this;
     }
@@ -326,27 +337,24 @@ public class VitamConfiguration {
             SysErrLogger.FAKE_LOGGER.syserr(
                 "One of the directives is not specified: -Dxxx=path where xxx is one of -D" + VITAM_TMP_PROPERTY +
                     " -D" + VITAM_CONFIG_PROPERTY + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
-            String data = VITAM_DATA_FOLDER_DEFAULT;
-            if (SystemPropertyUtil.contains(VITAM_DATA_PROPERTY)) {
-                data = SystemPropertyUtil.get(VITAM_DATA_PROPERTY);
-            }
-            String tmp = VITAM_TMP_FOLDER_DEFAULT;
-            if (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)) {
-                tmp = SystemPropertyUtil.get(VITAM_TMP_PROPERTY);
-            }
-            String config = VITAM_CONFIG_FOLDER_DEFAULT;
-            if (SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY)) {
-                config = SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
-            }
-            String log = VITAM_LOG_FOLDER_DEFAULT;
-            if (SystemPropertyUtil.contains(VITAM_LOG_PROPERTY)) {
-                log = SystemPropertyUtil.get(VITAM_LOG_PROPERTY);
-            }
-            setConfiguration(config, log, data, tmp);
-            return;
         }
-        setConfiguration(SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY), SystemPropertyUtil.get(VITAM_LOG_PROPERTY),
-            SystemPropertyUtil.get(VITAM_DATA_PROPERTY), SystemPropertyUtil.get(VITAM_TMP_PROPERTY));
+        String data = VITAM_DATA_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_DATA_PROPERTY)) {
+            data = SystemPropertyUtil.get(VITAM_DATA_PROPERTY);
+        }
+        String tmp = VITAM_TMP_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)) {
+            tmp = SystemPropertyUtil.get(VITAM_TMP_PROPERTY);
+        }
+        String config = VITAM_CONFIG_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY)) {
+            config = SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
+        }
+        String log = VITAM_LOG_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_LOG_PROPERTY)) {
+            log = SystemPropertyUtil.get(VITAM_LOG_PROPERTY);
+        }
+        setConfiguration(config, log, data, tmp);
     }
 
     /**
@@ -354,6 +362,9 @@ public class VitamConfiguration {
      * @return the VitamTmpFolder path
      */
     public static String getVitamTmpFolder() {
+        if (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)) {
+            return SystemPropertyUtil.get(VITAM_TMP_PROPERTY);
+        }
         return getConfiguration().getTmp();
     }
 

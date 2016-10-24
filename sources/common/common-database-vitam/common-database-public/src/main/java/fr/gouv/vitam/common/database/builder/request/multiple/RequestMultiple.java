@@ -257,7 +257,7 @@ public abstract class RequestMultiple extends AbstractRequest {
      * default implements of getProjection
      */
     @Override
-    public JsonNode getProjection() {
+    public ObjectNode getProjection() {
         return JsonHandler.createObjectNode();
     }
 

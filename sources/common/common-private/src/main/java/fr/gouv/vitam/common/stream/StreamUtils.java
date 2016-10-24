@@ -28,7 +28,13 @@ package fr.gouv.vitam.common.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
@@ -39,6 +45,42 @@ public class StreamUtils {
 
     private StreamUtils() {
         // Empty
+    }
+
+    /**
+     * Copy InputStream to OutputStream efficiently
+     * 
+     * @param inputStream
+     * @param outputStream
+     * @return the copied length
+     * @throws IOException
+     */
+    public static final long copy(InputStream inputStream, OutputStream outputStream) throws IOException {
+        try (final ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
+            final WritableByteChannel outputChannel = Channels.newChannel(outputStream)) {
+            final ByteBuffer buffer = ByteBuffer.allocateDirect(VitamConfiguration.getChunkSize());
+            long length = 0;
+            int len;
+            while ((len = inputChannel.read(buffer)) != -1) {
+                // prepare the buffer to be drained
+                buffer.flip();
+                // write to the channel, may block
+                outputChannel.write(buffer);
+                // If partial transfer, shift remainder down
+                // If buffer is empty, same as doing clear()
+                buffer.compact();
+                if (len > 0) {
+                    length += len;
+                }
+            }
+            // EOF will leave buffer in fill state
+            buffer.flip();
+            // make sure the buffer is fully drained.
+            while (buffer.hasRemaining()) {
+                outputChannel.write(buffer);
+            }
+            return length;
+        }
     }
 
     /**

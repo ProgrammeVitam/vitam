@@ -83,9 +83,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     protected final BlobStoreContext context;
 
     private static final int MAX_RESULTS = 51000;
-    // Buffer size for purge the InputStream when uploading a ZipFile
-    // TODO : should be removed when the refactored client and server will be put in place
-    private static final int BUFFER_SIZE = 64 * 1024;
 
     private static final String MIMETYPE_NOT_FILLED = "MimeType must be filled";
 
@@ -454,9 +451,9 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         final MediaType archiverType, final InputStream inputStreamObject)
         throws ContentAddressableStorageException, ContentAddressableStorageCompressedFileException {
 
-        try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-            .createArchiveInputStream(archiverType,
-                StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject));) {
+        try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
+            final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+            .createArchiveInputStream(archiverType, inputStreamClosable);) {
             ArchiveEntry archiveEntry;
             boolean isEmpty = true;
 
@@ -537,10 +534,11 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         }
         final String[] tab = mimeType.split(";");
         // problem mimetype with encoding code ;charset=ISO-8859-1
+        String newMimeType = mimeType;
         if (tab != null && tab.length > 1) {
-            mimeType = tab[0];
+            newMimeType = tab[0];
         }
-        return CommonMediaType.valueOf(mimeType);
+        return CommonMediaType.valueOf(newMimeType);
     }
 
     /**
@@ -607,6 +605,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             closed = true;
         }
 
+        /**
+         * Allow to "fakely" reopen this InputStream
+         * @param isclosed
+         */
         public void setClosed(boolean isclosed) {
             closed = isclosed;
         }

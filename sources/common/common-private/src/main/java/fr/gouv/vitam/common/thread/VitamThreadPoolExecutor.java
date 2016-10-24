@@ -36,6 +36,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.eclipse.jetty.util.thread.ThreadPool;
+import org.glassfish.jersey.server.ManagedAsyncExecutor;
 import org.glassfish.jersey.spi.ExecutorServiceProvider;
 
 import fr.gouv.vitam.common.model.VitamSession;
@@ -45,7 +46,9 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
  * Vitam ThreadPoolExecutor compatible with Jersey which copy the VitamSession from the main thread to the subthread
  */
 @Named("threadpool")
+@ManagedAsyncExecutor
 public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool, ExecutorServiceProvider {
+
     private static final VitamThreadPoolExecutor VITAM_THREAD_POOL_EXECUTOR = new VitamThreadPoolExecutor();
     
     VitamThreadFactory factory = new VitamThreadFactory();
@@ -111,11 +114,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     @Override
     public void dispose(ExecutorService executorService) {
         // Empty ?
-    }
-
-    @Override
-    public void execute(Runnable arg0) {
-        super.execute(factory.newThread(arg0));
     }
     
     /**

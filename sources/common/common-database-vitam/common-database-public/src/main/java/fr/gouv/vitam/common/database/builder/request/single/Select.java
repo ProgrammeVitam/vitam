@@ -29,30 +29,18 @@ package fr.gouv.vitam.common.database.builder.request.single;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * SELECT for Single Mode Query
  */
 public class Select extends RequestSingle {
-    // FIXME réfléchir à une mutualisation plus importante du code entre SELECT multiple et single (90% commun)
-    protected ObjectNode projection;
-
     /**
      *
      * @return this Query
      */
     public final Select resetLimitFilter() {
-        if (filter != null) {
-            filter.remove(SELECTFILTER.OFFSET.exactToken());
-            filter.remove(SELECTFILTER.LIMIT.exactToken());
-        }
+        selectResetLimitFilter();
         return this;
     }
 
@@ -61,9 +49,7 @@ public class Select extends RequestSingle {
      * @return this Query
      */
     public final Select resetOrderByFilter() {
-        if (filter != null) {
-            filter.remove(SELECTFILTER.ORDERBY.exactToken());
-        }
+        selectResetOrderByFilter();
         return this;
     }
 
@@ -72,28 +58,14 @@ public class Select extends RequestSingle {
      * @return this Query
      */
     public final Select resetUsedProjection() {
-        if (projection != null) {
-            projection.remove(PROJECTION.FIELDS.exactToken());
-        }
-        return this;
-    }
-
-    /**
-     *
-     * @return this Query
-     */
-    public final Select resetUsageProjection() {
-        if (projection != null) {
-            projection.remove(PROJECTION.USAGE.exactToken());
-        }
+        selectResetUsedProjection();
         return this;
     }
 
     @Override
     public final Select reset() {
         super.reset();
-        resetUsageProjection();
-        resetUsedProjection();
+        selectReset();
         return this;
     }
 
@@ -103,16 +75,7 @@ public class Select extends RequestSingle {
      * @return this Query
      */
     public final Select setLimitFilter(final long offset, final long limit) {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        resetLimitFilter();
-        if (offset > 0) {
-            filter.put(SELECTFILTER.OFFSET.exactToken(), offset);
-        }
-        if (limit > 0) {
-            filter.put(SELECTFILTER.LIMIT.exactToken(), limit);
-        }
+        selectSetLimitFilter(offset, limit);
         return this;
     }
 
@@ -122,23 +85,8 @@ public class Select extends RequestSingle {
      * @return this Query
      */
     public final Select setLimitFilter(final JsonNode filterContent) {
-        long offset = 0;
-        long limit = GlobalDatas.LIMIT_LOAD;
-        if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
-            /*
-             * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
-             * "size" : n
-             */
-            limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
-                .asLong(GlobalDatas.LIMIT_LOAD);
-        }
-        if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
-            /*
-             * $offset : start cursor.skip(start) "from" : start, "size" : n
-             */
-            offset = filterContent.get(SELECTFILTER.OFFSET.exactToken()).asLong(0);
-        }
-        return setLimitFilter(offset, limit);
+        selectSetLimitFilter(filterContent);
+        return this;
     }
 
     /**
@@ -149,9 +97,8 @@ public class Select extends RequestSingle {
      */
     public final Select parseLimitFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
-        final JsonNode rootNode = JsonHandler.getFromString(filter);
-        return setLimitFilter(rootNode);
+        selectParseLimitFilter(filter);
+        return this;
     }
 
     /**
@@ -162,7 +109,8 @@ public class Select extends RequestSingle {
      */
     public final Select addOrderByAscFilter(final String... variableNames)
         throws InvalidParseOperationException {
-        return addOrderByFilter(1, variableNames);
+        selectAddOrderByAscFilter(variableNames);
+        return this;
     }
 
     /**
@@ -173,32 +121,7 @@ public class Select extends RequestSingle {
      */
     public final Select addOrderByDescFilter(final String... variableNames)
         throws InvalidParseOperationException {
-        return addOrderByFilter(-1, variableNames);
-    }
-
-    /**
-     *
-     * @param way the way of the operation
-     * @param variableNames list of key name
-     * @return this Query
-     * @throws InvalidParseOperationException when query is invalid
-     */
-    private final Select addOrderByFilter(final int way, final String... variableNames)
-        throws InvalidParseOperationException {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.ORDERBY.exactToken());
-        if (node == null || node.isMissingNode()) {
-            node = filter.putObject(SELECTFILTER.ORDERBY.exactToken());
-        }
-        for (final String var : variableNames) {
-            if (var == null || var.trim().isEmpty()) {
-                continue;
-            }
-            GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), way);
-        }
+        selectAddOrderByDescFilter(variableNames);
         return this;
     }
 
@@ -210,17 +133,7 @@ public class Select extends RequestSingle {
      */
     public final Select addOrderByFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        if (filterContent.has(SELECTFILTER.ORDERBY.exactToken())) {
-            /*
-             * $orderby : { key : +/-1, ... } $orderby: { key : +/-1, ... } "sort" : [ { "key" : "asc/desc"}, ...,
-             * "_score" ]
-             */
-            final JsonNode node = filterContent.get(SELECTFILTER.ORDERBY.exactToken());
-            filter.putObject(SELECTFILTER.ORDERBY.exactToken()).setAll((ObjectNode) node);
-        }
+        selectAddOrderByFilter(filterContent);
         return this;
     }
 
@@ -232,16 +145,16 @@ public class Select extends RequestSingle {
      */
     public final Select parseOrderByFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
-        final JsonNode rootNode = JsonHandler.getFromString(filter);
-        return addOrderByFilter(rootNode);
+        selectParseOrderByFilter(filter);
+        return this;
     }
 
     @Override
     public final Select setFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
         super.setFilter(filterContent);
-        return setLimitFilter(filterContent).addOrderByFilter(filterContent);
+        selectSetFilter(filterContent);
+        return this;
     }
 
     /**
@@ -252,7 +165,8 @@ public class Select extends RequestSingle {
      */
     public final Select addUsedProjection(final String... variableNames)
         throws InvalidParseOperationException {
-        return addXxxProjection(1, variableNames);
+        selectAddUsedProjection(variableNames);
+        return this;
     }
 
     /**
@@ -263,53 +177,17 @@ public class Select extends RequestSingle {
      */
     public final Select addUnusedProjection(final String... variableNames)
         throws InvalidParseOperationException {
-        return addXxxProjection(0, variableNames);
-    }
-
-    /**
-     *
-     * @param way the way of the operation
-     * @param variableNames list of key name
-     * @return this Query
-     * @throws InvalidParseOperationException when query is invalid
-     */
-    private final Select addXxxProjection(final int way, final String... variableNames)
-        throws InvalidParseOperationException {
-        if (projection == null) {
-            projection = JsonHandler.createObjectNode();
-        }
-        ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
-        if (node == null || node.isMissingNode()) {
-            node = projection.putObject(PROJECTION.FIELDS.exactToken());
-        }
-        for (final String var : variableNames) {
-            if (var == null || var.trim().isEmpty()) {
-                continue;
-            }
-            GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), way);
-        }
-        if (node.size() == 0) {
-            projection.remove(PROJECTION.FIELDS.exactToken());
-        }
+        selectAddUnusedProjection(variableNames);
         return this;
     }
-
+    
     /**
      *
      * @param projectionContent json projection
      * @return this Query
      */
     public final Select addProjection(final JsonNode projectionContent) {
-        if (projection == null) {
-            projection = JsonHandler.createObjectNode();
-        }
-        if (projectionContent.has(PROJECTION.FIELDS.exactToken())) {
-            final ObjectNode node =
-                projection.putObject(PROJECTION.FIELDS.exactToken());
-            node.setAll(
-                (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
-        }
+        selectAddProjection(projectionContent);
         return this;
     }
 
@@ -321,9 +199,8 @@ public class Select extends RequestSingle {
      */
     public final Select parseProjection(final String projection)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(projection, GlobalDatas.NB_PROJECTIONS);
-        final JsonNode rootNode = JsonHandler.getFromString(projection);
-        return setProjection(rootNode);
+        selectParseProjection(projection);
+        return this;
     }
 
     /**
@@ -334,8 +211,8 @@ public class Select extends RequestSingle {
      */
     public final Select setProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {
-        resetUsedProjection();
-        return addProjection(projectionContent);
+        selectSetProjection(projectionContent);
+        return this;
     }
 
     /**
@@ -343,13 +220,7 @@ public class Select extends RequestSingle {
      * @return the Final Select containing all 3 parts: query, filter and projection
      */
     public final ObjectNode getFinalSelect() {
-        final ObjectNode node = getFinal();
-        if (projection != null && projection.size() > 0) {
-            node.set(GLOBAL.PROJECTION.exactToken(), projection);
-        } else {
-            node.putObject(GLOBAL.PROJECTION.exactToken());
-        }
-        return node;
+        return selectGetFinalSelect();
     }
 
     /**
@@ -358,18 +229,7 @@ public class Select extends RequestSingle {
      */
     @Override
     public final boolean getAllProjection() {
-        if (projection != null) {
-            final ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
-            if (node == null || node.isMissingNode()) {
-                return true;
-            }
-            final String all = VitamFieldsHelper.all();
-            if (node.has(all) && node.get(all).asInt() > 0) {
-                return true;
-            }
-            return false;
-        }
-        return true;
+        return selectGetAllProjection();
     }
 
     /**
@@ -377,10 +237,7 @@ public class Select extends RequestSingle {
      */
     @Override
     public final ObjectNode getProjection() {
-        if (projection == null) {
-            return JsonHandler.createObjectNode();
-        }
-        return projection;
+        return selectGetProjection();
     }
 
     @Override

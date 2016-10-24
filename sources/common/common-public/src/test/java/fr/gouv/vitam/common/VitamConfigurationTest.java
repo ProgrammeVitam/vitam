@@ -49,7 +49,7 @@ public class VitamConfigurationTest {
         assertNull(vitamConfiguration.getData());
         assertNull(vitamConfiguration.getTmp());
 
-        vitamConfiguration.setDefault();
+        vitamConfiguration.setInternalConfiguration(VitamConfiguration.getConfiguration());;
         assertNotNull(vitamConfiguration.getConfig());
         assertNotNull(vitamConfiguration.getLog());
         assertNotNull(vitamConfiguration.getData());
