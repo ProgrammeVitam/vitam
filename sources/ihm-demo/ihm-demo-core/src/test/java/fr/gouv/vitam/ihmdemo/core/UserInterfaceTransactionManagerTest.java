@@ -32,6 +32,9 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,6 +52,7 @@ import fr.gouv.vitam.access.client.AccessClientFactory;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -157,7 +161,8 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetObjectAsInputStream()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException, IOException {
         when(accessClient.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
-            .thenReturn(IOUtils.toInputStream("Vitam Test"));
+            .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
         // Test method
         assertTrue(IOUtils.contentEquals(streamToTest,

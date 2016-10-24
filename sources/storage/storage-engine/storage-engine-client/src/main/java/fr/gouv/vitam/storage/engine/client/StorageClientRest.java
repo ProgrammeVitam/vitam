@@ -410,6 +410,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                     throw new StorageServerClientException(log);
             }
         } finally {
+            // Only if KO
             if (! ok) {
                 DefaultClient.staticConsumeAnyEntityAndClose(response);
             }

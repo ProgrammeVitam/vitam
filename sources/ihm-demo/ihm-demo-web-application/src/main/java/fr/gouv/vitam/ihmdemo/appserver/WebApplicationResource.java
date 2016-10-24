@@ -190,6 +190,8 @@ public class WebApplicationResource {
     }
 
     /**
+     * @param headers 
+     * @param sessionId 
      * @param options the queries for searching
      * @return Response
      */

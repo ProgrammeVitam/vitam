@@ -154,76 +154,78 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         try {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
-                final WorkspaceClient workspaceClient =
-                    WorkspaceClientFactory.create(workParams.getUrlWorkspace());
-                List<URI> objectsList = null;
+                try (final WorkspaceClient workspaceClient =
+                    WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+                    List<URI> objectsList = null;
 
-                // Test regarding Unit to be indexed
-                if (step.getDistribution().getElement().equals(ELEMENT_UNITS)) {
-                    objectsList = new ArrayList<URI>();
+                    // Test regarding Unit to be indexed
+                    if (step.getDistribution().getElement().equals(ELEMENT_UNITS)) {
+                        objectsList = new ArrayList<URI>();
 
-                    // get the file to retrieve the GUID
-                    final InputStream levelFile =
-                        workspaceClient.getObject(workParams.getContainerName(),
-                            UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
-                    final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
-                    final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
-                    while (iteratorlLevelFile.hasNext()) {
-                        final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
-                        final JsonNode guid = guidFieldList.getValue();
-                        if (guid != null && guid.size() > 0) {
-                            for (final JsonNode _idGuid : guid) {
-                                // include the GUID in the new URI
-                                objectsList.add(new URI(_idGuid.asText() + XML_EXTENSION));
+                        // get the file to retrieve the GUID
+                        final InputStream levelFile =
+                            workspaceClient.getObject(workParams.getContainerName(),
+                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                        final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
+                        final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+                        while (iteratorlLevelFile.hasNext()) {
+                            final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
+                            final JsonNode guid = guidFieldList.getValue();
+                            if (guid != null && guid.size() > 0) {
+                                for (final JsonNode _idGuid : guid) {
+                                    // include the GUID in the new URI
+                                    objectsList.add(new URI(_idGuid.asText() + XML_EXTENSION));
+                                }
                             }
                         }
+                    } else {
+                        //
+                        objectsList = workspaceClient
+                            .getListUriDigitalObjectFromFolder(workParams.getContainerName(),
+                                step.getDistribution().getElement());
                     }
-                } else {
-                    //
-                    objectsList = workspaceClient
-                        .getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                            step.getDistribution().getElement());
-                }
 
-                // Iterate over Objects List
-                if (objectsList == null || objectsList.isEmpty()) {
-                    responses.add(warningResponse);
-                } else {
-                    // update the number of element to process
-                    ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
-                    for (final URI objectUri : objectsList) {
-                        if (availableWorkers.isEmpty()) {
-                            LOGGER.debug(errorResponse.getStatus().toString());
-                            responses.add(errorResponse);
-                            break;
-                        } else {
-                            // Load configuration
-                            // TODO : management of parallel distribution and availability
-                            loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
-                            // run step
-                            workParams.setObjectName(objectUri.getPath());
-                            final List<EngineResponse> actionsResponse;
-                            try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
-                                actionsResponse =
-                                    workerClient.submitStep("requestId",
-                                        new DescriptionStep(step, (DefaultWorkerParameters) workParams));
-                            }
-                            // FIXME : This is inefficient. The aggregation of results must be placed here and not
-                            // in
-                            // ProcessResponse
-                            responses.addAll(actionsResponse);
-                            // update the number of processed element
-                            ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
-
-                            final StatusCode stepStatus =
-                                processResponse.getGlobalProcessStatusCode(actionsResponse);
-                            // if the step has been defined as Blocking and then stepStatus is KO or FATAL
-                            // then break the process
-                            if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
-                                stepStatus.isGreaterOrEqualToKo()) {
+                    // Iterate over Objects List
+                    if (objectsList == null || objectsList.isEmpty()) {
+                        responses.add(warningResponse);
+                    } else {
+                        // update the number of element to process
+                        ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(),
+                            false);
+                        for (final URI objectUri : objectsList) {
+                            if (availableWorkers.isEmpty()) {
+                                LOGGER.debug(errorResponse.getStatus().toString());
+                                responses.add(errorResponse);
                                 break;
-                            }
+                            } else {
+                                // Load configuration
+                                // TODO : management of parallel distribution and availability
+                                loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
+                                // run step
+                                workParams.setObjectName(objectUri.getPath());
+                                final List<EngineResponse> actionsResponse;
+                                try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
+                                    actionsResponse =
+                                        workerClient.submitStep("requestId",
+                                            new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                                }
+                                // FIXME : This is inefficient. The aggregation of results must be placed here and not
+                                // in
+                                // ProcessResponse
+                                responses.addAll(actionsResponse);
+                                // update the number of processed element
+                                ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
 
+                                final StatusCode stepStatus =
+                                    processResponse.getGlobalProcessStatusCode(actionsResponse);
+                                // if the step has been defined as Blocking and then stepStatus is KO or FATAL
+                                // then break the process
+                                if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
+                                    stepStatus.isGreaterOrEqualToKo()) {
+                                    break;
+                                }
+
+                            }
                         }
                     }
                 }

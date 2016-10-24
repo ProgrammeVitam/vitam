@@ -155,12 +155,11 @@ public class IndexUnitActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        // TODO : whould use worker configuration instead of the processing configuration
-        final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        final MetaDataClient metadataClient = MetaDataClientFactory.create(params.getUrlMetadata());
         InputStream input;
-
-        try {
+        // TODO once implementing autocloseable should be in the try (resource) too
+        final MetaDataClient metadataClient = MetaDataClientFactory.create(params.getUrlMetadata());
+        try ( // TODO : whould use worker configuration instead of the processing configuration
+            final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
             input =
                 workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
@@ -240,7 +239,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                         writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
                         eventWritable = false;
                     }
-                    
+
                     if (SedaConstants.PREFIX_OG.equals(tag)) {
                         writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
                         writer.add(eventFactory.createCharacters(reader.getElementText()));

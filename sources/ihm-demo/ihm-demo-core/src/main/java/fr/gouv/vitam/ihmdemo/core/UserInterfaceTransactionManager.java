@@ -51,7 +51,7 @@ public class UserInterfaceTransactionManager {
      * Gets search units result
      *
      * @param parameters search criteria as DSL query
-     * @return
+     * @return result
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -67,7 +67,7 @@ public class UserInterfaceTransactionManager {
      *
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
-     * @return
+     * @return result
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -82,7 +82,7 @@ public class UserInterfaceTransactionManager {
      *
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
-     * @return
+     * @return result
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -122,7 +122,8 @@ public class UserInterfaceTransactionManager {
     public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage,
         int version)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-        return ACCESS_CLIENT.getObjectAsInputStream(selectObjectQuery, objectGroupId, usage, version);
+        return ACCESS_CLIENT.getObjectAsInputStream(selectObjectQuery, objectGroupId, usage, version)
+            .readEntity(InputStream.class);
     }
 
     /**

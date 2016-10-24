@@ -28,11 +28,9 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.io.CharStreams;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -143,12 +141,13 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        // TODO : whould use worker configuration instead of the processing configuration
-        final WorkspaceClient workspaceClient = WorkspaceClientFactory
-            .create(params.getUrlWorkspace());
+        // TODO once implementing autocloseable should be in the try (resource) too
         final MetaDataClient metadataClient = MetaDataClientFactory
             .create(params.getUrlMetadata());
-        try (final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName)) {
+        try (// TODO : whould use worker configuration instead of the processing configuration
+            final WorkspaceClient workspaceClient = WorkspaceClientFactory
+                .create(params.getUrlWorkspace());
+            final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName)) {
 
             if (input != null) {
                 final JsonNode json = JsonHandler.getFromInputStream(input);
@@ -160,11 +159,11 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             }
 
         } catch (final MetaDataException e) {
-            throw new ProcessingInternalServerException("Metadata Server Error",e);
+            throw new ProcessingInternalServerException("Metadata Server Error", e);
         } catch (InvalidParseOperationException | IOException e) {
-            throw new ProcessingException("Json wrong format",e);
+            throw new ProcessingException("Json wrong format", e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Workspace Server Error",e);
+            throw new ProcessingException("Workspace Server Error", e);
         }
 
     }

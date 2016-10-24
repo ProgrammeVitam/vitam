@@ -26,11 +26,25 @@
  */
 package fr.gouv.vitam.common.client2;
 
+import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Link;
+import javax.ws.rs.core.Link.Builder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -97,4 +111,168 @@ public class AbstractMockClient implements MockOrRestClient {
         // Nothing to do
     }
 
+    /**
+     * Fake Inbound Response for Mock client support
+     */
+    public static class FakeInboundResponse extends Response {
+        private final Response response;
+        /**
+         * 
+         * @param status
+         * @param entity
+         * @param mediaType
+         * @param headers
+         */
+        public FakeInboundResponse(Status status, Object entity, MediaType mediaType, MultivaluedHashMap<String, Object> headers) {
+            ResponseBuilder builder = Response.status(status);
+            if (entity != null) {
+                builder.entity(entity);
+                if (mediaType != null) {
+                    builder.type(mediaType);
+                }
+            }
+            if (headers != null) {
+                for (Entry<String, List<Object>> entry : headers.entrySet()) {
+                    for (final Object value : entry.getValue()) {
+                        builder.header(entry.getKey(), value);
+                    }
+                }
+            }
+            response = builder.build();
+        }
+
+        @Override
+        public int getStatus() {
+            return response.getStatus();
+        }
+
+        @Override
+        public StatusType getStatusInfo() {
+            return response.getStatusInfo();
+        }
+
+        @Override
+        public Object getEntity() {
+            return response.getEntity();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readEntity(Class<T> entityType) {
+            return (T) response.getEntity();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readEntity(GenericType<T> entityType) {
+            return (T) response.getEntity();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readEntity(Class<T> entityType, Annotation[] annotations) {
+            return (T) response.getEntity();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T readEntity(GenericType<T> entityType, Annotation[] annotations) {
+            return (T) response.getEntity();
+        }
+
+        @Override
+        public boolean hasEntity() {
+            return response.hasEntity();
+        }
+
+        @Override
+        public boolean bufferEntity() {
+            return response.bufferEntity();
+        }
+
+        @Override
+        public void close() {
+            response.close();
+        }
+
+        @Override
+        public MediaType getMediaType() {
+            return response.getMediaType();
+        }
+
+        @Override
+        public Locale getLanguage() {
+            return response.getLanguage();
+        }
+
+        @Override
+        public int getLength() {
+            return response.getLength();
+        }
+
+        @Override
+        public Set<String> getAllowedMethods() {
+            return response.getAllowedMethods();
+        }
+
+        @Override
+        public Map<String, NewCookie> getCookies() {
+            return response.getCookies();
+        }
+
+        @Override
+        public EntityTag getEntityTag() {
+            return response.getEntityTag();
+        }
+
+        @Override
+        public Date getDate() {
+            return response.getDate();
+        }
+
+        @Override
+        public Date getLastModified() {
+            return response.getLastModified();
+        }
+
+        @Override
+        public URI getLocation() {
+            return response.getLocation();
+        }
+
+        @Override
+        public Set<Link> getLinks() {
+            return response.getLinks();
+        }
+
+        @Override
+        public boolean hasLink(String relation) {
+            return response.hasLink(relation);
+        }
+
+        @Override
+        public Link getLink(String relation) {
+            return response.getLink(relation);
+        }
+
+        @Override
+        public Builder getLinkBuilder(String relation) {
+            return response.getLinkBuilder(relation);
+        }
+
+        @Override
+        public MultivaluedMap<String, Object> getMetadata() {
+            return response.getMetadata();
+        }
+
+        @Override
+        public MultivaluedMap<String, String> getStringHeaders() {
+            return response.getStringHeaders();
+        }
+
+        @Override
+        public String getHeaderString(String name) {
+            return response.getHeaderString(name);
+        }
+    }
 }

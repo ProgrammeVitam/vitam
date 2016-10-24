@@ -164,8 +164,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to
                 // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
-                Map<String, Object> result = tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
-                    offerReference, parameters, requester);
+                Map<String, Object> result =
+                    tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
+                        offerReference, parameters, requester);
                 parameters = (StorageLogbookParameters) result.get("Parameters");
                 offerResults.put(offerReference.getId(), (Status) result.get("Status"));
             }
@@ -235,9 +236,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     // TODO : globalize try and retry mechanism to avoid implementing it manually on all methods (C++ would have been
     // great here) by creating an interface of Retryable actions and different implementations for each retryable action
     // TODO: refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
-    private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription, String
-        tenantId, String objectId, DataCategory category, OfferReference offerReference, StorageLogbookParameters
-        logbookParameters, String requester) throws StorageTechnicalException, StorageObjectAlreadyExistsException {
+    private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription,
+        String tenantId, String objectId, DataCategory category, OfferReference offerReference,
+        StorageLogbookParameters logbookParameters, String requester)
+        throws StorageTechnicalException, StorageObjectAlreadyExistsException {
         // TODO: optimize workspace InputStream to not request workspace for each offer but only once.
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         // Retrieve storage offer description and parameters
@@ -328,21 +330,21 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param objectStored the operation status
      * @return storage logbook parameters
      */
-    private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult
-        putObjectResult, Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
+    private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult putObjectResult,
+        Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
         String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
         String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
         String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
-        StorageLogbookOutcome outcome = objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO :
-            StorageLogbookOutcome.OK;
+        StorageLogbookOutcome outcome =
+            objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
         return getStorageLogbookParameters(
             objectIdentifier, null, messageDig, digestType.getName(), size, offer.getId(), requester, null,
             null, outcome);
     }
 
-    private void updateStorageLogbookParameters(StorageLogbookParameters parameters, StorageOffer
-        offer, Status status) {
+    private void updateStorageLogbookParameters(StorageLogbookParameters parameters, StorageOffer offer,
+        Status status) {
         String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
         offers += ", " + offer.getId();
         parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
@@ -385,8 +387,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
         throws StorageNotFoundException, StorageTechnicalException {
-        try (WorkspaceClient workspaceClient = urlWorkspace != null ? WorkspaceClientFactory.create(urlWorkspace) :
-            mockedWorkspaceClient){
+        try (WorkspaceClient workspaceClient = urlWorkspace != null ? 
+            WorkspaceClientFactory.create(urlWorkspace) : // NOSONAR is closed
+            mockedWorkspaceClient) {
             return workspaceClient.getObject(containerGUID, objectURI);
         } catch (final ContentAddressableStorageNotFoundException exc) {
             throw new StorageNotFoundException(exc);

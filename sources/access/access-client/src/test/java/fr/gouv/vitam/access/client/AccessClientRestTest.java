@@ -420,7 +420,7 @@ public class AccessClientRestTest extends VitamJerseyTest {
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+        final InputStream stream = client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

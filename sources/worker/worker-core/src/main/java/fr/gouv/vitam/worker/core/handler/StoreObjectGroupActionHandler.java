@@ -229,11 +229,12 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        // Get objectGroup objects ids
-        final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
-            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
-
+        final JsonNode jsonOG;
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            // Get objectGroup objects ids
+            jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
+        }
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
         final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);

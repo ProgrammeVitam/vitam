@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
-import java.io.InputStream;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -98,12 +98,12 @@ public interface AccessClient extends MockOrRestClient {
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage the requested usage
      * @param version the requested version of the usage
-     * @return InputStream the object data
+     * @return Response containing InputStream for the object data
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessClientServerException if the server encountered an exception
      * @throws AccessClientNotFoundException if the requested object does not exist
      */
-    InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
+    Response getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
 
 

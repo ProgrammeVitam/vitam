@@ -64,10 +64,11 @@ public class ContainerExtractionUtils {
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
         throws ProcessingException {
-        final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.create(workParams.getUrlWorkspace());
-        final String guidContainer = workParams.getContainerName();
-        return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
+        try (final WorkspaceClient workspaceClient =
+            WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+            final String guidContainer = workParams.getContainerName();
+            return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
+        }
     }
 
     /**

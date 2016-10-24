@@ -72,6 +72,7 @@ import fr.gouv.vitam.worker.model.DataObjectTypeRoot;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -129,12 +130,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // FIXME : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
             // a(n) 'attribute declaration' component.
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            HandlerIO.transferFileFromTmpIntoWorkspace(
-                WorkspaceClientFactory.create(params.getUrlWorkspace()),
-                params.getContainerName() + ATR_FILE_NAME,
-                IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME,
-                params.getContainerName(),
-                true);
+            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+                HandlerIO.transferFileFromTmpIntoWorkspace(
+                    workspaceClient,
+                    params.getContainerName() + ATR_FILE_NAME,
+                    IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME,
+                    params.getContainerName(),
+                    true);
+            }
             // store binary data object
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
