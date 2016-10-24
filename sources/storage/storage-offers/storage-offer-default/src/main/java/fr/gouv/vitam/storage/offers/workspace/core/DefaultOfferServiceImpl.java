@@ -96,8 +96,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public InputStream getObject(String containerName, String objectId)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public InputStream getObject(String containerName, String objectId) throws ContentAddressableStorageException {
         return defaultStorage.getObject(containerName, objectId);
     }
 

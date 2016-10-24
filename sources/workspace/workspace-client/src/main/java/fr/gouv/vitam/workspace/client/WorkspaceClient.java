@@ -75,7 +75,7 @@ import fr.gouv.vitam.workspace.common.ErrorMessage;
  * Workspace client which calls rest services
  */
 // FIXME REVIEW Since Factory => class and constructors as package protected
-public class WorkspaceClient implements ContentAddressableStorage {
+public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
     private static final String RESOURCE_PATH = "/workspace/v1";
@@ -348,7 +348,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
         if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
             return response.readEntity(new GenericType<List<URI>>() {});
         } else {
-            return Collections.<URI>emptyList();
+            return Collections.emptyList();
         }
     }
 
@@ -471,6 +471,13 @@ public class WorkspaceClient implements ContentAddressableStorage {
             }
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (client != null) {
+            client.close();
         }
     }
 }

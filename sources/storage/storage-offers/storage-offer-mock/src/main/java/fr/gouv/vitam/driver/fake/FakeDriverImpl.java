@@ -47,10 +47,7 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 
 /**
- * Driver implementation for test only <br>
- * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
- * the storage-offer-mock.jar from the this module and copy it in the src/test/resources folder of the
- * storage-integration-test module in place of the previous one.
+ * Driver implementation for test only
  */
 public class FakeDriverImpl implements Driver {
 

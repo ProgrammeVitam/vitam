@@ -102,11 +102,13 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
-    private final WorkspaceClient workspaceClient;
+    private final String urlWorkspace;
     // FIXME see API
     // TODO : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
     // specification about that
     private final DigestType digestType;
+    // FOR JUNIT TEST ONLY (TODO: review WorkspaceClientFactory to offer a mocked WorkspaceClient)
+    private WorkspaceClient mockedWorkspaceClient;
 
     /**
      * Constructs the service with a given configuration
@@ -115,7 +117,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      */
     public StorageDistributionImpl(StorageConfiguration configuration) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
-        workspaceClient = WorkspaceClientFactory.create(configuration.getUrlWorkspace());
+        urlWorkspace = configuration.getUrlWorkspace();
         // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
         // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
@@ -130,7 +132,8 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param digest a custom digest
      */
     StorageDistributionImpl(WorkspaceClient wkClient, DigestType digest) {
-        workspaceClient = wkClient;
+        urlWorkspace = null;
+        mockedWorkspaceClient = wkClient;
         digestType = digest;
     }
 
@@ -329,7 +332,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         putObjectResult, Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
         String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
         String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
-        String size = putObjectResult != null ? toString().valueOf(putObjectResult.getObjectSize()) : "Size NA";
+        String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
         StorageLogbookOutcome outcome = objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO :
             StorageLogbookOutcome.OK;
 
@@ -382,7 +385,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
         throws StorageNotFoundException, StorageTechnicalException {
-        try {
+        try (WorkspaceClient workspaceClient = urlWorkspace != null ? WorkspaceClientFactory.create(urlWorkspace) :
+            mockedWorkspaceClient){
             return workspaceClient.getObject(containerGUID, objectURI);
         } catch (final ContentAddressableStorageNotFoundException exc) {
             throw new StorageNotFoundException(exc);
