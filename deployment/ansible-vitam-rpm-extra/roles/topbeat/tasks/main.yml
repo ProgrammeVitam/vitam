@@ -14,8 +14,10 @@
     mode: 0644
 
 # OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
+# OMA added ignore_errors due to stange things sometimes when redeploying
 - name: force use topbeat index
   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+  ignore_errors: true
   notify:
     - restart kibana
   delegate_to: "{{ vitam_kibana_host }}"

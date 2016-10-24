@@ -1,6 +1,6 @@
 import datetime
 
-copyright = u'%s, VITAM' % datetime.datetime.now().year
+copyright = u'%s, French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>' % datetime.datetime.now().year
 author = u'VITAM'
 
 # The version info for the project you're documenting, acts as replacement for

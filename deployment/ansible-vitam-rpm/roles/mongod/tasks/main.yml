@@ -1,7 +1,12 @@
 ---
 
+- name: Install mongo rpm
+  yum:
+    name: vitam-mongod
+    state: present
+
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
+  file:
     path: "{{vitam_folder_root}}/{{ item }}/mongod"
     state: directory
     owner: "{{ mongo_user }}"
@@ -26,7 +31,7 @@
     mode: 0700
 
 - name: Create the mongod configuration server file
-  template: 
+  template:
     src: mongod.conf.j2
     dest: "{{mongo_config_path}}/mongod.conf"
     owner: "{{ mongo_user }}"

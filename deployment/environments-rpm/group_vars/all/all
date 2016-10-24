@@ -92,3 +92,11 @@ vitam_siegfried_port: 19000
 vitam_user: vitam
 vitam_group: vitam
 
+consul_domain: consul
+
+vitam_folder_permission: 0750
+
+vitam_conf_permission: 0640
+
+consul_component: consul
+consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"

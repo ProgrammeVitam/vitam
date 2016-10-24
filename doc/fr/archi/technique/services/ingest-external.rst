@@ -17,7 +17,7 @@ Typologie de consommation de resources :
 Antivirus
 =========
 
-Lors de l'entrée d'un fichier SEDA, ce dernier est soumis à un scan antivirus. L'antivirus utilisé est configurable ; la configuration du service ``ingest-external`` permet de définir un exécutable (ou script shell) qui est lancé pour réaliser l'analyse antivirus. Cet exécutable doit respecter le contrat suivant :
+Lors de l'entrée d'un fichier SEDA, ce dernier est soumis à un scan antivirus. L'antivirus utilisé est configurable ; la configuration du service ``ingest-external`` ( effecruée dans le fichier ``ingest-external.conf``) permet de définir un exécutable (ou script shell) qui est lancé pour réaliser l'analyse antivirale. Cet exécutable doit respecter le contrat suivant :
 
 * Sémantique des codes de retour
   
@@ -40,3 +40,8 @@ Lors de l'entrée d'un fichier SEDA, ce dernier est soumis à un scan antivirus.
   - stderr : 
 
       + Messages de log de l'antivirus
+
+Siegfried
+==========
+
+Ce composant fait également appel au composant Siegfried pour l'identification des formats de fichier. 

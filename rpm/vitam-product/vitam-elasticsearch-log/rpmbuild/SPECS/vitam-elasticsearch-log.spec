@@ -46,5 +46,5 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Tue Oct 12 2016 Nicolas Ménétrier <nicolas.menetrier.ext@culture.gouv.fr>
+* Tue Oct 12 2016 French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 - Initial version

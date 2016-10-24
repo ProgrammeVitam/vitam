@@ -55,3 +55,12 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "elasticsearch-data" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
+
+$ActionQueueType LinkedList
+$ActionQueueFileName logstash-vitam_consul-queue
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionResumeRetryCount -1
+$ActionQueueHighWatermark 100000
+$ActionQueueLowWatermark 10000
+:programname, startswith, "consul" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}

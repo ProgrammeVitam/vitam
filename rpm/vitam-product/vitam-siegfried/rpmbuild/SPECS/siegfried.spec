@@ -94,5 +94,5 @@ rm -f %{SOURCE0}
 
 
 %changelog
-* Fri Aug 19 2016 Kristopher Waltzer <kristopher.waltzer.ext@culture.gouv.fr>
+* Fri Aug 19 2016 French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 - Initial version

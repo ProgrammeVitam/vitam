@@ -1,0 +1,58 @@
+
+output
+{
+    if "_grokparsefailure" not in [tags] and "drop" not in [tags]
+    {
+        if [type] =~ "logback" or [type] =~ "mongo" or [program] =~ "elasticsearch-data" or [type] =~ "consul"
+        {
+            elasticsearch
+            {
+                # KWA TODO: Prevoir un peu de tuning de perf ici
+                #flush_size => 10000
+                #idle_flush_time => 1
+                #idle_flush_time => 2
+                #workers => 20
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                index => "logstash-vitam-%{+YYYY.MM.dd}"
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
+            }
+        }
+        else if [program] =~ "elasticsearch-log" or [type] == "curator"
+        {
+            elasticsearch
+            {
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                index => "logstash-logs-%{+YYYY.MM.dd}"
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
+            }
+        }
+        else
+        {
+            elasticsearch
+            {
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                index => "logstash-uncatched-%{+YYYY.MM.dd}"
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
+            }
+        }
+    }
+    # _grokparsefailure cases
+    else
+    {
+        if [program] =~ "logback" or [program] =~ "elastic" or [program] =~ "mongo" or [program] =~ "script" or [program] =~ "elasticsearch-data" or [program] =~ "consul"
+        {
+            elasticsearch
+            {
+                index => "logstash-failure-%{+YYYY.MM.dd}"
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
+            }
+        }
+    }
+
+    # -----------------------------------------------------
+    # Following is for debug purpose only
+    # stdout {
+    #   debug => debug_format => "json"
+    #   codec => rubydebug
+    # }
+}

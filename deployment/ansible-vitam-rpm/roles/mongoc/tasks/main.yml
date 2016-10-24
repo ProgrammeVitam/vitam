@@ -1,7 +1,12 @@
 ---
 
+- name: Install mongo rpm
+  yum:
+    name: vitam-mongoc
+    state: present
+
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
+  file:
     path: "{{vitam_folder_root}}/{{ item }}/mongoc"
     state: directory
     owner: "{{ mongo_user}}"
@@ -26,7 +31,7 @@
     mode: 0750
 
 - name: Create the mongo configuration server file
-  template: 
+  template:
     src: "mongoc.conf.j2"
     dest: "{{mongo_config_path}}/mongoc.conf"
     owner: "{{mongo_user}}"
@@ -45,7 +50,7 @@
   when: inventory_hostname == "{{ groups['mongoc']|last }}"
 
 - name: Copy the script which initiate the replica set
-  template: 
+  template:
     src: "init-replica.js.j2"
     dest: "/tmp/init-replica-config.js"
     owner: "{{mongo_user}}"

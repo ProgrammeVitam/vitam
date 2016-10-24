@@ -2,5 +2,11 @@
 # handlers file for topbeat
 - name: restart topbeat
   service:
-    name=topbeat
-    state=restarted
+    name: topbeat
+    state: restarted
+
+- name: restart kibana
+  service:
+    name: kibana
+    state: restarted
+  delegate_to: "{{groups['hosts-log-server'][0]}}"
