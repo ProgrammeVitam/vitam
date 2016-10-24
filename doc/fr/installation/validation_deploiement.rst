@@ -19,7 +19,7 @@ Consul possède une :term:`IHM` pour afficher l'état des services VITAM et supe
 
 Pour chaque service, la couleur à gauche du composant doit être verte (correspondant à un statut OK).
 
-Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier quel test ne fonctionne pas.
+Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test qui ne fonctionne pas.
 
 Validation via SoapUI
 =====================
@@ -34,10 +34,10 @@ Validation via IHM technique
 Post-installation : administration fonctionnelle
 ================================================
 
-A l'issue de l'installation, puis la validation, un administrateur fonctionnel doit s'assurer que :
+A l'issue de l'installation, puis la validation, un **administrateur fonctionnel** doit s'assurer que :
 
 - le référentiel PRONOM ( `lien vers pronom <http://www.nationalarchives.gov.uk/aboutapps/pronom/droid-signature-files.htm>`_  ) est correctement importé depuis "Import du référentiel des formats" et correspond à celui employé dans Siegfried
-- le fichier "rules" a été correctemebt importé via le menu "Import du référentiel des règles de gestion"
+- le fichier "rules" a été correctement importé via le menu "Import du référentiel des règles de gestion"
 - à terme, le registre des fonds a été correctement importé
 
-Les chargement sont effectués depuis l':term:`IHM` demo.
+Les chargements sont effectués depuis l':term:`IHM` demo.

@@ -8,7 +8,7 @@ Fiche-type VITAM
 
 .. csv-table:: Tableau récapitulatif des informations à renseigner pour VITAM
    :header: "Nom du omposant", "Descriptif", "Valeur d'exemple","Valeur choisie","Si HA ?"
-   :widths: 10, 15, 10,15,5
+   :widths: 10, 15, 10, 15, 5
 
    "IHM-demo machine","interface web","vitam-prod-app-1.internet.agri","",""
    "ingest-external machine","interface web","vitam-prod-app-1.internet.agri","",""
@@ -25,4 +25,4 @@ Fiche-type VITAM
    "elasticsearch data machine(s)","Cluster ElasticSearch de données VITAM (3 machines)","vitam-prod-ela-1.internet.agri,vitam-prod-ela-2.internet.agri,vitam-prod-ela-3.internet.agri","",""
    "log central machine(s)","Centralisation des logs","vitam-prod-log-1.internet.agri","",""
 
-.. todo :: ajouter section issue du DAT sur les préconisations de colocalisation, ... et nombre de mchine pour chaque composant.
+.. todo :: ajouter section issue du DAT sur les préconisations de colocalisation, ... et nombre de machines pour chaque composant.

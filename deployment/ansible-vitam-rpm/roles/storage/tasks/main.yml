@@ -4,6 +4,6 @@
   copy:
     src=fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
     dest={{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
-    owner={{local_user}}
-    group=vitam
+    owner={{vitam_user}}
+    group={{vitam_group}}
     mode={{vitam_conf_permission}}

@@ -44,7 +44,6 @@ gguest=1a4a3c5ac5e29d2a4556ce34f81dea65bf2919f1048ce648c31593f278b5af3e
 # make sure the end-user is authenticated.  If not, redirect to the 'authc.loginUrl' above,
 # and after successful authentication, redirect them back to the original account page they
 # were trying to view:
-/v1/api/logbook/** = authc
-/v1/api/admin/** = authc
-/v1/api/archivesearch/** = authc
+/v1/api/login = anon
 /v1/api/logout = logout
+/** = authc

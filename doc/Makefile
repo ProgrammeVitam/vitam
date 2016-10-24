@@ -116,10 +116,11 @@ raml:
 		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/externe/$${item}.html; \
 	done; \
 	cd ../../..; \
-	mkdir -p ${RAMLBUILDDIR}/console; \
-	echo "Recopie console"; \
-	cd $(RAMLCONTENTCONSOLE); \
-	cp -r * ../../../${RAMLBUILDDIR}/console/;
+	# OMA : commented as useless now ; seen with Frédéric BREGIER 19/10/2016
+	# mkdir -p ${RAMLBUILDDIR}/console; \
+	# echo "Recopie console"; \
+	# cd $(RAMLCONTENTCONSOLE); \
+	# cp -r * ../../../${RAMLBUILDDIR}/console/;
 
 .PHONY: latexpdf
 latexpdf:

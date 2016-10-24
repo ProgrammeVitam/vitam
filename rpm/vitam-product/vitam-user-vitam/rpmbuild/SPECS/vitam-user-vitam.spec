@@ -2,12 +2,13 @@
 Name: vitam-user-vitam
 Version: 0.7.0
 Release: 4%{?dist}
-Summary: Package used to create the vitam user and group	
+Summary: Package used to create the vitam user and group
 BuildArch: noarch
 Source0: vitam.sudoers
 License: Cecill v2.1
 
-Requires(pre):  shadow-utils
+Requires(pre): shadow-utils
+Requires:      sudo
 
 
 %description
@@ -37,4 +38,5 @@ getent group  vitam-admin >/dev/null || groupadd -g 3000 vitam-admin
 
 
 %changelog
-
+* Fri Aug 19 2016 French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+- Initial version

@@ -1,19 +1,18 @@
 ---
 - name: Install rpm {{ rpm_name }}
-  yum: 
+  yum:
     name: "{{ rpm_name }}-{{rpm_version}}"
     state: latest
     update_cache: yes
 # OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
+  file:
     path: "{{vitam_folder_root}}/{{ item }}/{{ vitam_component }}"
     state: directory
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
-    mode: "0750"
-    recurse: yes # Added if someone uses root...
+    mode: "{{ vitam_folder_permission }}"
   with_items:
     - app
     - bin
@@ -39,7 +38,15 @@
     - "logback-access.xml"
     - "antisamy-esapi.xml"
     - "jetty-config.xml"
+    - "vitam.conf"
 
+- name: Ensure that the sysconfig sub-directory exists
+  file:
+    path: "{{vitam_folder_root}}/conf/{{ vitam_component }}/sysconfig"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_folder_permission }}"
 
 - name: Deploy common configuration files in sysconfig subdir
   template:
@@ -54,7 +61,7 @@
 # KWA : a fixer ASAP !
 - name: Ensure consul config dir is OK
   file:
-    path: "{{vitam_folder_root}}/conf/consul"
+    path: "{{consul_folder_conf}}"
     state: directory
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
@@ -63,18 +70,15 @@
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
-    dest: "{{vitam_folder_root}}/conf/consul/service-{{ vitam_component }}.json"
+    dest: "{{consul_folder_conf}}/service-{{ vitam_component }}.json"
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
-
-- name: reload consul agent configuration
-  service:
-    name: vitam-consul
-    state: reloaded
   notify:
-   - restart consul
+   - reload consul configuration
 
+# Ensure that the installation is complete and consul up before contnuing...
+- meta: flush_handlers
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
@@ -86,33 +90,7 @@
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
   no_log: true # OMA test as there may be secrets in verbose output
 
-# OMA : disabled as now template due to directories changes
-# - name: Install systemd wrapper.sh (must be included in the RPM)
-#   copy: 
-#     src: wrapper.sh
-#     dest: "/vitam/bin/{{ vitam_component }}/wrapper.sh"
-#     owner: "{{ vitam_user}}"
-#     group: "{{ vitam_group }}"
-#     mode: "0750"
-
-# - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-#   file: 
-#     path: "/vitam/{{ vitam_component }}/{{ item }}"
-#     state: directory
-#     owner: "{{ vitam_user}}"
-#     group: "{{ vitam_group }}"
-#     mode: "0750"
-#     recurse: yes # Added if someone uses root...
-#   with_items:
-#     - app
-#     - bin
-#     - conf
-#     - lib
-#     - log 
-#     - data
-#     - tmp
-
-- name: copy files section 
+- name: copy files section
   copy:
     src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
     dest: "{{vitam_folder_conf}}/{{item }}"
@@ -126,7 +104,7 @@
 #   command: systemctl daemon-reload
 
 - name: (re)-start service
-  service: 
+  service:
     name: "vitam-{{ vitam_component }}"
     enabled: true
     state: restarted

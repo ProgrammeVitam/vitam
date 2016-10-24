@@ -39,8 +39,13 @@ localhost
 
 [zone-access:children]
 hosts-ingest-external
+hosts-access-external
+
 
 [hosts-ingest-external]
+localhost
+
+[hosts-access-external]
 localhost
 
 ##### Zone applicative

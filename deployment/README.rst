@@ -27,10 +27,15 @@ Déploiement rpm
 Pour tester le déploiement de VITAM : 
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --ask-vault-pass --check``
 
+.. note:: ce mode n'est pas recommandé
+
 Pour le déployer : 
 
 1. générer les certificats nécessaire en lançant le script :
-``generate-security.sh``
+``./pki-generate-ca.sh``, si pas ed PKI
+``./generate_certs <environnement>``, si pas de certificats fournis
+``./generate_stores.sh <environnement>``
+``./copie_fichiers_vitam.sh <environnement>``
 
 2. Lancer le playbook d'ansbible :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``

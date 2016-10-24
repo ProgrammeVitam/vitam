@@ -1,7 +1,12 @@
 ---
 
+- name: Install mongo rpm
+  yum:
+    name: vitam-mongos
+    state: present
+
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
+  file:
     path: "{{vitam_folder_root}}/{{ item }}/mongos"
     state: directory
     owner: "{{ mongo_user}}"

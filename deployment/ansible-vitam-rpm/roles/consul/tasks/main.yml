@@ -13,7 +13,6 @@
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
     mode: "0750"
-    recurse: yes # Added if someone uses root...
   with_items:
     - app
     - bin

@@ -23,7 +23,7 @@
 
 - name: configure Kibana connection to elasticsearch
   replace:
-    dest: /opt/kibana/config/kibana.yml 
+    dest: /opt/kibana/config/kibana.yml
     regexp: '^# elasticsearch\.url:.*$'
     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
 
@@ -61,7 +61,7 @@
 
 # - name: configure Kibana connection to elasticsearch
 #   replace:
-#     dest: /opt/kibana/config/kibana.yml 
+#     dest: /opt/kibana/config/kibana.yml
 #     regexp: '^# elasticsearch\.url:.*$'
 #     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
 #   notify:
@@ -75,47 +75,55 @@
     owner: logstash
     mode: 0755
 
+# FIXME OMA : still necessary ???
 - name: copy default logstash file (preferIPv4)
-  copy:
-    src: logstash
+  template:
+    src: logstash.j2
     dest: /etc/default/logstash
     owner: root
     mode: 0644
 
-- name: Update heap for logstash (total mem/4)
-  replace: 
-      dest: /etc/sysconfig/logstash
-      regexp: '^#LS_HEAP_SIZE=.*$'
-      replace: 'LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"' 
-  register: logstash_updated
+- name: configure logstash sysconfig file
+  template:
+    src: logstash_sysconfig.j2
+    dest: /etc/sysconfig/logstash
+    owner: root
+    mode: 0664
 
-- name: Define log file for logstash
-  replace: 
-      dest: /etc/sysconfig/logstash
-      regexp: '^#LS_LOG_FILE=.*$'
-      replace: 'LS_LOG_FILE="{{logstash_log_dir}}/logstash.log"' 
-  register: logstash_updated
+# - name: Update heap for logstash (total mem/4)
+#   replace:
+#       dest: /etc/sysconfig/logstash
+#       regexp: '^#LS_HEAP_SIZE=.*$'
+#       replace: 'LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"'
+#   register: logstash_updated
 
-- name: Define gc log file for logstash
-  replace: 
-      dest: /etc/sysconfig/logstash
-      regexp: '^#LS_GC_LOG_FILE=.*$'
-      replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"' 
-  register: logstash_updated
+# - name: Define log file for logstash
+#   replace:
+#       dest: /etc/sysconfig/logstash
+#       regexp: '^#LS_LOG_FILE=.*$'
+#       replace: 'LS_LOG_FILE="{{logstash_log_dir}}/logstash.log"'
+#   register: logstash_updated
 
-- name: Implement the Vitam GC log standard fot logstash
-  replace: 
-      dest: /etc/sysconfig/logstash
-      regexp: '^#LS_JAVA_OPTS=.*$'
-      replace: 'LS_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
-  register: logstash_updated
+# - name: Define gc log file for logstash
+#   replace:
+#       dest: /etc/sysconfig/logstash
+#       regexp: '^#LS_GC_LOG_FILE=.*$'
+#       replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"'
+#   register: logstash_updated
 
-- name: Define config dir for logstash
-  replace: 
-      dest: /etc/sysconfig/logstash
-      regexp: '^#LS_CONF_DIR=.*$'
-      replace: 'LS_CONF_DIR="{{logstash_conf_dir}}"' 
-  register: logstash_updated
+# - name: Implement the Vitam GC log standard fot logstash
+#   replace:
+#       dest: /etc/sysconfig/logstash
+#       regexp: '^#LS_JAVA_OPTS=.*$'
+#       replace: 'LS_JAVA_OPTS="-Xloggc:{{logstash_log_dir}}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
+#   register: logstash_updated
+
+# - name: Define config dir for logstash
+#   replace:
+#       dest: /etc/sysconfig/logstash
+#       regexp: '^#LS_CONF_DIR=.*$'
+#       replace: 'LS_CONF_DIR="{{logstash_conf_dir}}"'
+#   register: logstash_updated
 
 - name: configure logstash parser
   template:
@@ -124,8 +132,9 @@
     owner: logstash
     mode: "{{ vitam_conf_permission }}"
   with_items:
-    - "logstash-vitam.conf"
-
+    - "01-logstash-vitam-input.conf"
+    - "02-logstash-vitam-filter.conf"
+    - "03-logstash-vitam-output.conf"
 
 - name: add json extra conf
   template:
@@ -134,6 +143,12 @@
     owner: logstash
   with_items:
     - "elasticsearch-template.json"
+
+- name: add vitam patterns conf
+  template:
+    src: "vitam-patterns.j2"
+    dest: "/opt/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-2.0.5/patterns/vitam"
+    owner: logstash
 
 - name: restart logstash
   service:
@@ -171,7 +186,7 @@
 
 
 # - name: create symbolic link for parser
-#   file: 
+#   file:
 #     src: /opt/logstash/conf/logstash-vitam.conf
 #     dest: /etc/logstash/conf.d/logstash-vitam.conf
 #     state: link
@@ -216,13 +231,23 @@
   with_items:
     - "curator.yml"
     - "delete_index.yml"
+    - "close_index.yml"
   when: ansible_virtualization_type != 'docker'
 
-- name: create root crontab entry for curator
+- name: create root crontab entry for curator for deleting old indexes
   cron:
-    name="curator purge"
+    name="curator delete index "
     minute="50"
     hour="6"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
+  when: ansible_virtualization_type != 'docker'
+
+- name: create root crontab entry for curator for closing old indexes
+  cron:
+    name="curator close index"
+    minute="55"
+    hour="6"
+    user="root"
+    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'

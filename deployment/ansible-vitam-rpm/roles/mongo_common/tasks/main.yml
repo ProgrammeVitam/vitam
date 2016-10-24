@@ -1,10 +1,5 @@
 ---
 
-- name: Install mongo rpm
-  yum:
-    name: vitam-mongo
-    state: present
-
 # next steps in order to disable Transparent HugePages
 # cf https://docs.mongodb.com/manual/tutorial/transparent-huge-pages/
 

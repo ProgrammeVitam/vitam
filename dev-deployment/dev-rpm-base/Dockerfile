@@ -8,7 +8,7 @@
 
 # Set the base image to Centos 7
 FROM docker.programmevitam.fr/centos:7.2.1511
-MAINTAINER Vitam <support.vitam@culture.gouv.fr>
+MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
 RUN yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all

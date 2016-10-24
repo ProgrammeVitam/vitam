@@ -1,0 +1,6 @@
+*.crt
+*.pem
+*.key
+*.csr
+*.p12
+*.req
