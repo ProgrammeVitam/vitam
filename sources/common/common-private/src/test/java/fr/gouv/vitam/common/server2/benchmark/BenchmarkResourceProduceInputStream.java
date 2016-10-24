@@ -115,6 +115,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadPost(@Suspended final AsyncResponse asyncResponse) {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -135,6 +136,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadPut(@Suspended final AsyncResponse asyncResponse) {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -155,6 +157,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadGet(@Suspended final AsyncResponse asyncResponse) {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -176,6 +179,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadPostIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -207,6 +211,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadPutIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -238,6 +243,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
     public void downloadGetIndirect(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override

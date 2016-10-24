@@ -74,7 +74,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
      * @param headers the headers to use
      * @param request the request to use
      */
-    // FIXME Add later on capability to handle maxNbPart in order to control the rate
+    // TODO Add later on capability to handle maxNbPart in order to control the rate
     public VitamRequestIterator(MockOrRestClient client, String method, String path,
         MultivaluedHashMap<String, Object> headers,
         JsonNode request) {
@@ -112,7 +112,27 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
             client.consumeAnyEntityAndClose(response);
         }
     }
+    
+    private boolean handleFirst(Response response) {
+        // TODO Ignore for the moment X-Cursor-Timeout
+        xCursorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_CURSOR_ID);
+        if (xCursorId == null && !closed) {
+            throw new BadRequestException("No Cursor returned");
+        } else {
+            headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
+        }
+        objectResponse = response.readEntity(RequestResponseOK.class);
+        iterator = objectResponse.getResults().iterator();
+        return true;
+    }
 
+    private boolean handleNext(Response response) {
+        // TODO Ignore for the moment X-Cursor-Timeout
+        objectResponse = response.readEntity(RequestResponseOK.class);
+        iterator = objectResponse.getResults().iterator();
+        return true;
+    }
+    
     /**
      * @return true if there is a next element
      * @throws BadRequestException (RuntimeException) if the request is in error
@@ -141,18 +161,10 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
                     case OK:
                         // Unique no Cursor
                         closed = true;
+                        return handleFirst(response);
                     case PARTIAL_CONTENT:
                         // Multiple with Cursor
-                        xCursorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_CURSOR_ID);
-                        if (xCursorId == null && !closed) {
-                            throw new BadRequestException("No Cursor returned");
-                        } else {
-                            headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
-                        }
-                        // TODO Ignore for the moment X-Cursor-Timeout
-                        objectResponse = response.readEntity(RequestResponseOK.class);
-                        iterator = objectResponse.getResults().iterator();
-                        return true;
+                        return handleFirst(response);
                     default:
                         closed = true;
                         throw new BadRequestException(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
@@ -173,11 +185,9 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
                     case OK:
                         // End of cursor
                         closed = true;
+                        return handleNext(response);
                     case PARTIAL_CONTENT:
-                        // TODO Ignore for the moment X-Cursor-Timeout
-                        objectResponse = response.readEntity(RequestResponseOK.class);
-                        iterator = objectResponse.getResults().iterator();
-                        return true;
+                        return handleNext(response);
                     default:
                         closed = true;
                         LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());

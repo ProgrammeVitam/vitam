@@ -88,14 +88,26 @@ public class HTMLValidationRule extends StringValidationRule {
         }
     }
 
+    /**
+     * @param typeName
+     */
     public HTMLValidationRule(String typeName) {
         super(typeName);
     }
 
+    /**
+     * @param typeName
+     * @param encoder
+     */
     public HTMLValidationRule(String typeName, Encoder encoder) {
         super(typeName, encoder);
     }
 
+    /**
+     * @param typeName
+     * @param encoder
+     * @param whitelistPattern
+     */
     public HTMLValidationRule(String typeName, Encoder encoder, String whitelistPattern) {
         super(typeName, encoder, whitelistPattern);
     }

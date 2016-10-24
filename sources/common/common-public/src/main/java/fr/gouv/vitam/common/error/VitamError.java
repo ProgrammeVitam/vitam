@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.error;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -46,12 +47,19 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class VitamError {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
     
+    @JsonProperty("httpCode")
     private int httpCode;
+    @JsonProperty("code")
     private String code;
+    @JsonProperty("context")
     private String context;
+    @JsonProperty("state")
     private String state;
+    @JsonProperty("message")
     private String message;
+    @JsonProperty("description")
     private String description;
+    @JsonProperty("errors")
     private List<VitamError> errors;
 
     protected VitamError() {

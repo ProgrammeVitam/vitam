@@ -35,7 +35,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -47,6 +50,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public abstract class AbstractRequest {
     protected ObjectNode filter;
+    protected ObjectNode projection;
 
     /**
      *
@@ -208,11 +212,6 @@ public abstract class AbstractRequest {
     public abstract Set<String> getRoots();
 
     /**
-     * @return the projection json
-     */
-    public abstract JsonNode getProjection();
-
-    /**
      * @return the data
      */
     public abstract JsonNode getData();
@@ -222,12 +221,347 @@ public abstract class AbstractRequest {
      */
     public abstract List<Action> getActions();
 
-
     /**
-     * @return add projections
+     *
+     * @return True if the projection is not restricted
      */
     public abstract boolean getAllProjection();
 
+    /**
+     * @return the projection
+     */
+    public abstract ObjectNode getProjection();
 
+    /******************************************************/
+    /** Refactoring for SELECT part in protected methods **/
+    /******************************************************/
+
+    /**
+     *
+     * @return this Query
+     */
+    protected final AbstractRequest selectResetLimitFilter() {
+        if (filter != null) {
+            filter.remove(SELECTFILTER.OFFSET.exactToken());
+            filter.remove(SELECTFILTER.LIMIT.exactToken());
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @return this Query
+     */
+    protected final AbstractRequest selectResetOrderByFilter() {
+        if (filter != null) {
+            filter.remove(SELECTFILTER.ORDERBY.exactToken());
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @return this Query
+     */
+    protected final AbstractRequest selectResetUsedProjection() {
+        if (projection != null) {
+            projection.remove(PROJECTION.FIELDS.exactToken());
+        }
+        return this;
+    }
+
+    protected final AbstractRequest selectReset() {
+        selectResetUsedProjection();
+        return this;
+    }
+
+    /**
+     * @param offset ignored if 0
+     * @param limit ignored if 0
+     * @return this Query
+     */
+    protected final AbstractRequest selectSetLimitFilter(final long offset, final long limit) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        selectResetLimitFilter();
+        if (offset > 0) {
+            filter.put(SELECTFILTER.OFFSET.exactToken(), offset);
+        }
+        if (limit > 0) {
+            filter.put(SELECTFILTER.LIMIT.exactToken(), limit);
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param filterContent json filter
+     * @return this Query
+     */
+    protected final AbstractRequest selectSetLimitFilter(final JsonNode filterContent) {
+        long offset = 0;
+        long limit = GlobalDatas.LIMIT_LOAD;
+        if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
+            /*
+             * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
+             * "size" : n
+             */
+            limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
+                .asLong(GlobalDatas.LIMIT_LOAD);
+        }
+        if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
+            /*
+             * $offset : start cursor.skip(start) "from" : start, "size" : n
+             */
+            offset = filterContent.get(SELECTFILTER.OFFSET.exactToken()).asLong(0);
+        }
+        return selectSetLimitFilter(offset, limit);
+    }
+
+    /**
+     *
+     * @param filter string filter
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectParseLimitFilter(final String filter)
+        throws InvalidParseOperationException {
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
+        final JsonNode rootNode = JsonHandler.getFromString(filter);
+        return selectSetLimitFilter(rootNode);
+    }
+
+    /**
+     *
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectAddOrderByAscFilter(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addOrderByFilter(1, variableNames);
+    }
+
+    /**
+     *
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectAddOrderByDescFilter(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addOrderByFilter(-1, variableNames);
+    }
+
+    /**
+     *
+     * @param way the way of the operation
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    private final AbstractRequest addOrderByFilter(final int way, final String... variableNames)
+        throws InvalidParseOperationException {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.ORDERBY.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = filter.putObject(SELECTFILTER.ORDERBY.exactToken());
+        }
+        for (final String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            GlobalDatas.sanityParameterCheck(var);
+            node.put(var.trim(), way);
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param filterContent json filter
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectAddOrderByFilter(final JsonNode filterContent)
+        throws InvalidParseOperationException {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        if (filterContent.has(SELECTFILTER.ORDERBY.exactToken())) {
+            /*
+             * $orderby : { key : +/-1, ... } $orderby: { key : +/-1, ... } "sort" : [ { "key" : "asc/desc"}, ...,
+             * "_score" ]
+             */
+            final JsonNode node = filterContent.get(SELECTFILTER.ORDERBY.exactToken());
+            filter.putObject(SELECTFILTER.ORDERBY.exactToken()).setAll((ObjectNode) node);
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param filter string filter
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectParseOrderByFilter(final String filter)
+        throws InvalidParseOperationException {
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
+        final JsonNode rootNode = JsonHandler.getFromString(filter);
+        return selectAddOrderByFilter(rootNode);
+    }
+
+    protected final AbstractRequest selectSetFilter(final JsonNode filterContent)
+        throws InvalidParseOperationException {
+        return selectSetLimitFilter(filterContent).selectAddOrderByFilter(filterContent);
+    }
+
+    /**
+     *
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectAddUsedProjection(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addXxxProjection(1, variableNames);
+    }
+
+    /**
+     *
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectAddUnusedProjection(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addXxxProjection(0, variableNames);
+    }
+
+    /**
+     *
+     * @param way the way of the operation
+     * @param variableNames list of key name
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    private final AbstractRequest addXxxProjection(final int way, final String... variableNames)
+        throws InvalidParseOperationException {
+        if (projection == null) {
+            projection = JsonHandler.createObjectNode();
+        }
+        ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
+        if (node == null || node.isMissingNode()) {
+            node = projection.putObject(PROJECTION.FIELDS.exactToken());
+        }
+        for (final String var : variableNames) {
+            if (var == null || var.trim().isEmpty()) {
+                continue;
+            }
+            GlobalDatas.sanityParameterCheck(var);
+            node.put(var.trim(), way);
+        }
+        if (node.size() == 0) {
+            projection.remove(PROJECTION.FIELDS.exactToken());
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param projectionContent json projection
+     * @return this Query
+     */
+    protected final AbstractRequest selectAddProjection(final JsonNode projectionContent) {
+        if (projection == null) {
+            projection = JsonHandler.createObjectNode();
+        }
+        if (projectionContent.has(PROJECTION.FIELDS.exactToken())) {
+            final ObjectNode node =
+                projection.putObject(PROJECTION.FIELDS.exactToken());
+            node.setAll(
+                (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @param projection string projection
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected final AbstractRequest selectParseProjection(final String projection)
+        throws InvalidParseOperationException {
+        GlobalDatas.sanityParametersCheck(projection, GlobalDatas.NB_PROJECTIONS);
+        final JsonNode rootNode = JsonHandler.getFromString(projection);
+        return selectSetProjection(rootNode);
+    }
+
+    /**
+     *
+     * @param projectionContent json projection
+     * @return this Query
+     * @throws InvalidParseOperationException when query is invalid
+     */
+    protected AbstractRequest selectSetProjection(final JsonNode projectionContent)
+        throws InvalidParseOperationException {
+        selectResetUsedProjection();
+        return selectAddProjection(projectionContent);
+    }
+
+    /**
+     * Get the json final of request
+     * 
+     * @return the Final json containing all 2 parts: query and filter
+     */
+    protected abstract ObjectNode getFinal();
+
+    /**
+     *
+     * @return the Final Select containing all 3 parts: query, filter and projection
+     */
+    protected final ObjectNode selectGetFinalSelect() {
+        final ObjectNode node = getFinal();
+        if (projection != null && projection.size() > 0) {
+            node.set(GLOBAL.PROJECTION.exactToken(), projection);
+        } else {
+            node.putObject(GLOBAL.PROJECTION.exactToken());
+        }
+        return node;
+    }
+
+    /**
+     *
+     * @return True if the projection is not restricted
+     */
+    protected boolean selectGetAllProjection() {
+        if (projection != null) {
+            final ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
+            if (node == null || node.isMissingNode()) {
+                return true;
+            }
+            final String all = VitamFieldsHelper.all();
+            if (node.has(all) && node.get(all).asInt() > 0) {
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @return the projection
+     */
+    protected ObjectNode selectGetProjection() {
+        if (projection == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return projection;
+    }
 
 }

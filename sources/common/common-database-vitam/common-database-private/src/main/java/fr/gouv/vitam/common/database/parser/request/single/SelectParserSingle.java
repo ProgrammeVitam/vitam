@@ -120,7 +120,7 @@ public class SelectParserSingle extends RequestParserSingle {
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
-            ((Select) request).resetUsageProjection().resetUsedProjection();
+            ((Select) request).resetUsedProjection();
             final ObjectNode node = JsonHandler.createObjectNode();
             if (rootNode.has(PROJECTION.FIELDS.exactToken())) {
                 adapter.setVarsValue(node, rootNode.path(PROJECTION.FIELDS.exactToken()));
