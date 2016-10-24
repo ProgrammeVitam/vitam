@@ -57,7 +57,7 @@ public abstract class Result {
     /**
      * Current Ids in the result
      */
-    protected Set<String> currentIds = new HashSet<String>();
+    protected Set<String> currentIds = new HashSet<>();
     /**
      * Number of result (might be different on update/delete than currentUnits)
      */
@@ -89,7 +89,6 @@ public abstract class Result {
     public Result(FILTERARGS type, Collection<String> collection) {
         this.type = type;
         currentIds.addAll(collection);
-        // FIXME REVIEW : I understand why but not the possible reason of such value?
         currentIds.remove("");
         nbResult = currentIds.size();
     }
@@ -201,7 +200,7 @@ public abstract class Result {
      * @param projection
      */
     public void setFinal(Bson projection) {
-        final List<Document> list = new ArrayList<Document>(currentIds.size());
+        final List<Document> list = new ArrayList<>(currentIds.size());
         if (type == FILTERARGS.UNITS) {
             for (final String id : currentIds) {
                 final Unit unit =

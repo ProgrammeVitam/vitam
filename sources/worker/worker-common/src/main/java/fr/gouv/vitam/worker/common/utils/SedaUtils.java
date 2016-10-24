@@ -178,10 +178,9 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         String messageId = "";
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         XMLEventReader reader = null;
         InputStream xmlFile = null;
-        try {
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
             // TODO : whould use worker configuration instead of the processing configuration
             try {
                 xmlFile = client.getObject(containerId,
@@ -333,10 +332,9 @@ public class SedaUtils {
     public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params) {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         // TODO : whould use worker configuration instead of the processing configuration
         final InputStream input;
-        try {
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
             input = checkExistenceManifest(client, containerId);
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
@@ -388,9 +386,10 @@ public class SedaUtils {
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
         throws ProcessingException {
         final String guid = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        // TODO : whould use worker configuration instead of the processing configuration
-        return parsingUriSEDAWithWorkspaceClient(client, guid);
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            // TODO : whould use worker configuration instead of the processing configuration
+            return parsingUriSEDAWithWorkspaceClient(workspaceClient, guid);
+        }
     }
 
     /**
@@ -511,9 +510,10 @@ public class SedaUtils {
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        // TODO : whould use worker configuration instead of the processing configuration
-        return isSedaVersionValid(client, containerId);
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            // TODO : whould use worker configuration instead of the processing configuration
+            return isSedaVersionValid(client, containerId);
+        }
     }
 
     private List<String> isSedaVersionValid(WorkspaceClient client,
@@ -746,9 +746,10 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO : whould use worker configuration instead of the processing configuration
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        return computeBinaryObjectsSizeFromManifest(client, containerId);
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+            return computeBinaryObjectsSizeFromManifest(client, containerId);
+        }
     }
 
     /**
@@ -785,15 +786,16 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        // TODO : whould use worker configuration instead of the processing configuration
-        final JsonNode jsonSeda = getObjectInformation(client, containerId,
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        if (jsonSeda == null || jsonSeda.get("size") == null) {
-            LOGGER.error("Error while getting object size : " + IngestWorkflowConstants.SEDA_FILE);
-            throw new ProcessingException("Json response cannot be null and must contains a 'size' attribute");
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            // TODO : whould use worker configuration instead of the processing configuration
+            final JsonNode jsonSeda = getObjectInformation(client, containerId,
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            if (jsonSeda == null || jsonSeda.get("size") == null) {
+                LOGGER.error("Error while getting object size : " + IngestWorkflowConstants.SEDA_FILE);
+                throw new ProcessingException("Json response cannot be null and must contains a 'size' attribute");
+            }
+            return jsonSeda.get("size").asLong();
         }
-        return jsonSeda.get("size").asLong();
     }
 
 

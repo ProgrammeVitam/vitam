@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
-import java.io.InputStream;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 
@@ -76,8 +78,9 @@ public class AccessClientMock extends AbstractMockClient implements AccessClient
     }
 
     @Override
-    public InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
+    public Response getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 }

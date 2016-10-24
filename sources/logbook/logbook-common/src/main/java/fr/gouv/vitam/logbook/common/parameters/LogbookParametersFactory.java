@@ -158,7 +158,7 @@ public class LogbookParametersFactory {
     }
 
     /**
-     * Get a new LogbookOperationParameters object FIXME cf. @etienne.carriere - nombre de parametres
+     * Get a new LogbookOperationParameters object
      *
      * @param eventIdentifier
      * @param eventType
@@ -289,8 +289,7 @@ public class LogbookParametersFactory {
     }
 
     /**
-     * Get a new LogbookLifeCycleUnitParameters object with objectIdentifier as String FIXME cf. @etienne.carriere -
-     * nombre de parametres
+     * Get a new LogbookLifeCycleUnitParameters object with objectIdentifier as String
      *
      * @param eventIdentifier
      * @param eventType

@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.client2.TestVitamClientFactory;
@@ -336,6 +337,13 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
     @Test
     public void asyncCommandWithBodyRestTestClient() throws Exception {
         Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
+        when(mock.post()).thenReturn(response);
+        assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().post("resourceasync", String.class));
+        response = new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN_TYPE, null);
         when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)

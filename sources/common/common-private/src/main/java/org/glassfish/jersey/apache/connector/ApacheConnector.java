@@ -470,7 +470,7 @@ class ApacheConnector implements Connector {
             final ClientResponse response = apply(request);
             callback.response(response);
             return CompletableFuture.completedFuture(response);
-        } catch (final Exception | Error t) {
+        } catch (final Exception | Error t) {// NOSONAR
             callback.failure(t);
             final CompletableFuture<Object> future = new CompletableFuture<>();
             future.completeExceptionally(t);

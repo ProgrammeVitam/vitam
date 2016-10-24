@@ -149,7 +149,6 @@ public class WorkerImpl implements Worker {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 
-        final WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace());
         if (step == null) {
             throw new IllegalArgumentException(STEP_NULL);
         }
@@ -161,23 +160,26 @@ public class WorkerImpl implements Worker {
         final List<EngineResponse> responses = new ArrayList<>();
         final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
-        for (final Action action : step.getActions()) {
-            final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
-            LOGGER.debug("START handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
-            final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);            
-            if (actionHandler == null) {
-                throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
-            }
-
-            handlerIOParams.add(handlerIO);
-            final EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
-            responses.add(actionResponse);
-            LOGGER.debug("STOP handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
-            // if the action has been defined as Blocking and the action status is KO or FATAL
-            // then break the process
-            if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
-                actionResponse.getStatus().isGreaterOrEqualToKo()) {
-                break;
+        try (final WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+    
+            for (final Action action : step.getActions()) {
+                final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
+                LOGGER.debug("START handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
+                final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);            
+                if (actionHandler == null) {
+                    throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
+                }
+    
+                handlerIOParams.add(handlerIO);
+                final EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
+                responses.add(actionResponse);
+                LOGGER.debug("STOP handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
+                // if the action has been defined as Blocking and the action status is KO or FATAL
+                // then break the process
+                if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
+                    actionResponse.getStatus().isGreaterOrEqualToKo()) {
+                    break;
+                }
             }
         }
         // Clear all worker input and output

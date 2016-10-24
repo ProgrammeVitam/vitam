@@ -134,7 +134,6 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
         final ProcessResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_OK);
-        final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace());
 
         try {
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
@@ -166,7 +165,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             return response;
         }
         String filename = null;
-        try {
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
             // Get objectGroup metadatas
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
@@ -238,11 +237,11 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-        /*} catch (final InvalidParseOperationException e) {
-            // try to write modified json metadata error
-            LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);*/
+            /*
+             * } catch (final InvalidParseOperationException e) { // try to write modified json metadata error
+             * LOGGER.error(e); response.setStatus(StatusCode.FATAL); response.setOutcomeMessages(HANDLER_ID,
+             * OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
+             */
         } finally {
             try {
                 // delete the file
