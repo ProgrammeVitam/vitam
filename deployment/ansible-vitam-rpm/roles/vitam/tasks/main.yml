@@ -37,19 +37,19 @@
     - "server-identity.conf"
     - "logback.xml"
     - "logback-access.xml"
-    - "setenv.sh"
     - "antisamy-esapi.xml"
     - "jetty-config.xml"
 
-- name: Deploy wrapper.sh
+
+- name: Deploy common configuration files in sysconfig subdir
   template:
     src: "{{item}}.j2"
-    dest: "{{vitam_folder_scripts}}/{{item}}"
+    dest: "{{vitam_folder_conf}}/sysconfig/{{item}}"
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
-    mode: "0750"
+    mode: "{{vitam_conf_permission}}"
   with_items:
-    - "wrapper.sh"
+    - "java_opts"
 
 # KWA : a fixer ASAP !
 - name: Ensure consul config dir is OK
