@@ -64,8 +64,8 @@ public class DriverManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverManager.class);
 
-    private static final List<OfferDriverInfo> instantiatedDrivers = Collections.synchronizedList(new ArrayList<>());
-    private static final Map<String, OfferDriverInfo> driversOffers = Collections.synchronizedMap(new HashMap<>());
+    private static final List<OfferDriverInfo> INSTANTIATED_DRIVERS = Collections.synchronizedList(new ArrayList<>());
+    private static final Map<String, OfferDriverInfo> DRIVERS_OFFERS = Collections.synchronizedMap(new HashMap<>());
 
     private static final String DRIVER_MANAGER_CONF_FILE = "driver-location.conf";
 
@@ -90,7 +90,7 @@ public class DriverManager {
 
         while (driversIterator.hasNext()) {
             final OfferDriverInfo driverInfo = new OfferDriverInfo(driversIterator.next());
-            instantiatedDrivers.add(driverInfo);
+            INSTANTIATED_DRIVERS.add(driverInfo);
             loadOffersIdsFor(driverInfo);
         }
     }
@@ -153,7 +153,7 @@ public class DriverManager {
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
     public static void addOfferToDriver(String name, String offerId) throws StorageDriverMapperException {
-        for (final OfferDriverInfo driverInfo : instantiatedDrivers) {
+        for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
             if (driverInfo.name.equals(name)) {
                 final List<String> offersIds = new ArrayList<>();
                 offersIds.add(offerId);
@@ -170,7 +170,7 @@ public class DriverManager {
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
     public static void addOffersToDriver(String name, List<String> offersIds) throws StorageDriverMapperException {
-        for (final OfferDriverInfo driverInfo : instantiatedDrivers) {
+        for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
             if (driverInfo.name.equals(name)) {
                 addOffersToDriver(driverInfo, offersIds);
             }
@@ -188,7 +188,7 @@ public class DriverManager {
     public static void removeOffer(String offerId) throws StorageDriverMapperException, StorageDriverNotFoundException {
         final Driver driver = getDriverFor(offerId);
         if (offerIdAvailable(offerId)) {
-            driversOffers.remove(offerId);
+            DRIVERS_OFFERS.remove(offerId);
             final List<String> offersIds = new ArrayList<>();
             offersIds.add(offerId);
             persistRemoveOffers(offersIds, driver.getClass().getName());
@@ -206,7 +206,7 @@ public class DriverManager {
      *         association)
      */
     public static Driver getDriverFor(String offerId) throws StorageDriverNotFoundException {
-        final OfferDriverInfo driverInfo = driversOffers.get(offerId);
+        final OfferDriverInfo driverInfo = DRIVERS_OFFERS.get(offerId);
         if (driverInfo != null) {
             return driverInfo.driver;
         }
@@ -219,11 +219,11 @@ public class DriverManager {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
             if (!offerIdAvailable(offerId)) {
-                driversOffers.put(offerId, driverInfo);
+                DRIVERS_OFFERS.put(offerId, driverInfo);
             } else {
                 LOGGER.warn("Cannot add driver {} with name {} to the offer ID {}, offer already define" +
                     " for another  driver name {}", driverInfo.driver, driverInfo.name, offerId,
-                    driversOffers.get(offerId));
+                    DRIVERS_OFFERS.get(offerId));
             }
         }
         persistAddOffers(offersIds, driverInfo.name);
@@ -234,7 +234,7 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driverInfo.name);
                 for (final String offerId : offersIds) {
-                    driversOffers.put(offerId, driverInfo);
+                    DRIVERS_OFFERS.put(offerId, driverInfo);
                 }
             } catch (final StorageDriverMapperException exc) {
                 LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}",
@@ -258,7 +258,7 @@ public class DriverManager {
     }
 
     private static boolean offerIdAvailable(String offerId) {
-        return driversOffers.containsKey(offerId);
+        return DRIVERS_OFFERS.containsKey(offerId);
     }
 
 }

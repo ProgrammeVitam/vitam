@@ -53,8 +53,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
 
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
-    static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
-    static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
+    static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800}";
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     /**
