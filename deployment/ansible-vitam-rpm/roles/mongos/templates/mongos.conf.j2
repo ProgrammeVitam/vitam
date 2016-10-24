@@ -19,3 +19,6 @@ net:
 # operationProfiling:
 sharding:
   configDB: configsvr/{% for item in groups['mongoc'] %}{{item}}:{{mongoc_port}}{% if not loop.last %},{% endif %}{% endfor %}
+
+
+# ansible managed security conf

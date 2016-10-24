@@ -43,6 +43,15 @@
     enabled: true
     state: restarted
 
+# Enable mongo passphrase
+
+- name: Copy the passphrase
+  template:
+    src: "keyfile.j2"
+    dest: "{{ mongo_config_path }}/keyfile"
+    owner: "{{ mongo_user}}"
+    mode: 0600
+
 # Now lest's initiate the replica set
 # Do this only on the last node of the current shard
 # Current shard: mongod-data[shard-id]
@@ -61,11 +70,14 @@
   command: mongo --port {{mongod_port}} /tmp/init-replica.js
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 
-# - name: Delete the init-replica.js file
-#   file:
-#     dest: "/tmp/init-replica.js"
-#     state: "absent"
-#   when: inventory_hostname == "{{ groups['mongod']|last }}"
+- name: Delete the init-replica.js file
+  file:
+    dest: "/tmp/init-replica.js"
+    state: "absent"
+  when: inventory_hostname == "{{ groups['mongod']|last }}"
+
+# Consul
+
 - name: Ensure consul config dir is OK
   file:
     path: "{{consul_folder_conf}}"

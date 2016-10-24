@@ -1,10 +1,11 @@
 
-
+// Add the shard to the configuration
 sh.addShard("shard{{shard_id}}/{{groups['mongod']|last}}:{{mongod_port}}")
 
-
+// Enable sharding on Vitam database
 sh.enableSharding("Vitam")
 
+// Add the sharding key for the sharded collections
 sh.shardCollection("Vitam.Unit"                         ,{ _id: "hashed" })
 sh.shardCollection("Vitam.ObjectGroup"                  ,{ _id: "hashed" })
 sh.shardCollection("Vitam.LogbookOperation"             ,{ _id: "hashed" })

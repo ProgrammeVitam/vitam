@@ -1,0 +1,44 @@
+
+// Create the collections
+db.createCollection("Unit")
+db.createCollection("ObjectGroup")
+db.createCollection("LogbookOperation")
+db.createCollection("LogbookLifeCycleUnit")
+db.createCollection("LogbookLifeCycleObjectGroup")
+db.createCollection("AccessionRegisterDetail")
+db.createCollection("AccessionRegisterSummary")
+db.createCollection("FileFormat")
+db.createCollection("FileRules")
+
+// Create metadata user
+db.createUser(
+    {
+        user: "{{mongoMetadataUser}}",
+        pwd: "{{mongoMetadataPassword}}",
+        roles: [
+            { role: "readWrite", db: "Vitam" }
+        ]
+    }
+)
+
+// Create logbook user
+db.createUser(
+    {
+        user: "{{mongoLogbookUser}}",
+        pwd: "{{mongoLogbookPassword}}",
+        roles: [
+            { role: "readWrite", db: "Vitam" }
+        ]
+    }
+)
+
+// Create functional-admin user
+db.createUser(
+    {
+        user: "{{mongoFunctionalAdminUser}}",
+        pwd: "{{mongoFunctionalAdminPassword}}",
+        roles: [
+            { role: "readWrite", db: "Vitam" }
+        ]
+    }
+)
