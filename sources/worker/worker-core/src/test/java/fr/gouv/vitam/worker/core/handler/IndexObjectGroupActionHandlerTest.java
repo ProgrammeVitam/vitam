@@ -46,11 +46,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -65,7 +65,7 @@ public class IndexObjectGroupActionHandlerTest {
     IndexObjectGroupActionHandler handler;
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
-    private static final String HANDLER_ID = "IndexObjectGroup";
+    private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
     public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
@@ -88,8 +88,8 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, null);
-        assertEquals(response.getStatus(), StatusCode.WARNING);
+        final CompositeItemStatus response = handler.execute(params, null);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
     @Test
@@ -104,8 +104,8 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, null);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, null);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -120,8 +120,8 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, null);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        final CompositeItemStatus response = handler.execute(params, null);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
@@ -136,8 +136,8 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, null);
-        assertEquals(response.getStatus(), StatusCode.WARNING);
+        final CompositeItemStatus response = handler.execute(params, null);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
     @Test
@@ -153,7 +153,7 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, null);
-        assertEquals(response.getStatus(), StatusCode.WARNING);
+        final CompositeItemStatus response = handler.execute(params, null);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 }

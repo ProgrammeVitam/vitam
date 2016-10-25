@@ -44,8 +44,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -60,7 +60,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckConformityActionHandlerTest {
     CheckConformityActionHandler handler;
     private WorkspaceClient workspaceClient;
-    private static final String HANDLER_ID = "CheckConformity";
+    private static final String HANDLER_ID = "CHECK_DIGEST";
     
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
     private InputStream objectGroup;
@@ -101,8 +101,8 @@ public class CheckConformityActionHandlerTest {
         handlerIO.addOutput("Maps/containerName.json");
         
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        EngineResponse response = handler.execute(params, handlerIO);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
     
     private DefaultWorkerParameters getDefaultWorkerParameters() {

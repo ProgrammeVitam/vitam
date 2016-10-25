@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -54,9 +56,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
@@ -75,7 +75,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckConformityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionHandler.class);
 
-    private static final String HANDLER_ID = "CheckConformity";
+    private static final String HANDLER_ID = "CHECK_DIGEST";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
     private static final int BINARY_OBJECT_INFO_RANK = 0;
     private HandlerIO handlerIO;
@@ -112,15 +112,14 @@ public class CheckConformityActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO handler) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         handlerIO = handler;
         nbOK = 0;
         nbKO = 0;
         LOGGER.debug("CheckConformityActionHandler running ...");
 
-        final ProcessResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-        response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
             // Get objectGroup
@@ -154,7 +153,8 @@ public class CheckConformityActionHandler extends ActionHandler {
                     for (JsonNode versionsArray : versions) {
                         for (JsonNode version : versionsArray) {
                             String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                            checkMessageDigest(workspaceClient, params, binaryObjects.get(objectId), version);
+                            checkMessageDigest(workspaceClient, params, binaryObjects.get(objectId), version,
+                                itemStatus);
                         }
                     }
                 }
@@ -171,39 +171,32 @@ public class CheckConformityActionHandler extends ActionHandler {
                     OutcomeMessage.CHECK_DIGEST_KO.value() +
                         " -- " + nbKO + " binary Object KO, " + nbWarning + " binary Object Warning, " + nbOK +
                         " binary object OK");
-                throw new ProcessingException("Check Conformity KO");
             } else {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.CHECK_DIGEST_OK.value());
             }
 
-        } catch (ProcessingException e) {
+        } catch (ProcessingException | ContentAddressableStorageServerException | IOException |
+            InvalidParseOperationException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
-        } catch (ContentAddressableStorageServerException | IOException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
         try {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
+                itemStatus.getGlobalStatus());
         } catch (ProcessingException e) {
             LOGGER.error(e);
-            if (!response.getStatus().equals(StatusCode.FATAL) && !response.getStatus().equals(StatusCode.KO)) {
-                response.setStatus(StatusCode.WARNING);
-            }
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.LOGBOOK_COMMIT_KO);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
-        LOGGER.debug("CheckConformityActionHandler response: " + response.getStatus().name());
-        return response;
+        LOGGER.debug("CheckConformityActionHandler response: " + itemStatus.getGlobalStatus());
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     private void checkMessageDigest(WorkspaceClient workspaceClient, WorkerParameters params,
-        BinaryObjectInfo binaryObject, JsonNode version)
+        BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
         String containerId = params.getContainerName();
         // started for binary Object
@@ -267,6 +260,8 @@ public class CheckConformityActionHandler extends ActionHandler {
                 if (!isVitamDigest) {
                     nbOK -= 1;
                     nbWarning += 1;
+                    itemStatus.increment(StatusCode.WARNING);
+
                     // update objectGroup json
                     ((ObjectNode) version).put(SedaConstants.TAG_DIGEST, vitamDigest.toString());
                     ((ObjectNode) version).put(SedaConstants.ALGORITHM, (String) handlerIO.getInput().get(ALGO_RANK));
@@ -287,11 +282,15 @@ public class CheckConformityActionHandler extends ActionHandler {
 
                     // WARNING case
                     oneOrMoreMessagesDigestUpdated = true;
+                } else {
+                    itemStatus.increment(StatusCode.OK);
                 }
                 logbookClient.update(logbookLifecycleObjectGroupParameters);
 
             } else {
                 nbKO += 1;
+                itemStatus.increment(StatusCode.KO);
+
                 // update logbook case KO
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
                     OutcomeMessage.CHECK_DIGEST.value());

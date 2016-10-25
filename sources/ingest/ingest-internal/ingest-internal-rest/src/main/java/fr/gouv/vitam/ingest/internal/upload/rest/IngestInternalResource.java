@@ -51,8 +51,10 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
@@ -101,9 +103,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String FOLDER_SIP = "SIP";
-    private static final String INGEST_EXT = "Check Sanitaire SIP";
-    private static final String INGEST_INT_UPLOAD = "Upload SIP";
-    private static final String INGEST_WORKFLOW = "Process_SIP_unitary";
+    private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
+    private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
+    private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
@@ -209,13 +211,12 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 // workspace
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
-                    "Début de l'action " + INGEST_INT_UPLOAD);
+                    VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.STARTED));
                 // push uploaded sip as stream
                 pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), archiveMimeType,
                     uploadedInputStream,
                     parameters);
-                final String uploadSIPMsg = " Succes de la récupération du SIP : fichier " + fileName +
-                    " au format conforme";
+                final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
 
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
                 // processing
@@ -244,8 +245,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
             if (parameters != null) {
                 try {
-                    final String errorMsg = " Échec de la récupération du SIP : fichier " + fileName +
-                        " au format non conforme";
+                    final String errorMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO);
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
@@ -365,7 +365,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         final String workflowId = "DefaultIngestWorkflow";
 
         try {
-            processingClient.executeVitamProcess(containerName, workflowId);
+            ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
+            callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                OutcomeMessage.WORKFLOW_INGEST_OK.value());
         } catch (WorkflowNotFoundException | ProcessingInternalServerException exc) {
             VITAM_LOGGER.error(exc);
             callLogbookUpdate(client, parameters, StatusCode.FATAL, OutcomeMessage.WORKFLOW_INGEST_KO.value());
@@ -375,7 +377,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             callLogbookUpdate(client, parameters, StatusCode.KO, OutcomeMessage.WORKFLOW_INGEST_KO.value());
             return false;
         }
-        callLogbookUpdate(client, parameters, StatusCode.OK, OutcomeMessage.WORKFLOW_INGEST_OK.value());
+
         return true;
     }
 

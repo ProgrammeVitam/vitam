@@ -4,7 +4,7 @@
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Contrôle global entrée (SIP)",
+      "stepName": "STP_INGEST_CONTROL_SIP",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -13,25 +13,25 @@
       "actions": [
         {
           "action": {
-            "actionKey": "checkSeda",
+            "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "CheckVersion",
+            "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "CheckObjectsNumber",
+            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
             "behavior": "NOBLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "ExtractSeda",
+            "actionKey": "CHECK_CONSISTENCY",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -71,7 +71,7 @@
         },
         {
           "action": {
-            "actionKey": "CheckObjectUnitConsistency",
+            "actionKey": "CHECK_CONSISTENCY_POST",
             "behavior": "NOBLOCKING",
             "in": [
               {
@@ -89,7 +89,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Identification des formats",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -98,7 +98,7 @@
       "actions": [
       	{
           "action": {
-            "actionKey": "CheckConformity",
+            "actionKey": "CHECK_DIGEST",
             "behavior": "BLOCKING",
             "in": [
               {
@@ -116,7 +116,7 @@
         },
         {
           "action": {
-            "actionKey": "FormatIdentification",
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
             "behavior": "BLOCKING"
           }
         }
@@ -124,7 +124,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Vérification de la disponibilite de l'offre de stockage",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -133,7 +133,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CheckStorageAvailability",
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
             "behavior": "BLOCKING"
           }
         }
@@ -141,7 +141,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Rangement des units",
+      "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -150,7 +150,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "IndexUnit",
+            "actionKey": "UNIT_METADATA_INDEXATION",
             "behavior": "BLOCKING"
           }
         }
@@ -158,7 +158,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Rangement des objets",
+      "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -167,13 +167,13 @@
       "actions": [
         {
           "action": {
-            "actionKey": "StoreObjectGroup",
+            "actionKey": "OG_STORAGE",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "IndexObjectGroup",
+            "actionKey": "OG_METADATA_INDEXATION",
             "behavior": "BLOCKING"
           }
         }
@@ -181,7 +181,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Finalisation de l'entrée",
+      "stepName": "STP_INGEST_FINALISATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -190,7 +190,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "AccessionRegister",
+            "actionKey": "ACCESSION_REGISTRATION",
             "behavior": "BLOCKING",
             "in": [
               {
@@ -214,7 +214,7 @@
         },
         {
           "action": {
-            "actionKey": "TransferNotification",
+            "actionKey": "ATR_NOTIFICATION",
             "behavior": "BLOCKING",
             "in": [
               {

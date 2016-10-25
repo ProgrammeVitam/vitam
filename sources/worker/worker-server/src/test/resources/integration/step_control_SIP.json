@@ -1,6 +1,6 @@
 {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Contrôle global entrée (SIP)",
+      "stepName": "STP_INGEST_CONTROL_SIP",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -9,25 +9,25 @@
       "actions": [
         {
           "action": {
-            "actionKey": "checkSeda",
+            "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "CheckVersion",
+            "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "CheckObjectsNumber",
+            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
             "behavior": "NOBLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "ExtractSeda",
+            "actionKey": "CHECK_CONSISTENCY",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -62,12 +62,12 @@
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
-           ]
+            ]
           }
         },
         {
           "action": {
-            "actionKey": "CheckObjectUnitConsistency",
+            "actionKey": "CHECK_CONSISTENCY_POST",
             "behavior": "NOBLOCKING",
             "in": [
               {

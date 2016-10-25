@@ -40,6 +40,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -56,7 +57,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 public class CheckStorageAvailabilityActionHandlerTest {
 
     CheckStorageAvailabilityActionHandler handler = new CheckStorageAvailabilityActionHandler();
-    private static final String HANDLER_ID = "CheckStorageAvailability";
+    private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private SedaUtils sedaUtils;
     private final HandlerIO handlerIO = new HandlerIO("");
 
@@ -75,9 +76,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.KO, response.getStatus());
-        assertTrue(response.getOutcomeMessages().values().contains(OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE));
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
@@ -91,9 +91,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.KO, response.getStatus());
-        assertTrue(response.getOutcomeMessages().values().contains(OutcomeMessage.STORAGE_OFFER_SPACE_KO));
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
 
@@ -108,8 +107,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
 }

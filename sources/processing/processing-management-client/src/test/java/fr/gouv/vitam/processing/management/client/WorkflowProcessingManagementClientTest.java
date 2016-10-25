@@ -50,6 +50,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
@@ -136,10 +137,10 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
 
     @Test
     public void executeVitamProcessOk() throws Exception {
-        final String desired = "{\"JSON\": \"OK\"}";
+        final ItemStatus desired = new ItemStatus("ID");
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final String ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
+        final ItemStatus ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
         assertNotNull(ret);
-        assertEquals(desired, ret);
+        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 }

@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -47,9 +49,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -63,7 +63,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
-    private static final String HANDLER_ID = "IndexObjectGroup";
+    private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
 
     public static final String JSON_EXTENSION = ".json";
     private static final String OBJECT_GROUP = "ObjectGroup";
@@ -92,40 +92,44 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+
         try {
             checkMandatoryIOParameter(actionDefinition);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
-            indexObjectGroup(params);
+            indexObjectGroup(params, itemStatus);
         } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
-            response.setStatus(StatusCode.FATAL);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
+            itemStatus.increment(StatusCode.FATAL);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.WARNING);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
+            itemStatus.increment(StatusCode.WARNING);
         }
         // Update lifeCycle
         try {
-            if (response.getStatus().equals(StatusCode.FATAL) || response.getStatus().equals(StatusCode.WARNING)) {
+            if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) ||
+                StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.INDEX_OBJECT_GROUP_KO.value());
             } else {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.INDEX_OBJECT_GROUP_OK.value());
             }
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
+                itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            if (!response.getStatus().equals(StatusCode.FATAL)) {
-                response.setStatus(StatusCode.WARNING);
-            }
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.LOGBOOK_COMMIT_KO);
+            itemStatus.setItemId("LOGBOOK_COMMIT_KO");
+            itemStatus.increment(StatusCode.WARNING);
         }
-        return response;
+
+        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+            itemStatus.increment(StatusCode.WARNING);
+        }
+
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 
@@ -133,9 +137,10 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
      *
      * @param params work parameters
+     * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
-    private void indexObjectGroup(WorkerParameters params) throws ProcessingException {
+    private void indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
@@ -153,6 +158,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 final JsonNode json = JsonHandler.getFromInputStream(input);
                 final Insert insertRequest = new Insert().addData((ObjectNode) json);
                 metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
+                itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Object group not found");
                 throw new ProcessingException("Object group not found");

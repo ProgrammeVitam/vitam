@@ -1,6 +1,6 @@
 {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Vérification de la disponibilite de l'offre de stockage",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -9,7 +9,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CheckStorageAvailability",
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
             "behavior": "BLOCKING"
           }
         }

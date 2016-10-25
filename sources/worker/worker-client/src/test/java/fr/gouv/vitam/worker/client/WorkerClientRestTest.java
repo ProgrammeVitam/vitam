@@ -30,8 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -40,11 +38,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -120,21 +119,29 @@ public class WorkerClientRestTest extends VitamJerseyTest {
 
     @Test
     public void submitOK() throws Exception {
-        final String jsonResult =
-            "[{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"checkSeda\":\"CHECK_MANIFEST_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"vitam\",\"errorNumber\":0,\"value\":\"OK\"}," +
-                "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckVersion\":\"CHECK_VERSION_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}," +
-                "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckObjectsNumber\":\"CHECK_OBJECT_NUMBER_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}," +
-                "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"ExtractSeda\":\"EXTRACT_MANIFEST_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}," +
-                "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckConformity\":\"CHECK_CONFORMITY_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}]";
 
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(jsonResult).build());
-        final List<EngineResponse> responses =
+
+        final CompositeItemStatus result = new CompositeItemStatus("StepId");
+
+        ItemStatus itemStatus1 = new ItemStatus("checkSeda");
+        itemStatus1.setMessage("CHECK_MANIFEST_OK");
+        StatusCode status = StatusCode.OK;
+        itemStatus1.increment(status);
+        result.setItemsStatus("checkSeda", itemStatus1);
+
+        ItemStatus itemStatus2 = new ItemStatus("CheckVersion");
+        itemStatus2.setMessage("CHECK_VERSION_OK");
+        itemStatus2.increment(status);
+        result.setItemsStatus("CheckVersion", itemStatus2);
+
+        when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(result).build());
+        final CompositeItemStatus responses =
             client.submitStep("requestId",
                 new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
         assertNotNull(responses);
-        assertEquals(StatusCode.OK, responses.get(0).getStatus());
-        assertEquals(StatusCode.OK, responses.get(1).getStatus());
-        assertEquals("OK", responses.get(2).getValue());
+        assertEquals(StatusCode.OK, responses.getItemsStatus().get("checkSeda").getGlobalStatus());
+        assertEquals(StatusCode.OK, responses.getItemsStatus().get("CheckVersion").getGlobalStatus());
+        assertEquals(StatusCode.OK, responses.getGlobalStatus());
     }
 
     @Test(expected = WorkerNotFoundClientException.class)

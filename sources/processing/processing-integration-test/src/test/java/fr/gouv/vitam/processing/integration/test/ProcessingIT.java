@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.Service.State;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -64,6 +65,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
@@ -269,14 +272,13 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
-        assertEquals("OK", node.get("status").asText());
+        // check conformity in warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
         // checkMonitoring - meaning something has been added in the monitoring tool
-        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
     }
 
@@ -298,14 +300,13 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        final JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
-        assertEquals("OK", node.get("status").asText());
+        // format file warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
         // checkMonitoring - meaning something has been added in the monitoring tool
-        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
     }
 
@@ -327,12 +328,14 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        final JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
+        // File format warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
-        assertEquals("OK", node.get("status").asText());
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+        assertNotNull(map);
     }
 
     @Test
@@ -353,12 +356,14 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        final JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
+        // File format in warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
-        assertEquals("OK", node.get("status").asText());
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+        assertNotNull(map);
     }
 
     @Test(expected = ProcessingBadRequestException.class)
@@ -400,14 +405,13 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        final JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
-        assertEquals("OK", node.get("status").asText());
+        // format file warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
         // checkMonitoring - meaning something has been added in the monitoring tool
-        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
     }
 
@@ -496,11 +500,13 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        final JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
+        // File formar warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
-        assertEquals("OK", node.get("status").asText());
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+        assertNotNull(map);
     }
 }

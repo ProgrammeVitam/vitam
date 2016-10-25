@@ -60,6 +60,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -70,9 +72,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -88,7 +88,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class IndexUnitActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
-    private static final String HANDLER_ID = "IndexUnit";
+    private static final String HANDLER_ID = "UNIT_METADATA_INDEXATION";
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_CONTENT = "Content";
@@ -113,43 +113,49 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO param) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO param) {
         checkMandatoryParameters(params);
         handlerIO = param;
-        final EngineResponse response =
-            new ProcessResponse().setStatus(StatusCode.OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             checkMandatoryIOParameter(handlerIO);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
-            indexArchiveUnit(params);
+            indexArchiveUnit(params, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL);
+            itemStatus.increment(StatusCode.FATAL);
         }
         // Update lifeCycle
         try {
-            if (response.getStatus().equals(StatusCode.FATAL)) {
+            if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
                 logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.INDEX_UNIT_KO.value());
             } else {
                 logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.INDEX_UNIT_OK.value());
             }
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters,
+                itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.WARNING);
+            itemStatus.increment(StatusCode.WARNING);
+
         }
 
-        return response;
+        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+            itemStatus.increment(StatusCode.WARNING);
+        }
+
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
      * @param params work parameters
+     * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
-    private void indexArchiveUnit(WorkerParameters params) throws ProcessingException {
+    private void indexArchiveUnit(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
@@ -178,6 +184,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
                 final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
                 metadataClient.insertUnit(insertRequest);
+                itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");

@@ -26,8 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.api;
 
-import java.util.List;
-
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -52,7 +51,7 @@ public interface Worker {
      * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
      */
-    List<EngineResponse> run(WorkerParameters workParams, Step step)
+    CompositeItemStatus run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException;
 
 

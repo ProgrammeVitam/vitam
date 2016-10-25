@@ -30,7 +30,6 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
 import java.io.File;
-import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -56,6 +55,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
@@ -63,7 +63,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -249,10 +248,7 @@ public class ProcessDistributorResourceTest {
         private final String FAMILY_ID_E = "error";
         private final String WORKER_ID_E = "error";
 
-        @Override
-        public List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId) {
-            return null;
-        }
+   
 
         @Override
         public void registerWorker(String familyId, String workerId, String workerInformation)
@@ -268,6 +264,11 @@ public class ProcessDistributorResourceTest {
             if (FAMILY_ID_E.equals(familyId)) {
                 throw new WorkerFamilyNotFoundException("");
             }
+        }
+
+        @Override
+        public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
+            return new CompositeItemStatus("itemId");
         }
     }
 

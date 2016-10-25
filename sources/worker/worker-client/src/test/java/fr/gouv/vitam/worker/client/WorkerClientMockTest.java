@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
@@ -67,9 +68,9 @@ public class WorkerClientMockTest {
         final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();
         final DescriptionStep descriptionStep = new DescriptionStep(step, workParams);
         final String requestId = "requestId";
-        final List<EngineResponse> result = client.submitStep(requestId, descriptionStep);
+        final CompositeItemStatus result = client.submitStep(requestId, descriptionStep);
 
         assertNotNull(result);
-        assertEquals(result.size(), 1);
+        assertEquals(result.getItemsStatus().size(), 1);
     }
 }

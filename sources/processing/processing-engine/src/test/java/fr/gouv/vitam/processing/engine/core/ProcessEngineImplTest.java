@@ -34,8 +34,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -44,7 +44,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 public class ProcessEngineImplTest {
     private ProcessEngineImpl processEngine;
     private WorkerParameters workParams;
-    private EngineResponse response;
+    private ItemStatus response;
     private ProcessMonitoringImpl processMonitoring;
 
 

@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -52,8 +54,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
@@ -75,7 +75,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
 
-    private static final String HANDLER_ID = "StoreObjectGroup";
+    private static final String HANDLER_ID = "OG_STORAGE";
     private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
     private static final String SIP = "SIP/";
 
@@ -122,9 +122,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
             checkMandatoryIOParameter(actionDefinition);
             // Update lifecycle of object group : STARTED
@@ -136,20 +136,25 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             // get list of object uris
             for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
                 // Execute action on the object
-                storeObject(params, objectGuid.getKey(), objectGuid.getValue());
+                storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus);
             }
-
+        } catch (final StorageClientException e) {
+            LOGGER.error(e);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO);
+            itemStatus.increment(StatusCode.FATAL);
+        }
+
+        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+            itemStatus.increment(StatusCode.OK);
         }
 
         // Update lifecycle of object group : OK/KO
         try {
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                response.getStatus().toString());
-            if (StatusCode.OK.equals(response.getStatus())) {
+                itemStatus.getGlobalStatus().name());
+            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                     StatusCode.OK.name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -163,11 +168,11 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycle();
         } catch (final ProcessingException e) {
             LOGGER.warn(e);
-            if (StatusCode.OK.equals(response.getStatus())) {
-                response.setStatus(StatusCode.WARNING);
+            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
+                itemStatus.increment(StatusCode.WARNING);
             }
         }
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -176,9 +181,12 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param params worker parameters
      * @param objectGUID the object guid
      * @param objectUri the object uri
-     * @throws ProcessingException throws when error occurs
+     * @param itemStatus item status
+     * @throws StorageClientException throws when a storage error occurs
+     * @throws ProcessingException throws when unexpected error occurs
      */
-    private void storeObject(WorkerParameters params, String objectGUID, String objectUri) throws ProcessingException {
+    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus)
+        throws ProcessingException, StorageClientException {
         LOGGER.debug("Storing object with guid: " + objectGUID);
         ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
         try {
@@ -204,6 +212,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycle();
         } catch (final StorageClientException e) {
             LOGGER.error(e);
+            itemStatus.increment(StatusCode.KO);
             // update lifecycle of objectGroup with detail of object : KO
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 StatusCode.KO.toString());
@@ -212,7 +221,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 LOGBOOK_LF_STORAGE_BDO_KO_MSG);
             updateLifeCycle();
-            throw new ProcessingException(e);
+            throw e;
         }
     }
 

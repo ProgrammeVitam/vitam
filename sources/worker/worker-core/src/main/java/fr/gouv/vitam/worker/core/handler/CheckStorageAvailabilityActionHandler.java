@@ -32,11 +32,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -54,7 +53,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
-    private static final String HANDLER_ID = "CheckStorageAvailability";
+    private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
     private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
     private static final String DEFAULT_TENANT = "0";
@@ -77,12 +76,9 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.STORAGE_OFFER_SPACE_OK);
-
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
         long totalSizeToBeStored;
         try {
@@ -98,18 +94,19 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
             final long storageCapacity = information.getUsableSpace();
             if (storageCapacity >= totalSizeToBeStored) {
-                response.setStatus(StatusCode.OK);
+                itemStatus.increment(StatusCode.OK);
+                itemStatus.setData("requiredSize", storageCapacity);
             } else {
                 // error - KO
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.STORAGE_OFFER_SPACE_KO);
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setData("remainingSize", totalSizeToBeStored - storageCapacity);
             }
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
-                OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE);
+            itemStatus.increment(StatusCode.FATAL);
         }
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override

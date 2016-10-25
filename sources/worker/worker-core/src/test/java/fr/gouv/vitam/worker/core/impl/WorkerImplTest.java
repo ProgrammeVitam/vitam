@@ -36,14 +36,14 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ActionDefinition;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -114,8 +114,15 @@ public class WorkerImplTest {
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
+
+        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        itemStatus.setMessage("message");
+        itemStatus.setItemId("ITEM_ID_1");
+        StatusCode status = StatusCode.OK;
+        itemStatus.increment(status);
+
+        when(actionHandler.execute(anyObject(), anyObject()))
+            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -137,8 +144,14 @@ public class WorkerImplTest {
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
-        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
+        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        itemStatus.setMessage("message");
+        itemStatus.setItemId("ITEM_ID_1");
+        StatusCode status = StatusCode.FATAL;
+        itemStatus.increment(status);
+
+        when(actionHandler.execute(anyObject(), anyObject()))
+            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -160,8 +173,15 @@ public class WorkerImplTest {
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
-        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
+
+        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        itemStatus.setMessage("message");
+        itemStatus.setItemId("ITEM_ID_1");
+        StatusCode status = StatusCode.FATAL;
+        itemStatus.increment(status);
+
+        when(actionHandler.execute(anyObject(), anyObject()))
+            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")

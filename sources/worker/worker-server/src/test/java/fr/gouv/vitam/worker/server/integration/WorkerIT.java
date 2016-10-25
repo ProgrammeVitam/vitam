@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -175,24 +176,24 @@ public class WorkerIT {
         // launch metadata
         medtadataApplication = new MetaDataApplication();
         SystemPropertyUtil
-            .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure(CONFIG_METADATA_PATH);
 
         // launch processing
         SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+        .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
 
 
         // launch worker
         SystemPropertyUtil
-            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
 
         // launch workspace
         SystemPropertyUtil
-            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+        .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
 
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
@@ -291,35 +292,27 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getClient();
-        final List<EngineResponse> retStepControl =
+        final CompositeItemStatus retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (final EngineResponse response : retStepControl) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
-        final List<EngineResponse> retStepCheckStorage =
+        final CompositeItemStatus retStepCheckStorage =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
-        for (final EngineResponse response : retStepCheckStorage) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
         final DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
         descriptionStepUnit.getWorkParams().setObjectName(unitName());
-        final List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+        final CompositeItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
         assertNotNull(retStepStoreUnit);
-        for (final EngineResponse response : retStepStoreUnit) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
         final DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
         descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-        final List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+        final CompositeItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
         assertNotNull(retStepStoreOg);
-        for (final EngineResponse response : retStepStoreOg) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
@@ -345,35 +338,28 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getClient();
-        final List<EngineResponse> retStepControl =
+        final CompositeItemStatus retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (final EngineResponse response : retStepControl) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
-        final List<EngineResponse> retStepCheckStorage =
+
+        final CompositeItemStatus retStepCheckStorage =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
-        for (final EngineResponse response : retStepCheckStorage) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
         final DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
         descriptionStepUnit.getWorkParams().setObjectName(unitName());
-        final List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+        final CompositeItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
         assertNotNull(retStepStoreUnit);
-        for (final EngineResponse response : retStepStoreUnit) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
         final DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
         descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-        final List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+        final CompositeItemStatus  retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
         assertNotNull(retStepStoreOg);
-        for (final EngineResponse response : retStepStoreOg) {
-            assertEquals(StatusCode.OK, response.getStatus());
-        }
+        assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
@@ -397,12 +383,10 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getClient();
-        final List<EngineResponse> retStepControl =
+        final CompositeItemStatus retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (final EngineResponse response : retStepControl) {
-            assertEquals(StatusCode.KO, response.getStatus());
-        }
+        assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
@@ -426,15 +410,11 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getClient();
-        final List<EngineResponse> retStepControl =
+        final CompositeItemStatus retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        assertEquals(5, retStepControl.size());
-        assertEquals(StatusCode.OK, retStepControl.get(0).getStatus());
-        assertEquals(StatusCode.OK, retStepControl.get(1).getStatus());
-        assertEquals(StatusCode.OK, retStepControl.get(2).getStatus());
-        assertEquals(StatusCode.OK, retStepControl.get(3).getStatus());
-        assertEquals(StatusCode.OK, retStepControl.get(4).getStatus());
+        assertEquals(5, retStepControl.getItemsStatus().size());
+        assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }

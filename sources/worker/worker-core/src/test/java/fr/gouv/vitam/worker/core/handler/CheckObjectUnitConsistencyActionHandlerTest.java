@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -43,11 +44,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -62,7 +63,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckObjectUnitConsistencyActionHandlerTest {
 
     CheckObjectUnitConsistencyActionHandler handler;
-    private static final String HANDLER_ID = "CheckObjectUnitConsistency";
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
 
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String OG_AU = "OG_TO_ARCHIVE_ID_MAP_obj.json";
@@ -104,8 +105,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(1);
     }
 
     @Test
@@ -121,8 +123,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
     }
 
 }
