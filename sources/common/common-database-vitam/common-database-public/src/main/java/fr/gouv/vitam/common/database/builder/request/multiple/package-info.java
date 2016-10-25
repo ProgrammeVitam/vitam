@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * builder for multi query request
+ * Builder for multi query request
  */
 package fr.gouv.vitam.common.database.builder.request.multiple;

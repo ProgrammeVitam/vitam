@@ -130,11 +130,11 @@ public class WorkerClientRest extends DefaultClient implements WorkerClient {
 
     /**
      * Create a List<EngineResponse> from the JsonNode representation <br>
-     * TODO : replace EngineResponse with real usable POJO (and json compatible).
      *
      * @param node representation of List<EngineResponse> as JsonNode
      * @return List<EngineResponse>
      */
+    //TODO: replace EngineResponse with real usable POJO (and json compatible).
     private List<EngineResponse> getListResponses(JsonNode node) {
         final List<EngineResponse> responses = new ArrayList<>();
         if (node != null && node.isArray()) {

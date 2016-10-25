@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.database.builder.request.configuration;
 /**
  * Main language definition
  *
- *
  */
 public abstract class BuilderToken {
 
@@ -65,6 +64,10 @@ public abstract class BuilderToken {
      * $depth with a relative value (+ or -, meaning leaves or parents, 0 for no limit in leaves depth) Only one of
      * $exactdepth and $depth might be set. If both are set, only $depth will be kept. <br>
      * { expression, $exactdepth : exactdepth, $depth : /- depth }
+     *
+     */
+    /**
+     * Global model
      *
      */
     public static enum GLOBAL {
@@ -393,7 +396,7 @@ public abstract class BuilderToken {
     }
 
     /**
-     * Arguments to some QUERY commands
+     * Query args model
      *
      */
     public static enum QUERYARGS {
@@ -492,11 +495,14 @@ public abstract class BuilderToken {
     }
 
     /**
+     * Projection args model <br><br>
+     * 
      * specific fields: nbunits, dua, ... <br>
      * $fields : [ #nbunits:1, #dua:1, #all:1... ]
      *
      * #all:1 means all, while #all:0 means none
      */
+ 
     public static enum PROJECTIONARGS {
         /**
          * Id of the item
@@ -635,6 +641,11 @@ public abstract class BuilderToken {
      *
      * }
      * </pre>
+     */
+    
+    /**
+     * Update model
+     *
      */
     public static enum UPDATEACTION {
         /**

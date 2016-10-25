@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * THis class is used in order to make transformations on Json objects received from Vitam
+ * This class is used in order to make transformations on Json objects received from Vitam
  */
 public final class JsonTransformer {
 

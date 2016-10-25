@@ -68,29 +68,31 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * The Process Distributor call the workers and intercept the response for manage a post actions step
+ * Process distributor Implementation </br>
+ * The Process Distributor calls the workers and intercepts the response to manage a post actions step
  *
- * <pre>
- * TODO :
- * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
- * Workspace
- * - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
- * continue)
- * - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
- * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
- *  {@code
- *    for (final EngineResponse response : responses) {
- *       tempStatusCode = response.getStatus();
- *       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
- *           statusCode = tempStatusCode;
- *       }
- *      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
- *           break;
- *       }
- *     }
- *  }
- * </pre>
  */
+
+// TODO :
+// - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
+// Workspace
+// - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
+// continue)
+// - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
+// - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
+//  {@code
+//    for (final EngineResponse response : responses) {
+//       tempStatusCode = response.getStatus();
+//       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
+//           statusCode = tempStatusCode;
+//       }
+//      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
+//           break;
+//       }
+//     }
+//  }
+//
+
 public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);

@@ -310,13 +310,14 @@ public class WebApplicationResource {
     }
 
     /**
-     * upload the file TODO : add file name
+     * upload the file
      *
      * @param stream data input stream
      * @return Response
      * @throws XMLStreamException
      * @throws IOException
      */
+    //TODO : add file name
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)

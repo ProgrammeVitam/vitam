@@ -34,6 +34,7 @@ import java.util.Set;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
+ * Worker parameters factory </br>
  * Factory to get WorkerParameters object
  *
  * Example:
@@ -54,6 +55,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  *     }
  * </pre>
  */
+
 // TODO: see LogbookParametersFactory and create a common factory
 // for all "vitam parameters" using generic (for example)
 public class WorkerParametersFactory {

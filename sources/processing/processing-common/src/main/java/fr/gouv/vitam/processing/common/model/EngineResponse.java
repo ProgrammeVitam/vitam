@@ -30,11 +30,12 @@ import java.util.Map;
 
 import fr.gouv.vitam.common.model.StatusCode;
 
-
 /**
- * Model of Response from worker <br>
- * TODO : remove interface since we want to use this object as a rest response entity.
+ * Model of Response from worker 
+ *
  */
+
+//TODO : remove interface since we want to use this object as a rest response entity.
 public interface EngineResponse {
 
     /**

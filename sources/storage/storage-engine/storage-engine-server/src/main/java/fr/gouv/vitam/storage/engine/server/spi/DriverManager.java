@@ -54,12 +54,13 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
 
 /**
  * DriverManager implementation.
- *
- * Use to register storage driver and associates it with offers.
+ * 
+ * Use to register storage driver and associates it with offers.<br><br>
  *
  * Actually, it is not possible to add driver without a server restart (you can add the driver, do association with
  * offers but you have to restart the server to have the new driver).
  */
+
 public class DriverManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverManager.class);
@@ -163,12 +164,13 @@ public class DriverManager {
     }
 
     /**
-     * Add offers IDs to a driver TODO : change link direction between driver and offer and persist it differently
+     * Add offers IDs to a driver 
      * 
      * @param name the driver name
      * @param offersIds the offers IDs list
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
+    //TODO : change link direction between driver and offer and persist it differently
     public static void addOffersToDriver(String name, List<String> offersIds) throws StorageDriverMapperException {
         for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
             if (driverInfo.name.equals(name)) {

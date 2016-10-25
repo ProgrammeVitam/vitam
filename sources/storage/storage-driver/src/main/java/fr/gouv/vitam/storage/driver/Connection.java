@@ -49,6 +49,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
  * Note: Connection extends {@link AutoCloseable} so the connection implementation MUST provide a close() method which
  * responsibility is to cleanly close and remove.
  */
+
 public interface Connection extends AutoCloseable {
     /**
      * Retrieve the remaining storage capacity available on the distant offer. Return values MUST in bytes

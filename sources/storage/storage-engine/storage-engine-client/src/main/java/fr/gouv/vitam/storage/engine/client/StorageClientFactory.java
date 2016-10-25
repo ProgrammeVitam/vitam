@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * changeDefaultClientType method to change the client type.
  *
  */
+
 public class StorageClientFactory {
 
     private static StorageClientType defaultStorageClientType;

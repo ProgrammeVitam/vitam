@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
+ * Processing Management core package
  *
  */
 package fr.gouv.vitam.processing.management.core;

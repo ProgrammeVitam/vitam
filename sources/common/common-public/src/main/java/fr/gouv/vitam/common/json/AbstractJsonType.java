@@ -37,10 +37,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Default base class for Data stored as Json or Xml <br>
- * <br>
- * Any DTO class could use this class to extends from.
+ * Default base class for Data stored as Json or Xml. </br>
+ * Any DTO class can use this class to extend from.
  */
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,
     property = "@class")
 public abstract class AbstractJsonType {
@@ -48,6 +48,8 @@ public abstract class AbstractJsonType {
         VitamLoggerFactory.getInstance(AbstractJsonType.class);
 
     /**
+     * Generates Json
+     * 
      * @return the corresponding JsonNode
      */
     public ObjectNode generateJson() {

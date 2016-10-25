@@ -164,8 +164,7 @@
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 		<esapi.version>2.1.0.1</esapi.version>
-		<!-- removed to support xerces with 1.1 support
-		<xerces.version>2.11.0</xerces.version>  -->
+		<!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
 		<xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
 		<xml-resolver.version>1.2</xml-resolver.version>
 		<!-- 3.2.4 ? -->
@@ -198,6 +197,61 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<doctitle>Vitam API Reference (${project.version})</doctitle>
+							<windowtitle>Vitam API Reference (${project.version})</windowtitle>
+							<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
+							<groups>
+								<group>
+									<title>Access </title>
+									<packages>fr.gouv.vitam.access.*</packages>
+								</group>
+								<group>
+									<title>Common </title>
+									<packages>fr.gouv.vitam.common.*:fr.gouv.vitam.common</packages>
+								</group>
+								<group>
+									<title>Functional administration </title>
+									<packages>fr.gouv.vitam.functional.administration.*</packages>
+								</group>
+								<group>
+									<title>Ihm Demo </title>
+									<packages>fr.gouv.vitam.ihmdemo.*</packages>
+								</group>
+								<group>
+									<title>Ingest </title>
+									<packages>fr.gouv.vitam.ingest.*</packages>
+								</group>
+								<group>
+									<title>Logbook </title>
+									<packages>fr.gouv.vitam.logbook.*</packages>
+								</group>
+								<group>
+									<title>Metadata </title>
+									<packages>fr.gouv.vitam.metadata.*</packages>
+								</group>
+								<group>
+									<title>Processing </title>
+									<packages>fr.gouv.vitam.processing.*</packages>
+								</group>
+								<group>
+									<title>Storage Driver / Offer </title>
+									<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.driver.*</packages>
+								</group>
+								<group>
+									<title>Storage Engine </title>
+									<packages>fr.gouv.vitam.storage.engine.*</packages>
+								</group>
+								<group>
+									<title>Worker </title>
+									<packages>fr.gouv.vitam.worker.*</packages>
+								</group>
+								<group>
+									<title> Workspace </title>
+									<packages>fr.gouv.vitam.workspace.*</packages>
+								</group>
+							</groups>
+						</configuration>
 						<executions>
 							<execution>
 								<phase>package</phase>
@@ -221,7 +275,7 @@
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Core plugins : Plugins corresponding to default core phases (ie. 
-				clean, compile). They may have muliple goals as well. -->
+					clean, compile). They may have muliple goals as well. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
 					<!-- Clean up after the build. -->
@@ -264,7 +318,7 @@
 				</plugin>
 				<plugin>
 					<!-- Copy the resources to the output directory for including in the 
-					JAR. -->
+						JAR. -->
 					<artifactId>maven-resources-plugin</artifactId>
 					<!-- 3.0 ? -->
 					<version>2.7</version>
@@ -315,7 +369,7 @@
 						<reuseForks>false</reuseForks>
 						<!-- Non Parallel mode -->
 						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount> 
-						<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
+							<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
 					</configuration>
 					<executions>
 						<execution>
@@ -338,14 +392,14 @@
 				</plugin>
 				<plugin>
 					<!-- Useful for integration tests - verifies the existence of certain 
-					conditions. -->
+						conditions. -->
 					<artifactId>maven-verifier-plugin</artifactId>
 					<version>1.1</version>
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Packaging types / tools : These plugins relate to packaging respective 
-				artifact types. -->
+					artifact types. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
 					<!-- Build a JAR from the current project. -->
@@ -387,11 +441,11 @@
 				</plugin>
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Reporting plugins : Plugins which generate reports, are configured 
-				as reports in the POM and run under the site generation lifecycle. -->
+					as reports in the POM and run under the site generation lifecycle. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
 					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for 
-					the specified project. -->
+						the specified project. -->
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>2.10.4</version>
 					<configuration>
@@ -403,18 +457,18 @@
 					<!-- The Surefire Report Plugin parses the generated TEST-*.xml files 
 						under ${basedir}/target/surefire-reports and renders them to DOXIA which 
 						creates the web interface version of the test results. -->
-						<artifactId>maven-surefire-report-plugin</artifactId>
-						<version>2.19.1</version>
-					</plugin>
-					<plugin>
-						<groupId>org.owasp</groupId>
-						<artifactId>dependency-check-maven</artifactId>
-						<version>1.4.0</version>
-					</plugin>
+					<artifactId>maven-surefire-report-plugin</artifactId>
+					<version>2.19.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.owasp</groupId>
+					<artifactId>dependency-check-maven</artifactId>
+					<version>1.4.0</version>
+				</plugin>
 
-					<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Tools : These are miscellaneous tools available through Maven by 
-				default. -->
+					default. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
 					<!-- Build an assembly (distribution) of sources and/or binaries. -->
@@ -428,7 +482,7 @@
 				</plugin>
 				<plugin>
 					<!-- Environmental constraint checking (Maven Version, JDK etc), User 
-					Custom Rule Execution. -->
+						Custom Rule Execution. -->
 					<artifactId>maven-enforcer-plugin</artifactId>
 					<version>1.4.1</version>
 				</plugin>
@@ -439,7 +493,7 @@
 				</plugin>
 				<plugin>
 					<!-- SCM plugin ; set as using jgit for git (essentially for the release 
-					plugin) -->
+						plugin) -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-scm-plugin</artifactId>
 					<version>1.9.4</version>
@@ -458,7 +512,7 @@
 				</plugin>
 				<plugin>
 					<!-- Release the current project - updating the POM and tagging in the 
-					SCM. -->
+						SCM. -->
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
 					<configuration>
@@ -468,7 +522,7 @@
 						<!-- Don't ask if you want to resolve snapshots, do it -->
 						<!-- <alwaysResolveSnapshots>true</alwaysResolveSnapshots> -->
 						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies 
-						2:Plugins 3:Reports 4:Extensions ) -->
+							2:Plugins 3:Reports 4:Extensions ) -->
 						<!--<alwaysResolveDependencyType>1</alwaysResolveDependencyType> -->
 						<providerImplementations>
 							<git>jgit</git>
@@ -484,7 +538,7 @@
 				</plugin>
 				<plugin>
 					<!-- Build a JAR of sources for use in IDEs and distribution to the 
-					repository. -->
+						repository. -->
 					<artifactId>maven-source-plugin</artifactId>
 					<version>3.0.0</version>
 				</plugin>
@@ -530,16 +584,9 @@
 									</source>
 								</sources>
 							</mapping>
-							<!-- OMA : disabled as useless now (no files within)
-							<mapping>
-								<directory>/vitam/script/${unix.name}</directory>
-								<sources>
-									<source>
-										<location>${project.build.directory}/script</location>
-									</source>
-								</sources>
-							</mapping>
-							-->
+							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory> 
+								<sources> <source> <location>${project.build.directory}/script</location> 
+								</source> </sources> </mapping> -->
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
 								<filemode>644</filemode>
@@ -555,13 +602,13 @@
 						</mappings>
 						<!-- Systemd hook scriptlets -->
 						<postinstallScriptlet>
-							<script>%systemd_post  vitam-${unix.name}.service</script>
+							<script>%systemd_post vitam-${unix.name}.service</script>
 						</postinstallScriptlet>
 						<preremoveScriptlet>
-							<script>%systemd_preun  vitam-${unix.name}.service</script>
+							<script>%systemd_preun vitam-${unix.name}.service</script>
 						</preremoveScriptlet>
 						<postremoveScriptlet>
-							<script>%systemd_postun  vitam-${unix.name}.service</script>
+							<script>%systemd_postun vitam-${unix.name}.service</script>
 						</postremoveScriptlet>
 					</configuration>
 				</plugin>
@@ -822,11 +869,9 @@
 				<artifactId>xercesImpl-xsd11</artifactId>
 				<version>${xerces-xsd11.version}</version>
 			</dependency>
-			<!-- Removed to put xerces with 1.1 support  <dependency>
-				<groupId>xerces</groupId>
-				<artifactId>xercesImpl</artifactId>
-				<version>${xerces.version}</version>
-			</dependency> -->
+			<!-- Removed to put xerces with 1.1 support <dependency> <groupId>xerces</groupId> 
+				<artifactId>xercesImpl</artifactId> <version>${xerces.version}</version> 
+				</dependency> -->
 			<dependency>
 				<groupId>xml-resolver</groupId>
 				<artifactId>xml-resolver</artifactId>
@@ -1031,9 +1076,9 @@
 			</dependency>
 			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
 			<dependency>
-			    <groupId>org.apache.commons</groupId>
-			    <artifactId>commons-compress</artifactId>
-			    <version>${commons-compress.version}</version>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

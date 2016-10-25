@@ -29,9 +29,10 @@ package fr.gouv.vitam.storage.engine.common.model.response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * TODO : @gledroit : unused in server resource. It probably should be ? Or maybe the code should change.
+ * Request response
  *
  */
+//TODO : @gledroit : unused in server resource. It probably should be ? Or maybe the code should change.
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;

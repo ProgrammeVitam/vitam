@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
- * admin management client factory use to get client by type "rest" or "mock"
+ * Admin management client factory use to get client by type "rest" or "mock"
  */
 public class AdminManagementClientFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientFactory.class);
@@ -139,7 +139,7 @@ public class AdminManagementClientFactory {
     }
 
     /**
-     * enum to define client type
+     * Enum to define client type
      */
     public enum AdminManagementClientType {
         /**

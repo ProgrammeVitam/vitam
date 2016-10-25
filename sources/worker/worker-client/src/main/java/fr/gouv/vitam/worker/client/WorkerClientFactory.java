@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * WorkerClient factory
  * </p>
  * <p>
- * Use to get a worker client in function of its type.
+ * Used to get a worker client depending on its type.
  *
  * Example :
  * </p>
@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * <pre>
  * {
  *     &#064;code
- *     // Retrieve default worker client
+ *     // Retrieves default worker client
  *     WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
  *
  *     // Exists
@@ -54,13 +54,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * }
  * </pre>
  *
- * You can change the type of the client to get. The types are define into the enum {@link WorkerClientType}. Use the
+ * You can change the type of the client to get. The types are defined in the enum {@link WorkerClientType}. Use the
  * changeDefaultClientType method to change the client type.
  *
  */
+
 public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
-
     private static final String CONFIGURATION_FILENAME = "worker-client.conf";
     private static final WorkerClientFactory WORKER_CLIENT_FACTORY = new WorkerClientFactory();
     /**

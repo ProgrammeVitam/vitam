@@ -39,10 +39,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierType;
 
 /**
- * Format Identifier Configuration : contains all the parameters to instaciate a FormatIdentifier implementation. Only
+ * Format Identifier Configuration : contains all the parameters to instantiate a FormatIdentifier implementation. Only
  * the type is mandatory since it is used to choose the implementation class, all other properties are in
  * configurationProperties.
  */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FormatIdentifierConfiguration {
 

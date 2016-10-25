@@ -29,9 +29,11 @@ package fr.gouv.vitam.workspace.common;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * TODO : @gafou : unused in server resource. It probably should be ? Or maybe the code should change.
- *
+ * Request Response
  */
+
+//TODO : @gafou : unused in server resource. It probably should be ? Or maybe the code should change.
+
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;

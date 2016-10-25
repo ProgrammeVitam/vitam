@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 /**
  * VitamError class
  *
- * TODO: refactor to be common since this can be used by many other vitam components
  */
+//TODO: refactor to be common since this can be used by many other vitam components
 public class VitamError {
 
     private int code;

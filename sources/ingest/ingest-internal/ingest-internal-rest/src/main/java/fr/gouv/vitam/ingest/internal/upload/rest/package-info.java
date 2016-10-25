@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * upload SIP rest services of internal ingest module package
+ * Upload SIP rest services of internal ingest module package
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;

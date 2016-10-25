@@ -101,8 +101,7 @@ public interface DefaultOfferService {
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
-     * send in the great order. TODO: multithreading TODO: add chunk number to be able to retry and check error TODO:
-     * better chunk management
+     * send in the great order. 
      *
      * @param containerName the container name
      * @param objectId the offer objectId to create
@@ -113,6 +112,9 @@ public interface DefaultOfferService {
      * @throws IOException if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
+    //TODO: multithreading
+    //TODO: add chunk number to be able to retry and check error
+    //TODO: better chunk management
     String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
         throws IOException, ContentAddressableStorageException;
 

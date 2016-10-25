@@ -32,8 +32,6 @@ import java.util.List;
 
 import org.bson.Document;
 
-import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
@@ -41,20 +39,65 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
  */
 
 public class FileFormat extends VitamDocument<FileFormat> {
-
+    /**
+     * FileFormat PUID key
+     */
     public static final String PUID = "PUID";
-    public static final String VERSION_PRONOM = "VersionPronom";
-    public static final String VERSION = "Version";
-    public static final String CREATED_DATE = "CreatedDate";
-    public static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
-    public static final String MIME_TYPE = "MIMEType";
-    public static final String NAME = "Name";
-    public static final String GROUP = "Group";
-    public static final String ALERT = "Alert";
-    public static final String COMMENT = "Comment";
-    public static final String EXTENSION = "Extension";
-    private static final long serialVersionUID = 7794456688851515535L;
 
+    /**
+     * FileFormat Pronom version
+     */
+    public static final String VERSION_PRONOM = "VersionPronom";
+
+    /**
+     * FileFormat Version
+     */
+    public static final String VERSION = "Version";
+
+    /**
+     * FileFormat Création date
+     */
+    public static final String CREATED_DATE = "CreatedDate";
+
+    /**
+     * manage document priority
+     */
+    public static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
+    /**
+     * FileFormat Mime Type
+     */
+    public static final String MIME_TYPE = "MIMEType";
+
+    /**
+     * FileFormat name
+     */
+    public static final String NAME = "Name";
+
+    /**
+     * FileFormat group
+     */
+    public static final String GROUP = "Group";
+
+    /**
+     * FileFormat alert
+     */
+    public static final String ALERT = "Alert";
+    /**
+     * FileFormat comment
+     */
+    public static final String COMMENT = "Comment";
+    /**
+     * FileFormat extension
+     */
+    public static final String EXTENSION = "Extension";
+
+    /**
+     * Serial
+     */
+    private static final long serialVersionUID = 7794456688851515535L;
+    /**
+     * Empty value
+     */
     private static final String EMPTY_STRING = "";
 
 
@@ -230,7 +273,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
         if (get(GROUP) == null) {
             append(GROUP, EMPTY_STRING);
         }
-        if(get(ALERT) == null) {
+        if (get(ALERT) == null) {
             append(ALERT, false);
         }
         if (get(COMMENT) == null) {

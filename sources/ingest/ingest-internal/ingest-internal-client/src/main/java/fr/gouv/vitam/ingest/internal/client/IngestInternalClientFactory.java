@@ -38,12 +38,13 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 
 /**
  * IngestInternal client factory<br>
- *
+ * 
  * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
  * <br>
  * mock IngestInternal client will be returned
  *
  */
+
 public class IngestInternalClientFactory {
     /**
      * Default client operation type

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Graph package contains classes of cycle detection and indexing order(longestPath)
+ * Graph package contains classes of cycle detection and indexing order (longestPath)
  */
 package fr.gouv.vitam.common.graph;

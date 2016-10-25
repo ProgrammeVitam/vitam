@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 
 /**
- *
+ * Path query
  *
  */
 public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQuery {

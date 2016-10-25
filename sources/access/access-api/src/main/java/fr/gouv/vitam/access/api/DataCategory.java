@@ -28,9 +28,13 @@
 package fr.gouv.vitam.access.api;
 
 /**
- * Lists different type of data the access component can access to. TODO : maybe factorise in a common module with
- * Storage module DataCategory component
+ * Lists different types of data the access component can access.
+ * 
  */
+
+//TODO : maybe factorise in a common module with
+//Storage module DataCategory component
+
 public enum DataCategory {
     UNIT, OBJECT_GROUP
 }

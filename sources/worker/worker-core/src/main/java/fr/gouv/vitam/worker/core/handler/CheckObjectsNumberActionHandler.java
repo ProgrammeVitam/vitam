@@ -45,9 +45,9 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 
-/**
- * Handler that checks that the number of digital objects stored in the workspace equals the number of digital objects
- * referenced in the manifest.xml file
+/** 
+ * Handler checking that digital objects number in workspace matches with manifest.xml.
+ *
  */
 public class CheckObjectsNumberActionHandler extends ActionHandler {
 

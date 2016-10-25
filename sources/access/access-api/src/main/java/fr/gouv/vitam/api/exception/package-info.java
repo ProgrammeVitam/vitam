@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * access api exception package
+ * Access api exception package
  *
  */
 package fr.gouv.vitam.api.exception;
