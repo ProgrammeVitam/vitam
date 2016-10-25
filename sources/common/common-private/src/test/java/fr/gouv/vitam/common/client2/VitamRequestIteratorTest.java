@@ -302,7 +302,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     }
 
     @Test
-    public void testIteratorThirdStopBefore() {
+    public void testIteratorStopBefore() {
         startup = true;
         try (VitamRequestIterator iterator =
             new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {

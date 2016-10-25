@@ -27,9 +27,9 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
@@ -56,19 +56,17 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
 
-
 /**
  * Logbook LifeCycles implementation base class
  */
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
-    private final LogbookDbAccess mongoDbAccess;
 
     /**
-     * This is valid as Static final since this has to be shared among all requests
+     * This is valid as Static final since this has to be shared among all requests and Concurrent for Thread safety
      */
-    private static final Map<String, MongoCursor<?>> mapXCursor = new HashMap<>();
-
+    private static final Map<String, MongoCursor<?>> mapXCursor = new ConcurrentHashMap<>();
+    private final LogbookDbAccess mongoDbAccess;
 
     /**
      * Constructor

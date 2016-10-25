@@ -33,6 +33,8 @@ import static org.junit.Assert.assertNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+
 import org.glassfish.jersey.SslConfigurator;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +44,7 @@ public class SSLConfigurationTest {
     private static List<SSLKey> keystore;
     private static List<SSLKey> truststore;
     private static SSLKey key;
-    private static SslConfigurator context;
+    private static SSLContext context;
 
     @Before
     public void setUp() throws Exception {
@@ -56,7 +58,7 @@ public class SSLConfigurationTest {
         SSLConfiguration config = new SSLConfiguration();
         assertNull(config.getKeystore());
         // test of emptyness
-        context = config.createSslConfigurator();
+        context = config.createSSLContext();
 
         truststore = new ArrayList<SSLKey>();
         keystore = new ArrayList<SSLKey>();
@@ -66,7 +68,7 @@ public class SSLConfigurationTest {
         config = new SSLConfiguration(keystore, truststore);
         config.setKeystore(keystore);
         config.setTruststore(truststore);
-        context = config.createSslConfigurator();
+        context = config.createSSLContext();
 
         assertEquals(1, config.getTruststore().size());
         assertEquals(1, config.getKeystore().size());

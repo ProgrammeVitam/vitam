@@ -29,8 +29,8 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -120,5 +120,51 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     JsonNode selectObjectGroupLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
+     * </br>
+     * Example of code using it:</br>
+     * <pre><code>
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(operationId)) {
+                while (iterator.hasNext()) {
+                    JsonNode objectGroupLifeCycle = iterator.next();
+                    // use it
+                }
+            }
+            
+        }
+     * </code></pre>
+     *
+     * @param operationId the operation id from which this ObjectGroup Lifecycles will be retrieved
+     * @return the VitamRequestIterator on ObjectGroupLifecycles as JsonNode
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns VitamRequestIterator on UnitLifeCycles for this operation.</br>
+     * </br>
+     * Example of code using it:</br>
+     * <pre><code>
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(operationId)) {
+                while (iterator.hasNext()) {
+                    JsonNode unitLifeCycle = iterator.next();
+                    // use it
+                }
+            }
+            
+        }
+     * </code></pre>
+     *
+     * @param operationId the operation id from which this UnitLife Lifecycles will be retrieved
+     * @return the VitamRequestIterator on UnitLifeCycles as JsonNode
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId) throws LogbookClientException, InvalidParseOperationException;
 
 }

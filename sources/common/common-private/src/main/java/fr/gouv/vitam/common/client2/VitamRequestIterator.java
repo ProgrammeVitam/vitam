@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -66,13 +67,16 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
     private Iterator<JsonNode> iterator = null;
 
     /**
-     * Constructor
+     * Constructor</br>
+     * </br>
+     * Note: if of type AbstractMockClient or derived, request will be the returned unique result.
      * 
      * @param client the client to use
      * @param method the method to use
      * @param path the path to use
-     * @param headers the headers to use
-     * @param request the request to use
+     * @param headers the headers to use, could be null
+     * @param request the request to use, could be null
+     * @throws IllegalArgumentException if one of mandatory arguments is null or empty
      */
     // TODO Add later on capability to handle maxNbPart in order to control the rate
     public VitamRequestIterator(MockOrRestClient client, String method, String path,
@@ -99,6 +103,9 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
         // Callback to close the cursor
         closed = true;
         if (xCursorId == null) {
+            return;
+        }
+        if (client instanceof AbstractMockClient) {
             return;
         }
         Response response = null;
@@ -146,6 +153,10 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
         if (closed) {
             return false;
         }
+        if (client instanceof AbstractMockClient) {
+            return true;
+        }
+
         // First call must initialize the cursor-id
         if (first) {
             first = false;
@@ -203,6 +214,14 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
 
     @Override
     public JsonNode next() {
+        if (client instanceof AbstractMockClient) {
+            closed = true;
+            if (request == null) {
+                return JsonHandler.createObjectNode();
+            }
+            return request;
+        }
+
         JsonNode result = null;
         if (objectResponse != null) {
             result = iterator.next();

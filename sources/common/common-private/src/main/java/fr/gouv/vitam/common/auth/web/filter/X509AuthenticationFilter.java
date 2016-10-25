@@ -48,7 +48,6 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
         throws Exception {
-
         if (!executeLogin(request, response)) {
             ((HttpServletResponse) response).sendError(403, "Access Denied . Need a valid TLS client certificate");
             return false;
@@ -59,7 +58,6 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     @Override
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response)
         throws Exception {
-
         final X509Certificate[] clientCertChain =
             (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
         if (clientCertChain == null || clientCertChain.length < 1) {
