@@ -435,8 +435,14 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
-        assertTrue(ret.contains("WARNING"));
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        // format file warning state
+        assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+        
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+        assertNotNull(map);
     }
 
 
