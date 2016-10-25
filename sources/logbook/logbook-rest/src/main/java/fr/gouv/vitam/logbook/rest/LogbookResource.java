@@ -70,11 +70,11 @@ import fr.gouv.vitam.logbook.common.model.response.VitamError;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
@@ -94,6 +94,7 @@ public class LogbookResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
+    private final DbConfiguration logbookConfiguration;
 
     /**
      * Constructor
@@ -101,9 +102,15 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param configuration
      */
     public LogbookResource(LogbookConfiguration configuration) {
-        final DbConfiguration logbookConfiguration =
-            new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
-        final MongoDbAccess mongoDbAccess = MongoDbAccessFactory.create(logbookConfiguration);
+        if (configuration.isDbAuthentication()){
+            logbookConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), true, configuration.getDbUserName(), configuration.getDbPassword());
+            
+        } else {
+            logbookConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+        }
+        final LogbookDbAccess mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
         LOGGER.debug("LogbookResource operation initialized");
 

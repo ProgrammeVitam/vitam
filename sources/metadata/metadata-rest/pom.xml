@@ -53,7 +53,11 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>ru.yandex.qatools.embed</groupId>
+			<artifactId>embedded-services</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>

@@ -64,15 +64,15 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 
 /**
  * MongoDbAccessFactory Test
  */
-public class MongoDbAccessFactoryTest {
+public class LogbookMongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
-    static MongoDbAccess mongoDbAccess;
+    static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
@@ -89,7 +89,7 @@ public class MongoDbAccessFactoryTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
-            MongoDbAccessFactory.create(
+            LogbookMongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, port,
                     "vitam-test"));
     }
@@ -170,16 +170,16 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testCreateFn() throws VitamException, InvalidCreateOperationException {
         assertNotNull(mongoDbAccess);
-        assertEquals("vitam-test", ((MongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
+        assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final String status = mongoDbAccess.toString();
         assertTrue(status.indexOf("LogbookOperation") > 0);
-        ((MongoDbAccessImpl) mongoDbAccess).flushOnDisk();
+        ((LogbookMongoDbAccessImpl) mongoDbAccess).flushOnDisk();
 
-        MongoDbAccessImpl.ensureIndex();
+        LogbookMongoDbAccessImpl.ensureIndex();
         assertEquals(status, mongoDbAccess.toString());
-        MongoDbAccessImpl.removeIndexBeforeImport();;
+        LogbookMongoDbAccessImpl.removeIndexBeforeImport();;
         assertEquals(status, mongoDbAccess.toString());
-        MongoDbAccessImpl.resetIndexAfterImport();;
+        LogbookMongoDbAccessImpl.resetIndexAfterImport();;
         assertEquals(status, mongoDbAccess.toString());
         assertEquals(0, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(0, mongoDbAccess.getLogbookOperationSize());
@@ -218,7 +218,7 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testFunctionalOperation() throws VitamException {
         assertNotNull(mongoDbAccess);
-        assertEquals("vitam-test", ((MongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
+        assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleUnitSize();
         final long nbo = mongoDbAccess.getLogbookOperationSize();
 
@@ -395,7 +395,7 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testFunctionalLifeCycleUnit() throws VitamException {
         assertNotNull(mongoDbAccess);
-        assertEquals("vitam-test", ((MongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
+        assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleUnitSize();
         final LogbookLifeCycleUnitParameters parameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
@@ -597,7 +597,7 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testFunctionalLifeCycleObjectGroup() throws VitamException {
         assertNotNull(mongoDbAccess);
-        assertEquals("vitam-test", ((MongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
+        assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleObjectGroupSize();
         final LogbookLifeCycleObjectGroupParameters parameters =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();

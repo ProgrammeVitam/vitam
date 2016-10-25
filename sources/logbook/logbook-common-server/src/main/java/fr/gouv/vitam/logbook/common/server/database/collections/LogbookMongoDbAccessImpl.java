@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
@@ -72,7 +73,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -83,7 +84,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  * MongoDb Access implementation base class
  *
  */
-public final class MongoDbAccessImpl implements MongoDbAccess {
+public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements LogbookDbAccess {
     private static final String AT_LEAST_ONE_ITEM_IS_NEEDED = "At least one item is needed";
     private static final String LOGBOOK_LIFE_CYCLE_NOT_FOUND = "LogbookLifeCycle not found";
     private static final String SELECT_ISSUE = "Select issue";
@@ -96,7 +97,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     public static final String SLICE = "$slice";
     private static final String UPDATE_NOT_FOUND_ITEM = "Update not found item: ";
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MongoDbAccessImpl.class);
+        VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);
     private static final String SELECT_PARAMETER_IS_NULL = "select parameter is null";
     private static final String LIFECYCLE_ITEM = "lifecycleItem";
     private static final String OPERATION_ITEM = "operationItem";
@@ -119,10 +120,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
             DEFAULT_ALLKEYS.put(name.getDbname(), 1);
         }
     }
-
-    private final MongoClient mongoClient;
-    private final MongoDatabase mongoDatabase;
-    private final MongoDatabase mongoAdmin;
+    
 
     /**
      *
@@ -131,14 +129,12 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
      * @param recreate True to recreate the index
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
-    MongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate) {
-        ParametersChecker.checkParameter("Parameter of MongoDbAccess", mongoClient, dbname);
-        this.mongoClient = mongoClient;
-        mongoDatabase = mongoClient.getDatabase(dbname);
-        mongoAdmin = mongoClient.getDatabase("admin");
-        LogbookCollections.OPERATION.initialize(mongoDatabase, recreate);
-        LogbookCollections.LIFECYCLE_UNIT.initialize(mongoDatabase, recreate);
-        LogbookCollections.LIFECYCLE_OBJECTGROUP.initialize(mongoDatabase, recreate);
+    
+    public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate) {
+        super(mongoClient, dbname, recreate);
+        LogbookCollections.OPERATION.initialize(getMongoDatabase(), recreate);
+        LogbookCollections.LIFECYCLE_UNIT.initialize(getMongoDatabase(), recreate);
+        LogbookCollections.LIFECYCLE_OBJECTGROUP.initialize(getMongoDatabase(), recreate);
     }
 
     /**
@@ -161,7 +157,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
      */
     @Override
     public final void close() {
-        mongoClient.close();
+        getMongoClient().close();
     }
 
     /**
@@ -199,7 +195,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         // get a list of the collections in this database and print them out
-        final MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+        final MongoIterable<String> collectionNames = getMongoDatabase().listCollectionNames();
         for (final String s : collectionNames) {
             builder.append(s).append('\n');
         }
@@ -235,15 +231,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
      * Force flush on disk (MongoDB): should not be used
      */
     final void flushOnDisk() {
-        mongoAdmin.runCommand(new BasicDBObject("fsync", 1).append("async", true)
+        getMongoAdmin().runCommand(new BasicDBObject("fsync", 1).append("async", true)
             .append("lock", false));
-    }
-
-    /**
-     * @return the mongoDatabase
-     */
-    final MongoDatabase getMongoDatabase() {
-        return mongoDatabase;
     }
 
     /**

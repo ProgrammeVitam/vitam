@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -62,7 +62,7 @@ import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
  */
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
-    private final MongoDbAccess mongoDbAccess;
+    private final LogbookDbAccess mongoDbAccess;
 
     /**
      * This is valid as Static final since this has to be shared among all requests
@@ -75,7 +75,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
      *
      * @param mongoDbAccess
      */
-    public LogbookLifeCyclesImpl(MongoDbAccess mongoDbAccess) {
+    public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
     }
 

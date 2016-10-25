@@ -51,8 +51,8 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
 
 public class LogbookApplicationTest {
@@ -60,7 +60,7 @@ public class LogbookApplicationTest {
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
-    private static MongoDbAccess mongoDbAccess;
+    private static LogbookDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
     private static int databasePort;
@@ -90,7 +90,7 @@ public class LogbookApplicationTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
-            MongoDbAccessFactory.create(
+            LogbookMongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();

@@ -43,7 +43,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 /**
  * MongoDbAccess interface
  */
-public interface MongoDbAccess {
+public interface LogbookDbAccess {
 
     /**
      * Close database access

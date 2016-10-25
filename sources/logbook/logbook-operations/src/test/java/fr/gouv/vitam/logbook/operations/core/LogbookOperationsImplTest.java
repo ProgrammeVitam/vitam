@@ -36,7 +36,7 @@ import org.mockito.Mockito;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -44,12 +44,12 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 public class LogbookOperationsImplTest {
 
     private LogbookOperationsImpl logbookOperationsImpl;
-    private MongoDbAccess mongoDbAccess;
+    private LogbookDbAccess mongoDbAccess;
     private LogbookOperationParameters logbookParameters;
 
     @Before
     public void setUp() {
-        mongoDbAccess = mock(MongoDbAccess.class);
+        mongoDbAccess = mock(LogbookDbAccess.class);
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
     }
 

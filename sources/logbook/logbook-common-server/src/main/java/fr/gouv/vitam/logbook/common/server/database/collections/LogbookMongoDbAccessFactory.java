@@ -30,16 +30,26 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 
 /**
  * Factory to get MongoDbAccess for Logbook
  */
-public final class MongoDbAccessFactory {
+public final class LogbookMongoDbAccessFactory {
 
-    private MongoDbAccessFactory() {
-        // empty
+    /**
+     * Creation of one MongoDbAccess
+     *
+     * @param configuration
+     * @return the MongoDbAccess
+     * @throws IllegalArgumentException if argument is null
+     */
+    public static final LogbookMongoDbAccessImpl create(DbConfiguration configuration) {
+        ParametersChecker.checkParameter("configuration", configuration);        
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
+        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), true);
     }
 
     /**
@@ -49,30 +59,10 @@ public final class MongoDbAccessFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccess create(DbConfiguration configuration) {
+    public static final LogbookMongoDbAccessImpl create(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration) {
         ParametersChecker.checkParameter("configuration", configuration);
-        return new MongoDbAccessImpl(
-            new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                MongoDbAccessImpl.getMongoClientOptions()),
-            configuration.getDbName(), true);
-    }
-
-    /**
-     * Creation of one MongoDbAccess
-     *
-     * @param configuration
-     * @return the MongoDbAccess
-     * @throws IllegalArgumentException if argument is null
-     */
-    public static final MongoDbAccess create(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration", configuration);
-        return new MongoDbAccessImpl(
-            new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                MongoDbAccessImpl.getMongoClientOptions()),
-            configuration.getDbName(), true);
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient2(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
+        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), true);
     }
 }
