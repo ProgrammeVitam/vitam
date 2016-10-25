@@ -67,6 +67,8 @@ public class CompositeItemStatus extends ItemStatus {
 
     /**
      * Constructor
+     * 
+     * @param itemId
      */
     public CompositeItemStatus(String itemId) {
         super(itemId);
@@ -80,7 +82,8 @@ public class CompositeItemStatus extends ItemStatus {
     }
 
     /**
-     * @param itemsStatus the itemsStatus to set
+     * @param itemId
+     * @param statusDetails
      *
      * @return this
      */

@@ -21,7 +21,7 @@ public class MessagesTest {
         final String mesg3 = messages.getString("HelloWorld.OK");
         assertEquals("!HelloWorld.OK!", mesg3);
         final String mesg4 = messages.getString("HelloWorld.OK", "value1", "value2");
-        assertEquals("!HelloWorld.OK!", mesg4);
+        assertEquals("!HelloWorld.OK! value1 value2", mesg4);
     }
 
     @Test
