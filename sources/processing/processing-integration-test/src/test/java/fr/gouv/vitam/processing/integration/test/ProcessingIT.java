@@ -30,11 +30,13 @@ import static com.jayway.restassured.RestAssured.get;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
+import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response.Status;
 
 import org.elasticsearch.common.settings.Settings;
@@ -412,7 +414,7 @@ public class ProcessingIT {
     }
 
 
-    @Test// Should it be rejected if not specified? (expected = ProcessingBadRequestException.class)
+    @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
@@ -429,7 +431,8 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertTrue(ret.contains("WARNING"));
     }
 
 

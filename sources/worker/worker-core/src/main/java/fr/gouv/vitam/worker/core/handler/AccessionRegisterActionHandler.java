@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -46,8 +47,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
@@ -146,13 +147,17 @@ public class AccessionRegisterActionHandler extends ActionHandler {
                 JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (node != null) {
                     JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-                    if (nodeOrigin != null) {
+                    if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
-                    } // Could be empty ?
+                    } else {
+                        throw new ProcessingException("No "+ SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER +" found");
+                    }
                     JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
-                    if (nodeSubmission != null) {
+                    if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
-                    } // Could be empty !
+                    } else {
+                        submissionAgency = originalAgency;
+                    }
                 } else {
                     throw new ProcessingException("No DataObjectPackage found");
                 }
