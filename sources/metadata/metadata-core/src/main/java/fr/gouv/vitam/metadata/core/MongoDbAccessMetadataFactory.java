@@ -55,7 +55,7 @@ public class MongoDbAccessMetadataFactory {
     public MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
-        ElasticsearchAccessMetadata esClient = null;
+        ElasticsearchAccessMetadata esClient;
         try {
             esClient = new ElasticsearchAccessMetadataFactory().create(configuration);
 

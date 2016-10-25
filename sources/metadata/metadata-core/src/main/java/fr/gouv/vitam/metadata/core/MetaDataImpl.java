@@ -120,8 +120,6 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
             result = dbRequestFactory.create().execRequest(insertParser, result);
-        } catch (final InvalidParseOperationException e) {
-            throw e;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
@@ -150,8 +148,6 @@ public class MetaDataImpl implements MetaData {
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = dbRequestFactory.create().execRequest(insertParser, result);
-        } catch (final InvalidParseOperationException e) {
-            throw e;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {

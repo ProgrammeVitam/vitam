@@ -264,9 +264,7 @@ public abstract class MetadataDocument<E> extends Document {
         testAndCheckId();
         try {
             getCollection().insertOne((E) this);
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalArgumentException e) {
+        } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }
         return this;
@@ -289,9 +287,7 @@ public abstract class MetadataDocument<E> extends Document {
             } else {
                 getCollection().insertOne((E) this);
             }
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalArgumentException e) {
+        } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }
         return this;
@@ -308,9 +304,7 @@ public abstract class MetadataDocument<E> extends Document {
         testAndCheckId();
         try {
             getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalArgumentException e) {
+        } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }
         return this;
