@@ -185,8 +185,8 @@ public class ItemStatus {
                 itemStatus1.getStatusMeter().get(i) + itemStatus2.getStatusMeter().get(i));
         }
         // update globalStatus
-        itemStatus1.setGlobalStatus(itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus())>1
-                ? itemStatus1.getGlobalStatus() : itemStatus2.getGlobalStatus());
+        itemStatus1.setGlobalStatus(itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) > 1
+            ? itemStatus1.getGlobalStatus() : itemStatus2.getGlobalStatus());
 
         return itemStatus1;
     }
@@ -226,5 +226,19 @@ public class ItemStatus {
         this.data.put(key, value);
         return this;
     }
+
+    /**
+     * @return String message
+     */
+    public String computeStatusMeterMessage() {
+        String message = "";
+        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
+            if (statusMeter.get(i) > 0) {
+                message += " " + StatusCode.values()[i] + ":" + statusMeter.get(i);
+            }
+        }
+        return message;
+    }
+
 
 }

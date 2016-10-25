@@ -71,7 +71,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         "Total elapsed time in execution of method startProcessByWorkFlowId is :";
     private static final String START_MESSAGE = "start ProcessEngine ...";
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow not exist";
-    private static final String START_WORKER = "Début de l'action ";
+    private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
     private final Map<String, WorkFlow> poolWorkflows;
     private final ProcessDistributor processDistributor;
@@ -176,15 +176,15 @@ public class ProcessEngineImpl implements ProcessEngine {
                                 LogbookTypeProcess.INGEST,
                                 actionStatus.getGlobalStatus(),
                                 VitamLogbookMessages.getCodeOp(actionStatus.getItemId(),
-                                    actionStatus.getGlobalStatus()),
+                                    actionStatus.getGlobalStatus()) + " Detail= " + actionStatus.computeStatusMeterMessage(),
                                 GUIDReader.getGUID(workParams.getContainerName()));
                         client.update(actionParameters);
 
                     }
 
                     if (messageIdentifier == null) {
-                        if (stepResponse.getData().get("messageIdentifier") != null) {
-                            messageIdentifier = stepResponse.getData().get("messageIdentifier").toString();
+                        if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
+                            messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
                         }
 
                     }

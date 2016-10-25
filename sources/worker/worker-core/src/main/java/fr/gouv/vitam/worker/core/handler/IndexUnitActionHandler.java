@@ -139,14 +139,12 @@ public class IndexUnitActionHandler extends ActionHandler {
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.WARNING);
-
+            itemStatus.increment(StatusCode.FATAL);
         }
 
         if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
             itemStatus.increment(StatusCode.WARNING);
         }
-
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 

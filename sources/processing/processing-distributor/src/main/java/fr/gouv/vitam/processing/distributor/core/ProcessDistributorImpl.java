@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -53,7 +54,6 @@ import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
@@ -104,7 +104,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final Map<String, NavigableMap<String, WorkerBean>> WORKERS_LIST = new HashMap<>();
     private final List<String> availableWorkers = new ArrayList<>();
-    private final ProcessResponse processResponse = new ProcessResponse();
 
     /**
      * Constructor with parameter worker
@@ -182,8 +181,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     // Iterate over Objects List
                     if (objectsList == null || objectsList.isEmpty()) {
-                        // TODO add itemId objectsListEmpty
-                        responses.increment(StatusCode.WARNING);
+                        responses.setItemsStatus("OBJECTS_LIST_EMPTY", getItemStatus("OBJECTS_LIST_EMPTY", StatusCode.WARNING));
                     } else {
                         // update the number of element to process
                         ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(),
@@ -191,8 +189,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         for (final URI objectUri : objectsList) {
                             if (availableWorkers.isEmpty()) {
                                 LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
-                                // TODO add itemId workersListEmpty
-                                responses.increment(StatusCode.FATAL);
+                                responses.setItemsStatus("WORKERS_LIST_EMPTY", getItemStatus("WORKERS_LIST_EMPTY", StatusCode.FATAL));
                                 break;
                             } else {
                                 // Load configuration
@@ -325,5 +322,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             LOGGER.error("Worker Family does not exist");
             throw new WorkerFamilyNotFoundException("Worker Family does not exist");
         }
+    }
+    
+    private ItemStatus getItemStatus(String label, StatusCode statusCode){
+        return new ItemStatus(label).increment(statusCode);
+        
     }
 }

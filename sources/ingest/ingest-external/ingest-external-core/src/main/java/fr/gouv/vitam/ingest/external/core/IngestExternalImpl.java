@@ -210,7 +210,7 @@ public class IngestExternalImpl implements IngestExternal {
 
             logbookParametersList.add(antivirusParameters);
             // update end step param
-            if (antivirusParameters.getStatus().getStatusLevel() > endParameters.getStatus().getStatusLevel()) {
+            if (antivirusParameters.getStatus().compareTo(endParameters.getStatus())>1) {
                 endParameters.setStatus(antivirusParameters.getStatus());
             }
 
@@ -282,7 +282,7 @@ public class IngestExternalImpl implements IngestExternal {
                 }
                 logbookParametersList.add(formatParameters);
                 // update end step param
-                if (antivirusParameters.getStatus().getStatusLevel() > endParameters.getStatus().getStatusLevel()) {
+                if (antivirusParameters.getStatus().compareTo(endParameters.getStatus())>1) {
                     endParameters.setStatus(antivirusParameters.getStatus());
                 }
 
