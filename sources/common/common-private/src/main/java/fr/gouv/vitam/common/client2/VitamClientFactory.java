@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.client2.configuration.SSLConfiguration;
 import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -120,6 +121,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     PoolingHttpClientConnectionManager chunkedPoolingManager;
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getInstance();
+    SSLConfiguration sslConfiguration = null;
 
     /**
      * Constructor with standard configuration
@@ -199,12 +201,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
         if (clientConfiguration.isSecure()) {
             SecureClientConfiguration sclientConfiguration = (SecureClientConfiguration) clientConfiguration;
-            SSLConfiguration sslConfiguration = sclientConfiguration.getSslConfiguration();
+            sslConfiguration = sclientConfiguration.getSslConfiguration();
             ParametersChecker.checkParameter("sslConfiguration is a mandatory parameter", sslConfiguration);
             Registry<ConnectionSocketFactory> registry;
             try {
-                registry = sslConfiguration.getRegistry();
-            } catch (FileNotFoundException e) {
+                registry = sslConfiguration.getRegistry(sslConfiguration.createSSLContext());
+            } catch (FileNotFoundException | VitamException e) {
                 LOGGER.error(e);
                 throw new IllegalArgumentException("SSLConfiguration issue while reading KeyStore or TrustStore", e);
             }

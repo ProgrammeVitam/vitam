@@ -27,12 +27,15 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
+import javax.ws.rs.HttpMethod;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -80,27 +83,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         "    \"obIdReq\": null," +
         "    \"obIdIn\": null," +
         "    \"events\": []}";
-
-    private static final String MOCK_SELECT_RESULT_2 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
-
 
     @Override
     public void create(LogbookParameters parameters)
@@ -184,5 +166,19 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
         return new ObjectMapper().convertValue(response, JsonNode.class);
+    }
+
+    @Override
+    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new VitamRequestIterator(this, HttpMethod.GET,
+                "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+    }
+
+    @Override
+    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new VitamRequestIterator(this, HttpMethod.GET,
+            "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
     }
 }

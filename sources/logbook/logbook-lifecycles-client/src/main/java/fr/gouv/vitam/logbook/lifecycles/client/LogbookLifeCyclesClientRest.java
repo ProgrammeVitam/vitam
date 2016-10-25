@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -68,7 +68,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String REQUEST_PROCONDITION_FAILED = "Request procondition failed";
     private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientRest.class);
-    private static final String LIFECYCLES_URL = "/lifecycles";
+    // For Lifecycles under operations
+    private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
@@ -302,4 +303,31 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try {
+            return new VitamRequestIterator(this, HttpMethod.GET,
+                OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
+                null, null);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        }
+    }
+
+    @Override
+    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try {
+            return new VitamRequestIterator(this, HttpMethod.GET,
+                OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
+                null, null);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        }
+    }
+
 }

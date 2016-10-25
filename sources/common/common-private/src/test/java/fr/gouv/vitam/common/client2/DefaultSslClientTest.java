@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.client2;
 
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +42,6 @@ import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -66,7 +66,7 @@ import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplication
 public class DefaultSslClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);
 
-    private static final String BASE_URI = "/test/v1";
+    private static final String BASE_URI = "/ingest-ext/v1";
     private static final String INGEST_EXTERNAL_CONF = "standard-application-ssl-test.conf";
     private static final String SHIRO_FILE = "shiro.ini";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
@@ -163,6 +163,7 @@ public class DefaultSslClientTest {
 
             };
         try (DefaultClient client = factory.getClient()) {
+            // Only Apache Pool has this, not the JerseyClient
             assertNull(client.getHttpClient().getHostnameVerifier());
         }
     }
@@ -205,9 +206,7 @@ public class DefaultSslClientTest {
             try (final DefaultClient client = factory.getClient()) {
                 client.checkStatus();
             } catch (final VitamException e) {
-                LOGGER.error("**************FAILED TEST******************: " + DefaultSslClientTest.class.getName(), e);
-                // FIXME ignore fail() since random and not clear
-                Assume.assumeTrue("FAILED TEST but should not", false);
+                fail("Should NOT Raized an exception");
             }
         }
     }
@@ -229,9 +228,8 @@ public class DefaultSslClientTest {
             };
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
-            // FIXME should fail();
+            fail("Should Raized an exception");
         } catch (final VitamException e) {
-            e.printStackTrace();
         }
     }
 
@@ -252,9 +250,9 @@ public class DefaultSslClientTest {
             };
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
-            // FIXME should fail();
+            fail("SHould Raized an exception");
         } catch (final VitamException e) {
-            e.printStackTrace();
+            
         }
     }
 

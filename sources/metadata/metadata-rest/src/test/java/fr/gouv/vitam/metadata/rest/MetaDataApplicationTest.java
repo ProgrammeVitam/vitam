@@ -146,7 +146,12 @@ public class MetaDataApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure("src/test/resources/notFound.conf");
+        try {
+            application.configure("src/test/resources/notFound.conf");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Test

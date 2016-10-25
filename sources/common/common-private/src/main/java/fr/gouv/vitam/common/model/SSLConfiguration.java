@@ -72,9 +72,9 @@ public class SSLConfiguration {
 
     /**
      * SSLConfiguration Constructor
-     *
-     * @param trustConfigs
-     * @param keyConfig
+     * 
+     * @param keystore
+     * @param truststore
      * @throws IllegalArgumentException if keystore/truststore is null or empty
      */
     public SSLConfiguration(List<SSLKey> keystore, List<SSLKey> truststore) {
