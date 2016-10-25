@@ -74,7 +74,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
-
     /**
      * Constructor with parameter SedaUtilsFactory
      *
@@ -121,8 +120,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            itemStatus.setItemId("LOGBOOK_COMMIT_KO");
-            itemStatus.increment(StatusCode.WARNING);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
         if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {

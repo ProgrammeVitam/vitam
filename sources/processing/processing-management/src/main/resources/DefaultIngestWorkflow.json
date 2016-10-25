@@ -141,23 +141,6 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_UNIT_STORING",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST",
-        "element": "Units"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "UNIT_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
@@ -174,6 +157,23 @@
         {
           "action": {
             "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
             "behavior": "BLOCKING"
           }
         }

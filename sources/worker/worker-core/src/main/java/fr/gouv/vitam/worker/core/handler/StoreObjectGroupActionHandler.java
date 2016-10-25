@@ -167,10 +167,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             }
             updateLifeCycle();
         } catch (final ProcessingException e) {
-            LOGGER.warn(e);
-            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
-                itemStatus.increment(StatusCode.WARNING);
-            }
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
         }
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
