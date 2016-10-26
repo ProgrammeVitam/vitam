@@ -41,89 +41,112 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  */
 public interface AccessExternalClient extends BasicClient {
 
-    /** selectUnits /units
+    /**
+     * selectUnits /units
+     * 
      * @param selectQuery
-     * @return
+     * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
     JsonNode selectUnits(String selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
-    /** selectUnitbyId GET(POST overrided) /units/{id}
+    /**
+     * selectUnitbyId GET(POST overrided) /units/{id}
+     * 
      * @param selectQuery
      * @param unitId
-     * @return
+     * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
     JsonNode selectUnitbyId(String selectQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
-    /** updateUnitbyId UPDATE /units/{id}
+    /**
+     * updateUnitbyId UPDATE /units/{id}
+     * 
      * @param updateQuery
      * @param unitId
-     * @return
+     * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
     JsonNode updateUnitbyId(String updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
-    /** getObjectAsInputStream
+    /**
+     * getObjectAsInputStream
+     * 
      * @param selectQuery
      * @param objectId
      * @param usage
      * @param version
-     * @return
+     * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
     Response getObject(String selectQuery, String objectId, String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
-    /** selectObjectById
+    /**
+     * selectObjectById
+     * 
      * @param selectQuery
      * @param unitId
-     * @return
+     * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
     JsonNode selectObjectById(String selectQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
-    /** selectOperation
+    /**
+     * selectOperation
+     * 
      * @param select
-     * @return
+     * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
     JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
 
-    /** selectOperationbyId
+    /**
+     * selectOperationbyId
+     * 
      * @param processId
-     * @return
+     * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
     JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
 
-    /** selectUnitLifeCycleById
+    /**
+     * selectUnitLifeCycleById
+     * 
      * @param idUnit
-     * @return
+     * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
     JsonNode selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
 
-    /** selectObjectGroupLifeCycleById
+    /**
+     * selectObjectGroupLifeCycleById
+     * 
      * @param idObject
-     * @return
+     * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */

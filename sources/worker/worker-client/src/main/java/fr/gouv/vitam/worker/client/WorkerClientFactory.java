@@ -69,7 +69,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     public static final String RESOURCE_PATH = "/worker/v1";
 
     private WorkerClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
     /**

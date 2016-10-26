@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.InputStream;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -79,6 +77,7 @@ import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
+    private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceImpl.class);
@@ -95,6 +94,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * get units list by query
+     * 
+     * @param queryDsl
+     * @return Response
      */
     @GET
     @Path("/units")
@@ -138,6 +140,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * update units list by query
+     * 
+     * @param queryDsl
+     * @return Response
      */
     @PUT
     @Path("/units")
@@ -150,6 +155,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * get units list by query with POST method
+     * 
+     * @param queryDsl
+     * @param xhttpOverride
+     * @return Response
      */
     @POST
     @Path("/units")
@@ -186,22 +195,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      * 
      * @param queryDsl query as String
-     * @param id_unit
+     * @param idUnit
      * @return Archive Unit
      */
     @GET
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitById(String queryDsl, @PathParam("idu") String id_unit) {
+    public Response getUnitById(String queryDsl, @PathParam("idu") String idUnit) {
         Status status;
         JsonNode result = null;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
-        ParametersChecker.checkParameter("unit id is required", id_unit);
+        ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
             GlobalDatasParser.sanityRequestCheck(queryDsl);
-            result = client.selectUnitbyId(queryDsl, id_unit);
+            result = client.selectUnitbyId(queryDsl, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(new RequestResponseOK()
@@ -209,7 +218,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     .setResult(result))
                 .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Predicates Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
@@ -235,6 +244,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * get units list by query based on identifier
+     * 
+     * @param queryDsl
+     * @param xhttpOverride
+     * @param idUnit
+     * @return Response
      */
     @POST
     @Path("/units/{idu}")
@@ -242,14 +256,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrSelectUnitById(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        @PathParam("idu") String id_unit) {
-        ParametersChecker.checkParameter("unit id is required", id_unit);
+        @PathParam("idu") String idUnit) {
+        ParametersChecker.checkParameter("unit id is required", idUnit);
         Status status;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
                 GlobalDatasParser.sanityRequestCheck(queryDsl);
-                return getUnitById(queryDsl, id_unit);
+                return getUnitById(queryDsl, idUnit);
             } else {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status)
@@ -257,7 +271,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     .build();
             }
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Predicates Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(getErrorEntity(status))
@@ -269,21 +283,21 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      * 
      * @param queryDsl DSK, null not allowed
-     * @param id_unit units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitById(String queryDsl, @PathParam("idu") String id_unit) {
+    public Response updateUnitById(String queryDsl, @PathParam("idu") String idUnit) {
         Status status;
         JsonNode result = null;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient())  {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
             GlobalDatasParser.sanityRequestCheck(queryDsl);
-            result = client.updateUnitbyId(queryDsl, id_unit);
+            result = client.updateUnitbyId(queryDsl, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(new RequestResponseOK()
@@ -291,7 +305,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     .setResult(result))
                 .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Predicates Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
@@ -317,19 +331,23 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * check existence of an unit
      * 
-     * @param id_unit
+     * @param idUnit
      * @return check result
      */
     @HEAD
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkExitsUnitById(@PathParam("idu") String id_unit) {
+    public Response checkExitsUnitById(@PathParam("idu") String idUnit) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
     /**
      * get object group list by query and id
+     * 
+     * @param idObjectGroup
+     * @param query
+     * @return Response
      */
 
     @GET
@@ -343,13 +361,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a dsl query", query);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
-            result = AccessInternalClientFactory.getInstance().getClient().selectObjectbyId(query, idObjectGroup);
-            return Response.status(Status.OK)
-                .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
-                .build();
+            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+                result = client.selectObjectbyId(query, idObjectGroup);
+                return Response.status(Status.OK)
+                    .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
+                    .entity(new RequestResponseOK()
+                        .setHits(1, 0, 1)
+                        .setResult(result))
+                    .build();
+            }
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -374,6 +394,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * @param headers
+     * @param idObjectGroup
+     * @param query
+     * @return Response
+     */
     @POST
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -385,7 +411,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-                return Response.status(Status.PRECONDITION_FAILED)
+            return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         }
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
@@ -401,10 +427,16 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * @param headers
+     * @param idObjectGroup
+     * @param query
+     * @param asyncResponse
+     */
     @GET
     @Path("/units/{ido}/object")
     @Consumes(MediaType.APPLICATION_JSON)
-    //@Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         String query, @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
@@ -417,10 +449,16 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
 
+    /**
+     * @param headers
+     * @param idObjectGroup
+     * @param query
+     * @param asyncResponse
+     */
     @POST
     @Path("/units/{ido}/object")
     @Consumes(MediaType.APPLICATION_JSON)
-    // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         String query, @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
@@ -435,6 +473,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * get object group list by query
+     * 
+     * @param queryDsl
+     * @return Response
      */
     @GET
     @Path("/objects")
@@ -444,6 +485,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    /**
+     * @param xhttpOverride
+     * @param query
+     * @return Response
+     */
     @POST
     @Path("/objects")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -465,7 +511,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
             }
             final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
             if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
@@ -474,20 +520,20 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                         .toString()).build());
             }
         }
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
-            LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
+            LOGGER.error("At least one required header is missing. Required headers: (" +
+                VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
+        // FIXME To be passed to client
+        final String xTenantId = "0";
         AsyncInputStreamHelper helper = null;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient())  {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkHeaders(headers);
             GlobalDatasParser.sanityRequestCheck(query);
             final JsonNode queryJson = JsonHandler.getFromString(query);

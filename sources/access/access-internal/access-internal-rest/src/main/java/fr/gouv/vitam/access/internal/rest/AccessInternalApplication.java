@@ -110,10 +110,12 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         // Logbook dependency
-        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance());
-        serviceRegistry.register(LogbookOperationsClientFactory.getInstance());
+        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
+            .register(LogbookOperationsClientFactory.getInstance());
         // Metadata dependency
-        //serviceRegistry.register(MetaDataClientFactory.getInstance());
+        //.register(MetaDataClientFactory.getInstance());
+        // Storage dependency
+        //.register(StorageClientFactory.getInstance());
         if (mock != null) {
             resourceConfig.register(new AccessInternalResourceImpl(mock))
             .register(new AdminStatusResource());

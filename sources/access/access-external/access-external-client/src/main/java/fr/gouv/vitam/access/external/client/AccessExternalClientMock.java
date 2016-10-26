@@ -116,16 +116,14 @@ public class AccessExternalClientMock extends AbstractMockClient implements Acce
 
 
     private JsonNode createResult() throws InvalidParseOperationException {
-        String result = RESULT + "[";
+        StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
-            String s_i = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
-            s_i += OPERATION;
-            result += s_i;
+            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",").append(OPERATION);
             if (i < 99) {
-                result += ",";
+                result.append(",");
             }
         }
-        result += "]}";
-        return JsonHandler.getFromString(result);
+        result.append("]}");
+        return JsonHandler.getFromString(result.toString());
     }
 }
