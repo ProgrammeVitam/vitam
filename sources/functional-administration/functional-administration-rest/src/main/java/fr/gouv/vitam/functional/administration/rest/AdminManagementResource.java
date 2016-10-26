@@ -59,8 +59,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
-
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
@@ -146,7 +144,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             formatManagement.importFile(xmlPronom);
             return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
@@ -207,7 +205,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
         } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         } catch (Exception e) {
@@ -230,7 +228,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response findDocument(JsonNode select)
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
-        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
+        List<FileFormat> fileFormatList = new ArrayList<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
@@ -240,7 +238,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         } catch (Exception e) {
@@ -256,8 +254,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(out, formatList);
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        final String fileFormatAsString = new String(data);
-        return fileFormatAsString;
+        return new String(data);
     }
 
     /***************************************** rules Manager *************************************/
@@ -281,7 +278,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             rulesManagerFileImpl.checkFile(rulesStream);
             return Response.status(Status.OK).build();
         } catch (final FileRulesException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
@@ -313,7 +310,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             rulesFileManagement.importFile(rulesStream);
             return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final FileRulesException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
@@ -380,7 +377,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
 
         } catch (final FileRulesException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         } catch (Exception e) {
@@ -424,7 +421,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response findDocumentRules(JsonNode select)
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
-        List<FileRules> filerulesList = new ArrayList<FileRules>();
+        List<FileRules> filerulesList = new ArrayList<>();
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
@@ -436,7 +433,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         } catch (Exception e) {
@@ -447,7 +444,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param AccessionRegisterDetail object
+     * @param accessionRegister AccessionRegisterDetail object
      * @return Response jersey response
      */
     @Path("accession-register/create")
@@ -461,7 +458,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(Status.CREATED).build();
         } catch (ReferentialException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -476,8 +473,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(out, rulesList);
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        final String fileRulesAsString = new String(data);
-        return fileRulesAsString;
+        return new String(data);
     }
 
 }

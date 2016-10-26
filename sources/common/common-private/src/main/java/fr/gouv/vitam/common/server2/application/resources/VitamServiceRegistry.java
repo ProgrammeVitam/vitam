@@ -54,6 +54,7 @@ public class VitamServiceRegistry {
     private static final String SERVICE_IS_AVAILABLE = " service is available";
 
     private List<VitamClientFactoryInterface<?>> clientFactories = new ArrayList<>();
+    private List<VitamClientFactoryInterface<?>> clientOptionalFactories = new ArrayList<>();
     private List<DatabaseConnection> databaseFactories = new ArrayList<>();
     private VitamStatusService applicationStatus = new BasicVitamStatusServiceImpl();
 
@@ -73,6 +74,19 @@ public class VitamServiceRegistry {
     public VitamServiceRegistry register(VitamClientFactoryInterface<?> factory) {
         if (factory != null) {
             clientFactories.add(factory);
+        }
+        return this;
+    }
+
+    /**
+     * Register one Optional Client factory
+     * 
+     * @param factory optional Http Client Factory
+     * @return this
+     */
+    public VitamServiceRegistry registerOptional(VitamClientFactoryInterface<?> factory) {
+        if (factory != null) {
+            clientOptionalFactories.add(factory);
         }
         return this;
     }
@@ -108,11 +122,11 @@ public class VitamServiceRegistry {
      * @return the number of registered services, including itself
      */
     public int getRegisteredServices() {
-        return databaseFactories.size() + clientFactories.size() + 1;
+        return databaseFactories.size() + clientFactories.size() + clientOptionalFactories.size() + 1;
     }
 
     /**
-     * getResourcesStatus
+     * Get the resource overall status, except optional services
      *
      * return the overall status of this component with the constraint delay of less than 10ms.
      *
@@ -137,7 +151,7 @@ public class VitamServiceRegistry {
     }
 
     /**
-     * Check all the registered dependencies
+     * Check all the registered dependencies, except optional
      * 
      * @param retry the number retry in case of unavailability
      * @param retryDelay the delay in ms between each retry
@@ -157,7 +171,7 @@ public class VitamServiceRegistry {
     }
 
     /**
-     * Get full Autotest status
+     * Get full Autotest status, including optional services
      *
      * return the overall status of this component with the constraint delay of less than 10ms and shall return by
      * default empty JsonNode.
@@ -186,6 +200,25 @@ public class VitamServiceRegistry {
                     .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
                 globalStatus = false;
+            }
+            list.add(sub);
+        }
+        for (VitamClientFactoryInterface<?> factory : clientOptionalFactories) {
+            test++;
+            String name = StringUtils.getClassName(factory);
+            VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
+            try {
+                factory.getClient().checkStatus();
+                sub.setDescription(name + SERVICE_IS_AVAILABLE)
+                    .setHttpCode(Status.OK.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_AVAILABLE)
+                    .setState(Status.OK.getReasonPhrase());
+            } catch (VitamApplicationServerException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.warn("Can't connect to Optional factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
+                sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
+                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_UNAVAILABLE)
+                    .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
+                // Do not change globalStatus
             }
             list.add(sub);
         }

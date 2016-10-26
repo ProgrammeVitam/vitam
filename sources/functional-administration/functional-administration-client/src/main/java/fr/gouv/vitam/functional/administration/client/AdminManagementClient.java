@@ -147,6 +147,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param register AccessionRegisterDetail 
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
+     * @throws AdminManagementClientServerException 
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetail register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;

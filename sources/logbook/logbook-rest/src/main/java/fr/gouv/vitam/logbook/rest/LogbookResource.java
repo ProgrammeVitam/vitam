@@ -95,6 +95,7 @@ public class LogbookResource extends ApplicationStatusResource {
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
     private final DbConfiguration logbookConfiguration;
+    private final LogbookDbAccess mongoDbAccess;
 
     /**
      * Constructor
@@ -110,12 +111,16 @@ public class LogbookResource extends ApplicationStatusResource {
             logbookConfiguration =
                 new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
         }
-        final LogbookDbAccess mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
         LOGGER.debug("LogbookResource operation initialized");
 
         logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
         LOGGER.debug("LogbookResource lifecycles initialized");
+    }
+
+    LogbookDbAccess getLogbookDbAccess() {
+        return mongoDbAccess;
     }
 
     /**

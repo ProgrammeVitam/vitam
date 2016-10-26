@@ -28,9 +28,18 @@ package fr.gouv.vitam.common.server.application.junit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Test;
@@ -193,5 +202,32 @@ public class VitamServerTest {
         final StartApplicationResponse<ApplicationTest> startApplicationResponde =
             minimalTestVitamApplicationFactory.startAndReturn(application);
         assertEquals(10, startApplicationResponde.getServerPort());
+    }
+    
+    @Test
+    public void testResponseHelper() {
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, null);
+        assertTrue(response.getStatus() == Status.OK.getStatusCode());
+        assertTrue(response.readEntity(InputStream.class) instanceof InputStream);
+        
+        response = ResponseHelper.getOutboundResponse(Status.OK, null, MediaType.APPLICATION_OCTET_STREAM, null);
+        assertTrue(response.getStatus() == Status.OK.getStatusCode());
+        assertTrue(response.readEntity(String.class).equals(""));
+        
+        Map<String, String> map = new HashMap<>();
+        map.put("testkey", "testvalue");
+        response = ResponseHelper.getOutboundResponse(Status.OK, null, MediaType.APPLICATION_OCTET_STREAM, map);
+        assertTrue(response.getStatus() == Status.OK.getStatusCode());
+        assertTrue(response.readEntity(String.class).equals(""));
+        assertTrue(response.getHeaderString("testkey").equals("testvalue"));
+
+        try {
+            response = ResponseHelper.getOutboundResponse(null, null, MediaType.APPLICATION_OCTET_STREAM, map);
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+            
+        }
+        response = ResponseHelper.getOutboundResponse(Status.OK, null, null, null);
+        assertTrue(response.getHeaderString("Content-Type").equals(MediaType.APPLICATION_JSON));
     }
 }

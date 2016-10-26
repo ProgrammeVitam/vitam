@@ -60,7 +60,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * Empty Constructor
      */
     public AccessionRegisterSummary() {
-
+        // Empty
     }
     
 

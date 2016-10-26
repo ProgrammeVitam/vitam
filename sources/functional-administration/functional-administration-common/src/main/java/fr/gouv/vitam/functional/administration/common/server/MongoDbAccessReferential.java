@@ -53,7 +53,7 @@ public interface MongoDbAccessReferential {
     /**
      * insert documents
      *
-     * @param arrayNode of documents
+     * @param jsonNode of documents
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
      */
@@ -76,8 +76,10 @@ public interface MongoDbAccessReferential {
         throws ReferentialException;
     
     /**
-     * @param Map of key-value
+     * @param map Map of key-value
+     * @param object
      * @param collection collection of Mongo for insert
+     * @param action
      * @throws ReferentialException when error occurs
      */
     public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection, UPDATEACTION action)

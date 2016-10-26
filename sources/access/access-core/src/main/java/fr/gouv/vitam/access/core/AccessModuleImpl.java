@@ -99,7 +99,7 @@ public class AccessModuleImpl implements AccessModule {
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-    private final String eventType = "Update_archive_unit_unitary";
+    private static final String EVENT_TYPE = "Update_archive_unit_unitary";
 
     // TODO setting in other place
     private final Integer tenantId = 0;
@@ -339,23 +339,20 @@ public class AccessModuleImpl implements AccessModule {
             logbookOperationClient.create(logbookOpParamStart);
 
             // update logbook lifecycle
-            // TODO: interest of this private method ?
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                newQuery.toString(), newQuery.toString(), idUnit);
+                idUnit);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
             final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery.toString(), idUnit);
 
-            // TODO: interest of this private method ?
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.OK, "update archiveunit:" + idUnit, idUnit);
             logbookOperationClient.update(logbookOpParamEnd);
 
             // update logbook lifecycle
-            // TODO: interest of this private method ?
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                newQuery.toString(), newQuery.toString(), idUnit);
+                idUnit);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -416,7 +413,7 @@ public class AccessModuleImpl implements AccessModule {
             // TODO: interest of this private method ?
             final LogbookLifeCycleUnitParameters logbookParametersEnd =
                 getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
-                    queryJson.toString(), queryJson.toString(), objectIdentifier);
+                    objectIdentifier);
             logbookLifeCycleClient.rollback(logbookParametersEnd);
         } catch (final LogbookClientBadRequestException lcbre) {
             LOGGER.error("bad request", lcbre);
@@ -428,11 +425,10 @@ public class AccessModuleImpl implements AccessModule {
     }
 
     private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, String outcomeDetail,
-        String outcomeDetailMessage, String objectIdentifier) {
+        StatusCode logbookOutcome, String objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, eventType, eventIdentifierProcess,
+        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, EVENT_TYPE, eventIdentifierProcess,
             eventTypeProcess, logbookOutcome, "update archive unit",
             "update unit " + objectIdentifier, objectIdentifier);
     }
@@ -443,7 +439,7 @@ public class AccessModuleImpl implements AccessModule {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                eventType, eventIdentifierProcess, eventTypeProcess, logbookOutcome, outcomeDetailMessage,
+                EVENT_TYPE, eventIdentifierProcess, eventTypeProcess, logbookOutcome, outcomeDetailMessage,
                 eventIdentifierRequest);
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest);
         return parameters;

@@ -132,6 +132,14 @@ public class VitamConfiguration {
      * MongoDB client configuration
      */
     private static final int THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS = 1500;
+    /**
+     * Retry repetition
+     */
+    private static final int RETRY_NUMBER = 3;
+    /**
+     * Retry delay
+     */
+    private static final int RETRY_DELAY = 30000;
 
     private String config;
     private String log;
@@ -517,6 +525,20 @@ public class VitamConfiguration {
      */
     public static int getThreadsAllowedToBlockForConnectionMultipliers() {
         return THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+    }
+
+    /**
+     * @return the retryNumber
+     */
+    public static int getRetryNumber() {
+        return RETRY_NUMBER;
+    }
+
+    /**
+     * @return the retryDelay
+     */
+    public static int getRetryDelay() {
+        return RETRY_DELAY;
     }
 
 }

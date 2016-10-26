@@ -31,11 +31,14 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 
@@ -49,6 +52,8 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
 
     // Only for Junit FIXME
     static Worker mock = null;
+    static VitamServiceRegistry serviceRegistry = null;
+    
     /**
      * WorkerApplication constructor
      *
@@ -72,6 +77,12 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
                     CONF_FILE_NAME));
             }
             final WorkerApplication application = new WorkerApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -84,13 +95,26 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
         context.addEventListener(new WorkerRegistrationListener(getConfiguration()));
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+    
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
         if (mock != null) {
             resourceConfig.register(new WorkerResource(getConfiguration(), mock));
         } else {
             resourceConfig.register(new WorkerResource(getConfiguration()));
+            // Logbook dependency
+            serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance());
+            // Workspace dependency
+            //serviceRegistry.register(WorkspaceClientFactory.getInstance());
+            // Metadata dependency
+            //serviceRegistry.register(MetaDataClientFactory.getInstance());
+            // Processing dependency: optional ?
+            //serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }
-        resourceConfig.register(new AdminStatusResource());
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }
 }

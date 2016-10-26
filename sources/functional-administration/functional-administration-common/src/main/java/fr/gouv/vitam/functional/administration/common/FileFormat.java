@@ -105,7 +105,9 @@ public class FileFormat extends VitamDocument<FileFormat> {
     /**
      * empty constructor
      */
-    public FileFormat() {}
+    public FileFormat() {
+        // Empty
+    }
 
     /**
      * constructor with Mongo Document

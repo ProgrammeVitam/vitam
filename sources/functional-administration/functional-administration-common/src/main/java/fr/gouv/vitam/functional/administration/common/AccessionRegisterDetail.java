@@ -62,7 +62,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * Empty Constructor
      */
     public AccessionRegisterDetail() {
-
+        // Empty
     }
     
 

@@ -141,7 +141,7 @@ public class SanityChecker {
      * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
+    public static final void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
         checkXmlSanityFileSize(xmlFile);
         // First test tags through file reader (preventing XSS Bomb)
         checkXmlSanityTags(xmlFile);
@@ -155,7 +155,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
+    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
         final String jsonish = JsonHandler.writeAsString(json);
         final String wellFormedJson = JsonSanitizer.sanitize(jsonish);
         if (!wellFormedJson.equals(jsonish)) {
@@ -171,7 +171,7 @@ public class SanityChecker {
      * @param json as String
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkJsonAll(String json) throws InvalidParseOperationException {
+    public static final void checkJsonAll(String json) throws InvalidParseOperationException {
         final String wellFormedJson = JsonSanitizer.sanitize(json);
         if (!wellFormedJson.equals(json)) {
             throw new InvalidParseOperationException("Json is not valid from Sanitize check");
@@ -186,7 +186,7 @@ public class SanityChecker {
      * @param params
      * @throws InvalidParseOperationException
      */
-    public static void checkParameter(String... params) throws InvalidParseOperationException {
+    public static final void checkParameter(String... params) throws InvalidParseOperationException {
         for (final String param : params) {
             checkParam(param);
         }
@@ -198,7 +198,7 @@ public class SanityChecker {
      * @param headers
      * @throws InvalidParseOperationException
      */
-    public static void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
+    public static final void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
         if (headers == null) {
             return;
         }
@@ -213,7 +213,7 @@ public class SanityChecker {
         }
     }
 
-    private static boolean isIssueOnParam(String param) {
+    private static final boolean isIssueOnParam(String param) {
         try {
             checkParam(param);
             return false;
@@ -223,7 +223,7 @@ public class SanityChecker {
         }
     }
 
-    private static void checkParam(String param) throws InvalidParseOperationException {
+    private static final void checkParam(String param) throws InvalidParseOperationException {
         checkSanityTags(param, getLimitParamSize());
         checkHtmlPattern(param);
     }

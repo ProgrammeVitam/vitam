@@ -26,8 +26,6 @@ package fr.gouv.vitam.worker.server.rest;
  * accept its terms.
  *******************************************************************************/
 
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -54,7 +52,6 @@ import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResou
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;

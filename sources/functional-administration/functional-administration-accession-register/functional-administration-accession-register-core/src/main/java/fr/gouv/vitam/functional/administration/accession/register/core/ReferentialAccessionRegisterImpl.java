@@ -3,34 +3,26 @@
  *
  * contact.vitam@culture.gouv.fr
  * 
- * This software is a computer program whose purpose is to implement a digital 
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
@@ -56,7 +48,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 /**
  * Referential Accession Register Implement
  */
-public class ReferentialAccessionRegisterImpl implements AutoCloseable{
+public class ReferentialAccessionRegisterImpl implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -71,31 +63,33 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable{
     }
 
     /**
-     * @param registerDetail 
+     * @param registerDetail
      * @throws ReferentialException throws when insert mongodb error
      */
     public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)
         throws ReferentialException {
 
-        //store accession register detail 
+        // store accession register detail
         try {
-            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
         } catch (InvalidParseOperationException e) {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
         }
-        
-      //store accession register summary 
+
+        // store accession register summary
         RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
         try {
             AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
-            .setOriginatingAgency(registerDetail.getOriginatingAgency())
-            .setTotalObjects(initialValue)
-            .setTotalObjectGroups(initialValue)
-            .setTotalUnits(initialValue)
-            .setObjectSize(initialValue);
-            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister), FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+                .setOriginatingAgency(registerDetail.getOriginatingAgency())
+                .setTotalObjects(initialValue)
+                .setTotalObjectGroups(initialValue)
+                .setTotalUnits(initialValue)
+                .setObjectSize(initialValue);
+            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         } catch (InvalidParseOperationException e) {
             throw new ReferentialException(e);
         } catch (MongoWriteException e) {
@@ -105,9 +99,9 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable{
         try {
             Map<String, Object> updateMap = createMaptoUpdate(registerDetail);
             this.mongoAccess.updateDocumentByMap(
-                updateMap, 
-                JsonHandler.toJsonNode(registerDetail), 
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 
+                updateMap,
+                JsonHandler.toJsonNode(registerDetail),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
                 UPDATEACTION.INC);
         } catch (InvalidParseOperationException e) {
             LOGGER.info("Update error", e);
@@ -118,39 +112,40 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable{
         }
 
     }
-    
+
     private Map<String, Object> createMaptoUpdate(AccessionRegisterDetail registerDetail) {
         Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.TOTAL, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjectGroups().getTotal());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjectGroups().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectGroups().getRemained());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.TOTAL, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjects().getTotal());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjects().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjects().getRemained());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.TOTAL, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalUnits().getTotal());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalUnits().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED, 
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalUnits().getRemained());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.TOTAL, 
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjectSize().getTotal());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED, 
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjectSize().getDeleted());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED, 
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectSize().getRemained());
         return updateMap;
     }
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null)
+        if (mongoAccess != null) {
             mongoAccess.close();
+        }
     }
 }

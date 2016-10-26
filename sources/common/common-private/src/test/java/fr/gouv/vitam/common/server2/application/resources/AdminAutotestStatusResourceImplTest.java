@@ -194,6 +194,41 @@ public class AdminAutotestStatusResourceImplTest {
             }
         }
 
+        // Test OK
+        LOGGER.warn("TEST OK with one Optional KO");
+        TestApplication.serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        realKO++;
+        realTotal++;
+        try (DefaultAdminClient clientAdmin = factory.getClient()) {
+            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            final AdminStatusMessage message = clientAdmin.adminStatus();
+            assertEquals(true, message.getStatus());
+            VitamError error = clientAdmin.adminAutotest();
+            LOGGER.warn(JsonHandler.prettyPrint(error));
+            assertEquals(Status.OK.getStatusCode(), error.getHttpCode());
+            int nbOK = 0;
+            int nbKO = 0;
+            int nbUbknown = 0;
+            for (VitamError sub : error.getErrors()) {
+                if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+                    nbKO++;
+                } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
+                    nbOK++;
+                } else {
+                    nbUbknown++;
+                }
+            }
+            assertEquals(realKO, nbKO);
+            assertEquals(0, nbUbknown);
+            assertEquals(realOK, nbOK);
+            assertTrue(TestApplication.serviceRegistry.getResourcesStatus());
+            try {
+                TestApplication.serviceRegistry.checkDependencies(1, 10);
+            } catch (VitamApplicationServerException e) {
+                fail("Should not raized an exception");
+            }
+        }
+
         // Now shutdown one by one
         
         // Fake DB
@@ -235,6 +270,42 @@ public class AdminAutotestStatusResourceImplTest {
         // Add a fake clientFactory
         LOGGER.warn("TEST Fake client Factory KO");
         TestApplication.serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        realKO++;
+        realTotal++;
+        try (DefaultAdminClient clientAdmin = factory.getClient()) {
+            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            final AdminStatusMessage message = clientAdmin.adminStatus();
+            assertEquals(true, message.getStatus());
+            VitamError error = clientAdmin.adminAutotest();
+            LOGGER.warn(JsonHandler.prettyPrint(error));
+            assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
+            int nbOK = 0;
+            int nbKO = 0;
+            int nbUbknown = 0;
+            for (VitamError sub : error.getErrors()) {
+                if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
+                    nbKO++;
+                } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
+                    nbOK++;
+                } else {
+                    nbUbknown++;
+                }
+            }
+            assertEquals(realKO, nbKO);
+            assertEquals(0, nbUbknown);
+            assertEquals(realOK, nbOK);
+            assertFalse(TestApplication.serviceRegistry.getResourcesStatus());
+            try {
+                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                fail("Should raized an exception");
+            } catch (VitamApplicationServerException e) {
+                
+            }
+        }
+
+        // Add a fake optional clientFactory
+        LOGGER.warn("TEST Fake client Factory KO");
+        TestApplication.serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

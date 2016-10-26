@@ -39,6 +39,11 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 public class Messages {
     private final String bundleName;
 
+    /**
+     * Default Locale
+     */
+    public static final Locale DEFAULT_LOCALE = Locale.FRENCH;
+    
     private final ResourceBundle resourceBundle;
     private Locale locale;
 
@@ -48,9 +53,7 @@ public class Messages {
      * @param bundleName
      */
     public Messages(String bundleName) {
-        this.bundleName = bundleName;
-        locale = Locale.FRENCH;
-        resourceBundle = init();
+        this(bundleName, DEFAULT_LOCALE);
     }
 
     /**

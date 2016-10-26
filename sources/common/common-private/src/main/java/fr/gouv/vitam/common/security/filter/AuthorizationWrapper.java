@@ -94,7 +94,7 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
         if ((Strings.isNullOrEmpty(platformId)) || (Strings.isNullOrEmpty(timestamp))) {
             return false;
         } else {
-            return (checkTimestamp(timestamp) && (checkPlatformId(platformId, timestamp)));
+            return checkTimestamp(timestamp) && (checkPlatformId(platformId, timestamp));
         }
     }
 
@@ -105,7 +105,7 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
     private boolean checkTimestamp(String timestamp) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, timestamp);
         long currentEpoch = System.currentTimeMillis() / 1000;
-        long requestEpoch = Long.valueOf(timestamp).longValue();
+        long requestEpoch = Long.parseLong(timestamp);
         if (Math.abs(currentEpoch - requestEpoch) <= VitamConfiguration.getAcceptableRequestTime()) {
             return true;
         }

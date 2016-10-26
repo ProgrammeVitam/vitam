@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;

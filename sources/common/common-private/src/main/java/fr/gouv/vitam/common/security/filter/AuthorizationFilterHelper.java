@@ -45,6 +45,10 @@ public class AuthorizationFilterHelper {
 
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
+    private AuthorizationFilterHelper() {
+        // Empty
+    }
+
     /**
      * @param httpMethod
      * @param url

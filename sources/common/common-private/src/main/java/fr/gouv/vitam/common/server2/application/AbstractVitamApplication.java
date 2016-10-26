@@ -64,6 +64,8 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamApplicationCo
  */
 public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>, C extends VitamApplicationConfiguration>
     implements VitamApplication<A, C> {
+    private static final String APPLICATION_SERVER = " Application Server";
+    private static final String CANNOT_START_THE = "Cannot start the ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplication.class);
     protected static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument for ";
     private static final String CONF_FILE_NAME = "vitam.conf";
@@ -137,7 +139,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             }
         } catch (final IOException e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
+            throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
         }
     }
 
@@ -160,7 +162,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
 
             } catch (final IOException e) {
                 LOGGER.error(e);
-                throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
+                throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
             }
 
             setConfiguration(configuration);
@@ -174,7 +176,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
+            throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
         }
     }
 
@@ -230,12 +232,10 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         context.addServlet(sh, "/*");
 
         // Authorization Filter
-        if (VitamConfiguration.isFilterActivation()) {
-            if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-                context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
-                    DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                    DispatcherType.FORWARD, DispatcherType.ERROR));
-            }
+        if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
+            context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR));
         }
 
         setFilter(context);
