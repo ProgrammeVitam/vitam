@@ -99,7 +99,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 //TODO: review Logbook messages (operation / lifecycle) 
 //TODO: fully use VitamCode
 
-public class FormatIdentificationActionHandler extends ActionHandler {
+public class FormatIdentificationActionHandler extends ActionHandler implements AutoCloseable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
 
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
@@ -119,7 +120,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
      * Empty constructor
      */
     public FormatIdentificationActionHandler() {
-        // Nothing
+
     }
 
     /**
@@ -312,11 +313,13 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
             final String formatId = format.getPuid();
 
-            final AdminManagementClient adminClient =
-                AdminManagementClientFactory.getInstance().getAdminManagementClient();
             final Select select = new Select();
             select.setQuery(eq(FileFormat.PUID, formatId));
-            final JsonNode result = adminClient.getFormats(select.getFinalSelect());
+            final JsonNode result;
+            try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+                result = adminClient.getFormats(select.getFinalSelect());;
+            }
+
             // TODO : what should we do if more than 1 result (for the moment, we take into account the first one)
             if (result.size() == 0) {
                 // format not found in vitam referential
@@ -608,5 +611,11 @@ public class FormatIdentificationActionHandler extends ActionHandler {
         public String getSubStatus() {
             return subStatus;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (logbookClient != null)
+            logbookClient.close();
     }
 }

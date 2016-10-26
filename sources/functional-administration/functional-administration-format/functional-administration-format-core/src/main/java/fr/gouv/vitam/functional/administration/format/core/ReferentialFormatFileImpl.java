@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -68,7 +68,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
-public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
+public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -234,5 +234,11 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
             LOGGER.error(e.getMessage());
             throw new FileFormatException(e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (mongoAccess != null)
+            mongoAccess.close();
     }
 }

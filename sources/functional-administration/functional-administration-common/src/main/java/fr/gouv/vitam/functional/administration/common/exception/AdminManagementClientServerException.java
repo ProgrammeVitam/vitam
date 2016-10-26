@@ -24,31 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.client;
+package fr.gouv.vitam.functional.administration.common.exception;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+/**
+ *  Accession Register Exception 
+ * 
+ */
+public class AdminManagementClientServerException extends ReferentialException {
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+    private static final long serialVersionUID = 6819250170621638340L;
 
-public class IntegrationClient {
+    /**
+     * @param message message to associate with the exception
+     */
+    public AdminManagementClientServerException(String message) {
+        super(message);
+    }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", 8082));
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-        
-        final InputStream stream =
-            PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
+    /**
+     * @param cause cause to associate with the exception
+     */
+    public AdminManagementClientServerException(Throwable cause) {
+        super(cause);
+    }
 
-        try {
-            client.checkFormat(stream);;
-            System.out.println("-------------------------------- check ok");
-        } catch (final ReferentialException e) {
-            System.out.println("----------------------------------check NOT ok");
-        }
-
+    /**
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public AdminManagementClientServerException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }
+

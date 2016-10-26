@@ -233,13 +233,13 @@ public class WebApplicationResource {
             requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
             try (final LogbookOperationsClient logbookOperationsClient =
-                    LogbookOperationsClientFactory.getInstance().getClient()) {
+                LogbookOperationsClientFactory.getInstance().getClient()) {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                
+
                 result = logbookOperationsClient.selectOperation(query);
 
                 // save result
@@ -280,7 +280,7 @@ public class WebApplicationResource {
 
         JsonNode result = null;
         try (final LogbookOperationsClient logbookOperationsClient =
-                LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = logbookOperationsClient.selectOperationbyId(operationId);
@@ -411,14 +411,14 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
         JsonNode result = null;
-        try {
+        try (final AdminManagementClient adminClient =
+            AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            final AdminManagementClient adminClient =
-                AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormats(JsonHandler.getFromString(query));
+            return Response.status(Status.OK).entity(result).build();            
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -429,7 +429,6 @@ public class WebApplicationResource {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -442,18 +441,16 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFormatById(@PathParam("idFormat") String formatId,
         String options) {
-
         JsonNode result = null;
 
-        try {
+        try (final AdminManagementClient adminClient =
+            AdminManagementClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            result = JsonHandler.getFromString("{}");
-            final AdminManagementClient adminClient =
-                AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormatByID(formatId);
+            return Response.status(Status.OK).entity(result).build();            
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -464,7 +461,6 @@ public class WebApplicationResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
 
@@ -479,13 +475,15 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(InputStream input) {
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.checkFormat(input);
+       try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+               client.checkFormat(input);
+               return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
+        } catch (Exception e) {
+        LOGGER.error(e);
+        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -499,16 +497,16 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(InputStream input) {
-
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.importFormat(input);
+        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                client.importFormat(input);
+                return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final DatabaseConflictException e) {
             return Response.status(Status.FORBIDDEN).build();
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -520,13 +518,17 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
             client.deleteFormat();
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
+        }catch(Exception e){
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).build();
+
     }
 
     /**
@@ -622,25 +624,24 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
         JsonNode result = null;
-        try {
+        try (final AdminManagementClient adminClient =
+            AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            final AdminManagementClient adminClient =
-                AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getRule(JsonHandler.getFromString(query));
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
         } catch (final ReferentialException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -656,15 +657,15 @@ public class WebApplicationResource {
 
         JsonNode result = null;
 
-        try {
+        try (final AdminManagementClient adminClient =
+            AdminManagementClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = JsonHandler.createObjectNode();
-            final AdminManagementClient adminClient =
-                AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            result = adminClient.getRuleByID(ruleId);
+               result = adminClient.getRuleByID(ruleId);
+            return Response.status(Status.OK).entity(result).build();               
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -675,10 +676,9 @@ public class WebApplicationResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
-
+ 
     /***
      * check the referential rules
      *
@@ -690,13 +690,16 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(InputStream input) {
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
             client.checkRulesFile(input);
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        }
-        return Response.status(Status.OK).build();
+            return Response.status(Status.FORBIDDEN).build();            
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();            
+        } 
     }
 
     /**
@@ -711,15 +714,19 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefRule(InputStream input) {
 
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
             client.importRulesFile(input);
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final DatabaseConflictException e) {
             return Response.status(Status.FORBIDDEN).build();
+        } catch (Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).build();
+
     }
 
     /**
@@ -731,13 +738,16 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.deleteRulesFile();
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
+            client.deleteRulesFile();            
+            return Response.status(Status.OK).build();            
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();            
         }
-        return Response.status(Status.OK).build();
     }
 
 
@@ -900,7 +910,8 @@ public class WebApplicationResource {
     @Path("/stat/{id_op}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        try (final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
             final JsonNode logbookOperationResult = logbookOperationsClient.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.has("result")) {
                 final JsonNode logbookOperation = logbookOperationResult.get("result");
@@ -993,7 +1004,8 @@ public class WebApplicationResource {
         }
 
         // Read the selected file into an InputStream
-        try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName)) {
+        try (
+            InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName)) {
             final Response response =
                 IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(sipInputStream);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);

@@ -167,7 +167,7 @@ public class FormatIdentificationActionHandlerTest {
         final AdminManagementClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
-        when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         return adminManagementClient;
     }
 

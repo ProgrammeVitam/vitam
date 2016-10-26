@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
@@ -56,7 +56,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 /**
  * Referential Accession Register Implement
  */
-public class ReferentialAccessionRegisterImpl {
+public class ReferentialAccessionRegisterImpl implements AutoCloseable{
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -146,5 +146,11 @@ public class ReferentialAccessionRegisterImpl {
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED, 
             registerDetail.getTotalObjectSize().getRemained());
         return updateMap;
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (mongoAccess != null)
+            mongoAccess.close();
     }
 }

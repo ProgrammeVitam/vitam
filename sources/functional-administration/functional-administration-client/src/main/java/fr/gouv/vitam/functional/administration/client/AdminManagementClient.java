@@ -32,18 +32,19 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
  * AdminManagementClient interface
  */
-public interface AdminManagementClient {
+public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream;
@@ -71,15 +72,6 @@ public interface AdminManagementClient {
     void deleteFormat() throws ReferentialException;
 
     /**
-     * Get the status from the service
-     *
-     * @return the Message status
-     */
-
-    Status status();
-
-
-    /**
      * @param id as String
      * @return JsonNode
      * @throws ReferentialException check exception occurs
@@ -104,24 +96,28 @@ public interface AdminManagementClient {
      * @param stream
      * @return status
      * @throws FileRulesException
+     * @throws AdminManagementClientServerException
      */
 
-    Status checkRulesFile(InputStream stream) throws FileRulesException;
+    Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
      *
      * @param stream
      * @throws FileRulesException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
+     * @throws AdminManagementClientServerException
      */
-    void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException;
+    void importRulesFile(InputStream stream)
+        throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**
      *
      * @throws FileRulesException
+     * @throws AdminManagementClientServerException
      */
 
-    void deleteRulesFile() throws FileRulesException;
+    void deleteRulesFile() throws FileRulesException, AdminManagementClientServerException;
 
     /**
      *
@@ -129,8 +125,10 @@ public interface AdminManagementClient {
      * @return Rule in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws AdminManagementClientServerException
      */
-    JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException;
+    JsonNode getRuleByID(String id)
+        throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
      *
@@ -139,16 +137,18 @@ public interface AdminManagementClient {
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws IOException when IO Exception occurs
+     * @throws AdminManagementClientServerException
      */
     JsonNode getRule(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
-        IOException;
-    
+        IOException, AdminManagementClientServerException;
+
     /**
      * @param register AccessionRegisterDetail 
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
      */
-    void createorUpdateAccessionRegister(AccessionRegisterDetail register) throws AccessionRegisterException, DatabaseConflictException;
+    void createorUpdateAccessionRegister(AccessionRegisterDetail register)
+        throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
 
 }

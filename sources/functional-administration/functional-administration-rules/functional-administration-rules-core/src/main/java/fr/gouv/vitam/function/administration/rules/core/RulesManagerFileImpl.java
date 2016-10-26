@@ -60,7 +60,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -87,7 +87,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
  * Manage the Rules File features
  */
 
-public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
+public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoCloseable{
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -412,5 +412,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             LOGGER.error(e.getMessage());
             throw new FileRulesException(e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (mongoAccess != null)
+            mongoAccess.close();
+        if (client != null)
+            client.close();
     }
 }

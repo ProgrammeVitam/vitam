@@ -29,15 +29,10 @@ package fr.gouv.vitam.functional.administration.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileOutputStream;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -47,11 +42,10 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -70,7 +64,9 @@ public class AdminManagementApplicationTest {
     private static int serverPort;
     private static int oldPort;
     private static JunitHelper junitHelper;
-    private final AdminManagementApplication application = new AdminManagementApplication();
+    private AdminManagementApplication application;
+    static AdminManagementConfiguration configuration;
+    private static File adminConfigFile;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -79,6 +75,13 @@ public class AdminManagementApplicationTest {
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
+        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
+        final AdminManagementConfiguration realAdminConfig =
+            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        realAdminConfig.setDbPort(databasePort);
+        adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
+        PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
+        
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -86,11 +89,12 @@ public class AdminManagementApplicationTest {
             .build());
         mongod = mongodExecutable.start();
 
-        mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(DATABASE_HOST, databasePort, "vitam-test"));
+        configuration = new AdminManagementConfiguration(DATABASE_HOST, databasePort, "db-functional-administration");
+        mongoDbAccess = MongoDbAccessAdminFactory.create(configuration);
         serverPort = junitHelper.findAvailablePort();
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
+
     }
 
     @AfterClass
@@ -105,31 +109,14 @@ public class AdminManagementApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            AdminManagementApplication.setupApplication(databasePort);
-            AdminManagementApplication.startApplication(new String[] {ADMIN_MANAGEMENT_CONF});
-            AdminManagementApplication.stop();
+            new AdminManagementApplication(adminConfigFile.getAbsolutePath());
         } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
-    @Test(expected = VitamException.class)
-    public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        AdminManagementApplication.startApplication(new String[] {""});
-    }
-
-    @Test(expected = VitamException.class)
-    public void shouldRaiseAnExceptionWhenConfigureApplicationWithNullArgs() throws Exception {
-        AdminManagementApplication.startApplication(null);
-    }
-
-
-    @Test
-    public void shouldGetConfigFileName() {
-        Assert.assertEquals(AdminManagementApplication.CONF_FILE_NAME, application.getConfigFilename());
+    @Test(expected = IllegalStateException.class)
+    public final void shouldRaiseException() throws VitamException {
+        new AdminManagementApplication("");
     }
 }

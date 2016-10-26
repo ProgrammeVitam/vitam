@@ -58,7 +58,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 
