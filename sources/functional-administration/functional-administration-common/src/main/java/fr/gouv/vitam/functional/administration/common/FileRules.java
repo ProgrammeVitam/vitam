@@ -53,7 +53,7 @@ public class FileRules extends VitamDocument<FileRules> {
      */
 
     public FileRules() {
-
+        // Empty
     }
 
     /**

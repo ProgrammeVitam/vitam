@@ -72,15 +72,14 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final String COLLECTION_NAME = "FileFormat";
-    private final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
-    private final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
-    private final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
+    private static final String COLLECTION_NAME = "FileFormat";
+    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
+    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
+    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
 
-    private final String EVENT_TYPE_CREATE = "CREATE";
-    private final String EVENT_TYPE_DELETE = "DELETE";
-    // TODO: should change to REFERENTIAL_FORMAT
-    private final LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
+    private static final String EVENT_TYPE_CREATE = "CREATE";
+    private static final String EVENT_TYPE_DELETE = "DELETE";
+    private static final LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
 
     /**
      * Constructor
@@ -104,7 +103,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                 client.create(logbookParametersStart);
             } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
                 LogbookClientServerException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e);
+                throw new ReferentialException(e);
             }
 
             final GUID eip1 = GUIDFactory.newGUID();
@@ -124,7 +124,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                         client.update(logbookParametersEnd);
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                         LogbookClientServerException e) {
-                        LOGGER.error(e.getMessage());
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
                     }
                 } else {
                     final LogbookOperationParameters logbookParametersEnd =
@@ -133,8 +134,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                     try {
                         client.update(logbookParametersEnd);
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException e1) {
-                        LOGGER.error(e1.getMessage());
+                        LogbookClientServerException e) {
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
                     }
 
                     throw new DatabaseConflictException("File format collection is not empty");
@@ -148,7 +150,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                     LogbookClientServerException e1) {
-                    LOGGER.error(e1.getMessage());
+                    LOGGER.error(e1);
+                    throw new ReferentialException(e1);
                 }
                 throw new ReferentialException(e);
             }
@@ -167,7 +170,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                 client.create(logbookParametersStart);
             } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
                 LogbookClientServerException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e);
             }
 
             mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
@@ -182,7 +185,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                 client.update(logbookParametersEnd);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                 LogbookClientServerException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e);
             }
         }
     }
@@ -238,7 +241,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null)
+        if (mongoAccess != null) {
             mongoAccess.close();
+        }
     }
 }

@@ -317,7 +317,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             select.setQuery(eq(FileFormat.PUID, formatId));
             final JsonNode result;
             try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-                result = adminClient.getFormats(select.getFinalSelect());;
+                result = adminClient.getFormats(select.getFinalSelect());
             }
 
             // TODO : what should we do if more than 1 result (for the moment, we take into account the first one)
@@ -615,7 +615,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
     @Override
     public void close() throws Exception {
-        if (logbookClient != null)
+        if (logbookClient != null) {
             logbookClient.close();
+        }
     }
 }

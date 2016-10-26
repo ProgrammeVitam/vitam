@@ -32,11 +32,14 @@ import static java.lang.String.format;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 
 /**
  * Logbook web APPLICATION
@@ -46,6 +49,8 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookApplication.class);
     private static final String CONF_FILE_NAME = "logbook.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+
+    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * LogbookApplication constructor
@@ -78,6 +83,12 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
                     CONF_FILE_NAME));
             }
             final LogbookApplication application = new LogbookApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -85,10 +96,18 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
         }
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(new LogbookResource(getConfiguration()))
-            .register(new AdminStatusResource());
+        setServiceRegistry(new VitamServiceRegistry());
+        LogbookResource resource = new LogbookResource(getConfiguration());
+        // Database dependency
+        serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess());
+        resourceConfig.register(resource)
+            .register(new AdminStatusResource(serviceRegistry));
     }
 
 }

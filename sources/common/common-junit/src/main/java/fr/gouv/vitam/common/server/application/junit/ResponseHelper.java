@@ -44,6 +44,10 @@ import com.google.common.base.Strings;
  */
 public class ResponseHelper {
 
+    private ResponseHelper() {
+        // Empty
+    }
+
     /**
      * Helper to build an outbound Response (mocking remote client response object)
      * 
@@ -66,16 +70,14 @@ public class ResponseHelper {
         } else {
             when(response.readEntity(Mockito.any(Class.class))).thenReturn(entity);
         }
+        boolean contentTypeFound = false;
         if (!Strings.isNullOrEmpty(contentType)) {
             when(response.getHeaderString("Content-Type")).thenReturn(contentType);
+            contentTypeFound = true;
         }
-        boolean contentTypeFound = false;
         if (headers != null) {
             for (Entry<String, String> entry : headers.entrySet()) {
                 when(response.getHeaderString(entry.getKey())).thenReturn(entry.getValue());
-                if ("Content-Type".equals(entry.getKey())) {
-                    contentTypeFound = true;
-                }
             }
         }
         if (!contentTypeFound) {

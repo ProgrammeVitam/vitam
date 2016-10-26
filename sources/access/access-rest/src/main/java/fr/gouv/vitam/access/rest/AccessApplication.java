@@ -38,12 +38,16 @@ import org.glassfish.jersey.server.ResourceConfig;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.waf.WafFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 
 /**
@@ -57,6 +61,7 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     // Only for Junit TODO should be removed or propose something else
     static AccessModule mock = null;
+    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * AccessApplication constructor
@@ -89,6 +94,12 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
                     CONF_FILE_NAME));
             }
             final AccessApplication application = new AccessApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -109,14 +120,24 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
         return ServletContextHandler.SESSIONS;
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
+        // Logbook dependency
+        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance());
+        serviceRegistry.register(LogbookOperationsClientFactory.getInstance());
+        // Metadata dependency
+        //serviceRegistry.register(MetaDataClientFactory.getInstance());
         if (mock != null) {
             resourceConfig.register(new AccessResourceImpl(mock))
                 .register(new AdminStatusResource());
         } else {
             resourceConfig.register(new AccessResourceImpl(getConfiguration()))
-                .register(new AdminStatusResource());
+                .register(new AdminStatusResource(serviceRegistry));
         }
     }
 }

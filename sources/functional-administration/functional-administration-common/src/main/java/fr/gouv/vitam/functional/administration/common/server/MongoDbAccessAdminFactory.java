@@ -41,6 +41,10 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
  */
 public final class MongoDbAccessAdminFactory {
 
+    private MongoDbAccessAdminFactory() {
+        // Empty
+    }
+    
     /**
      * Creation of one MongoDbAccess
      *

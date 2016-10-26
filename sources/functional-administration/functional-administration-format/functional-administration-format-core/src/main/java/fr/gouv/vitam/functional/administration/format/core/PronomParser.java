@@ -82,6 +82,10 @@ public class PronomParser {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
 
+    private PronomParser() {
+        // Empty
+    }
+
     /**
      * getPronom
      *

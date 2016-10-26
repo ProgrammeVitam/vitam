@@ -40,7 +40,7 @@ public class MongoDbAccessAdminFactoryTest {
     
     @Test
     public void testCreateAdmin(){
-        mongoDbAccess = new MongoDbAccessAdminFactory().create(
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(DATABASE_HOST, port, databaseName, true, user, pwd));
         assertNotNull(mongoDbAccess);
         assertEquals("db-functional-administration", mongoDbAccess.getMongoDatabase().getName());

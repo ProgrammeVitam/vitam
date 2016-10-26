@@ -339,14 +339,14 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         }
-
-        if (path.codePointAt(0) != '/') {
-            path = "/" + path;
+        String newPath = path;
+        if (newPath.codePointAt(0) != '/') {
+            newPath = "/" + newPath;
         }
         
-        String baseUri = getResourcePath() + path;
+        String baseUri = getResourcePath() + newPath;
         if(url.endsWith(VitamConfiguration.ADMIN_PATH)){
-            baseUri=VitamConfiguration.ADMIN_PATH + path;
+            baseUri=VitamConfiguration.ADMIN_PATH + newPath;
         }
 
         // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)

@@ -59,8 +59,8 @@ public class AuthorizationFilter  implements Filter{
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
-            AuthorizationWrapper AuthorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
-            if (!(AuthorizationWrapper.checkAutorizationHeaders())){
+            AuthorizationWrapper authorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
+            if (!(authorizationWrapper.checkAutorizationHeaders())){
                 HttpServletResponse newResponse = (HttpServletResponse) response;
                 newResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
             } else {

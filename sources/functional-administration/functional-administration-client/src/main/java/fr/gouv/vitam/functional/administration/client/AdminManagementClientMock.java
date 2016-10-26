@@ -56,9 +56,10 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
  * Mock client implementation for AdminManagement
  */
 public class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
+    private static final String STREAM_IS_A_MANDATORY_PARAMETER = "stream is a mandatory parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
-    private FileFormat createFileFormat(String _id) {
+    private FileFormat createFileFormat(String id) {
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
         return (FileFormat) new FileFormat()
@@ -70,7 +71,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             .setPronomVersion("pronom version")
             .setPUID("puid")
             .setVersion("version")
-            .append("_id", _id);
+            .append("_id", id);
     }
 
     private FileRules createFileRules(String ruleValue) {
@@ -91,7 +92,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public Status checkFormat(InputStream stream) throws FileFormatException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file format request:");
         StreamUtils.closeSilently(stream);
         return Status.OK;
@@ -99,8 +100,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public void importFormat(InputStream stream) throws FileFormatException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.debug("import file format request:");
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
+        LOGGER.debug("Import file format request:");
         StreamUtils.closeSilently(stream);
     }
 
@@ -111,7 +112,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", id);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get format by id request:");
         final FileFormat file = createFileFormat(id);
         return JsonHandler.toJsonNode(file);
@@ -121,11 +122,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public JsonNode getFormats(JsonNode query)
         throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException,
         IOException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document format request:");
         final FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
         final FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());
-        final List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
+        final List<FileFormat> fileFormatList = new ArrayList<>();
         fileFormatList.add(file1);
         fileFormatList.add(file2);
         return JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList));
@@ -133,7 +134,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public Status checkRulesFile(InputStream stream) throws FileRulesException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
         return Status.OK;
@@ -141,7 +142,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("import file Rules request:");
         StreamUtils.closeSilently(stream);
     }
@@ -154,7 +155,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", id);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get rule by id request:");
         final FileRules file = createFileRules(id);
         return JsonHandler.toJsonNode(file);
@@ -165,11 +166,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public JsonNode getRule(JsonNode query)
         throws FileRulesException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
         IOException {
-        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
         final FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
         final FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
-        final List<FileRules> fileRulesList = new ArrayList<FileRules>();
+        final List<FileRules> fileRulesList = new ArrayList<>();
         fileRulesList.add(file1);
         fileRulesList.add(file2);
         return JsonHandler.getFromString(fileRulesListToJsonString(fileRulesList));

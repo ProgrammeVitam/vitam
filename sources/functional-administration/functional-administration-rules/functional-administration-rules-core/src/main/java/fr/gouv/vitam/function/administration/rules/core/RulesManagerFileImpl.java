@@ -87,7 +87,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
  * Manage the Rules File features
  */
 
-public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoCloseable{
+public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -416,9 +416,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoClo
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null)
+        if (mongoAccess != null) {
             mongoAccess.close();
-        if (client != null)
+        }
+        if (client != null) {
             client.close();
+        }
     }
 }

@@ -54,7 +54,7 @@ public class VitamLogbookMessages {
      * @param propertyFilename
      */
     private VitamLogbookMessages(String propertyFilename) {
-        messages = new Messages(propertyFilename);
+        this(propertyFilename, Messages.DEFAULT_LOCALE);
     }
 
     /**
