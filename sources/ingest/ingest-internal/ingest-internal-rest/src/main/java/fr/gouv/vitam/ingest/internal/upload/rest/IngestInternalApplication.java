@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
+
+
 /**
  * Ingest Internal web server application
  */

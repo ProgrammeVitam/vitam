@@ -65,7 +65,6 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
      * 
      * @param configuration
      */
-
     public LogbookApplication(LogbookConfiguration configuration) {
         super(LogbookConfiguration.class, configuration);
     }
