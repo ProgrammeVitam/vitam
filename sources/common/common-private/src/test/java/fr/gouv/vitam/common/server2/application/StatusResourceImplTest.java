@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.server2.application;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.BasicClient;
@@ -194,5 +196,29 @@ public class StatusResourceImplTest {
             .when()
             .get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
         client.checkStatus();
+    }
+    
+    
+    /**
+     * Check sendServerVersion in error case
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenGetNotFoundResource_ThenReturnNotFoudWithoutJettyVersion() throws Exception {
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI+"/NotFound");
+        
+            Response response =RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(MODULE_STATUS_URI+"/NotFound").
+            then().statusCode(Status.NOT_FOUND.getStatusCode())
+            .extract().response();
+            
+            String body = response.getBody().asString();
+            assertFalse(body.contains("Powered by Jetty"));
+
     }
 }
