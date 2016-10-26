@@ -79,6 +79,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -178,11 +179,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
             description.setWorkspaceObjectURI(IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME);
-            storageClientFactory.getStorageClient().storeFileFromWorkspace(
-                DEFAULT_TENANT,
-                DEFAULT_STRATEGY,
-                StorageCollectionType.REPORTS,
-                params.getContainerName() + XML, description);
+            try (final StorageClient storageClient = storageClientFactory.getClient()) {
+                storageClient.storeFileFromWorkspace(
+                    DEFAULT_TENANT,
+                    DEFAULT_STRATEGY,
+                    StorageCollectionType.REPORTS,
+                    params.getContainerName() + XML, description);
+            }
+
             // }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | ContentAddressableStorageException e) {

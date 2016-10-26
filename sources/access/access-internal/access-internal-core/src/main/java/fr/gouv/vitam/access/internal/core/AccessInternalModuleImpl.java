@@ -92,6 +92,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private LogbookOperationsClient logbookOperationClient;
+    // FIXME : should use the try with resources, then dont use the client as an attribute
     private final StorageClient storageClient;
 
     private final AccessInternalConfiguration accessConfiguration;
@@ -115,7 +116,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public AccessInternalModuleImpl(AccessInternalConfiguration configuration) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         accessConfiguration = configuration;
-        storageClient = StorageClientFactory.getInstance().getStorageClient();
+        storageClient = StorageClientFactory.getInstance().getClient();
         mock = false;
     }
 
@@ -309,7 +310,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
-        
+
         // Check Request is really an Update
         RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
         if (!(parser instanceof UpdateParserMultiple)) {
@@ -430,7 +431,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         StatusCode logbookOutcome, String objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, EVENT_TYPE, eventIdentifierProcess,
+        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, EVENT_TYPE,
+            eventIdentifierProcess,
             eventTypeProcess, logbookOutcome, "update archive unit",
             "update unit " + objectIdentifier, objectIdentifier);
     }

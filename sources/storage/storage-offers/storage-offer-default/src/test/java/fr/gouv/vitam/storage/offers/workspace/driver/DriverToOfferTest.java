@@ -87,6 +87,7 @@ public class DriverToOfferTest {
 
     private static Connection connection;
     private static String guid;
+    private static DefaultOfferApplication application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -102,18 +103,18 @@ public class DriverToOfferTest {
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final DefaultOfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
-        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            DefaultOfferApplication.startApplication(new String[] {
-                workspaceOffer.getAbsolutePath()});
+            application = new DefaultOfferApplication(realWorkspaceOffer);
+            application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
-                "Cannot start the Default Offer Application Server", e);
+                "Cannot start the Wokspace Offer Application Server", e);
         }
-
+        
         driver = new DriverImpl();
     }
 
@@ -124,8 +125,8 @@ public class DriverToOfferTest {
         }
         junitHelper.releasePort(serverPort);
 
-
-        DefaultOfferApplication.stop();
+        application.stop();
+        
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);

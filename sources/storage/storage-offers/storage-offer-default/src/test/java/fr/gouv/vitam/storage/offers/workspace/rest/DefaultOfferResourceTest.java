@@ -91,6 +91,7 @@ public class DefaultOfferResourceTest {
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
 
     private static final ObjectMapper OBJECT_MAPPER;
+    private static DefaultOfferApplication application;
 
     static {
 
@@ -105,7 +106,9 @@ public class DefaultOfferResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-
+        junitHelper = JunitHelper.getInstance();
+        serverPort = junitHelper.findAvailablePort();
+        
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
@@ -116,8 +119,8 @@ public class DefaultOfferResourceTest {
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            DefaultOfferApplication.startApplication(new String[] {
-                workspaceOffer.getAbsolutePath()});
+            application = new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
+            application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -129,7 +132,7 @@ public class DefaultOfferResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            DefaultOfferApplication.stop();
+            application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }

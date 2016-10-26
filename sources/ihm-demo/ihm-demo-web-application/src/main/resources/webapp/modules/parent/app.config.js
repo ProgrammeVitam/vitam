@@ -50,6 +50,9 @@ module('ihm.demo').
         templateUrl: "views/upload-sip.html",
         controller: "uploadController"
       }).
+      when('/uploadSIP2', {
+        templateUrl: "views/upload-sip-2.html"
+      }).
       when('/archiveunit/:archiveId', {
         template: '<archive-unit></archive-unit>'
       }).
@@ -105,4 +108,18 @@ module('ihm.demo').
     // prefered language set options for useLoader
     $translateProvider.preferredLanguage('fr');
    }
-  );
+  )
+  .config(['flowFactoryProvider', function (flowFactoryProvider) {
+  flowFactoryProvider.defaults = {
+    target: '/ihm-demo/v1/api/ingest/upload2',
+    permanentErrors: [404, 500, 501],
+    maxChunkRetries: 1,
+    chunkRetryInterval: 5000,
+    simultaneousUploads: 4
+  };
+  flowFactoryProvider.on('catchAll', function (event) {
+    console.log('catchAll', arguments);
+  });
+  // Can be used with different implementations of Flow.js
+  // flowFactoryProvider.factory = fustyFlowFactory;
+}]);

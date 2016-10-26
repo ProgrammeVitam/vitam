@@ -35,6 +35,12 @@
   <script src="bower_components/jquery-ui/jquery-ui.js"></script>
   <script src="bower_components/angular-translate/angular-translate.min.js"></script>
   <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+  <!-- concatenated flow.js + ng-flow libraries -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow-standalone.js"></script> -->
+  <!-- or include the files separately -->
+  <!-- <script src="bower_components/flow.js/dist/flow.min.js"></script> -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow.min.js"></script> -->
+  <script src="modules/flow/ng-flow-standalone.js"></script>
 
   <script src="modules/parent/app.module.js"></script>
   <script src="modules/parent/app.config.js"></script>
@@ -97,6 +103,7 @@
 
   <!-- FIXME Find better way to fix it -->
   <script src="modules/multiselect/angular-bootstrap-multiselect.js"></script>
+
 </head>
 
 <body  ng-controller='mainViewController'>

@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -71,12 +72,13 @@ public class StorageClientIT {
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
 
 
-    private static final String REST_URI = StorageClient.RESOURCE_PATH;
+    private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String STORAGE_CONF = "storage-engine.conf";
     private static int serverPort = 8583;
     private static final int workspacePort = 8987;
     private static StorageClient storageClient;
     private static WorkspaceClient workspaceClient;
+    private static StorageApplication storageApplication;
 
 
     private static final String CONTAINER_1 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq";
@@ -113,20 +115,17 @@ public class StorageClientIT {
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
         PropertiesUtils.writeYaml(PropertiesUtils.findFile(STORAGE_CONF), serverConfiguration);
         try {
-            StorageApplication.startApplication(
-                STORAGE_CONF);
+            File storageConfFile = PropertiesUtils.findFile(STORAGE_CONF);
+            final StorageConfiguration readedStorageconf = PropertiesUtils.readYaml(storageConfFile, StorageConfiguration.class);
+            storageApplication = new StorageApplication(readedStorageconf);
+            storageApplication.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Composite Application Server", e);
         }
 
-        final StorageClientConfiguration storageClientConfiguration =
-            new StorageClientConfiguration("localhost", serverPort,
-                false, "/");
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.STORAGE,
-            storageClientConfiguration);
-        storageClient = StorageClientFactory.getInstance().getStorageClient();
+        storageClient = StorageClientFactory.getInstance().getClient();
 
         workspaceClient = WorkspaceClientFactory.create("http://localhost:" + workspacePort);
         destroyWorkspaceFiles();
@@ -184,11 +183,8 @@ public class StorageClientIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
-        storageClient.shutdown();
         WorkspaceApplication.stop();
-        StorageApplication.stop();
-        // junitHelper.releasePort(workspacePort);
-        // junitHelper.releasePort(serverPort);
+        storageApplication.stop();
     }
 
 

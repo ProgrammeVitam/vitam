@@ -55,10 +55,10 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -77,7 +77,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
 @javax.ws.rs.ApplicationPath("webresources")
 public class StorageResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
-
     private final StorageDistribution distribution;
 
     /**
@@ -86,7 +85,6 @@ public class StorageResource extends ApplicationStatusResource {
      * @param configuration the storage configuration to be applied
      */
     public StorageResource(StorageConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         distribution = new StorageDistributionImpl(configuration);
         LOGGER.info("init Storage Resource server");
     }
@@ -97,7 +95,6 @@ public class StorageResource extends ApplicationStatusResource {
      * @param storageDistribution the storage Distribution to be applied
      */
     StorageResource(StorageDistribution storageDistribution) {
-        super(new BasicVitamStatusServiceImpl());
         distribution = storageDistribution;
     }
 

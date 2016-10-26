@@ -830,7 +830,6 @@ public class StorageResourceTest {
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
         final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
 
-
         final ResourceConfig resourceConfig = new ResourceConfig();
         final StorageResourceTest outer = new StorageResourceTest();
         resourceConfig.register(JacksonFeature.class);

@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -44,8 +44,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
  * Storage Client interface
  */
 public interface StorageClient extends BasicClient {
-
-    String RESOURCE_PATH = "/storage/v1";
 
     /**
      * Check if the storage of objects could be done, knowing a required size

@@ -155,7 +155,7 @@ public class AccessInternalModuleImplTest {
         StorageClientFactory factoryst = mock(StorageClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);
         PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(factoryst);
-        PowerMockito.when(factoryst.getStorageClient()).thenReturn(storageClient);
+        PowerMockito.when(factoryst.getClient()).thenReturn(storageClient);
         conf = new AccessInternalConfiguration();
         conf.setUrlMetaData(HOST);
         accessModuleImpl = new AccessInternalModuleImpl(conf);

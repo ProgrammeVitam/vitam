@@ -28,8 +28,10 @@ package fr.gouv.vitam.storage.engine.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,44 +62,15 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * changeDefaultClientType method to change the client type.
  *
  */
-
-public class StorageClientFactory {
-
-    private static StorageClientType defaultStorageClientType;
-    private static final String CONFIGURATION_FILENAME = "storage-client.conf";
+public class StorageClientFactory extends VitamClientFactory<StorageClient>  {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientFactory.class);
+    private static final String CONFIGURATION_FILENAME = "storage-client.conf";
     private static final StorageClientFactory STORAGE_CLIENT_FACTORY = new StorageClientFactory();
 
-    private StorageClientConfiguration clientConfiguration = null;
-
+    public static final String RESOURCE_PATH = "/storage/v1";
+    
     private StorageClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
-    }
-
-    /**
-     * Set the StorageClientFactory configuration
-     *
-     * @param configuration the configuration to us
-     * @throws IllegalArgumentException if server is null or empty or port <= 0
-     */
-    static void setConfiguration(StorageClientConfiguration configuration) {
-        checkConfiguration(configuration);
-        STORAGE_CLIENT_FACTORY.clientConfiguration = configuration;
-    }
-
-    /**
-     * Set the StorageClientFactory configuration
-     *
-     * @param type the storage type
-     * @param configuration the client configuration
-     * @throws IllegalArgumentException if type null or if type is STORAGE and server is null or empty or port <= 0
-     */
-    static void setConfiguration(StorageClientType type, StorageClientConfiguration configuration) {
-        changeDefaultClientType(type);
-        if (type == StorageClientType.STORAGE) {
-            checkConfiguration(configuration);
-        }
-        STORAGE_CLIENT_FACTORY.clientConfiguration = configuration;
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**
@@ -114,14 +87,14 @@ public class StorageClientFactory {
      *
      * @return the default storage client
      */
-    public StorageClient getStorageClient() {
+    public StorageClient getClient() {
         StorageClient client;
-        switch (defaultStorageClientType) {
-            case MOCK_STORAGE:
+        switch (getVitamClientType()) {
+            case MOCK:
                 client = new StorageClientMock();
                 break;
-            case STORAGE:
-                client = new StorageClientRest(clientConfiguration, StorageClient.RESOURCE_PATH, true);
+            case PRODUCTION:
+                client = new StorageClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_UNKNOWN));
@@ -130,74 +103,28 @@ public class StorageClientFactory {
     }
 
     /**
-     * Get the default storage client type
-     *
-     * @return the default storage client type
-     */
-    public static StorageClientType getDefaultStorageClientType() {
-        return defaultStorageClientType;
-    }
-
-    /**
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(StorageClientType.MOCK_STORAGE);
-        StorageClientConfiguration configuration = null;
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
+        ClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                StorageClientConfiguration.class);
+                ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            LOGGER
-                .warn("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                configurationPath,
+                fnf);
         }
         if (configuration == null) {
-            clientConfiguration = null;
-            LOGGER.warn("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
-        } else {
-            checkConfiguration(configuration);
-            clientConfiguration = configuration;
-            changeDefaultClientType(StorageClientType.STORAGE);
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath);
         }
+        return configuration;
     }
 
-    private static void checkConfiguration(StorageClientConfiguration configuration) {
-        ParametersChecker.checkParameter("Configuration cannot be null", configuration);
-        ParametersChecker.checkParameter("Server cannot be null or empty", configuration.getServerHost());
-        ParametersChecker.checkValue("Server port cannot be null", configuration.getServerPort(), 1);
-        ParametersChecker.checkParameter("Server context path cannot be null",
-            configuration.getServerContextPath());
-    }
-
-    /**
-     * Modify the default storage client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(StorageClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultStorageClientType = type;
-    }
-
-    /**
-     * enum to define client type
-     */
-    public enum StorageClientType {
-        /**
-         * To use only in MOCK
-         */
-        MOCK_STORAGE,
-        /**
-         * Use real service
-         */
-        STORAGE
+    static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }
