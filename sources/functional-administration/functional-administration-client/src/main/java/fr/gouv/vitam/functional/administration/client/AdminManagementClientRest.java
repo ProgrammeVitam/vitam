@@ -135,7 +135,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, FORMAT_DELETE_URL, null,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -161,7 +161,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, FORMAT_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -189,7 +189,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, FORMAT_GET_DOCUMENT_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -282,7 +282,8 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.DELETE, RULESMANAGER_DELETE_URL, null, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.DELETE, RULESMANAGER_DELETE_URL, null, MediaType.APPLICATION_JSON_TYPE,
+                    false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -311,7 +312,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, RULESMANAGER_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -341,7 +342,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, RULESMANAGER_GET_DOCUMENT_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -369,7 +370,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, FUND_REGISTER_CREATE_URI, null,
-                register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case CREATED:

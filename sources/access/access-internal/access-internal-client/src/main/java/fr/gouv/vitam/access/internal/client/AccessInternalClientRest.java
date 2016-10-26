@@ -119,7 +119,7 @@ public class AccessInternalClientRest extends DefaultClient implements AccessInt
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "units/" + idUnit, headers,
-                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
@@ -188,7 +188,7 @@ public class AccessInternalClientRest extends DefaultClient implements AccessInt
             headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
             response =
                 performRequest(HttpMethod.POST, "objects/" + objectId, headers,
-                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
@@ -231,7 +231,7 @@ public class AccessInternalClientRest extends DefaultClient implements AccessInt
             headers.add(GlobalDataRest.X_VERSION, version);
             response =
                 performRequest(HttpMethod.POST, "objects/" + objectGroupId, headers,
-                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:

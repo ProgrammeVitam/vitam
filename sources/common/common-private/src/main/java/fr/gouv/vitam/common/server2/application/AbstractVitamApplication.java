@@ -235,8 +235,11 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
             context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR));
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
+        context.addFilter(ConsumeAllAfterResponseFilter.class, "/*", EnumSet.of(
+            DispatcherType.INCLUDE, DispatcherType.REQUEST,
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
 
         setFilter(context);
         return context;

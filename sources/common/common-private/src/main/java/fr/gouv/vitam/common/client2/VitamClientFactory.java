@@ -150,12 +150,13 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     * Constructor to allow to enable Multipart support or Chunked mode
+     * Constructor to allow to enable Multipart support or Chunked mode.
      *
      * @param configuration The client configuration
      * @param resourcePath the resource path of the server for the client calls
      * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
      * @param multipart allow multipart and disabling chunked mode
+     * @param chunkedMode if multipart is false, one can managed here if the client is in default chunkedMode or not
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,

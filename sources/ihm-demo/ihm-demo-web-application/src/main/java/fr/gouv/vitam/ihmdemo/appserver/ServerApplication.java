@@ -158,7 +158,7 @@ public class ServerApplication {
             restResourceContext.addEventListener(new EnvironmentLoaderListener());
             restResourceContext.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR));
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
 
         restResourceContext.setContextPath(configuration.getBaseUrl());

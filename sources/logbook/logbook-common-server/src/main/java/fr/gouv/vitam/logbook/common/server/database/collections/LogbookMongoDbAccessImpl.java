@@ -170,8 +170,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
         }
         LogbookOperation.addIndexes();
-        LogbookLifeCycle.addIndexes();
-        LogbookLifeCycle.addIndexes();
+        LogbookLifeCycleUnit.addIndexes();
+        LogbookLifeCycleObjectGroup.addIndexes();
     }
 
     /**
@@ -179,8 +179,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     static final void removeIndexBeforeImport() {
         LogbookOperation.dropIndexes();
-        LogbookLifeCycle.dropIndexes();
-        LogbookLifeCycle.dropIndexes();
+        LogbookLifeCycleUnit.dropIndexes();
+        LogbookLifeCycleObjectGroup.dropIndexes();
     }
 
     /**
