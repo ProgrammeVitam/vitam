@@ -82,6 +82,8 @@ public class ItemStatus {
 
     /**
      * Constructor
+     * 
+     * @param itemId
      */
     public ItemStatus(String itemId) {
         statusMeter = new ArrayList<Integer>();
@@ -231,13 +233,14 @@ public class ItemStatus {
      * @return String message
      */
     public String computeStatusMeterMessage() {
-        String message = "";
+        StringBuilder computeMessage = new StringBuilder();
+        StatusCode[] statusCodes = StatusCode.values();
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
             if (statusMeter.get(i) > 0) {
-                message += " " + StatusCode.values()[i] + ":" + statusMeter.get(i);
+                computeMessage.append(" ").append(statusCodes[i]).append(":").append(statusMeter.get(i));
             }
         }
-        return message;
+        return computeMessage.toString();
     }
 
 

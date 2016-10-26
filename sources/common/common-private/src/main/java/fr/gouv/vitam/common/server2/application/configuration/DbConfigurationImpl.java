@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Implementation of DbConfiguraton Interface
  */
 public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration implements DbConfiguration {
+    private static final String PORT_MUST_BE_POSITIVE = "Port must be positive";
     private static final String CONFIGURATION_PARAMETERS = "DbConfiguration parameters";
     private String dbHost;
     private int dbPort;
@@ -54,13 +55,16 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @param dbHost database server IP address
      * @param dbPort database server port
      * @param dbName database name
+     * @param dbAuthentication 
+     * @param dbUserName 
+     * @param dbPassword 
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
     public DbConfigurationImpl(String dbHost, int dbPort, String dbName, boolean dbAuthentication, String dbUserName, String dbPassword) {
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
             dbHost, dbName);
         if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+            throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
         }
         this.dbHost = dbHost;
         this.dbPort = dbPort;
@@ -83,7 +87,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
             dbHost, dbName);
         if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+            throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
         }
         this.dbHost = dbHost;
         this.dbPort = dbPort;
@@ -141,7 +145,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      */
     public DbConfigurationImpl setDbPort(int dbPort) {
         if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+            throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
         }
         this.dbPort = dbPort;
         return this;
@@ -160,7 +164,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     }
     
     /**
-     * @param dbUserName
+     * @param userName
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbUserName(String userName) {
@@ -169,7 +173,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     }
 
     /**
-     * @param dbPassword
+     * @param password
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbPassword(String password) {

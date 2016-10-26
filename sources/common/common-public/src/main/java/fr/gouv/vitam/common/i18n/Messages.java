@@ -88,7 +88,7 @@ public class Messages {
             return resourceBundle.getString(key);
         } catch (final MissingResourceException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return '!' + key + '!';
+            return getFakeMessage(key);
         }
     }
 
@@ -104,10 +104,19 @@ public class Messages {
             return MessageFormat.format(source, args);
         } catch (final MissingResourceException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return '!' + key + '!';
+            return getFakeMessage(key, args);
         }
     }
 
+    private String getFakeMessage(String key, Object... args) {
+        StringBuilder builder = new StringBuilder("!").append(key).append('!');
+        if (args != null) {
+            for (Object object : args) {
+                builder.append(" ").append(object);
+            }
+        }
+        return builder.toString();
+    }
     /**
      *
      * @param key the key of the message
@@ -118,14 +127,13 @@ public class Messages {
         try {
             final String source = resourceBundle.getString(key);
             if (source == null || source.isEmpty()) {
-                throw new MissingResourceException(
-                    "Can't find non empty resource for bundle " + resourceBundle.getClass().getName() + ", key " + key,
-                    resourceBundle.getClass().getName(), key);
+                // Cannot find any resource or value for this key
+                return getFakeMessage(key, args);
             }
             return MessageFormat.format(source, args);
         } catch (final MissingResourceException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return '!' + key + '!';
+            return getFakeMessage(key, args);
         }
     }
 

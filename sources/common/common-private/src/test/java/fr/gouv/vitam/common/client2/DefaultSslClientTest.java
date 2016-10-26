@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.client2.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client2.configuration.SSLKey;
 import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -150,7 +152,10 @@ public class DefaultSslClientTest {
 
     @Test
     public void testClientBuilder() throws Exception {
-        final SSLConfiguration sslConfig = new SSLConfiguration();
+        SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
+        ArrayList<SSLKey> truststore = new ArrayList<SSLKey>();
+        truststore.add(key);
+        final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
         final SecureClientConfiguration configuration =
             new SecureClientConfigurationImpl("host", 8443, true, sslConfig, false);
         final VitamClientFactory<DefaultClient> factory =

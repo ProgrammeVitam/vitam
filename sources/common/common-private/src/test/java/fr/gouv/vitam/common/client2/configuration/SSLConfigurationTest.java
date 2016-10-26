@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.client2.configuration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,8 @@ import javax.net.ssl.SSLContext;
 import org.glassfish.jersey.SslConfigurator;
 import org.junit.Before;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.exception.VitamException;
 
 public class SSLConfigurationTest {
 
@@ -49,7 +52,7 @@ public class SSLConfigurationTest {
     @Before
     public void setUp() throws Exception {
 
-        key = new SSLKey("src/test/resources/tls/client/client.p12", "vitam2016");
+        key = new SSLKey("tls/client/client.p12", "vitam2016");
     }
 
     @Test
@@ -58,7 +61,12 @@ public class SSLConfigurationTest {
         SSLConfiguration config = new SSLConfiguration();
         assertNull(config.getKeystore());
         // test of emptyness
-        context = config.createSSLContext();
+        try {
+            context = config.createSSLContext();
+            fail("Should raized an exception");
+        } catch (VitamException e) {
+            
+        }
 
         truststore = new ArrayList<SSLKey>();
         keystore = new ArrayList<SSLKey>();

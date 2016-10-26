@@ -36,7 +36,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
@@ -46,7 +45,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -58,14 +56,11 @@ import com.google.common.collect.ObjectArrays;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * SSL Configuration
  */
 public class SSLConfiguration {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SSLConfiguration.class);
     private static final String PARAMETERS = "SSLConfiguration parameters";
     private static final AllowAllHostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = new AllowAllHostnameVerifier();
     private List<SSLKey> truststore;
@@ -116,11 +111,10 @@ public class SSLConfiguration {
             keyManagers = readKeyManagers();
         }
         TrustManager[] trustManagers = null;
-        if (truststore != null) {
+        if (truststore != null && ! truststore.isEmpty()) {
             trustManagers = readTrustManagers();
         } else {
-            LOGGER.warn("NO TrustStore specified: using mode where any remote certifcates are allowed!");
-            trustManagers = loadTrustManagers();
+            throw new VitamException("NO TrustStore specified: any remote certifcates would have been allowed, which is not acceptable!");
         }
         SSLContext sslContext;
         try {
@@ -185,33 +179,6 @@ public class SSLConfiguration {
             throw new VitamException(e);
         }
 
-    }
-
-    /**
-     * load Trust Managers
-     *
-     * @return Trust Managers
-     * @throws VitamException
-     */
-    private TrustManager[] loadTrustManagers() throws VitamException {
-        return new TrustManager[] {new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(X509Certificate[] arg0,
-                String arg1) throws CertificateException {
-                // Empty
-            }
-
-            @Override
-            public void checkServerTrusted(X509Certificate[] arg0,
-                String arg1) throws CertificateException {
-                // Empty
-            }
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        }};
     }
 
     /**
