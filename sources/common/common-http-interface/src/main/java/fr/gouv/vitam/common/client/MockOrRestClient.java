@@ -26,15 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.client;
 
-import java.util.concurrent.Future;
-
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
 /**
  * Basic client api for vitam client either in Mock or Rest mode
@@ -61,83 +55,6 @@ public interface MockOrRestClient extends AutoCloseable {
      * @throws VitamApplicationServerException if the Server is unavailable
      */
     void checkStatus() throws VitamApplicationServerException;
-
-    /**
-     * Perform a HTTP request to the server for synchronous call using default chunked mode configured in this client
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param accept asked type of response
-     * @return the response from the server
-     * @throws VitamClientInternalException 
-     */
-    Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept) throws VitamClientInternalException;
-
-    /**
-     * Perform a HTTP request to the server for synchronous call
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param accept asked type of response
-     * @param chunkedMode True use default client, else False use non Chunked mode client
-     * @return the response from the server
-     * @throws VitamClientInternalException 
-     */
-    Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept, boolean chunkedMode) throws VitamClientInternalException;
-
-    /**
-     * Perform a HTTP request to the server for synchronous call
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @return the response from the server
-     * @throws VitamClientInternalException 
-     */
-    Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException;
-
-    /**
-     * Perform an Async HTTP request to the server with callback
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
-     * @return the response from the server
-     * @throws VitamClientInternalException 
-     */
-    <T> Future<T> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept,
-        InvocationCallback<T> callback) throws VitamClientInternalException;
-
-    /**
-     * Perform an Async HTTP request to the server with full control of action on caller
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @return the response from the server
-     * @throws VitamClientInternalException 
-     */
-    Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException;
 
     /**
      * Helper when an error occurs on client usage side to consume response however

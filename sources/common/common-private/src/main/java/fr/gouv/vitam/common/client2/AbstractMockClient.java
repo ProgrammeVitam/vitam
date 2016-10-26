@@ -34,9 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Future;
 
-import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Link;
@@ -53,8 +51,6 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
  * Abstract Mock common client
  */
 public class AbstractMockClient implements MockOrRestClient {
-
-    private static final String MOCK_UNSUPPORTED_METHOD = "MOCK: Unsupported method";
 
     @Override
     public void checkStatus() {
@@ -74,36 +70,6 @@ public class AbstractMockClient implements MockOrRestClient {
     @Override
     public String getServiceUrl() {
         return "http://localhost:8080";
-    }
-
-    @Override
-    public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept) {
-        throw new UnsupportedOperationException(MOCK_UNSUPPORTED_METHOD);
-    }
-
-    @Override
-    public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        MediaType accept, boolean chunkedMode) {
-        throw new UnsupportedOperationException(MOCK_UNSUPPORTED_METHOD);
-    }
-
-    @Override
-    public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept) {
-        throw new UnsupportedOperationException(MOCK_UNSUPPORTED_METHOD);
-    }
-
-    @Override
-    public <T> Future<T> performAsyncRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept, InvocationCallback<T> callback) {
-        throw new UnsupportedOperationException(MOCK_UNSUPPORTED_METHOD);
-    }
-
-    @Override
-    public Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept) {
-        throw new UnsupportedOperationException(MOCK_UNSUPPORTED_METHOD);
     }
 
     @Override

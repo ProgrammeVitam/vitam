@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.client2;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -47,44 +46,5 @@ public class AbstractMockClientTest {
         assertEquals("http://localhost:8080", client.getServiceUrl());
         client.consumeAnyEntityAndClose(null);
         client.close();
-    }
-
-    /**
-     * Test mock for UnsupportedOperation
-     */
-    @Test
-    public void testUnsupportedOperations() {
-        try (AbstractMockClient client = new AbstractMockClient()) {
-            try {
-                client.performAsyncRequest(null, null, null, null, null, null);
-                fail("Should raized an exception");
-            } catch (final UnsupportedOperationException e) {
-                // Ignore
-            }
-            try {
-                client.performAsyncRequest(null, null, null, null, null, null, null);
-                fail("Should raized an exception");
-            } catch (final UnsupportedOperationException e) {
-                // Ignore
-            }
-            try {
-                client.performRequest(null, null, null, null);
-                fail("Should raized an exception");
-            } catch (final UnsupportedOperationException e) {
-                // Ignore
-            }
-            try {
-                client.performRequest(null, null, null, null, true);
-                fail("Should raized an exception");
-            } catch (final UnsupportedOperationException e) {
-                // Ignore
-            }
-            try {
-                client.performRequest(null, null, null, null, null, null);
-                fail("Should raized an exception");
-            } catch (final UnsupportedOperationException e) {
-                // Ignore
-            }
-        }
     }
 }
