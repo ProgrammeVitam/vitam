@@ -33,11 +33,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -66,18 +69,24 @@ public class ProcessDistributorImplTest {
     private static final String WORKFLOW_ID = "workflowJSONv1";
     private ProcessMonitoringImpl processMonitoring;
     private WorkFlow worfklow;
-
+    private static JunitHelper junitHelper;    
+    private String urlWorkspace;
+    private static int port;
+    
     private static final String WORKER_DESCRIPTION =
         "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     @Before
     public void setUp() throws Exception {
+        junitHelper = JunitHelper.getInstance();
+        port = junitHelper.findAvailablePort();
+        urlWorkspace = "http://localhost:" + Integer.toString(port);
         params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID());
         // TODO: ??? mandatory
         params.setUrlMetadata("fakeUrlMetadata");
-        params.setUrlWorkspace("fakeUrlWorkspace");
+        params.setUrlWorkspace(urlWorkspace);
         processMonitoring = ProcessMonitoringImpl.getInstance();
         final List<Step> steps = new ArrayList<>();
         final Step step = new Step().setStepName("TEST");
@@ -97,6 +106,13 @@ public class ProcessDistributorImplTest {
             params.setStepUniqId(entry.getKey());
         }
     }
+    
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        junitHelper.releasePort(port);
+    }
+    
 
     @Test
     public void givenProcessDistributorWhendistributeThenCatchTheOtherException() {

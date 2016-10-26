@@ -73,6 +73,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency>		
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-default-driver</artifactId>
 			<version>${project.version}</version>

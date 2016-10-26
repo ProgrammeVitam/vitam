@@ -239,7 +239,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         final JsonNode jsonOG;
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup objects ids
             jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);

@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core;
 
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -25,12 +26,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class})
 public class WorkerIOManagementHelperTest {
     private WorkspaceClient workspaceClient;
-
+    private WorkspaceClientFactory workspaceClientFactory;
+    
     @Before
     public void setUp() {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
     }
 
     @Test

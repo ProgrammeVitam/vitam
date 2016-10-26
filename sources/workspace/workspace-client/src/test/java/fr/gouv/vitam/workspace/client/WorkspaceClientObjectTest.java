@@ -30,7 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
@@ -46,17 +45,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -83,21 +77,12 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     private InputStream stream = null;
 
     @Override
-    protected Application configure() {
-        // set(TestProperties.LOG_TRAFFIC, true);
-        set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        mock = mock(ExpectedResults.class);
-        resourceConfig.registerInstances(new MockObjectResource(mock));
-        return resourceConfig;
+    MockResource getMockResource() {
+        return new MockObjectResource(mock);
     }
 
     @Path("workspace/v1/containers")
-    public static class MockObjectResource {
+    public static class MockObjectResource extends MockResource {
 
         private final ExpectedResults expectedResponse;
 
@@ -263,23 +248,23 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException() {
+    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
         client.isExistingObject(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException() {
+    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
         client.isExistingObject(CONTAINER_NAME, "");
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue() {
+    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     @Test
-    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() {
+    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
@@ -288,7 +273,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, null);
     }
 
@@ -301,7 +286,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotFoundWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
@@ -390,5 +375,5 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     private InputStream getInputStream(String file) throws FileNotFoundException {
         return PropertiesUtils.getResourceAsStream("file1.pdf");
-    }
+    }    
 }

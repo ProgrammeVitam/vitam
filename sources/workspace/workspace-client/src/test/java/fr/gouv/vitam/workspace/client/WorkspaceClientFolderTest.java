@@ -28,7 +28,6 @@ package fr.gouv.vitam.workspace.client;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
@@ -43,16 +42,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -64,20 +60,12 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
     private static final String FOLDER_NAME = "myFolder";
 
     @Override
-    protected Application configure() {
-        // set(TestProperties.LOG_TRAFFIC, true);
-        set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        mock = mock(ExpectedResults.class);
-        resourceConfig.registerInstances(new MockFolderResource(mock));
-        return resourceConfig;
+    MockResource getMockResource() {
+        return new MockFolderResource(mock);
     }
 
     @Path("workspace/v1/containers")
-    public static class MockFolderResource {
+    public static class MockFolderResource extends MockResource {
 
         private final ExpectedResults expectedResponse;
 
@@ -180,45 +168,43 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckFolderExistenceThenRaiseAnException() {
+    public void givenNullParamWhenCheckFolderExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
         client.isExistingFolder(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckFolderExistenceThenRaiseAnException() {
+    public void givenEmptyParamWhenCheckFolderExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
         client.isExistingFolder(CONTAINER_NAME, "");
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnTrue() {
+    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnTrue() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnFalse() {
+    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnFalse() throws ContentAddressableStorageServerException{
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     // get URI list
     @Test(expected = IllegalArgumentException.class)
-    public void given_NullParam_When_FindingUriObjects_Then_RaiseAnException() {
+    public void given_NullParam_When_FindingUriObjects_Then_RaiseAnException() throws ContentAddressableStorageServerException{
         client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void given_EmptyParam_When_FindingUriObjects_Then_RaiseAnException() {
+    public void given_EmptyParam_When_FindingUriObjects_Then_RaiseAnException() throws ContentAddressableStorageServerException  {
         client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, "");
     }
 
     @Test
-    public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList() {
+    public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList() throws ContentAddressableStorageServerException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris = client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME);
         assertTrue(uris.isEmpty());
     }
-
-
 
 }

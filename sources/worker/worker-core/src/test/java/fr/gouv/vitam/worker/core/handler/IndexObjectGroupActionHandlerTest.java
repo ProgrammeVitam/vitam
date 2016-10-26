@@ -68,6 +68,8 @@ public class IndexObjectGroupActionHandlerTest {
     private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
+    private WorkspaceClientFactory workspaceClientFactory;        
+    
     public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
     }
@@ -77,13 +79,16 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        
     }
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseWARNING()
         throws Exception {
         handler = new IndexObjectGroupActionHandler();
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         assertEquals(IndexObjectGroupActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -98,8 +103,6 @@ public class IndexObjectGroupActionHandlerTest {
         when(metadataClient.insertObjectGroup(anyObject())).thenReturn("");
         PowerMockito.when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -114,8 +117,6 @@ public class IndexObjectGroupActionHandlerTest {
         when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new MetaDataExecutionException(""));
         PowerMockito.when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -130,8 +131,6 @@ public class IndexObjectGroupActionHandlerTest {
         when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new InvalidParseOperationException(""));
         PowerMockito.when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
@@ -147,8 +146,6 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")

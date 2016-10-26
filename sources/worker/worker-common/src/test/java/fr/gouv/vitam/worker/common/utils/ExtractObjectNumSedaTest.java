@@ -64,6 +64,7 @@ public class ExtractObjectNumSedaTest {
 
     private static final String SIP = "sip1.xml";
     private WorkspaceClient client;
+    private WorkspaceClientFactory workspaceClientFactory;
     private final InputStream seda;
     private SedaUtils utils;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
@@ -77,16 +78,17 @@ public class ExtractObjectNumSedaTest {
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         client = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(client);
+        
     }
 
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
-
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(client);
         utils = SedaUtilsFactory.create();
-
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 
         assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();

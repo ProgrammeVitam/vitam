@@ -182,7 +182,8 @@ public class SedaUtils {
         String messageId = "";
         XMLEventReader reader = null;
         InputStream xmlFile = null;
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO : whould use worker configuration instead of the processing configuration
             try {
                 xmlFile = client.getObject(containerId,
@@ -340,7 +341,8 @@ public class SedaUtils {
         final String containerId = params.getContainerName();
         // TODO : whould use worker configuration instead of the processing configuration
         final InputStream input;
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             input = checkExistenceManifest(client, containerId);
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
@@ -392,7 +394,8 @@ public class SedaUtils {
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
         throws ProcessingException {
         final String guid = params.getContainerName();
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO : whould use worker configuration instead of the processing configuration
             return parsingUriSEDAWithWorkspaceClient(workspaceClient, guid);
         }
@@ -517,7 +520,8 @@ public class SedaUtils {
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO : whould use worker configuration instead of the processing configuration
             return isSedaVersionValid(client, containerId);
         }
@@ -752,7 +756,8 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO : whould use worker configuration instead of the processing configuration
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
             return computeBinaryObjectsSizeFromManifest(client, containerId);
         }
@@ -792,7 +797,8 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO : whould use worker configuration instead of the processing configuration
             final JsonNode jsonSeda = getObjectInformation(client, containerId,
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);

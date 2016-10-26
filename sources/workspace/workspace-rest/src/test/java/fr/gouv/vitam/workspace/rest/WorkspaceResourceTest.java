@@ -56,14 +56,13 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  */
@@ -114,17 +113,16 @@ public class WorkspaceResourceTest {
 
         port = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
-        workspaceApplication = new WorkspaceApplication();
-        WorkspaceApplication.startApplication(configuration);
+        workspaceApplication = new WorkspaceApplication(configuration);
+        workspaceApplication.start();
         RestAssured.port = port;
         RestAssured.basePath = RESOURCE_URI;
     }
 
     @After
     public void tearDown() throws Exception {
-        WorkspaceApplication.stop();
+        workspaceApplication.stop();
     }
 
     // Status

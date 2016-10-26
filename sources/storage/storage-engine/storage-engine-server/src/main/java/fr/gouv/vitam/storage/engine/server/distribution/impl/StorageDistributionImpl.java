@@ -388,8 +388,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
         throws StorageNotFoundException, StorageTechnicalException {
-        try (WorkspaceClient workspaceClient = urlWorkspace != null ? 
-            WorkspaceClientFactory.create(urlWorkspace) : // NOSONAR is closed
+        try (WorkspaceClient workspaceClient = (urlWorkspace != null) ? 
+            WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is closed
             mockedWorkspaceClient) {
             return workspaceClient.getObject(containerGUID, objectURI);
         } catch (final ContentAddressableStorageNotFoundException exc) {

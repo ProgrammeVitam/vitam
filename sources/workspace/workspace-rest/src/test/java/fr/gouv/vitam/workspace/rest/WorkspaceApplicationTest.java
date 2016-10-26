@@ -26,18 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 public class WorkspaceApplicationTest {
+    private static final String CONFIG_FILE_NAME = "workspace-test.conf";
 
     private WorkspaceApplication application;
     private static JunitHelper junitHelper;
@@ -47,9 +46,7 @@ public class WorkspaceApplicationTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
     }
 
     @AfterClass
@@ -57,41 +54,37 @@ public class WorkspaceApplicationTest {
         junitHelper.releasePort(port);
     }
 
-    @Before
-    public void setup() throws Exception {
-        application = new WorkspaceApplication();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        WorkspaceApplication.startApplication(new String[0]);
+        application = new WorkspaceApplication((String) null);
     }
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        WorkspaceApplication.startApplication(PropertiesUtils.getResourcePath("notFound.conf").toString());
+        application = new WorkspaceApplication("notFound.conf");
     }
 
     @Test
-    public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
-        WorkspaceApplication.startApplication(PropertiesUtils.getResourcePath("workspace-test.conf").toString());
-        WorkspaceApplication.stop();
+    public void givenFileAlreadyExistsWhenConfigureApplicationOKThenRunServer() throws Exception {
+        application = new WorkspaceApplication(CONFIG_FILE_NAME);
+        application.stop();
     }
 
     @Test
     public void givenConfigFileWhenGetConfigThenReturnCorrectConfig() {
-        Assert.assertEquals("workspace.conf", application.getConfigFilename());
+        application = new WorkspaceApplication(CONFIG_FILE_NAME);
+        assertEquals("workspace-test.conf", application.getConfigFilename());
     }
 
     @Test(expected = Exception.class)
     public void givenNullConfigWhenRunAppThenThrowException() throws Exception {
         final WorkspaceConfiguration config = new WorkspaceConfiguration();
-        WorkspaceApplication.startApplication(config);
+        application = new WorkspaceApplication(config);
     }
 
     @Test(expected = Exception.class)
     public void givenNullConfigWhenStartAppThenThrowException() throws Exception {
-        WorkspaceApplication.startApplication((WorkspaceConfiguration) null);
+        application = new WorkspaceApplication((WorkspaceConfiguration) null);
     }
 
 

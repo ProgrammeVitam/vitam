@@ -79,6 +79,7 @@ public class SedaUtilsTest {
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;    
     private final InputStream seda;
 
     private final SedaUtils utils = SedaUtilsFactory.create();
@@ -93,6 +94,9 @@ public class SedaUtilsTest {
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
     // TODO : Fix it bug on jenkins
@@ -100,7 +104,6 @@ public class SedaUtilsTest {
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
     }
 
@@ -109,10 +112,8 @@ public class SedaUtilsTest {
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
-        final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(is);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
+        final InputStream is = new ByteArrayInputStream(str.getBytes());        
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString())).thenReturn(is);        
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
@@ -124,8 +125,6 @@ public class SedaUtilsTest {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(is);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
@@ -134,8 +133,6 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotExistThenReturnNoFile() throws Exception {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
@@ -143,7 +140,6 @@ public class SedaUtilsTest {
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
@@ -179,7 +175,6 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
@@ -188,7 +183,6 @@ public class SedaUtilsTest {
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         utils.computeTotalSizeOfObjectsInManifest(params);
     }
 
@@ -196,7 +190,6 @@ public class SedaUtilsTest {
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTest());
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
@@ -205,7 +198,6 @@ public class SedaUtilsTest {
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTestError());
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         utils.getManifestSize(params);
     }
 

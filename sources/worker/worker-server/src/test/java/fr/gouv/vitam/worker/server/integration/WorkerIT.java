@@ -131,6 +131,7 @@ public class WorkerIT {
 
     private static MetaDataApplication medtadataApplication;
     private static WorkerApplication wkrapplication;
+    private static WorkspaceApplication workspaceApplication;
 
     private WorkspaceClient workspaceClient;
     private static LogbookApplication lgbapplication;
@@ -204,7 +205,8 @@ public class WorkerIT {
         // launch workspace
         SystemPropertyUtil
         .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
-        WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
+        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
+        workspaceApplication.start();
 
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
     }
@@ -215,7 +217,7 @@ public class WorkerIT {
         mongodExecutable.stop();
         node.close();
         try {
-            WorkspaceApplication.stop();
+            workspaceApplication.stop();
             wkrapplication.stop();
             lgbapplication.stop();
             ProcessManagementApplication.stop();
@@ -294,7 +296,8 @@ public class WorkerIT {
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
@@ -339,7 +342,8 @@ public class WorkerIT {
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
-        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
@@ -385,7 +389,8 @@ public class WorkerIT {
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
-        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
@@ -412,7 +417,8 @@ public class WorkerIT {
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
-        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 

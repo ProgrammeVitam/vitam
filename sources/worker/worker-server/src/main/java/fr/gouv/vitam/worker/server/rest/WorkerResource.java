@@ -57,6 +57,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Worker Resource implementation
@@ -136,7 +137,7 @@ public class WorkerResource extends ApplicationStatusResource {
         } catch (final HandlerNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (final ProcessingException exc) {
+        } catch (final ProcessingException | ContentAddressableStorageServerException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }

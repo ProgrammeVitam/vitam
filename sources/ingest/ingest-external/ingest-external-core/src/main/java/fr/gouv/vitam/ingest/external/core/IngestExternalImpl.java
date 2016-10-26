@@ -63,10 +63,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
@@ -109,7 +109,7 @@ public class IngestExternalImpl implements IngestExternal {
         final GUID ingestGuid = guid;
 
         final FileSystem workspaceFileSystem =
-            new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
+            new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
         final String antiVirusScriptName = config.getAntiVirusScriptName();
         final long timeoutScanDelay = config.getTimeoutScanDelay();
         Response responseResult = null;

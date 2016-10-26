@@ -49,12 +49,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
@@ -73,10 +73,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, String> objectTypeFor;
 
     private DefaultOfferServiceImpl() {
-        StorageConfiguration configuration;
+        WorkspaceConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                StorageConfiguration.class);
+                WorkspaceConfiguration.class);
         } catch (final IOException exc) {
             throw new ExceptionInInitializerError(exc);
         }
@@ -189,7 +189,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public boolean isObjectExist(String containerName, String objectId) {
+    public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 

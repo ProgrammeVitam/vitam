@@ -147,6 +147,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
+        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try {
             // update workParams
             LOGGER.debug("Status {}", ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId));
@@ -155,7 +156,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient =
-                    WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+                    WorkspaceClientFactory.getInstance().getInstance().getClient()) {
                     List<URI> objectsList = null;
 
                     // Test regarding Unit to be indexed

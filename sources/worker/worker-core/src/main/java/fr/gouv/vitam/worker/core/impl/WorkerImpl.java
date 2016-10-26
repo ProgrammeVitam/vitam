@@ -69,6 +69,7 @@ import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -151,7 +152,7 @@ public class WorkerImpl implements Worker {
 
     @Override
     public CompositeItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, ProcessingException {
+        throws IllegalArgumentException, ProcessingException, ContentAddressableStorageServerException {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 
@@ -166,7 +167,8 @@ public class WorkerImpl implements Worker {
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
-        try (final WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
+        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             for (final Action action : step.getActions()) {
                 final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
                 LOGGER.debug("START handler {} in step {}", action.getActionDefinition().getActionKey(),

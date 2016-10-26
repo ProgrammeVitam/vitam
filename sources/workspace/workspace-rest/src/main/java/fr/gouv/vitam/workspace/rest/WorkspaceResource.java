@@ -60,9 +60,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -73,6 +72,7 @@ import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 
@@ -94,8 +94,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      *
      * @param configuration the storage config
      */
-    public WorkspaceResource(StorageConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
+    public WorkspaceResource(WorkspaceConfiguration configuration) {
         // FIXME REVIEW this implements directly the Filesystem implementation while it should not! You should have a
         // Factory/Helper to create the right one, ignoring here what is the chosen implementation.
         workspace = new FileSystem(configuration);

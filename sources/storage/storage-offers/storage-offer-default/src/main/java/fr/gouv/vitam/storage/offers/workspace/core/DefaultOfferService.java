@@ -124,8 +124,9 @@ public interface DefaultOfferService {
      * @param containerName the container suppose to contain the object
      * @param objectId the objectId to check
      * @return true if object exists, false otherwise
+     * @throws ContentAddressableStorageServerException 
      */
-    boolean isObjectExist(String containerName, String objectId);
+    boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException;
 
     /**
      * Get container capacity

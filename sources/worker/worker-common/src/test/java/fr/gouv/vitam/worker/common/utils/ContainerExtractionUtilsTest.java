@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -58,7 +59,8 @@ public class ContainerExtractionUtilsTest {
 
     private WorkspaceClient workspaceClient;
     private ContainerExtractionUtils containerExtractionUtils;
-
+    private WorkspaceClientFactory workspaceClientFactory;
+    
     private final String folder = new StringBuilder().append(IngestWorkflowConstants.SEDA_FOLDER).append("/")
         .append(IngestWorkflowConstants.CONTENT_FOLDER).toString();
 
@@ -74,15 +76,16 @@ public class ContainerExtractionUtilsTest {
     public void setUp() throws Exception {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        
         uriListWorkspace.add(new URI("content/file1.pdf"));
         uriListWorkspace.add(new URI("content/file2.pdf"));
     }
 
     @Test
-    public void givenWorkspaceExistWhenGetUriListThenReturnOK() throws ProcessingException {
-
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+    public void givenWorkspaceExistWhenGetUriListThenReturnOK() throws ProcessingException, ContentAddressableStorageServerException {
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn(uriListWorkspace);
         containerExtractionUtils = new ContainerExtractionUtils();
         final WorkerParameters workParams =

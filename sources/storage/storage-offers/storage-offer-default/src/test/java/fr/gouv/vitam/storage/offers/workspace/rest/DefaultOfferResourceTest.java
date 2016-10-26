@@ -66,7 +66,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * DefaultOfferResource Test
@@ -141,8 +141,8 @@ public class DefaultOfferResourceTest {
 
     @After
     public void deleteExistingFiles() throws Exception {
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1");
         File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
         final File object = new File(folder.getAbsolutePath(), "id1");
@@ -267,8 +267,8 @@ public class DefaultOfferResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + guid).then().statusCode(201);
 
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1");
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -351,8 +351,8 @@ public class DefaultOfferResourceTest {
             }
         }
         // check
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1");
         assertNotNull(container);
         assertTrue(container.exists());
@@ -378,8 +378,8 @@ public class DefaultOfferResourceTest {
         given().header(GlobalDataRest.X_TENANT_ID, "1").head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(404);
 
         // object
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1");
         container.mkdir();
         final File object = new File(container.getAbsolutePath(), "id1");

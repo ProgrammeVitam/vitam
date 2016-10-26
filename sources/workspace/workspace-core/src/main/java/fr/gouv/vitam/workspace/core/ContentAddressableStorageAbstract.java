@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -92,7 +91,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      *
      * @param configuration
      */
-    public ContentAddressableStorageAbstract(StorageConfiguration configuration) {
+    public ContentAddressableStorageAbstract(WorkspaceConfiguration configuration) {
         context = getContext(configuration);
     }
 
@@ -102,7 +101,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * @param configuration
      * @return BlobStoreContext
      */
-    public abstract BlobStoreContext getContext(StorageConfiguration configuration);
+    public abstract BlobStoreContext getContext(WorkspaceConfiguration configuration);
 
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {

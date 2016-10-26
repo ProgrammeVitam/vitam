@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +60,7 @@ import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -78,7 +80,8 @@ public class CheckObjectsNumberActionHandlerTest {
     private ContainerExtractionUtils containerExtractionUtils;
 
     private WorkspaceClient workspaceClient;
-
+    private WorkspaceClientFactory workspaceClientFactory;
+    
     private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
     private final List<URI> uriListManifestOK = new ArrayList<>();
     private final List<URI> uriOutNumberListManifestKO = new ArrayList<>();
@@ -107,7 +110,8 @@ public class CheckObjectsNumberActionHandlerTest {
 
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        
         // URI LIST MANIFEST
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
@@ -142,12 +146,13 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         containerExtractionUtils = new ContainerExtractionUtils();
 
         checkObjectsNumberActionHandler =
@@ -160,7 +165,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
@@ -175,7 +180,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkpaceExistWhenExecuteThenReturnResponseOK()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
@@ -196,7 +201,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndDuplicatedURIManifest()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
@@ -217,7 +222,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
@@ -240,7 +245,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberWorkspace()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
@@ -262,7 +267,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndNotFoundFile()
-        throws XMLStreamException, IOException, ProcessingException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 

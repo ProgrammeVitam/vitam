@@ -61,6 +61,7 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 public class WorkerResourceTest {
 
@@ -173,7 +174,7 @@ public class WorkerResourceTest {
     @Test
     public final void testSubmitStepOK()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException {
+        ProcessingException, ContentAddressableStorageServerException {
         
         ItemStatus itemStatus= new ItemStatus("ID");
         itemStatus.setMessage("message");
@@ -195,7 +196,7 @@ public class WorkerResourceTest {
     @Test
     public final void testSubmitStepWrongHandler()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException {
+        ProcessingException, ContentAddressableStorageServerException {
         Mockito.reset(worker);
         when(worker.run(anyObject(), anyObject())).thenThrow(new HandlerNotFoundException(""));
 
@@ -210,7 +211,7 @@ public class WorkerResourceTest {
     @Test
     public final void testSubmitStepProcessingException()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException {
+        ProcessingException, ContentAddressableStorageServerException {
         Mockito.reset(worker);
         when(worker.run(anyObject(), anyObject())).thenThrow(new ProcessingException(""));
 

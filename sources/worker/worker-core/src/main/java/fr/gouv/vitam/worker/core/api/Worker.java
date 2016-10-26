@@ -33,6 +33,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Worker Interface.
@@ -50,9 +51,10 @@ public interface Worker {
      * @throws IllegalArgumentException throws when arguments are null
      * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
+     * @throws ContentAddressableStorageServerException 
      */
     CompositeItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException;
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, ContentAddressableStorageServerException;
 
 
     /**
