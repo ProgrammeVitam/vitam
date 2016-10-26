@@ -42,11 +42,11 @@ public final class UriUtils {
     /**
      * Removes the extension file and the root folder
      *
-     * FIXME REVIEW does not what it says
      *
      * @param uriString path file uri
      * @return a URI path
      */
+    // FIXME REVIEW does not what it says
     public static String splitUri(String uriString) {
         String splitedString;
         if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {
