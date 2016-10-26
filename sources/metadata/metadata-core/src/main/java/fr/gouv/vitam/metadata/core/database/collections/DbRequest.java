@@ -121,6 +121,7 @@ public class DbRequest {
     /**
      * @param debug If True, in debug mode
      */
+    // TODO: use LOGGER.isDebugEnabled instead ?
     public void setDebug(final boolean debug) {
         this.debug = debug;
     }

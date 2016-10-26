@@ -69,11 +69,6 @@ import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 @javax.ws.rs.ApplicationPath("webresources")
 public class MetaDataResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
-
-    private static final String X_HTTP_METHOD = "X-Http-Method-Override";
-
-
-
     private final MetaData metaDataImpl;
 
     /**
@@ -92,16 +87,14 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param request 
      * @param xhttpOverride 
      * @return Response
-     *
-     * @throws MetaDataDocumentSizeException
-     * @throws MetaDataExecutionException
      */
 
     @Path("units")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertOrSelectUnit(String request, @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+    public Response insertOrSelectUnit(String request, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String
+        xhttpOverride) {
 
         if (xhttpOverride != null) {
             if ("GET".equals(xhttpOverride)) {
@@ -195,16 +188,12 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param selectRequest
      * @return
-     * @throws MetaDataDocumentSizeException
-     * @throws MetaDataExecutionException
-     * @throws InvalidParseOperationException
      */
     private Response selectUnitsByQuery(String selectRequest) {
         Status status;
         JsonNode jsonResultNode;
         try {
             jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
-
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -250,7 +239,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectUnitById(String selectRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (!"GET".equals(xhttpOverride)) {
             return Response.status(Status.METHOD_NOT_ALLOWED).build();
         }
@@ -287,7 +276,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (!"GET".equals(xhttpOverride)) {
             return Response.status(Status.METHOD_NOT_ALLOWED).build();
         }
@@ -497,6 +486,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Request select required", selectRequest);
         } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(new RequestResponseError().setError(
                 new VitamError(Status.PRECONDITION_FAILED.getStatusCode())
                     .setContext("METADATA")

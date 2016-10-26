@@ -52,7 +52,7 @@ public class ElasticsearchAccessMetadataFactory {
             return new ElasticsearchAccessMetadata(configuration.getClusterName(),
                 configuration.getElasticsearchNodes());
         } catch (final VitamException e) {
-            throw new MetaDataException(e.getMessage(), e);
+            throw new MetaDataException(e);
         }
     }
 }

@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.BSONObject;
 import org.bson.Document;
@@ -341,7 +342,7 @@ public class Unit extends MetadataDocument<Unit> {
             HashMap<String, Integer> depthLevels =
                 (HashMap<String, Integer>) get(UNITDEPTHS);
             if (depthLevels == null) {
-                depthLevels = new HashMap<String, Integer>();
+                depthLevels = new HashMap<>();
             }
             final BasicDBObject vtDepthLevels = new BasicDBObject();
             if (vtDepths != null) {
@@ -391,7 +392,7 @@ public class Unit extends MetadataDocument<Unit> {
             @SuppressWarnings("unchecked")
             List<String> ups = (List<String>) get(UNITUPS);
             if (ups == null) {
-                ups = new ArrayList<String>();
+                ups = new ArrayList<>();
             }
             if (vtUps != null) {
                 // remove all not in vt but in current as newly added
@@ -477,10 +478,9 @@ public class Unit extends MetadataDocument<Unit> {
         if (vtDomaineLevels != null) {
             for (int i = 0; i < vtDomaineLevels.size(); i++) {
                 final Document currentParent = vtDomaineLevels.get(i);
-                for (final java.util.Map.Entry<String, Object> entry : currentParent
-                    .entrySet()) {
-                    sublist.add(new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1));
-                }
+                sublist.addAll(currentParent
+                    .entrySet().stream().map(entry -> new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1))
+                    .collect(Collectors.toList()));
             }
         }
         sublist.add(new BasicDBObject(id, 1));
@@ -497,10 +497,10 @@ public class Unit extends MetadataDocument<Unit> {
         final List<String> subids = (List<String>) get(UNITUPS);
         List<String> subids2;
         if (subids != null) {
-            subids2 = new ArrayList<String>(subids.size() + 1);
+            subids2 = new ArrayList<>(subids.size() + 1);
             subids2.addAll(subids);
         } else {
-            subids2 = new ArrayList<String>(1);
+            subids2 = new ArrayList<>(1);
         }
         subids2.add(getId());
         return subids2;
@@ -528,9 +528,8 @@ public class Unit extends MetadataDocument<Unit> {
         int depth = 0;
         if (map != null) {
             for (final Integer integer : map.values()) {
-                final Integer type = integer;
-                if (depth < type) {
-                    depth = type;
+                if (depth < integer) {
+                    depth = integer;
                 }
             }
         }
@@ -548,9 +547,8 @@ public class Unit extends MetadataDocument<Unit> {
         int depth = this.getInteger(MINDEPTH, GlobalDatasParser.MAXDEPTH);
         if (map != null) {
             for (final Integer integer : map.values()) {
-                final Integer type = integer;
-                if (depth > type) {
-                    depth = type;
+                if (depth > integer) {
+                    depth = integer;
                 }
             }
         }

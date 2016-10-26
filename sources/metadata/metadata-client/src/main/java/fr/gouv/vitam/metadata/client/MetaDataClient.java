@@ -73,7 +73,6 @@ public class MetaDataClient {
      * @param url of metadata server
      */
     public MetaDataClient(String url) {
-        super();
         client = ClientBuilder.newClient();
         this.url = url + RESOURCE_PATH;
     }

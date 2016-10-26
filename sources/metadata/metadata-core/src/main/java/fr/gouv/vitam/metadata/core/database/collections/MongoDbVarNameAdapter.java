@@ -58,8 +58,6 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
             final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
             switch (proj) {
-                case ALL:
-                    break;
                 case DUA:
                     // Valid for Unit
                     return Unit.APPRAISALRULES;
@@ -90,6 +88,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case OPERATIONS:
                     // Valid for Unit and OG
                     return MetadataDocument.OPS;
+                case ALL:
                 default:
                     break;
             }
