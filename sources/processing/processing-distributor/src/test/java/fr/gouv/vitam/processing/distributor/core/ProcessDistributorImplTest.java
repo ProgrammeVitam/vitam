@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.distributor.core;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +44,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ActionDefinition;
 import fr.gouv.vitam.processing.common.model.Distribution;
@@ -55,8 +54,6 @@ import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
-import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -114,10 +111,11 @@ public class ProcessDistributorImplTest {
 
 
     @Test
-    public void givenProcessDistributorWhendistributeThenCatchTheOtherException() {
+    public void givenProcessDistributorWhendistributeThenProcessRefDistribution() {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
         step.setBehavior(ProcessBehavior.BLOCKING);
+        step.setDistribution(new Distribution().setKind(DistributionKind.REF).setElement("testElement"));
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
@@ -126,11 +124,21 @@ public class ProcessDistributorImplTest {
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
-
         final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
-
+        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
+        final String workerId = "NewWorkerId";
+        try {
+            WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        } catch (WorkerAlreadyExistsException e) {
+            fail("In Junit, there can't be an already registered Worker . Parallel issue");
+        } catch (ProcessingBadRequestException e) {
+            fail("Incorrect worker description");
+        }
+        
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
+    
+    
 
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessDistributorWhendistributeThenCatchIllegalArgumentException() {
@@ -143,6 +151,8 @@ public class ProcessDistributorImplTest {
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
+        
+        
         PROCESS_DISTRIBUTOR.distribute(params, null, WORKFLOW_ID);
     }
 
@@ -203,76 +213,4 @@ public class ProcessDistributorImplTest {
             assertTrue(entry.getValue().getElementToProcess() > 0);
         }
     }
-
-    @Test
-    public void givenProcessDistributorWhenRegisterWorkerThenOK() throws Exception {
-        final String familyId = "NewFamilyId";
-        final String workerId = "NewWorkerId";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(PROCESS_DISTRIBUTOR.getWorkersList().size() > 0);
-    }
-
-    @Test(expected = WorkerAlreadyExistsException.class)
-    public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId1";
-        final String workerId = "NewWorkerId1";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-    }
-
-
-    @Test
-    public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
-        final String familyId = "NewFamilyId2";
-        final String workerId = "NewWorkerId2";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        final int sizeBefore = PROCESS_DISTRIBUTOR.getWorkersList().get(familyId).size();
-        PROCESS_DISTRIBUTOR.unregisterWorker(familyId, workerId);
-        final int sizeAfter = PROCESS_DISTRIBUTOR.getWorkersList().get(familyId).size();
-        assertTrue(sizeBefore > sizeAfter);
-    }
-
-    @Test(expected = WorkerFamilyNotFoundException.class)
-    public void givenProcessDistributorWhenUnRegisterNonExistingFamilyThenProcessingException() throws Exception {
-        final String familyId = "UnknownFamilyId";
-        final String workerId = "NewWorkerId1";
-        PROCESS_DISTRIBUTOR.unregisterWorker(familyId, workerId);
-    }
-
-    @Test(expected = WorkerNotFoundException.class)
-    public void givenProcessDistributorWhenUnRegisterNonExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId3";
-        final String workerId = "NewWorkerId3";
-        final String workerUnknownId = "UnknownWorkerId";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        PROCESS_DISTRIBUTOR.unregisterWorker(familyId, workerUnknownId);
-    }
-
-    @Test(expected = ProcessingBadRequestException.class)
-    public void givenProcessDistributorWhenRegisterIncorrectJsonNodeThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId4";
-        final String workerId = "NewWorkerId4";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
-    }
-
-    @Test
-    public void givenProcessDistributorWhenRegisterWorkerExistingFamilyThenOK() throws Exception {
-        final String familyId = "NewFamilyId";
-        final String workerId = "NewWorkerId5";
-        PROCESS_DISTRIBUTOR.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(PROCESS_DISTRIBUTOR.getWorkersList().size() > 0);
-    }
-
-    @Test
-    public void testConstructor() throws Exception {
-        final WorkerBean bean = new WorkerBean("name", "family", 1, 1, "status",
-            new WorkerRemoteConfiguration("localhost", 89102));
-        final ProcessDistributorImpl processDImpl = new ProcessDistributorImpl(bean, "workerId", "familtyId");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructorThrowsException() throws Exception {
-        final ProcessDistributorImpl processDImpl = new ProcessDistributorImpl(null, null, null);
-    }
-
 }

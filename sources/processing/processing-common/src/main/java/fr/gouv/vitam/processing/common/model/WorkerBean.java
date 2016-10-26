@@ -46,7 +46,7 @@ public class WorkerBean {
     @JsonProperty("family")
     private String family;
     @JsonProperty("capacity")
-    private long capacity;
+    private int capacity = 1;
     @JsonProperty("storage")
     private long storage;
     @JsonProperty("status")
@@ -76,7 +76,7 @@ public class WorkerBean {
      */
     @JsonCreator
     public WorkerBean(@JsonProperty("name") String name, @JsonProperty("family") String family,
-        @JsonProperty("capacity") long capacity, @JsonProperty("storage") long storage,
+        @JsonProperty("capacity") int capacity, @JsonProperty("storage") long storage,
         @JsonProperty("status") String status,
         @JsonProperty("configuration") WorkerRemoteConfiguration configuration) {
         ParametersChecker.checkParameter("name is a mandatory parameter", name);
@@ -161,7 +161,7 @@ public class WorkerBean {
     /**
      * @return the capacity
      */
-    public long getCapacity() {
+    public int getCapacity() {
         return capacity;
     }
 
@@ -172,7 +172,7 @@ public class WorkerBean {
      *
      * @return the updated WorkerBean object
      */
-    public WorkerBean setCapacity(long capacity) {
+    public WorkerBean setCapacity(int capacity) {
         this.capacity = capacity;
         return this;
     }

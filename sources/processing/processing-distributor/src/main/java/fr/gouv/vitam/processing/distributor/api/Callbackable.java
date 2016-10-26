@@ -24,49 +24,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.processing.distributor.api;
 
-package fr.gouv.vitam.processing.common.parameter;
-
-import java.util.Map;
-import java.util.Set;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
- * Default parameters for worker
+ * Interface for class having a Callback that must be called by async request at the end of execution
+ * 
+ * @param <T>
  */
-@JsonSerialize(using = WorkerParametersSerializer.class)
-@JsonDeserialize(using = WorkerParametersDeserializer.class)
-public class DefaultWorkerParameters extends AbstractWorkerParameters {
+public interface Callbackable<T> {
 
     /**
-     * Constructor use by the factory to initialize the set mandatory
-     *
-     * @param mandatory the mandatory fields set
+     * Must be called by async request at the end of execution
+     * 
+     * @param returnArguments
      */
-    DefaultWorkerParameters(final Set<WorkerParameterName> mandatory) {
-        super(mandatory);
-    }
-
-    /**
-     * Builder for REST
-     *
-     * @param map the wanted parameters
-     * @throws IllegalArgumentException if one key is not allowed
-     */
-    protected DefaultWorkerParameters(Map<String, String> map) {
-        super(WorkerParametersFactory.getDefaultMandatory());
-        setMap(map);
-    }
-    
-    /**
-     * Shallow copy of DefaultWorkerParameter
-     * @return the shallow copy
-     */
-    public DefaultWorkerParameters newInstance(){
-        DefaultWorkerParameters awp = new DefaultWorkerParameters(getMandatoriesParameters());
-        awp.mapParameters.putAll(mapParameters);
-        return awp;
-    }
+    void callbackResponse(T returnArguments);
 }
