@@ -74,6 +74,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     private static final String METRIC_METER_NAME = "meter";
     private static final String METRIC_TIMER_NAME = "timer";
     private static final String METRIC_EXCEPTION_METER_NAME = "exceptionMeter";
+    private static final String METRIC_NAME_CONFIGURATION_PARAMETERS = "Metric name configuration parameters";
 
     /****************************************************************************************************
      * * THE CODE STARTING HERE DIFFERS FROM {@link InstrumentedResourceMethodApplicationListener} * *
@@ -102,7 +103,9 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @param name
      * @return String
      */
-    static public final String metricMeterName(final String name) {
+    public static final String metricMeterName(final String name) {
+        ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
+        
         return name + METRIC_NAME_DELIMITER + METRIC_METER_NAME;
     }
 
@@ -114,7 +117,9 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @param name
      * @return String
      */
-    static public final String metricTimerName(final String name) {
+    public static final String metricTimerName(final String name) {
+        ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
+        
         return name + METRIC_NAME_DELIMITER + METRIC_TIMER_NAME;
     }
 
@@ -126,7 +131,9 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @param name
      * @return String
      */
-    static public final String metricExceptionMeterName(final String name) {
+    public static final String metricExceptionMeterName(final String name) {
+        ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
+        
         return name + METRIC_NAME_DELIMITER + METRIC_EXCEPTION_METER_NAME;
     }
 
@@ -138,6 +145,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @return String
      */
     final private String concatURI(String first, String second) {
+        ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, first, second);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (first.length() > 0 && first.charAt(first.length() - 1) != '/' && second.length() > 0 &&
@@ -149,6 +157,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     }
 
     final private String getConsumedTypesAsString(final ResourceMethod method) {
+        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (!method.getConsumedTypes().isEmpty()) {
@@ -162,6 +171,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     }
 
     final private String getProducedTypesAsString(final ResourceMethod method) {
+        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (!method.getProducedTypes().isEmpty()) {
@@ -186,6 +196,8 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @return String
      */
     final private String metricGenericName(final ResourceMethod method, final String URI) {
+        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method, URI);
+        
         return URI +
             METRIC_NAME_DELIMITER +
             method.getHttpMethod() +
@@ -344,7 +356,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     }
 
     /****************************************************************************************************
-     * * THE CODE ENDING HERE DIFFERS FROM {@link VitamInstrumentedResourceMethodApplicationListener} * *
+     * * THE CODE ENDING HERE DIFFERS FROM {@link InstrumentedResourceMethodApplicationListener}      * *
      ***************************************************************************************************/
 
     private static class TimerRequestEventListener implements RequestEventListener {
