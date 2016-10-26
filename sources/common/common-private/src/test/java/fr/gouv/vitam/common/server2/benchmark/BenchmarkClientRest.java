@@ -34,6 +34,7 @@ import java.util.List;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -45,6 +46,7 @@ import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -144,6 +146,14 @@ public class BenchmarkClientRest extends DefaultClient {
                 return -1;
             }
         }
+    }
+
+    /**
+     * Make protected method available
+     */
+    public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+        MediaType accept) throws VitamClientInternalException {
+        return super.performRequest(httpMethod, path, headers, accept);
     }
 
     /**

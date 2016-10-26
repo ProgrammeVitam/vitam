@@ -38,4 +38,5 @@ public interface BasicClient extends MockOrRestClient {
      * Global status url for Application and Admin Status
      */
     String STATUS_URL = VitamConfiguration.STATUS_URL;
+
 }

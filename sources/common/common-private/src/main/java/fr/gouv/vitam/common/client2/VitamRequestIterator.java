@@ -112,7 +112,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
         try {
             headers.add(GlobalDataRest.X_CURSOR, false);
             headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
-            response = client.performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
         } catch (VitamClientInternalException e) {
             throw new BadRequestException(e);
         } finally {
@@ -163,7 +163,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
             Response response = null;
             try {
                 headers.add(GlobalDataRest.X_CURSOR, true);
-                response = client.performRequest(method, path, headers, request, MediaType.APPLICATION_JSON_TYPE,
+                response = ((AbstractCommonClient) client).performRequest(method, path, headers, request, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
@@ -188,7 +188,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
         } else {
             Response response = null;
             try {
-                response = client.performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
+                response = ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
                         closed = true;
