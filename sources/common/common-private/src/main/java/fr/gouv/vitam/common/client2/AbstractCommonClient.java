@@ -209,6 +209,34 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     /**
+     * Perform a HTTP request to the server for synchronous call
+     *
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
+     * @param contentType the media type of the body to send, null if body is null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
+     * @return the response from the server
+     * @throws VitamClientInternalException 
+     */
+    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+        Object body, MediaType contentType, MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
+        if (body == null) {
+            return performRequest(httpMethod, path, headers, accept, getChunkedMode());
+        }
+        try {
+            ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL,
+                body, contentType);
+            final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
+            return builder.method(httpMethod, Entity.entity(body, contentType));
+        } catch (ProcessingException e) {
+            throw new VitamClientInternalException(e);
+        }
+    }
+
+    /**
      * Perform an Async HTTP request to the server with callback
      *
      * @param httpMethod HTTP method to use for request

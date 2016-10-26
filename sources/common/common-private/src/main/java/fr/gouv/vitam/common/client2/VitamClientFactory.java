@@ -116,6 +116,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private String resourcePath;
     protected ClientConfiguration clientConfiguration;
     private boolean chunkedMode;
+    private boolean multipartMode;
     private final Client givenClient;
     private VitamClientType vitamClientType = VitamClientType.MOCK;
     PoolingHttpClientConnectionManager chunkedPoolingManager;
@@ -131,7 +132,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath) {
-        this(configuration, resourcePath, true, false);
+        this(configuration, resourcePath, true, false, true);
     }
 
     /**
@@ -145,12 +146,28 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
         boolean suppressHttpCompliance, boolean allowMultipart) {
+        this(configuration, resourcePath, suppressHttpCompliance, allowMultipart, !allowMultipart);
+    }
+
+    /**
+     * Constructor to allow to enable Multipart support or Chunked mode
+     *
+     * @param configuration The client configuration
+     * @param resourcePath the resource path of the server for the client calls
+     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
+     * @param multipart allow multipart and disabling chunked mode
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
+        boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode) {
         internalConfigure();
         initialisation(configuration, resourcePath);
         config.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
         configNotChunked.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
-        chunkedMode = !allowMultipart;
+        this.chunkedMode = chunkedMode;
+        this.multipartMode = allowMultipart;
         if (allowMultipart) {
+            this.chunkedMode = false;
             LOGGER.warn("This client is using Multipart therefore not Chunked mode");
         }
         disableChunkMode(configNotChunked);
@@ -336,8 +353,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @param config
      */
     private final void disableChunkMode(ClientConfig config) {
-        config.register(MultiPartFeature.class)
-            .property(ClientProperties.CHUNKED_ENCODING_SIZE, 0)
+        if (multipartMode) {
+            config.register(MultiPartFeature.class);
+        }
+        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 0)
             .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
     }
 

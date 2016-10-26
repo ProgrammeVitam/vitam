@@ -349,7 +349,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @GET
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
-    // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         String query, @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
@@ -365,7 +365,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @POST
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
-    // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamPostAsync(@Context HttpHeaders headers,
         @PathParam("id_object_group") String idObjectGroup, String query,
         @Suspended final AsyncResponse asyncResponse) {

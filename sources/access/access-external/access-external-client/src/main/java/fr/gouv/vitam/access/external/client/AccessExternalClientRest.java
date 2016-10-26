@@ -32,6 +32,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * Rest client implementation for Access External
  */
 public class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
+    private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
+    private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String UNAUTHORIZED = "Unauthorized";
+    private static final String UNITS = "/units/";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -71,11 +75,11 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException("Unauthorized");
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException("Not Found Exception");
+                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new InvalidParseOperationException("Invalid Parse Operation");
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             }
             return response.readEntity(JsonNode.class);
 
@@ -102,15 +106,15 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         }
 
         try {
-            response = performRequest(HttpMethod.POST, "/units/" + unitId, headers,
-                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, UNITS + unitId, headers,
+                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException("Unauthorized");
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException("Not Found Exception");
+                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException("Invalid Parse Operation");
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             }
 
             return response.readEntity(JsonNode.class);
@@ -137,15 +141,15 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         }
 
         try {
-            response = performRequest(HttpMethod.PUT, "/units/" + unitId, headers,
+            response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessExternalClientServerException("Unauthorized");
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException("Not Found Exception");
+                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException("Invalid Parse Operation");
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             }
 
             return response.readEntity(JsonNode.class);
@@ -170,16 +174,16 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
 
         try {
             response = performRequest(HttpMethod.POST, "/objects/" + objectId, headers,
-                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException("Unauthorized");
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException("Invalid Parse Operation");
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
             }
@@ -210,7 +214,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         headers.add(GlobalDataRest.X_VERSION, version);
 
         try {
-            response = performRequest(HttpMethod.POST, "/units/" + objectId + "/object", headers,
+            response = performRequest(HttpMethod.POST, UNITS + objectId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -219,7 +223,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException("Invalid Parse Operation");
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
             }
@@ -271,7 +275,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
                 LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -301,7 +305,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
                 LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -331,7 +335,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, headers,
                 LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

@@ -50,7 +50,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientFactory.class);
     private static final AccessExternalClientFactory ACCESS_CLIENT_FACTORY = new AccessExternalClientFactory();
 
-    public static final String RESOURCE_PATH = "/access-external/v1";
+    private static final String RESOURCE_PATH = "/access-external/v1";
 
     private AccessExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);

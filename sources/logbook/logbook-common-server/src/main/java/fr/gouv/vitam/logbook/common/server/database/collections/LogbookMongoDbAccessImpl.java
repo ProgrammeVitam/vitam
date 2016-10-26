@@ -84,6 +84,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  *
  */
 public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements LogbookDbAccess {
+    private static final String ITEM_CANNOT_BE_NULL = "Item cannot be null";
     private static final String AT_LEAST_ONE_ITEM_IS_NEEDED = "At least one item is needed";
     private static final String LOGBOOK_LIFE_CYCLE_NOT_FOUND = "LogbookLifeCycle not found";
     private static final String SELECT_ISSUE = "Select issue";
@@ -540,7 +541,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @SuppressWarnings("unchecked")
     final void createLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter("Item cannot be null", item);
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         try {
             collection.getCollection().insertOne(getDocument(item));
         } catch (final MongoException e) {
@@ -586,7 +587,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     final void updateLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        ParametersChecker.checkParameter("Item cannot be null", item);
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         @SuppressWarnings("rawtypes")
         final VitamDocument document = getDocumentForUpdate(item);
         try {
@@ -683,7 +684,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     final void createBulkLogbook(LogbookCollections collection, final LogbookParameters item,
         final LogbookParameters... items)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter("Item cannot be null", item);
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         final VitamDocument document = getDocument(item);
         if (items != null && items.length > 0) {
             final List<VitamDocument> events = new ArrayList<>(items.length);

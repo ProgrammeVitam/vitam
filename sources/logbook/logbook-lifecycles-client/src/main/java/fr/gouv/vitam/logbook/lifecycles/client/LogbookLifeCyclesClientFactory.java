@@ -95,7 +95,9 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
     public static final String RESOURCE_PATH = "/logbook/v1";
 
     private LogbookLifeCyclesClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        // All requests from client are SMALL, but responses from server could be Huge
+        // So Chunked mode inactive on client side
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
     /**
@@ -154,7 +156,7 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
      *
      * @param configuration null for MOCK
      */
-    static final void changeMode(ClientConfiguration configuration) {
+    public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 

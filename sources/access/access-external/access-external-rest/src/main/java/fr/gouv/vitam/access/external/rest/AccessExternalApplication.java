@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
@@ -59,7 +60,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
  * Access web server application
  */
 public class AccessExternalApplication
-extends AbstractVitamApplication<AccessExternalApplication, AccessExternalConfiguration> {
+    extends AbstractVitamApplication<AccessExternalApplication, AccessExternalConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalApplication.class);
     private static final String CONF_FILE_NAME = "access-external.conf";
@@ -68,8 +69,11 @@ extends AbstractVitamApplication<AccessExternalApplication, AccessExternalConfig
 
 
     static VitamServiceRegistry serviceRegistry = null;
+
     /**
      * AccessApplication constructor
+     * 
+     * @param configuration
      */
     public AccessExternalApplication(String configuration) {
         super(AccessExternalConfiguration.class, configuration);
@@ -103,12 +107,15 @@ extends AbstractVitamApplication<AccessExternalApplication, AccessExternalConfig
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance());
-        serviceRegistry.register(LogbookOperationsClientFactory.getInstance());
-        serviceRegistry.register(AccessInternalClientFactory.getInstance());
+        // FIXME Logbook Should be remove
+        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
+            .register(LogbookOperationsClientFactory.getInstance())
+            .register(AccessInternalClientFactory.getInstance());
+        // FIXME missing when ready (included with correct configuration file)
+            //.register(AdminManagementClientFactory.getInstance());
         resourceConfig.register(new AccessExternalResourceImpl())
-        .register(new LogbookExternalResourceImpl())
-        .register(new AdminStatusResource(serviceRegistry));
+            .register(new LogbookExternalResourceImpl())
+            .register(new AdminStatusResource(serviceRegistry));
     }
 
 
@@ -139,7 +146,7 @@ extends AbstractVitamApplication<AccessExternalApplication, AccessExternalConfig
     protected int getSession() {
         return ServletContextHandler.SESSIONS;
     }
-    
+
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
         serviceRegistry = newServiceRegistry;
     }

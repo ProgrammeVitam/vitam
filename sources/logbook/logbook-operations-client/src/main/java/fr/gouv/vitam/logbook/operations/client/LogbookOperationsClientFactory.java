@@ -96,7 +96,9 @@ public final class LogbookOperationsClientFactory extends VitamClientFactory<Log
     public static final String RESOURCE_PATH = "/logbook/v1";
 
     private LogbookOperationsClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        // All requests from client are SMALL, but responses from server could be Huge
+        // So Chunked mode inactive on client side
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
     /**
