@@ -35,7 +35,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +47,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -62,8 +60,8 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
-import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -86,15 +84,11 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookOperationsClientFactory.class,
-    IngestExternalClientFactory.class, AdminManagementClientFactory.class, LogbookLifeCyclesClientFactory.class,
+@PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
+    IngestExternalClientFactory.class, AdminManagementClientFactory.class,
     JsonTransformer.class, WebApplicationConfig.class})
 // FIXME Remove IOUtils.toByteArray(stream)
 public class WebApplicationResourceTest {
@@ -183,18 +177,11 @@ public class WebApplicationResourceTest {
     public void testLogbookResultRemainingExceptions()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
 
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         final String preparedDslQuery = "";
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        PowerMockito.when(logbookOperationsClient.selectOperation(preparedDslQuery)).thenThrow(Exception.class);
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery)).thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
     }
@@ -203,13 +190,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookClientException()
         throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId("1")).thenThrow(LogbookClientException.class);
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1")).thenThrow(LogbookClientException.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/logbook/operations/1");
@@ -219,13 +200,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookRemainingException()
         throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId("1")).thenThrow(Exception.class);
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1")).thenThrow(Exception.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/logbook/operations/1");
@@ -234,12 +209,6 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookRemainingIllrgalArgumentException()
         throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
 
         given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/logbook/operations/1");
@@ -263,8 +232,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultAccessClientServerException() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveSearchResultAccessExternalClientServerException() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         final String preparedDslQuery = "";
 
@@ -272,9 +241,9 @@ public class WebApplicationResourceTest {
             .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
-        // AccessClientServerException
+        // AccessExternalClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery))
-            .thenThrow(AccessClientServerException.class);
+            .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
@@ -282,8 +251,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultAccessClientNotFoundException() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveSearchResultAccessExternalClientNotFoundException() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         final String preparedDslQuery = "";
 
@@ -291,9 +260,9 @@ public class WebApplicationResourceTest {
             .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
-        // AccessClientServerException
+        // AccessExternalClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery))
-            .thenThrow(AccessClientNotFoundException.class);
+            .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/archivesearch/units");
@@ -301,8 +270,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultRemainingExceptions() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveSearchResultRemainingExceptions() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         final String preparedDslQuery = "";
 
@@ -310,7 +279,7 @@ public class WebApplicationResourceTest {
             .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
-        // AccessClientServerException
+        // AccessExternalClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery)).thenThrow(Exception.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -341,8 +310,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsAccessClientServerException() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveUnitDetailsAccessExternalClientServerException() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -351,9 +320,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
-        // AccessClientServerException
+        // AccessExternalClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1"))
-            .thenThrow(AccessClientServerException.class);
+            .thenThrow(AccessExternalClientServerException.class);
 
         given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archivesearch/unit/1");
@@ -361,8 +330,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsAccessClientNotFoundException() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveUnitDetailsAccessExternalClientNotFoundException() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -371,9 +340,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 2 :
-        // AccessClientNotFoundException
+        // AccessExternalClientNotFoundException
         PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1"))
-            .thenThrow(AccessClientNotFoundException.class);
+            .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().param("id", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/archivesearch/unit/1");
@@ -381,8 +350,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsRemainingExceptions() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveUnitDetailsRemainingExceptions() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -428,11 +397,9 @@ public class WebApplicationResourceTest {
             .put("/archiveupdate/units/1");
     }
 
-    // TODO Fix read entity
-    @Ignore
     @Test
     public void testUploadSipOK() throws Exception {
-
+        Response mockResponse = Mockito.mock(Response.class);
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
@@ -440,8 +407,9 @@ public class WebApplicationResourceTest {
 
         final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         final String xmlString = FileUtil.readInputStream(inputStreamATR);
-        Mockito.doReturn(Response.status(Status.OK).entity(xmlString).header(GlobalDataRest.X_REQUEST_ID, "Atr")
-            .build()).when(ingestClient).upload(anyObject());
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn(xmlString).when(mockResponse).readEntity(String.class);
+        Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -641,11 +609,11 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testNotFoundGetArchiveObjectGroup() throws AccessClientServerException,
-        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testNotFoundGetArchiveObjectGroup() throws AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
 
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
-            .thenThrow(new AccessClientNotFoundException(""));
+            .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -677,7 +645,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testInternalServerErrorGetArchiveObjectGroup() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
-            .thenThrow(new AccessClientServerException(""));
+            .thenThrow(new AccessExternalClientServerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -699,7 +667,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
-            .thenThrow(new AccessClientNotFoundException(""));
+            .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -733,7 +701,7 @@ public class WebApplicationResourceTest {
     public void testAccessServerExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
-            .thenThrow(new AccessClientServerException(""));
+            .thenThrow(new AccessExternalClientServerException(""));
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -794,14 +762,14 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testUnitTreeWithAccessClientServerException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, AccessClientServerException,
-        AccessClientNotFoundException {
+    public void testUnitTreeWithAccessExternalClientServerException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessClientServerException.class);
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -810,14 +778,14 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testUnitTreeWithAccessClientNotFoundException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, AccessClientServerException,
-        AccessClientNotFoundException {
+    public void testUnitTreeWithAccessExternalClientNotFoundException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessClientNotFoundException.class);
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -992,17 +960,9 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetUnitLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
         final JsonNode result = FAKE_JSONNODE_RETURN;
 
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID)).thenReturn(result);
+        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID)).thenReturn(result);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
@@ -1010,17 +970,9 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetObjectGroupLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
         final JsonNode result = FAKE_JSONNODE_RETURN;
 
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID)).thenReturn(result);
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID)).thenReturn(result);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
@@ -1030,15 +982,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
             .thenThrow(InvalidParseOperationException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -1049,15 +993,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
             .thenThrow(LogbookClientException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -1068,15 +1004,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetUnitLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -1087,15 +1015,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
             .thenThrow(InvalidParseOperationException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -1106,15 +1026,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
             .thenThrow(LogbookClientException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -1125,15 +1037,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetOjectGroupLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        final LogbookLifeCyclesClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -1142,15 +1046,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenReturn(sampleLogbookOperation);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -1160,15 +1056,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -1178,39 +1066,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenThrow(InvalidParseOperationException.class);
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetLogbookStatisticsWithNotFoundWhenInvalidParseOperationException()
-        throws VitamException, IOException {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        PowerMockito.mockStatic(JsonTransformer.class);
-        final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-
-        PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
-            .thenReturn(sampleLogbookOperation);
-
-        PowerMockito.when(JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation, FAKE_OPERATION_ID))
-            .thenThrow(NullPointerException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/stat/" + FAKE_OPERATION_ID);

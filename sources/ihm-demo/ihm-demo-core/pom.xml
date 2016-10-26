@@ -13,12 +13,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-common-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>access-client</artifactId>
+			<artifactId>access-external-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
