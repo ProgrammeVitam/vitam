@@ -65,8 +65,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
-import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -92,10 +92,6 @@ import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 /**
  * Web Application Resource class
@@ -143,10 +139,10 @@ public class WebApplicationResource {
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -177,10 +173,10 @@ public class WebApplicationResource {
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -232,15 +228,14 @@ public class WebApplicationResource {
         } else {
             requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
-            try (final LogbookOperationsClient logbookOperationsClient =
-                LogbookOperationsClientFactory.getInstance().getClient()) {
+            try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-
-                result = logbookOperationsClient.selectOperation(query);
+                
+                result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result);
@@ -279,11 +274,10 @@ public class WebApplicationResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
         JsonNode result = null;
-        try (final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = logbookOperationsClient.selectOperationbyId(operationId);
+            result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -388,10 +382,10 @@ public class WebApplicationResource {
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -556,10 +550,10 @@ public class WebApplicationResource {
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -599,10 +593,10 @@ public class WebApplicationResource {
         } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -796,10 +790,10 @@ public class WebApplicationResource {
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
+        } catch (final AccessExternalClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -852,9 +846,7 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         JsonNode result = null;
         try {
-            final LogbookLifeCyclesClient logbookLifeCycleClient =
-                LogbookLifeCyclesClientFactory.getInstance().getClient();
-            result = logbookLifeCycleClient.selectUnitLifeCycleById(unitLifeCycleId);
+            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -883,9 +875,7 @@ public class WebApplicationResource {
         JsonNode result = null;
 
         try {
-            final LogbookLifeCyclesClient logbookLifeCycleClient =
-                LogbookLifeCyclesClientFactory.getInstance().getClient();
-            result = logbookLifeCycleClient.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
+            result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -910,9 +900,8 @@ public class WebApplicationResource {
     @Path("/stat/{id_op}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        try (final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
-            final JsonNode logbookOperationResult = logbookOperationsClient.selectOperationbyId(operationId);
+        try {
+            final JsonNode logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.has("result")) {
                 final JsonNode logbookOperation = logbookOperationResult.get("result");
                 // Create csv file
@@ -930,9 +919,6 @@ public class WebApplicationResource {
         } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();

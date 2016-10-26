@@ -46,17 +46,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-lifecycles-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.shiro</groupId>
 			<artifactId>shiro-core</artifactId>
 		</dependency>
