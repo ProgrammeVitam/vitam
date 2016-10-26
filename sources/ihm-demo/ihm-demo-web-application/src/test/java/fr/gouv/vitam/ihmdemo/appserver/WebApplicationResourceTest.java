@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -59,6 +60,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -147,6 +149,17 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
+    }
+
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testMessagesLogbook() throws InvalidParseOperationException {
+        ResponseBody response =
+            given().contentType(ContentType.JSON).expect().statusCode(Status.OK.getStatusCode()).when()
+                .get("/messages/logbook").getBody();
+        JsonNode jsonNode = JsonHandler.getFromInputStream(response.asInputStream());
+        assertTrue(jsonNode.isObject());
     }
 
 

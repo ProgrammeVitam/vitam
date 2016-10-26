@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.i18n;
 
 import java.util.Locale;
+import java.util.Map;
 
 import fr.gouv.vitam.common.model.StatusCode;
 
@@ -37,7 +38,6 @@ public class VitamLogbookMessages {
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-logbook-messages";
     private static final VitamLogbookMessages VITAM_MESSAGES = new VitamLogbookMessages();
     private static final String SEPARATOR = ".";
-    private static final String LABEL = SEPARATOR + "LABEL";
     private static final String LIFECYCLE = SEPARATOR + "LFC";
 
     final Messages messages;
@@ -67,13 +67,22 @@ public class VitamLogbookMessages {
     }
 
     /**
+     * Retrieve all the messages
+     * 
+     * @return map of messages
+     */
+    public static Map<String, String> getAllMessages() {
+        return VITAM_MESSAGES.messages.getAllMessages();
+    }
+
+    /**
      * Operation Logbook context
      * 
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @return the Label of this step or handler or full named
      */
     public static final String getLabelOp(String stepOrHandler) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LABEL);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler);
     }
 
     /**
@@ -83,7 +92,7 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named
      */
     public static final String getLabelLfc(String stepOrHandler) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + LABEL);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE);
     }
 
     /**
@@ -94,7 +103,7 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named with sub transaction
      */
     public static final String getLabelOp(String stepOrHandler, String transaction) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + transaction + LABEL);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + transaction);
     }
 
     /**
@@ -105,7 +114,7 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named with sub transaction
      */
     public static final String getLabelLfc(String stepOrHandler, String transaction) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + transaction + LABEL);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + transaction);
     }
 
     /**

@@ -45,11 +45,11 @@ angular.module('lifecycle')
     self.maxSize = 5;
 
     self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
+      selfcurrentPage = pageNo;
     };
 
     self.pageChanged = function() {
-     console.log('Page changed to: ' + self.currentPage);
+      console.log('Page changed to: ' + self.currentPage);
     };
 
     self.setItemsPerPage = function(num) {
@@ -104,7 +104,12 @@ angular.module('lifecycle')
             if(isEndEvent){
               var newEvent = {};
               angular.forEach(value, function(value, key) {
-                newEvent[key.toUpperCase()] = value;
+                var uppercaseKey = key.toUpperCase();
+                if (uppercaseKey === 'EVTYPE') {
+                  newEvent[uppercaseKey] = $filter('translate')(value);
+                } else {
+                  newEvent[uppercaseKey] = value;
+                }
               });
 
               self.lifeCycleDetails.push(newEvent);

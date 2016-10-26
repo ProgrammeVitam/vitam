@@ -27,7 +27,9 @@
 package fr.gouv.vitam.common.i18n;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -81,6 +83,21 @@ public class Messages {
         return ResourceBundle.getBundle(bundleName, locale);
     }
 
+
+    /**
+     * Retrieve all the messages
+     * 
+     * @return map of messages
+     */
+    public Map<String, String> getAllMessages() {
+        final Map<String, String> bundleMap = new HashMap<>();
+        for (String key : resourceBundle.keySet()) {
+            final String value = resourceBundle.getString(key);
+            bundleMap.put(key, value);
+        }
+        return bundleMap;
+    }
+
     /**
      *
      * @param key the key of the message
@@ -120,6 +137,7 @@ public class Messages {
         }
         return builder.toString();
     }
+
     /**
      *
      * @param key the key of the message

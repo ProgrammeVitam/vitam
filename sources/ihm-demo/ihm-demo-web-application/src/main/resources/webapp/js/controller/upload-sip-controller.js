@@ -30,6 +30,7 @@
 angular.module('ihm.demo')
   .constant("VITAM_URL", "/ihm-demo/v1/api/ingest/upload")
   .controller('uploadController', function($scope, FileUploader, VITAM_URL, $mdDialog, $route, $cookies, $location) {
+
     var uploader = $scope.uploader = new FileUploader({
       queueLimit: 1,
       url : VITAM_URL,
