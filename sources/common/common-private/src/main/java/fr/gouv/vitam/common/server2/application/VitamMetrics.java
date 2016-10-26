@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import org.elasticsearch.metrics.ElasticsearchReporter;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
@@ -52,8 +51,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
 
 /**
- * A basic class that acts as a container between a {@link MetricRegistry} and a {@link ScheduledReporter}. This class
- * provides an access to the {@code MetricRegistry} and the possibility to start/stop the reporting.
+ * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This class
+ * provides an access to the {@code VitamMetricRegistry} and the possibility to start/stop the reporting.
  *
  */
 public class VitamMetrics {
@@ -62,7 +61,7 @@ public class VitamMetrics {
     private final VitamMetricsType type;
     private final int interval;
     private final TimeUnit intervalUnit;
-    private final MetricRegistry registry = new MetricRegistry();
+    private final VitamMetricRegistry registry = new VitamMetricRegistry();
     private ScheduledReporter reporter;
     private boolean isReporting = false;
 
@@ -109,9 +108,9 @@ public class VitamMetrics {
     /**
      * Return the underlying metric registry
      *
-     * @return {@link MetricRegistry}
+     * @return {@link VitamMetricRegistry}
      */
-    public MetricRegistry getRegistry() {
+    public VitamMetricRegistry getRegistry() {
         return registry;
     }
 
