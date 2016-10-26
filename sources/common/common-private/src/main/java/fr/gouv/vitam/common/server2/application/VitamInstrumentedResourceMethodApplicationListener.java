@@ -145,7 +145,6 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @return String
      */
     final private String concatURI(String first, String second) {
-        ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, first, second);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (first.length() > 0 && first.charAt(first.length() - 1) != '/' && second.length() > 0 &&
@@ -157,7 +156,6 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     }
 
     final private String getConsumedTypesAsString(final ResourceMethod method) {
-        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (!method.getConsumedTypes().isEmpty()) {
@@ -171,7 +169,6 @@ final public class VitamInstrumentedResourceMethodApplicationListener
     }
 
     final private String getProducedTypesAsString(final ResourceMethod method) {
-        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method);
         final StringBuilder stringBuilder = new StringBuilder();
 
         if (!method.getProducedTypes().isEmpty()) {
@@ -195,9 +192,7 @@ final public class VitamInstrumentedResourceMethodApplicationListener
      * @param URI {@link String} the end-point URI
      * @return String
      */
-    final private String metricGenericName(final ResourceMethod method, final String URI) {
-        ParametersChecker.checkParameter(METRIC_NAME_CONFIGURATION_PARAMETERS, method, URI);
-        
+    final private String metricGenericName(final ResourceMethod method, final String URI) {        
         return URI +
             METRIC_NAME_DELIMITER +
             method.getHttpMethod() +

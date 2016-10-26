@@ -27,15 +27,35 @@
 
 package fr.gouv.vitam.common.server2.application;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
 import org.junit.Test;
+
+import com.codahale.metrics.Gauge;
+import com.jayway.restassured.RestAssured;
+
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 
 public class VitamMetricsConfigurationImplTest {
     private static final String CONF_FILE_NAME = "test.conf";
+    private static final String TEST_RESOURCE_URI = "/home";
+    private static final String TEST_GAUGE_NAME = "Test gauge";
 
+    /**
+     * The test application that will load a test resource.
+     */
     private class TestVitamApplication extends AbstractVitamApplication<TestVitamApplication, TestConfiguration> {
 
         protected TestVitamApplication() {
@@ -44,23 +64,93 @@ public class VitamMetricsConfigurationImplTest {
 
         @Override
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            // empty
+            resourceConfig.register(new TestResourceImpl());
+        }
+    }
+
+    /**
+     * TestResourceImpl implements ApplicationStatusResource
+     */
+    @Path(TEST_RESOURCE_URI)
+    public class TestResourceImpl extends ApplicationStatusResource {
+
+        private int counter = 0;
+        // Get the business metric registry
+        final private VitamMetricRegistry registry = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry();
+
+        /**
+         *
+         * @param configuration to associate with TestResourceImpl
+         */
+        public TestResourceImpl() {
+            super(new BasicVitamStatusServiceImpl());
+        }
+
+        /**
+         * This function registers a gauge metric that monitors the value of the private field counter
+         */
+        @GET
+        public Response simpleGET() {
+            // increment the counter each time this function is called
+            counter++;
+            // register the gauge if it doesn't exist
+            registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
+                @Override
+                public Integer getValue() {
+                    return counter;
+                }
+            });
+
+            return Response.status(Status.OK).build();
+        }
+    }
+
+    /**
+     * Create and run a new VitamApplication
+     */
+    @Before
+    public final void buildAndRunApplication() {
+        try {
+            final TestVitamApplication application = new TestVitamApplication();
+
+            application.run();
+            RestAssured.port = application.getVitamServer().getPort();
+            RestAssured.basePath = TEST_RESOURCE_URI;
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
     }
 
     @Test
-    public final void test() {
-        new TestVitamApplication();
-
+    public final void testJerseyMetrics() {
         testVitamMetrics(VitamMetricsType.JERSEY);
+    }
+
+    @Test
+    public final void testJvmMetrics() {
         testVitamMetrics(VitamMetricsType.JVM);
+    }
+
+    @Test
+    public final void testBusinessMetrics() {
         testVitamMetrics(VitamMetricsType.BUSINESS);
+        testBusinessGaugeValue();
+    }
+
+    @SuppressWarnings("rawtypes")
+    private void testBusinessGaugeValue() {
+        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
+
+        assertFalse(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
+        RestAssured.get(TEST_RESOURCE_URI);
+        assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
+        assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(1));
     }
 
     private void testVitamMetrics(VitamMetricsType type) {
         final VitamMetrics metric = AbstractVitamApplication.getVitamMetrics(type);
 
-        assertNotNull(metric);
-        assertTrue(metric.isReporting());
+        assertNotNull("Metric " + type.getName(), metric);
+        assertTrue("Metric " + type.getName() + " reporting", metric.isReporting());
     }
 }
