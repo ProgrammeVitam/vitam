@@ -5,11 +5,6 @@
     name: rsyslog
     state: latest
 
-- name: Ensure rsyslog is started on boot
-  service: 
-    name: rsyslog
-    enabled: true
-
 - name: copy VITAM transport config file
   template:
     src: vitam_transport.conf.j2
@@ -23,19 +18,17 @@
     dest: /etc/rsyslog.conf 
     regexp: '^#\$ModLoad imudp.*$'
     replace: "$ModLoad imudp"
-  notify:
-    - restart rsyslog
 
 - name: activate port 514 in rsyslog
   replace:
     dest: /etc/rsyslog.conf 
     regexp: '^#\$UDPServerRun 514.*$'
     replace: "$UDPServerRun 514"
-  notify:
-    - restart rsyslog
+  
 
-- name: (re)-start service
+- name: ensure service is started on boot && restart service
   service: 
     name: rsyslog
     enabled: true
-    state: restarted
+  notify:
+    - restart rsyslog

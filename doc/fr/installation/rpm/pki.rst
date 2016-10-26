@@ -1,6 +1,7 @@
 PKI
 ###
 
+Les commandes sont à passer dans le sous-répertoire ``deployment`` de la livraison.
 
 Action préalable
 ================
@@ -25,10 +26,10 @@ Ce script génère sous ``PKI/CA`` les certificats CA et intermédiaires pour cl
 
 .. caution:: En cas d'utilisation de la PKI fournie, la CA root a une durée de validité de 10 ans ; la CA intermédiaire a une durée de 3 ans.
 
-Cas d'une PKI existante
------------------------
+Cas d'une CA déjà existante
+----------------------------
 
-Si le client possède déjà une PKI, ou ne compte pas utilise la PKI fournie par VITAM, il convient de positionner les fichiers ``ca.crt`` et ``ca.key`` sous PKI/CA/<usage>``, où usage est :
+Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term:`PKI` fournie par VITAM, il convient de positionner les fichiers ``ca.crt`` et ``ca.key`` sous ``PKI/CA/<usage>``, où usage est :
 
 - server
 - server_intermediate
@@ -47,10 +48,10 @@ Cas de certificats inexistants
 
 Editer le fichier ``environnements-rpm/group_vars/all/vault.yml`` ( qui est un fichier protégé par mot de passe ) pour indiquer les mots de passe nécessaires.
 
-.. info:: Pour éditer le fichier, lancer la commande ``ansible-vault edit environnements-rpm/group_vars/all/vault.yml``
+.. note:: Pour éditer le fichier, lancer la commande ``ansible-vault edit environnements-rpm/group_vars/all/vault.yml``
 
 
-Editer le fichier ``environnements-rpm/<inventaire>``  pour indiquer les serveurs associé à chaque service.
+Editer le fichier ``environnements-rpm/<inventaire>``  pour indiquer les serveurs associés à chaque service.
 
 Puis, dans le répertoire de déploiement, lancer le script : ``./generate_certs <environnement>``
 
