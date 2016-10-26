@@ -127,7 +127,7 @@ angular.module('ihm.demo')
     };
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
       console.info('onSuccessItem', fileItem, response, status, headers);
-      if (typeof response === 'string' && response.data.indexOf("PROGRAMME VITAM")>-1)  {
+      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
         $location.path('/login');
         $cookies.remove('userCredentials');
         $cookies.remove('role');
