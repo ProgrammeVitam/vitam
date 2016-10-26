@@ -28,46 +28,81 @@
 package fr.gouv.vitam.common.server.application;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
-
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.jetty.JettyTestContainerFactory;
-import org.glassfish.jersey.test.spi.TestContainerException;
-import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.codahale.metrics.MetricRegistry;
-
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.TestApplication;
 import fr.gouv.vitam.common.server2.application.VitamInstrumentedResourceMethodApplicationListener;
+import fr.gouv.vitam.common.server2.application.VitamMetrics;
+import fr.gouv.vitam.common.server2.application.VitamMetricsType;
 
-public class VitamInstrumentedResourceMethodApplicationListenerTest extends JerseyTest {
+public class VitamInstrumentedResourceMethodApplicationListenerTest {
+    private static final String TEST_CONF = "test.conf";
+    private static int serverPort;
+    private static TestVitamApplication application;
 
-    protected MetricRegistry registry;
+    /**
+     * The test application that will load a test resource.
+     */
+    public static class TestVitamApplication extends TestApplication {
 
-    @Override
-    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
-        return new JettyTestContainerFactory();
+        public TestVitamApplication(String configFile) {
+            super(configFile);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.register(SimpleJerseyMetricsResource.class);
+            resourceConfig.register(AdvancedJerseyMetricsResource.class);
+            resourceConfig.register(ShouldNotWorkJerseyMetricsResource.class);
+            resourceConfig.register(MediaTypeJerseyMetricsResource.class);
+        }
     }
 
-    @Override
-    protected Application configure() {
-        registry = new MetricRegistry();
-        final ResourceConfig resourceConfig = new ResourceConfig();
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
+            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
 
-        resourceConfig.register(SimpleJerseyMetricsResource.class);
-        resourceConfig.register(AdvancedJerseyMetricsResource.class);
-        resourceConfig.register(ShouldNotWorkJerseyMetricsResource.class);
-        resourceConfig.register(MediaTypeJerseyMetricsResource.class);
-        resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(registry));
+                @Override
+                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    final TestVitamApplication application = new TestVitamApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
 
-        return resourceConfig;
+            };
+        final StartApplicationResponse<TestVitamApplication> response =
+            testFactory.findAvailablePortSetToApplication();
+
+        serverPort = response.getServerPort();
+        application = response.getApplication();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (final VitamApplicationServerException e) {
+            e.printStackTrace();
+        }
+        JunitHelper.getInstance().releasePort(serverPort);
     }
 
     private Set<String> formatMetricsNames(final Set<String> names) {
@@ -86,23 +121,31 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest extends Jers
     @Test
     public void testSimpleJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(SimpleJerseyMetricsResource.expectedNames);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
 
-        assertTrue("SimpleJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+        assertNotNull("VitamMetrics", metrics);
+        assertTrue("SimpleJerseyMetricsResource",
+            metrics.getRegistry().getMetrics().keySet().containsAll(formattedExpectedNames));
     }
 
     @Test
     public void testAdvancedJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(AdvancedJerseyMetricsResource.expectedNames);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
 
-        assertTrue("AdvancedJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+        assertNotNull("VitamMetrics", metrics);
+        assertTrue("AdvancedJerseyMetricsResource",
+            metrics.getRegistry().getMetrics().keySet().containsAll(formattedExpectedNames));
     }
 
     @Test
     public void testMediaTypeJerseyMetricsResource() {
         final Set<String> formattedExpectedNames = formatMetricsNames(MediaTypeJerseyMetricsResource.expectedNames);
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
 
+        assertNotNull("VitamMetrics", metrics);
         assertTrue("MediaTypeJerseyMetricsResource",
-            registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+            metrics.getRegistry().getMetrics().keySet().containsAll(formattedExpectedNames));
     }
 
     @Test
@@ -112,8 +155,11 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest extends Jers
                 AdvancedJerseyMetricsResource.expectedNames.size() +
                 ShouldNotWorkJerseyMetricsResource.expectedNames.size() +
                 MediaTypeJerseyMetricsResource.expectedNames.size();
+        final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
+
+        assertNotNull("VitamMetrics", metrics);
 
         // Multiply the expectedSize by 3 because we expect a timer, a meter and an exceptionMeter per name.
-        assertEquals("MetricRegistry size", expectedSize * 3, registry.getMetrics().size());
+        assertEquals("MetricRegistry size", expectedSize * 3, metrics.getRegistry().getMetrics().size());
     }
 }

@@ -34,32 +34,43 @@ import static org.junit.Assert.assertTrue;
 import java.util.Map;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.codahale.metrics.Gauge;
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
+import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 
 public class VitamMetricsConfigurationImplTest {
-    private static final String CONF_FILE_NAME = "test.conf";
+    private static final String BASE_PATH = "/";
     private static final String TEST_RESOURCE_URI = "/home";
     private static final String TEST_GAUGE_NAME = "Test gauge";
+    private static final String TEST_CONF = "test.conf";
+    private static int serverPort;
+    private static TestVitamApplication application;
 
     /**
      * The test application that will load a test resource.
      */
-    private class TestVitamApplication extends AbstractVitamApplication<TestVitamApplication, TestConfiguration> {
+    public static class TestVitamApplication extends TestApplication {
 
-        protected TestVitamApplication() {
-            super(TestConfiguration.class, CONF_FILE_NAME);
+        public TestVitamApplication(String configFile) {
+            super(configFile);
         }
 
         @Override
@@ -72,7 +83,7 @@ public class VitamMetricsConfigurationImplTest {
      * TestResourceImpl implements ApplicationStatusResource
      */
     @Path(TEST_RESOURCE_URI)
-    public class TestResourceImpl extends ApplicationStatusResource {
+    public static class TestResourceImpl extends ApplicationStatusResource {
 
         private int counter = 0;
         // Get the business metric registry
@@ -105,20 +116,38 @@ public class VitamMetricsConfigurationImplTest {
         }
     }
 
-    /**
-     * Create and run a new VitamApplication
-     */
-    @Before
-    public final void buildAndRunApplication() {
-        try {
-            final TestVitamApplication application = new TestVitamApplication();
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
+            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
 
-            application.run();
-            RestAssured.port = application.getVitamServer().getPort();
-            RestAssured.basePath = TEST_RESOURCE_URI;
-        } catch (final Exception e) {
+                @Override
+                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    final TestVitamApplication application = new TestVitamApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
+
+            };
+        final StartApplicationResponse<TestVitamApplication> response =
+            testFactory.findAvailablePortSetToApplication();
+
+        serverPort = response.getServerPort();
+        application = response.getApplication();
+        RestAssured.port = response.getServerPort();
+        RestAssured.basePath = BASE_PATH;
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (final VitamApplicationServerException e) {
             e.printStackTrace();
         }
+        JunitHelper.getInstance().releasePort(serverPort);
     }
 
     @Test
@@ -139,10 +168,20 @@ public class VitamMetricsConfigurationImplTest {
 
     @SuppressWarnings("rawtypes")
     private void testBusinessGaugeValue() {
-        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
+        Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
+        final Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_RESOURCE_URI);
 
         assertFalse(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
-        RestAssured.get(TEST_RESOURCE_URI);
+        // Calling the resource should set the gauge and increment the counter
+        RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(TEST_RESOURCE_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+        gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
         assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(1));
     }
