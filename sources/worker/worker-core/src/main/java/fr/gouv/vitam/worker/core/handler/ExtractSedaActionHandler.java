@@ -1368,6 +1368,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 String guid = binaryDataObjectIdToGuid.get(id);
                 ((ObjectNode) node).put(SedaConstants.PREFIX_ID, guid);
+                ((ObjectNode) node).put(SedaConstants.TAG_SIZE, objectGuidToBinaryObject.get(guid).getSize());
                 ((ObjectNode) node).put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(guid).getUri());
                 ((ObjectNode) node).put(SedaConstants.TAG_DIGEST,
                     objectGuidToBinaryObject.get(guid).getMessageDigest());
