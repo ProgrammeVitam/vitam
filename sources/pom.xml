@@ -1129,6 +1129,11 @@
 				<artifactId>commons-compress</artifactId>
 				<version>${commons-compress.version}</version>
 			</dependency>
+			<dependency>
+			        <groupId>org.simpleframework</groupId>
+			        <artifactId>simple</artifactId>
+			        <version>${org.simpleframework}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
