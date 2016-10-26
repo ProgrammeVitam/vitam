@@ -164,7 +164,6 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20160212</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.grizzly</groupId>
@@ -187,7 +186,6 @@
 		<dependency>
 			<groupId>org.simpleframework</groupId>
 			<artifactId>simple</artifactId>
-			<version>5.1.4</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
