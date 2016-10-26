@@ -47,6 +47,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -76,7 +77,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private static final String CONF_FILE_NAME = "vitam.conf";
     private static final String METRICS_CONF_FILE_NAME = "vitam.metrics.conf";
     private static final Map<VitamMetricsType, VitamMetrics> METRICS;
-    
+
     private C configuration;
     private Handler applicationHandler;
     private final Class<C> configurationType;
@@ -84,9 +85,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private VitamServer vitamServer;
 
     static {
-    	METRICS = configureMetrics();
+        METRICS = configureMetrics();
     }
-    
+
     /**
      * Protected constructor assigning application and configuration types </br>
      * Usage example in sub-implementation : </br>
@@ -190,31 +191,34 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
         }
     }
-    
+
     private static final Map<VitamMetricsType, VitamMetrics> configureMetrics() {
-    	final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<VitamMetricsType, VitamMetrics>();
-    	
-    	// Load default business metrics
-    	// TODO find a better way to have a default BUSINESS VitamMetrics
-    	if (!metrics.containsKey(VitamMetricsType.BUSINESS))
-    		metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
+        final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
+
+        // Load default business metrics
+        // TODO find a better way to have a default BUSINESS VitamMetrics
+        if (!metrics.containsKey(VitamMetricsType.BUSINESS)) {
+            metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
+        }
         // Load the metrics configuration
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
-        	final VitamMetricsConfigurationImpl metricsConfigurations = 
-        			PropertiesUtils.readYaml(yamlIS, VitamMetricsConfigurationImpl.class);
-        	
-        	for (final VitamMetricConfiguration metricConfiguration : metricsConfigurations.getMetricsConfigurations()) {
-        		final VitamMetrics metric = new VitamMetrics(metricConfiguration);
-        		metrics.put(metric.getType(), metric);
-        	 }
-        	
+            final VitamMetricsConfigurationImpl metricsConfigurations =
+                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfigurationImpl.class);
+
+            for (final VitamMetricConfiguration metricConfiguration : metricsConfigurations
+                .getMetricsConfigurations()) {
+                final VitamMetrics metric = new VitamMetrics(metricConfiguration);
+                metrics.put(metric.getType(), metric);
+            }
+
             // Start the reporting of every metrics
-            for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet())
-            	entry.getValue().start();
+            for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
+                entry.getValue().start();
+            }
         } catch (final IOException e) {
             LOGGER.error(e);
         }
-        
+
         return metrics;
     }
 
@@ -257,15 +261,13 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         resourceConfig.register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
-            .register(new GenericExceptionMapper())
-        // Use chunk size also in response
             .register(new GenericExceptionMapper());
         // Register Jersey Metrics Listener
-        if (METRICS.containsKey(VitamMetricsType.JERSEY))
-        	resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
-        			METRICS.get(VitamMetricsType.JERSEY).getRegistry()
-        	));
-        
+        if (METRICS.containsKey(VitamMetricsType.JERSEY)) {
+            resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
+                METRICS.get(VitamMetricsType.JERSEY).getRegistry()));
+        }
+        // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
         // Not supported MultiPartFeature.class
         registerInResourceConfig(resourceConfig);
@@ -319,7 +321,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     public final VitamServer getVitamServer() {
         return vitamServer;
     }
-    
+
     @Override
     public final void run() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
@@ -344,25 +346,28 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             vitamServer.stop();
         }
     }
-    
+
     /**
-     * Return the {@code VitamMetricsType#BUSINESS} {@link VitamMetrics} object.
-     * This {@code VitamMetrics} can be used to register custom metrics wherever in the application.
-     * 
+     * Return the {@code VitamMetricsType#BUSINESS} {@link VitamMetrics} object. This {@code VitamMetrics} can be used
+     * to register custom metrics wherever in the application.
+     *
      * @return {@link VitamMetrics} BUSINESS VitamMetrics
      */
     public static final VitamMetrics getBusinessVitamMetrics() {
-    	return METRICS.get(VitamMetricsType.BUSINESS);
+        return METRICS.get(VitamMetricsType.BUSINESS);
     }
-    
+
     /**
-     * Return a {@link VitamMetrics} object for a given {@link VitamMetricsType}.
-     * 
+     * Return a {@link VitamMetrics} object for a given {@link VitamMetricsType} or null if the VitamMetrics does not
+     * exists.
+     *
      * @param {@link VitamMetricsType} type
      * @return {@link VitamMetrics} VitamMetrics
      */
     public static final VitamMetrics getVitamMetrics(VitamMetricsType type) {
-    	return METRICS.get(type);
+        ParametersChecker.checkParameter("VitamMetricsType", type);
+
+        return METRICS.get(type);
     }
-    
+
 }

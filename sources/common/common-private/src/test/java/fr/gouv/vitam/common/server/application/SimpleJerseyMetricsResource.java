@@ -43,42 +43,41 @@ import javax.ws.rs.core.Response;
 @Path("/home")
 public class SimpleJerseyMetricsResource {
 
-	static final public Set<String> expectedNames = new HashSet<String>(Arrays.asList(
-			"/home:GET:*:*",
-			"/home:PUT:*:*",
-			"/home:POST:*:*",
-			"/home:DELETE:*:*",
-			"/home:HEAD:*:*",
-			"/home:OPTIONS:*:*"
-	));
-	
+    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
+        "/home:GET:*:*",
+        "/home:PUT:*:*",
+        "/home:POST:*:*",
+        "/home:DELETE:*:*",
+        "/home:HEAD:*:*",
+        "/home:OPTIONS:*:*"));
+
     @GET
     public Response simpleGet() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @PUT
     public Response simplePut() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     public Response simplePost() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @DELETE
     public Response simpleDelete() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @HEAD
     public Response simpleHead() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @OPTIONS
     public Response simpleOptions() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
 }

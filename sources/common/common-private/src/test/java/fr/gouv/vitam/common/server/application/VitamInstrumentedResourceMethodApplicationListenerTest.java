@@ -27,7 +27,8 @@
 
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,72 +48,72 @@ import com.codahale.metrics.MetricRegistry;
 import fr.gouv.vitam.common.server2.application.VitamInstrumentedResourceMethodApplicationListener;
 
 public class VitamInstrumentedResourceMethodApplicationListenerTest extends JerseyTest {
-	
-	protected MetricRegistry registry;
-	
-	@Override
-	protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
-		return new JettyTestContainerFactory();
-	}
-	
-	@Override
-    protected Application configure() {
-		registry = new MetricRegistry();
-		final ResourceConfig resourceConfig = new ResourceConfig();
-		
-		resourceConfig.register(SimpleJerseyMetricsResource.class);
-		resourceConfig.register(AdvancedJerseyMetricsResource.class);
-		resourceConfig.register(ShouldNotWorkJerseyMetricsResource.class);
-		resourceConfig.register(MediaTypeJerseyMetricsResource.class);
-		resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(registry));
-		
-		return resourceConfig;
+
+    protected MetricRegistry registry;
+
+    @Override
+    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
+        return new JettyTestContainerFactory();
     }
- 
-	private Set<String>	formatMetricsNames(final Set<String> names) {
-		final Set<String> formattedNames = new HashSet<String>();
-		
-		for (String name : names) {
-			formattedNames.addAll(Arrays.asList(
-				VitamInstrumentedResourceMethodApplicationListener.metricMeterName(name),
-				VitamInstrumentedResourceMethodApplicationListener.metricTimerName(name),
-				VitamInstrumentedResourceMethodApplicationListener.metricExceptionMeterName(name)
-			));
-		}
-		
-		return formattedNames;
-	}
-	
+
+    @Override
+    protected Application configure() {
+        registry = new MetricRegistry();
+        final ResourceConfig resourceConfig = new ResourceConfig();
+
+        resourceConfig.register(SimpleJerseyMetricsResource.class);
+        resourceConfig.register(AdvancedJerseyMetricsResource.class);
+        resourceConfig.register(ShouldNotWorkJerseyMetricsResource.class);
+        resourceConfig.register(MediaTypeJerseyMetricsResource.class);
+        resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(registry));
+
+        return resourceConfig;
+    }
+
+    private Set<String> formatMetricsNames(final Set<String> names) {
+        final Set<String> formattedNames = new HashSet<>();
+
+        for (final String name : names) {
+            formattedNames.addAll(Arrays.asList(
+                VitamInstrumentedResourceMethodApplicationListener.metricMeterName(name),
+                VitamInstrumentedResourceMethodApplicationListener.metricTimerName(name),
+                VitamInstrumentedResourceMethodApplicationListener.metricExceptionMeterName(name)));
+        }
+
+        return formattedNames;
+    }
+
     @Test
     public void testSimpleJerseyMetricsResource() {
-    	final Set<String> formattedExpectedNames = formatMetricsNames(SimpleJerseyMetricsResource.expectedNames);
-    	
-    	assertTrue("SimpleJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+        final Set<String> formattedExpectedNames = formatMetricsNames(SimpleJerseyMetricsResource.expectedNames);
+
+        assertTrue("SimpleJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
     }
-    
+
     @Test
     public void testAdvancedJerseyMetricsResource() {
-    	final Set<String> formattedExpectedNames = formatMetricsNames(AdvancedJerseyMetricsResource.expectedNames);
-    	
-    	assertTrue("AdvancedJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+        final Set<String> formattedExpectedNames = formatMetricsNames(AdvancedJerseyMetricsResource.expectedNames);
+
+        assertTrue("AdvancedJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
     }
-    
+
     @Test
     public void testMediaTypeJerseyMetricsResource() {
-    	final Set<String> formattedExpectedNames = formatMetricsNames(MediaTypeJerseyMetricsResource.expectedNames);
-    	
-    	assertTrue("MediaTypeJerseyMetricsResource", registry.getMetrics().keySet().containsAll(formattedExpectedNames));
+        final Set<String> formattedExpectedNames = formatMetricsNames(MediaTypeJerseyMetricsResource.expectedNames);
+
+        assertTrue("MediaTypeJerseyMetricsResource",
+            registry.getMetrics().keySet().containsAll(formattedExpectedNames));
     }
-    
+
     @Test
     public void testRegistrySize() {
-    	final int expectedSize =
-    			SimpleJerseyMetricsResource.expectedNames.size() +
-    			AdvancedJerseyMetricsResource.expectedNames.size() +
-    			ShouldNotWorkJerseyMetricsResource.expectedNames.size() +
-    			MediaTypeJerseyMetricsResource.expectedNames.size();
-    	
-    	// Multiply the expectedSize by 3 because we expect a timer, a meter and an exceptionMeter per name.
-    	assertEquals("MetricRegistry size", (expectedSize * 3), registry.getMetrics().size());
+        final int expectedSize =
+            SimpleJerseyMetricsResource.expectedNames.size() +
+                AdvancedJerseyMetricsResource.expectedNames.size() +
+                ShouldNotWorkJerseyMetricsResource.expectedNames.size() +
+                MediaTypeJerseyMetricsResource.expectedNames.size();
+
+        // Multiply the expectedSize by 3 because we expect a timer, a meter and an exceptionMeter per name.
+        assertEquals("MetricRegistry size", expectedSize * 3, registry.getMetrics().size());
     }
 }

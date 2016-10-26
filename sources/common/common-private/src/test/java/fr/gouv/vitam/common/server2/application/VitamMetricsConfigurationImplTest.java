@@ -27,41 +27,40 @@
 
 package fr.gouv.vitam.common.server2.application;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-
 public class VitamMetricsConfigurationImplTest {
-	private static final String CONF_FILE_NAME = "test.conf";
+    private static final String CONF_FILE_NAME = "test.conf";
 
-	private class TestVitamApplication extends AbstractVitamApplication<TestVitamApplication, TestConfiguration> {
+    private class TestVitamApplication extends AbstractVitamApplication<TestVitamApplication, TestConfiguration> {
 
         protected TestVitamApplication() {
-        	super(TestConfiguration.class, CONF_FILE_NAME);
+            super(TestConfiguration.class, CONF_FILE_NAME);
         }
 
-		@Override
-		protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-			// empty
-		}
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            // empty
+        }
     }
-    
+
     @Test
     public final void test() {
-    	new TestVitamApplication();
-    	
-    	testVitamMetrics(VitamMetricsType.JERSEY);
-    	testVitamMetrics(VitamMetricsType.JVM);
-    	testVitamMetrics(VitamMetricsType.BUSINESS);
+        new TestVitamApplication();
+
+        testVitamMetrics(VitamMetricsType.JERSEY);
+        testVitamMetrics(VitamMetricsType.JVM);
+        testVitamMetrics(VitamMetricsType.BUSINESS);
     }
-    
+
     private void testVitamMetrics(VitamMetricsType type) {
-    	final VitamMetrics metric = TestVitamApplication.getVitamMetrics(type);
-   	 
-    	assertNotNull(metric);
-    	assertTrue(metric.isReporting());
+        final VitamMetrics metric = AbstractVitamApplication.getVitamMetrics(type);
+
+        assertNotNull(metric);
+        assertTrue(metric.isReporting());
     }
 }

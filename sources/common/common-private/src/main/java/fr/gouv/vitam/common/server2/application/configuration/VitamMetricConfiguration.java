@@ -41,53 +41,53 @@ import fr.gouv.vitam.common.server2.application.VitamMetricsType;
  *
  */
 public interface VitamMetricConfiguration {
-	
+
     /**
      * Must return the value of a 'elasticsearchHost' attribute
      *
      * @return the elasticsearch host value
      */
-	String getElasticsearchHost();
-	
+    String getElasticsearchHost();
+
     /**
      * Must return the value of a 'elasticsearchIndex' attribute
      *
      * @return the elasticsearch index value
      */
-	String getElasticsearchIndex();
-	
+    String getElasticsearchIndex();
+
     /**
      * Must return the value of a 'elasticsearchIndexDateFormat' attribute
      *
      * @return the elasticsearch index date format value
      */
-	String getElasticsearchIndexDateFormat();
-	
+    String getElasticsearchIndexDateFormat();
+
     /**
      * Must return the value of a 'type' attribute
      *
      * @return the type value
      */
-	VitamMetricsType getType();
-	
+    VitamMetricsType getType();
+
     /**
      * Must return the value of a 'reporterType' attribute
      *
      * @return the reporter type value
      */
-	VitamMetricsReporterType getReporterType();
-	
+    VitamMetricsReporterType getReporterType();
+
     /**
      * Must return the value of a 'interval' attribute
      *
      * @return the interval value
      */
-	int getInterval();
-	
+    int getInterval();
+
     /**
      * Must return the value of a 'intervalUnit' attribute
      *
      * @return the interval unit value
      */
-	TimeUnit getIntervalUnit();
+    TimeUnit getIntervalUnit();
 }

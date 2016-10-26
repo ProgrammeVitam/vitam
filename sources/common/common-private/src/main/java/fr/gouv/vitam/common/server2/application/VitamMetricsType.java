@@ -27,55 +27,57 @@
 
 package fr.gouv.vitam.common.server2.application;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfigurationImpl;
 
 /**
- * Enums to use for the configuration of {@link VitamMetrics} through the
- * {@link VitamMetricsConfigurationImpl} class.
+ * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
  *
  */
 public enum VitamMetricsType {
 
-	JERSEY("JERSEY"),
-	
-	JVM("JVM"),
-	
-	BUSINESS("BUSINESS");
-	
-	private final String name;
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param String name
-	 */
-	VitamMetricsType(final String name){
-		this.name = name;
-	}
-	
-	/**
-	 * Return the name of the enum as a String
-	 * 
-	 * @return String
-	 */
-	public String getName() {
-		return name;
-	}
-	
-	/**
-	 * Retrieve an {@link VitamMetricsType} given a name. Throws an {@code IllegalArgumentException}
-	 * if the name doesn't exists.
-	 *   
-	 * @param metricTypeName
-	 * @return
-	 * @throws IllegalArgumentException
-	 */
+    JERSEY("JERSEY"),
+
+    JVM("JVM"),
+
+    BUSINESS("BUSINESS");
+
+    private final String name;
+
+    /**
+     * Constructor
+     *
+     * @param String name
+     */
+    VitamMetricsType(final String name) {
+        this.name = name;
+    }
+
+    /**
+     * Return the name of the enum as a String
+     *
+     * @return String
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Retrieve an {@link VitamMetricsType} given a name. Throws an {@code IllegalArgumentException} if the name doesn't
+     * exists.
+     *
+     * @param metricTypeName
+     * @return VitamMetricsType
+     * @throws IllegalArgumentException
+     */
     public static VitamMetricsType get(String metricTypeName) throws IllegalArgumentException {
+        ParametersChecker.checkParameterNullOnly("VitamMetricsType name", metricTypeName);
+
         for (final VitamMetricsType v : values()) {
             if (v.getName().equals(metricTypeName)) {
                 return v;
             }
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Invalid VitamMetricsType name");
     }
 }

@@ -43,73 +43,72 @@ import javax.ws.rs.core.Response;
 @Path("/home4")
 public class MediaTypeJerseyMetricsResource {
 
-	static final public Set<String> expectedNames = new HashSet<String>(Arrays.asList(
-			"/home4:GET:*:application/json",
-			"/home4:GET:*:application/xml",
-			"/home4/users:GET:*:application/json",
-			"/home4:GET:*:application/octet-stream,text/plain",
-			"/home4:POST:multipart/form-data:*",
-			"/home4:POST:application/xhtml+xml:*",
-			"/home4/users:POST:multipart/form-data:*",
-			"/home4:POST:application/svg+xml,application/atom+xml:*",
-			"/home4:DELETE:multipart/form-data:application/json,text/plain"
-	));
-	
+    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
+        "/home4:GET:*:application/json",
+        "/home4:GET:*:application/xml",
+        "/home4/users:GET:*:application/json",
+        "/home4:GET:*:application/octet-stream,text/plain",
+        "/home4:POST:multipart/form-data:*",
+        "/home4:POST:application/xhtml+xml:*",
+        "/home4/users:POST:multipart/form-data:*",
+        "/home4:POST:application/svg+xml,application/atom+xml:*",
+        "/home4:DELETE:multipart/form-data:application/json,text/plain"));
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getJSON() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public Response getXML() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @GET
     @Path("/users")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUsersJSON() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.TEXT_PLAIN})
     public Response getTextOrOctetStream() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postFormData() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     @Consumes(MediaType.APPLICATION_XHTML_XML)
     public Response postXhtmlXml() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     @Path("/users")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response postUsersFormData() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     @Consumes({MediaType.APPLICATION_SVG_XML, MediaType.APPLICATION_ATOM_XML})
     public Response postSvgXmlOrAtomXml() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-   
+
     @DELETE
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     public Response delete() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
 }

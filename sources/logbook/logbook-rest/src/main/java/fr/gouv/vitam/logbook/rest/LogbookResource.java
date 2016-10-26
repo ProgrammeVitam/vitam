@@ -140,15 +140,6 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
         Status status;
-        if (AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges().size() == 0) {
-        	AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().register("test", new Gauge<Integer>() {
-
-				@Override
-				public Integer getValue() {
-					return 1;
-				}
-			});
-        }
         try {
             final LogbookOperation result = logbookOperation.getById(operationId);
             return Response.status(Status.OK)

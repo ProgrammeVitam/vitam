@@ -38,27 +38,27 @@ import javax.ws.rs.core.Response;
 @Path("/home3")
 public class ShouldNotWorkJerseyMetricsResource {
 
-	static final public Set<String> expectedNames = new HashSet<String>(Arrays.asList(
-	));
-	
+    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList());
+
     public Response unreachableMethod() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     /**
      * Nested children resources are not yet supported
+     *
      * @return
      */
     @Path("/child")
     public ShouldNotWorkJerseyMetricsResourceChild nestedResource() {
-    	return new ShouldNotWorkJerseyMetricsResourceChild();
+        return new ShouldNotWorkJerseyMetricsResourceChild();
     }
-    
+
     private class ShouldNotWorkJerseyMetricsResourceChild {
-    	
-    	@GET
+
+        @GET
         public Response unssuportedMethod() {
-        	throw new UnsupportedOperationException("Not implemented");
+            throw new UnsupportedOperationException("Not implemented");
         }
     }
 }

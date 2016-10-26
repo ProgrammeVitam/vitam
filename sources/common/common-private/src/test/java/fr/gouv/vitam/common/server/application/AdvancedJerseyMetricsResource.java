@@ -44,48 +44,47 @@ import javax.ws.rs.core.Response;
 @Path("/home2")
 public class AdvancedJerseyMetricsResource {
 
-	static final public Set<String> expectedNames = new HashSet<String>(Arrays.asList(
-			"/home2/users:GET:*:*",
-			"/home2/users/{id}:PUT:*:*",
-			"/home2/users/{id}:POST:*:*",
-			"/home2/users/{id}:DELETE:*:*",
-			"/home2/head:HEAD:*:*",
-			"/home2/options:OPTIONS:*:*"
-	));
-	
+    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
+        "/home2/users:GET:*:*",
+        "/home2/users/{id}:PUT:*:*",
+        "/home2/users/{id}:POST:*:*",
+        "/home2/users/{id}:DELETE:*:*",
+        "/home2/head:HEAD:*:*",
+        "/home2/options:OPTIONS:*:*"));
+
     @GET
     @Path("/users")
     public Response advancedGet() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @PUT
     @Path("/users/{id}")
     public Response advancedPut(@PathParam("id_op") String operationId) {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @POST
     @Path("/users/{id}")
     public Response advancedPost(@PathParam("id_op") String operationId) {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @DELETE
     @Path("/users/{id}")
     public Response advancedDelete(@PathParam("id_op") String operationId) {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @HEAD
     @Path("/head")
     public Response advancedHead() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
-    
+
     @OPTIONS
     @Path("/options")
     public Response advancdeOptions() {
-    	throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented");
     }
 }

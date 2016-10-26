@@ -45,150 +45,152 @@ import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
 
 /**
- * A basic class that acts as a container between a {@link MetricRegistry} and a 
- * {@link ScheduledReporter}. This class provides an access to the {@code MetricRegistry}
- * and the possibility to start/stop the reporting.
+ * A basic class that acts as a container between a {@link MetricRegistry} and a {@link ScheduledReporter}. This class
+ * provides an access to the {@code MetricRegistry} and the possibility to start/stop the reporting.
  *
  */
 public class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
-	
+
     private final VitamMetricsType type;
     private final int interval;
     private final TimeUnit intervalUnit;
     private final MetricRegistry registry = new MetricRegistry();
     private ScheduledReporter reporter;
     private boolean isReporting = false;
-    
+
     /**
      * A constructor to instanciate an empty {@see VitamMetrics} without any reporter.
-     * 
+     *
      * @param {@link VitamMetricsType} type
      */
     public VitamMetrics(VitamMetricsType type) {
-    	this.type = type;
-    	this.interval = 1;
-    	this.intervalUnit = TimeUnit.MINUTES;
+        ParametersChecker.checkParameter("VitamMetricsType", type);
+        this.type = type;
+        interval = 1;
+        intervalUnit = TimeUnit.MINUTES;
     }
-    
+
     /**
-     * A constructor to instanciate a {@see VitamMetrics} with the configuration
-     * object {@link VitamMetricConfiguration}. The configuration object must be returned
-     * from the method {link {@link VitamMetricsConfiguration#getMetricsConfigurations()}
-     * 
+     * A constructor to instanciate a {@see VitamMetrics} with the configuration object
+     * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
+     * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
+     *
      * @param {@link VitamMetricConfiguration} configuration
      */
     public VitamMetrics(VitamMetricConfiguration configuration) {
-    	type = configuration.getType();
-    	interval = configuration.getInterval();
-    	intervalUnit = configuration.getIntervalUnit();
-    	
-    	if (type.equals(VitamMetricsType.JVM))
-    		configureJVMMetrics();
-    	switch (configuration.getReporterType()){
-    		case CONSOLE:
-    			configureConsoleReporter(configuration);
-    			break;
-    		case ELASTICSEARCH:
-    			configureElasticsearchReporter(configuration);
-    			break;
-    		default:
-    			break;
-    	}
+        ParametersChecker.checkParameter("VitamMetricConfiguration", configuration);
+        type = configuration.getType();
+        interval = configuration.getInterval();
+        intervalUnit = configuration.getIntervalUnit();
+
+        if (type.equals(VitamMetricsType.JVM)) {
+            configureJVMMetrics();
+        }
+        switch (configuration.getReporterType()) {
+            case CONSOLE:
+                configureConsoleReporter(configuration);
+                break;
+            case ELASTICSEARCH:
+                configureElasticsearchReporter(configuration);
+                break;
+            default:
+                break;
+        }
     }
-    
+
     /**
      * Return the underlying metric registry
-     * 
+     *
      * @return {@link MetricRegistry}
      */
     public MetricRegistry getRegistry() {
-    	return registry;
+        return registry;
     }
-    
+
     /**
      * Return the type of this {@code VitamMetrics}
-     * 
+     *
      * @return {@link VitamMetricsType}
      */
     public VitamMetricsType getType() {
-    	return type;
+        return type;
     }
-    
+
     /**
-     * Indicates whether or not this {@code VitamMetrics} is
-     * currently reporting.
-     * 
+     * Indicates whether or not this {@code VitamMetrics} is currently reporting.
+     *
      * @return boolean
      */
     public boolean isReporting() {
-    	return isReporting;
+        return isReporting;
     }
-    
-    private void configureConsoleReporter(VitamMetricConfiguration configuration) {
-    	reporter = ConsoleReporter.forRegistry(registry).build();
-    }
-    
-    private void configureElasticsearchReporter(VitamMetricConfiguration configuration) {
-	    final Map<String, Object> additionalFields = new HashMap<String, Object>();
 
-	    additionalFields.put("hostname", ServerIdentity.getInstance().getName());
-	    additionalFields.put("role", ServerIdentity.getInstance().getRole());
-	    try {
-	    	reporter = ElasticsearchReporter.forRegistry(registry)
-					.hosts(configuration.getElasticsearchHost())
-				    .index(configuration.getElasticsearchIndex())
-				    .indexDateFormat(configuration.getElasticsearchIndexDateFormat())
-				    .additionalFields(additionalFields)
-				    .build();
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage());
-		}
+    private void configureConsoleReporter(VitamMetricConfiguration configuration) {
+        reporter = ConsoleReporter.forRegistry(registry).build();
     }
-    
+
+    private void configureElasticsearchReporter(VitamMetricConfiguration configuration) {
+        final Map<String, Object> additionalFields = new HashMap<>();
+
+        additionalFields.put("hostname", ServerIdentity.getInstance().getName());
+        additionalFields.put("role", ServerIdentity.getInstance().getRole());
+        try {
+            reporter = ElasticsearchReporter.forRegistry(registry)
+                .hosts(configuration.getElasticsearchHost())
+                .index(configuration.getElasticsearchIndex())
+                .indexDateFormat(configuration.getElasticsearchIndexDateFormat())
+                .additionalFields(additionalFields)
+                .build();
+        } catch (final IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
     private void configureJVMMetrics() {
-		BufferPoolMetricSet bufferPool = new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer());
-		CachedThreadStatesGaugeSet cachedThreadStates = new CachedThreadStatesGaugeSet(1, TimeUnit.MINUTES);
-		ClassLoadingGaugeSet classLoading = new ClassLoadingGaugeSet();
-		FileDescriptorRatioGauge fileDescriptor = new FileDescriptorRatioGauge();
-		GarbageCollectorMetricSet garbageCollector = new GarbageCollectorMetricSet();
-		MemoryUsageGaugeSet memoryGauges = new MemoryUsageGaugeSet();
-		
-		registry.register("fileDescriptorRatioGauge", fileDescriptor);
-		registry.registerAll(bufferPool);
-		registry.registerAll(cachedThreadStates);
-		registry.registerAll(classLoading);
-		registry.registerAll(garbageCollector);
-		registry.registerAll(memoryGauges);
-		// ThreadStatesGaugeSet not working because duplicate metrics names.
-		// TODO open a github issue demanding a fix
+        final BufferPoolMetricSet bufferPool = new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer());
+        final CachedThreadStatesGaugeSet cachedThreadStates = new CachedThreadStatesGaugeSet(1, TimeUnit.MINUTES);
+        final ClassLoadingGaugeSet classLoading = new ClassLoadingGaugeSet();
+        final FileDescriptorRatioGauge fileDescriptor = new FileDescriptorRatioGauge();
+        final GarbageCollectorMetricSet garbageCollector = new GarbageCollectorMetricSet();
+        final MemoryUsageGaugeSet memoryGauges = new MemoryUsageGaugeSet();
+
+        registry.register("fileDescriptorRatioGauge", fileDescriptor);
+        registry.registerAll(bufferPool);
+        registry.registerAll(cachedThreadStates);
+        registry.registerAll(classLoading);
+        registry.registerAll(garbageCollector);
+        registry.registerAll(memoryGauges);
+        // ThreadStatesGaugeSet not working because duplicate metrics names.
+        // TODO open a github issue demanding a fix
     }
-    
+
     /**
      * Start the reporting.
      */
     final public void start() {
-    	if (!isReporting && reporter != null) {
-    		reporter.start(interval, intervalUnit);
-    		isReporting = true;
-    	}
+        if (!isReporting && reporter != null) {
+            reporter.start(interval, intervalUnit);
+            isReporting = true;
+        }
     }
-    
+
     /**
      * Stop the reporting.
      */
     final public void stop() {
-    	if (isReporting && reporter != null) {
-    		reporter.stop();
-    		isReporting = false;
-    	}
+        if (isReporting && reporter != null) {
+            reporter.stop();
+            isReporting = false;
+        }
     }
-    
-    
+
+
 }

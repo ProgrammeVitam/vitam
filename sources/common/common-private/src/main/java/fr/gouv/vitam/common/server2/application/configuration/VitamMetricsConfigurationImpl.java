@@ -42,166 +42,165 @@ import fr.gouv.vitam.common.server2.application.VitamMetricsType;
  */
 public final class VitamMetricsConfigurationImpl {
 
-	private List<VitamMetricConfigurationImpl> metricsConfigurations = new ArrayList<VitamMetricConfigurationImpl>();
-	
+    private List<VitamMetricConfigurationImpl> metricsConfigurations = new ArrayList<>();
+
     /**
      * DbConfiguration empty constructor for YAMLFactory
      */
     public VitamMetricsConfigurationImpl() {
         // empty
     }
-	
+
     /**
-     * 
+     *
      * @param metricsConfigurations The metrics configurations read in the YAML configuration file
      * @return this
      */
-	public VitamMetricsConfigurationImpl setMetrics(List<VitamMetricConfigurationImpl> metricsConfigurations) {
-		if (metricsConfigurations != null) {
-			this.metricsConfigurations = metricsConfigurations;
-		}
-		return this;
-	}
-	
-	/**
-	 * Return the list of metrics configurations that were read by the YAML parser
-	 * in the metrics configuration file.
-	 * 
-	 * @return List<VitamMetricConfigurationImpl>
-	 */
-	public List<VitamMetricConfigurationImpl> getMetricsConfigurations() {
-		return metricsConfigurations;
-	}
-	
-	/**
-	 * Implementation of VitamMetricConfiguration Interface
-	 */
-	final private static class VitamMetricConfigurationImpl implements VitamMetricConfiguration {
-		
-		private int interval = 1;
-		private VitamMetricsType type = VitamMetricsType.JERSEY;
-		private String elasticsearchHost = "localhost";
-		private String elasticsearchIndex = "metrics-vitam-";
-		private int elasticsearchPort = 9201;
-		private String elasticsearchIndexDateFormat = "YYYY.MM.dd";
-		private VitamMetricsReporterType reporterType = VitamMetricsReporterType.CONSOLE;
-		private TimeUnit intervalUnit = TimeUnit.MINUTES;
-		
-		/**
-		 * VitamMetricConfigurationImpl constructor
-		 * 
-		 * @param type
-		 * @param reporterType
-		 * @param interval
-		 * @param intervalUnit
-		 * @param elasticsearchHost
-		 * @param elasticsearchPort
-		 * @param elasticsearchIndex
-		 * @param elasticsearchIndexDateFormat
-		 */
-		@JsonCreator
-		public VitamMetricConfigurationImpl(
-				@JsonProperty("type") final VitamMetricsType type,
-				@JsonProperty("reporter_type") final VitamMetricsReporterType reporterType,
-				@JsonProperty("interval") final int interval,
-				@JsonProperty("interval_unit") final TimeUnit intervalUnit,
-				@JsonProperty("elasticsearch_host") final String elasticsearchHost,
-				@JsonProperty("elasticsearch_port") final int elasticsearchPort,
-				@JsonProperty("elasticsearch_index") final String elasticsearchIndex,
-				@JsonProperty("elasticsearch_index_date_format") final String elasticsearchIndexDateFormat) {
+    public VitamMetricsConfigurationImpl setMetrics(List<VitamMetricConfigurationImpl> metricsConfigurations) {
+        if (metricsConfigurations != null) {
+            this.metricsConfigurations = metricsConfigurations;
+        }
+        return this;
+    }
 
-			setType(type);
-			setReporterType(reporterType);
-			setInterval(interval);
-			setIntervalUnit(intervalUnit);
-			setElasticsearchHost(elasticsearchHost);
-			setElasticsearchPort(elasticsearchPort);
-			setElasticsearchIndex(elasticsearchIndex);
-			setElasticsearchIndexDateFormat(elasticsearchIndexDateFormat);
-		}
-		
-		private void setType(final VitamMetricsType type) {
-			if (type != null) {
-				this.type = type;
-			}
-		}
-		
-		private void setReporterType(final VitamMetricsReporterType reporterType) {
-			if (reporterType != null) {
-				this.reporterType = reporterType;
-			}
-		}
-		
-		private void setInterval(final int interval) {
-			if (interval > 0) {
-				this.interval = interval;
-			}
-		}
-		
-		private void setIntervalUnit(TimeUnit intervalUnit) {
-			if (intervalUnit != null) {
-				this.intervalUnit = intervalUnit;
-			}
-		}
-		
-		private void setElasticsearchHost(final String host) {
-			if (host != null) {
-				this.elasticsearchHost = host;
-			}
-		}
-		
-		private void setElasticsearchPort(final int port) {
-			if (port > 0) {
-				this.elasticsearchPort = port;
-			}
-		}
-		
-		private void setElasticsearchIndex(final String index) {
-			if (index != null) {
-				this.elasticsearchIndex = index;
-			}
-		}
-		
-		private void setElasticsearchIndexDateFormat(final String format) {
-			if (format != null) {
-				this.elasticsearchIndexDateFormat = format;
-			}
-		}
-		
-		@Override
-		public String getElasticsearchHost() {
-			return elasticsearchHost + ":" + elasticsearchPort;
-		}
+    /**
+     * Return the list of metrics configurations that were read by the YAML parser in the metrics configuration file.
+     *
+     * @return List<VitamMetricConfigurationImpl>
+     */
+    public List<VitamMetricConfigurationImpl> getMetricsConfigurations() {
+        return metricsConfigurations;
+    }
 
-		@Override
-		public String getElasticsearchIndex() {
-			return elasticsearchIndex;
-		}
+    /**
+     * Implementation of VitamMetricConfiguration Interface
+     */
+    final private static class VitamMetricConfigurationImpl implements VitamMetricConfiguration {
 
-		@Override
-		public String getElasticsearchIndexDateFormat() {
-			return elasticsearchIndexDateFormat;
-		}
+        private int interval = 1;
+        private VitamMetricsType type = VitamMetricsType.JERSEY;
+        private String elasticsearchHost = "localhost";
+        private String elasticsearchIndex = "metrics-vitam-";
+        private int elasticsearchPort = 9201;
+        private String elasticsearchIndexDateFormat = "YYYY.MM.dd";
+        private VitamMetricsReporterType reporterType = VitamMetricsReporterType.CONSOLE;
+        private TimeUnit intervalUnit = TimeUnit.MINUTES;
 
-		@Override
-		public VitamMetricsType getType() {
-			return type;
-		}
+        /**
+         * VitamMetricConfigurationImpl constructor
+         *
+         * @param type
+         * @param reporterType
+         * @param interval
+         * @param intervalUnit
+         * @param elasticsearchHost
+         * @param elasticsearchPort
+         * @param elasticsearchIndex
+         * @param elasticsearchIndexDateFormat
+         */
+        @JsonCreator
+        public VitamMetricConfigurationImpl(
+            @JsonProperty("type") final VitamMetricsType type,
+            @JsonProperty("reporter_type") final VitamMetricsReporterType reporterType,
+            @JsonProperty("interval") final int interval,
+            @JsonProperty("interval_unit") final TimeUnit intervalUnit,
+            @JsonProperty("elasticsearch_host") final String elasticsearchHost,
+            @JsonProperty("elasticsearch_port") final int elasticsearchPort,
+            @JsonProperty("elasticsearch_index") final String elasticsearchIndex,
+            @JsonProperty("elasticsearch_index_date_format") final String elasticsearchIndexDateFormat) {
 
-		@Override
-		public VitamMetricsReporterType getReporterType() {
-			return reporterType;
-		}
+            setType(type);
+            setReporterType(reporterType);
+            setInterval(interval);
+            setIntervalUnit(intervalUnit);
+            setElasticsearchHost(elasticsearchHost);
+            setElasticsearchPort(elasticsearchPort);
+            setElasticsearchIndex(elasticsearchIndex);
+            setElasticsearchIndexDateFormat(elasticsearchIndexDateFormat);
+        }
 
-		@Override
-		public int getInterval() {
-			return interval;
-		}
+        private void setType(final VitamMetricsType type) {
+            if (type != null) {
+                this.type = type;
+            }
+        }
 
-		@Override
-		public TimeUnit getIntervalUnit() {
-			return intervalUnit;
-		}
-	}
+        private void setReporterType(final VitamMetricsReporterType reporterType) {
+            if (reporterType != null) {
+                this.reporterType = reporterType;
+            }
+        }
+
+        private void setInterval(final int interval) {
+            if (interval > 0) {
+                this.interval = interval;
+            }
+        }
+
+        private void setIntervalUnit(TimeUnit intervalUnit) {
+            if (intervalUnit != null) {
+                this.intervalUnit = intervalUnit;
+            }
+        }
+
+        private void setElasticsearchHost(final String host) {
+            if (host != null) {
+                elasticsearchHost = host;
+            }
+        }
+
+        private void setElasticsearchPort(final int port) {
+            if (port > 0) {
+                elasticsearchPort = port;
+            }
+        }
+
+        private void setElasticsearchIndex(final String index) {
+            if (index != null) {
+                elasticsearchIndex = index;
+            }
+        }
+
+        private void setElasticsearchIndexDateFormat(final String format) {
+            if (format != null) {
+                elasticsearchIndexDateFormat = format;
+            }
+        }
+
+        @Override
+        public String getElasticsearchHost() {
+            return elasticsearchHost + ":" + elasticsearchPort;
+        }
+
+        @Override
+        public String getElasticsearchIndex() {
+            return elasticsearchIndex;
+        }
+
+        @Override
+        public String getElasticsearchIndexDateFormat() {
+            return elasticsearchIndexDateFormat;
+        }
+
+        @Override
+        public VitamMetricsType getType() {
+            return type;
+        }
+
+        @Override
+        public VitamMetricsReporterType getReporterType() {
+            return reporterType;
+        }
+
+        @Override
+        public int getInterval() {
+            return interval;
+        }
+
+        @Override
+        public TimeUnit getIntervalUnit() {
+            return intervalUnit;
+        }
+    }
 
 }

@@ -42,28 +42,29 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
  * A fork of the {@link InstrumentedResourceMethodApplicationListener}
  * <p>
- * This class enables the automatic generation of Metrics/Jersey annotations such as : @Timed, @Metered and @ExceptionMetered
- * on any API end-points of the resources inside the application.
+ * This class enables the automatic generation of Metrics/Jersey annotations such as : @Timed, @Metered
+ * and @ExceptionMetered on any API end-points of the resources inside the application.
  * </p>
  * Metric names are automatically generated under the form:
  * <p>
- * 		URI:HTTP_METHOD:METRIC_TYPE
+ * URI:HTTP_METHOD:METRIC_TYPE
  * </p>
  * Example:
  * <p>
- * 		/application/test:GET:Timer
+ * /application/test:GET:Timer
  * </p>
  * <p>
- * WARNING
- * This class doesn't support nested Jersey resource
+ * WARNING This class doesn't support nested Jersey resource
  * </p>
  */
-final public class VitamInstrumentedResourceMethodApplicationListener extends InstrumentedResourceMethodApplicationListener {
+final public class VitamInstrumentedResourceMethodApplicationListener
+    extends InstrumentedResourceMethodApplicationListener {
 
     private final MetricRegistry metrics;
     private ImmutableMap<Method, Timer> timers = ImmutableMap.of();
@@ -73,169 +74,174 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
     private static final String METRIC_METER_NAME = "meter";
     private static final String METRIC_TIMER_NAME = "timer";
     private static final String METRIC_EXCEPTION_METER_NAME = "exceptionMeter";
-    
+
     /****************************************************************************************************
-     * 																									*
-     *	THE CODE STARTING HERE DIFFERS FROM {@link VitamInstrumentedResourceMethodApplicationListener}	*
-     *																									*
+     * * THE CODE STARTING HERE DIFFERS FROM {@link InstrumentedResourceMethodApplicationListener} * *
      ***************************************************************************************************/
-    
+
     /**
      * Construct an application event listener using the given metrics registry.
      * <p>
-     * When using this constructor, the {@link VitamInstrumentedResourceMethodApplicationListener}
-     * should be added to a Jersey {@code ResourceConfig} as a singleton.
+     * When using this constructor, the {@link VitamInstrumentedResourceMethodApplicationListener} should be added to a
+     * Jersey {@code ResourceConfig} as a singleton.
      * </p>
      *
      * @param metrics a {@link MetricRegistry}
      */
-	public VitamInstrumentedResourceMethodApplicationListener(MetricRegistry metrics) {
-		super(metrics);
-		this.metrics = metrics;
-	}
-    
-	/**
-	 * Appends to a given {@code String} the meter metric name and a delimiter character.
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_METER_NAME}
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
-	 * 
-	 * @param name
-	 * @return
-	 */
-	static public final	String metricMeterName(final String name) {
-		return name + METRIC_NAME_DELIMITER + METRIC_METER_NAME;
-	}
-	
-	/**
-	 * Appends to a given {@code String} the meter metric name and a delimiter character.
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_TIMER_NAME}
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
-	 * 
-	 * @param name
-	 * @return
-	 */
-	static public final	String metricTimerName(final String name) {
-		return name + METRIC_NAME_DELIMITER + METRIC_TIMER_NAME;
-	}
-	
-	/**
-	 * Appends to a given {@code String} the meter metric name and a delimiter character.
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_EXCEPTION_METER_NAME}
-	 * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
-	 * 
-	 * @param name
-	 * @return
-	 */
-	static public final	String metricExceptionMeterName(final String name) {
-		return name + METRIC_NAME_DELIMITER + METRIC_EXCEPTION_METER_NAME;
-	}
-    
+    public VitamInstrumentedResourceMethodApplicationListener(MetricRegistry metrics) {
+        super(metrics);
+        ParametersChecker.checkParameter("MetricRegistry", metrics);
+        this.metrics = metrics;
+    }
+
     /**
-     * Concat two strings together making sure at least one slash character '/'
-     * exists between them.
+     * Appends to a given {@code String} the meter metric name and a delimiter character.
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_METER_NAME}
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
+     *
+     * @param name
+     * @return String
+     */
+    static public final String metricMeterName(final String name) {
+        return name + METRIC_NAME_DELIMITER + METRIC_METER_NAME;
+    }
+
+    /**
+     * Appends to a given {@code String} the meter metric name and a delimiter character.
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_TIMER_NAME}
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
+     *
+     * @param name
+     * @return String
+     */
+    static public final String metricTimerName(final String name) {
+        return name + METRIC_NAME_DELIMITER + METRIC_TIMER_NAME;
+    }
+
+    /**
+     * Appends to a given {@code String} the meter metric name and a delimiter character.
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_EXCEPTION_METER_NAME}
+     * {@see VitamInstrumentedResourceMethodApplicationListener#METRIC_NAME_DELIMITER}
+     *
+     * @param name
+     * @return String
+     */
+    static public final String metricExceptionMeterName(final String name) {
+        return name + METRIC_NAME_DELIMITER + METRIC_EXCEPTION_METER_NAME;
+    }
+
+    /**
+     * Concat two strings together making sure at least one slash character '/' exists between them.
+     *
      * @param first
      * @param second
-     * @return
+     * @return String
      */
-    final private String	concatURI(String first, String second) {
-    	if (first.length() > 0
-    		&& first.charAt(first.length() - 1) != '/'
-    		&& second.length() > 0
-    		&& second.charAt(0) != '/') {
-	    		return first + "/" + second;
-    	}
-    	else
-    		return first + second;
+    final private String concatURI(String first, String second) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        if (first.length() > 0 && first.charAt(first.length() - 1) != '/' && second.length() > 0 &&
+            second.charAt(0) != '/') {
+            return stringBuilder.append(first).append('/').append(second).toString();
+        } else {
+            return stringBuilder.append(first).append(second).toString();
+        }
     }
-    
-    final private String	getConsumedTypesAsString(final ResourceMethod method) {
-    	if (!method.getConsumedTypes().isEmpty()) {
-    		String producedTypes = "";
-    		for (MediaType type : method.getConsumedTypes()) {
-    			producedTypes += type.toString() + ",";
-    		}
-    		return producedTypes.substring(0, producedTypes.length() - 1);
-    	}
-    	else
-    		return "*";
+
+    final private String getConsumedTypesAsString(final ResourceMethod method) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        if (!method.getConsumedTypes().isEmpty()) {
+            for (final MediaType type : method.getConsumedTypes()) {
+                stringBuilder.append(type.toString()).append(',');
+            }
+            return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
+        } else {
+            return "*";
+        }
     }
-    
-    final private String	getProducedTypesAsString(final ResourceMethod method) {
-    	if (!method.getProducedTypes().isEmpty()) {
-    		String consumedTypes = "";
-    		for (MediaType type : method.getProducedTypes()) {
-    			consumedTypes += type.toString() + ",";
-    		}
-    		return consumedTypes.substring(0, consumedTypes.length() - 1);
-    	}
-    	else
-    		return "*";
+
+    final private String getProducedTypesAsString(final ResourceMethod method) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        if (!method.getProducedTypes().isEmpty()) {
+            for (final MediaType type : method.getProducedTypes()) {
+                stringBuilder.append(type.toString());
+                stringBuilder.append(',');
+            }
+            return stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
+        } else {
+            return "*";
+        }
     }
-    
+
     /**
      * Creates a generic name for the API end-point of the type:
      * <p>
-     * 			URI:HTTP_METHOD:CONSUME_MEDIA_TYPES:PRODUCE_MEDIA_TYPE
+     * URI:HTTP_METHOD:CONSUME_MEDIA_TYPES:PRODUCE_MEDIA_TYPE
      * </p>
+     *
      * @param method {@link ResourceMethod}
      * @param URI {@link String} the end-point URI
-     * @return
+     * @return String
      */
-    final private String	metricGenericName(final ResourceMethod method, final String URI) {
-    	return 
-    			URI + 
-    			METRIC_NAME_DELIMITER +
-    			method.getHttpMethod() +
-    			METRIC_NAME_DELIMITER +
-    			getConsumedTypesAsString(method) +
-    			METRIC_NAME_DELIMITER +
-    			getProducedTypesAsString(method);
-    }
-    
-	/**
-	 * Register a new TimerMetric on a given registry with a given name.
-	 * <p>
-	 * Appends the metric type "Timer" to the name.
-	 * </p>
-	 * @param registry {@link MetricRegistry}
-	 * @param name {@link String}
-	 * @return
-	 */
-    final private Timer timerMetric(String name) {
-		return metrics.timer(metricTimerName(name));
+    final private String metricGenericName(final ResourceMethod method, final String URI) {
+        return URI +
+            METRIC_NAME_DELIMITER +
+            method.getHttpMethod() +
+            METRIC_NAME_DELIMITER +
+            getConsumedTypesAsString(method) +
+            METRIC_NAME_DELIMITER +
+            getProducedTypesAsString(method);
     }
 
-	/**
-	 * Register a new MeterMetric on a given registry with a given name.
-	 * <p>
-	 * Appends the metric type "Meter" to the name.
-	 * </p>
-	 * @param registry {@link MetricRegistry}
-	 * @param name {@link String}
-	 * @return
-	 */
-	final private Meter meterMetric(String name) {
-		return metrics.meter(metricMeterName(name));
-	}
-	
-	/**
-	 * Register a new MeterMetric on a given registry with a given name.
-	 * <p>
-	 * Appends the metric type "ExceptionMeter" to the name.
-	 * </p>
-	 * @param registry {@link MetricRegistry}
-	 * @param name {@link String}
-	 * @return
-	 */
-	final private Meter exceptionMeterMetric(String name) {
-		return metrics.meter(metricExceptionMeterName(name));
-	}
-	
-	/**
-	 * This ExceptionMeterRequestEventListener differs from the original one
-	 * because the {@link ExceptionMeterRequestEventListener#onEvent(RequestEvent)} method is no longer
-	 * checking if the raised Exception should be caught, instead every exception that occurs marks the meter.
-	 */
+    /**
+     * Register a new TimerMetric on a given registry with a given name.
+     * <p>
+     * Appends the metric type "Timer" to the name.
+     * </p>
+     *
+     * @param registry {@link MetricRegistry}
+     * @param name {@link String}
+     * @return {@link Timer}
+     */
+    final private Timer timerMetric(String name) {
+        return metrics.timer(metricTimerName(name));
+    }
+
+    /**
+     * Register a new MeterMetric on a given registry with a given name.
+     * <p>
+     * Appends the metric type "Meter" to the name.
+     * </p>
+     *
+     * @param registry {@link MetricRegistry}
+     * @param name {@link String}
+     * @return {@link Meter}
+     */
+    final private Meter meterMetric(String name) {
+        return metrics.meter(metricMeterName(name));
+    }
+
+    /**
+     * Register a new MeterMetric on a given registry with a given name.
+     * <p>
+     * Appends the metric type "ExceptionMeter" to the name.
+     * </p>
+     *
+     * @param registry {@link MetricRegistry}
+     * @param name {@link String}
+     * @return {@link Meter}
+     */
+    final private Meter exceptionMeterMetric(String name) {
+        return metrics.meter(metricExceptionMeterName(name));
+    }
+
+    /**
+     * This ExceptionMeterRequestEventListener differs from the original one because the
+     * {@link ExceptionMeterRequestEventListener#onEvent(RequestEvent)} method is no longer checking if the raised
+     * Exception should be caught, instead every exception that occurs marks the meter.
+     */
     private static class ExceptionMeterRequestEventListener implements RequestEventListener {
         private final ImmutableMap<Method, Meter> exceptionMeters;
 
@@ -247,10 +253,10 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
                 final ResourceMethod method = event.getUriInfo().getMatchedResourceMethod();
-                final Meter meter = (method != null) ?
-                        this.exceptionMeters.get(method.getInvocable().getDefinitionMethod()) : null;
+                final Meter meter =
+                    method != null ? exceptionMeters.get(method.getInvocable().getDefinitionMethod()) : null;
                 if (meter != null) {
-                	meter.mark();
+                    meter.mark();
                 }
             }
         }
@@ -258,11 +264,10 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
 
     /**
      * <p>
-     * Registers a meter, timer and exceptionMeter for a given Jersey
-     * end-point.
+     * Registers a meter, timer and exceptionMeter for a given Jersey end-point.
      * </p>
      * This method excludes extended Jersey methods.
-     * 
+     *
      * @param timerBuilder
      * @param meterBuilder
      * @param exceptionMeterBuilder
@@ -271,35 +276,35 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
      * @param rootPath
      */
     private void registerMetricsForMethod(
-    		final ImmutableMap.Builder<Method, Timer> timerBuilder,
-    		final ImmutableMap.Builder<Method, Meter> meterBuilder,
-    		final ImmutableMap.Builder<Method, Meter> exceptionMeterBuilder,
-    		final ResourceMethod method,
-    		final String path,
-    		final String rootPath)
-    {
-    	final Method definitionMethod = method.getInvocable().getDefinitionMethod();
-    	final String metricName;
-    	
-    	// Note : an extended method is a method not present in the original API, but created by Jersey for technical purposes (ex: mediatype transformation, ...)
-    	if (!method.isExtended() && method.getHttpMethod() != null) {
-    		if (rootPath == null)
-    			metricName = metricGenericName(method, path);
-    		else
-    			metricName = metricGenericName(method, concatURI(rootPath, path));
-  
-			meterBuilder.put(definitionMethod, meterMetric(metricName));
-    		timerBuilder.put(definitionMethod, timerMetric(metricName));
-    		exceptionMeterBuilder.put(definitionMethod, exceptionMeterMetric(metricName));
-    	}
+        final ImmutableMap.Builder<Method, Timer> timerBuilder,
+        final ImmutableMap.Builder<Method, Meter> meterBuilder,
+        final ImmutableMap.Builder<Method, Meter> exceptionMeterBuilder,
+        final ResourceMethod method,
+        final String path,
+        final String rootPath) {
+        final Method definitionMethod = method.getInvocable().getDefinitionMethod();
+        final String metricName;
+
+        // Note : an extended method is a method not present in the original API, but created by Jersey for technical
+        // purposes (ex: mediatype transformation, ...)
+        if (!method.isExtended() && method.getHttpMethod() != null) {
+            if (rootPath == null) {
+                metricName = metricGenericName(method, path);
+            } else {
+                metricName = metricGenericName(method, concatURI(rootPath, path));
+            }
+
+            meterBuilder.put(definitionMethod, meterMetric(metricName));
+            timerBuilder.put(definitionMethod, timerMetric(metricName));
+            exceptionMeterBuilder.put(definitionMethod, exceptionMeterMetric(metricName));
+        }
     }
-    
+
     /**
      * This function is called every time the application registers an event.
      * <p>
-     * If the event is of type {@code ApplicationEvent.Type.INITIALIZATION_APP_FINISHED}
-     * the function will parse the different methods of each {@see Resource} and automatically
-     * create metrics.
+     * If the event is of type {@code ApplicationEvent.Type.INITIALIZATION_APP_FINISHED} the function will parse the
+     * different methods of each {@see Resource} and automatically create metrics.
      * </p>
      */
     @Override
@@ -308,25 +313,26 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
             final ImmutableMap.Builder<Method, Timer> timerBuilder = ImmutableMap.<Method, Timer>builder();
             final ImmutableMap.Builder<Method, Meter> meterBuilder = ImmutableMap.<Method, Meter>builder();
             final ImmutableMap.Builder<Method, Meter> exceptionMeterBuilder = ImmutableMap.<Method, Meter>builder();
-            
-            /* TODO: This class does not handle nested resources for the moment. This
-             * feature should be implemented */
+
+            /*
+             * TODO: This class does not handle nested resources for the moment. This feature should be implemented
+             */
             for (final Resource resource : event.getResourceModel().getResources()) {
-            	
-            	/* TODO: Remove the application.wadl resources with a better option */
-            	if (resource.getPath().equals("application.wadl"))
-            		continue;	
-                for (final ResourceMethod method : resource.getResourceMethods()) {
-                		registerMetricsForMethod(
-            				timerBuilder, meterBuilder, exceptionMeterBuilder, method, resource.getPath(), null
-        				);
+
+                /* TODO: Remove the application.wadl resources with a better option */
+                if (resource.getPath().equals("application.wadl")) {
+                    continue;
                 }
-                
+                for (final ResourceMethod method : resource.getResourceMethods()) {
+                    registerMetricsForMethod(
+                        timerBuilder, meterBuilder, exceptionMeterBuilder, method, resource.getPath(), null);
+                }
+
                 for (final Resource childResource : resource.getChildResources()) {
-                	for (final ResourceMethod method : childResource.getResourceMethods()) {
-                		registerMetricsForMethod(
-            				timerBuilder, meterBuilder, exceptionMeterBuilder, method, childResource.getPath(), resource.getPath()
-        				);
+                    for (final ResourceMethod method : childResource.getResourceMethods()) {
+                        registerMetricsForMethod(
+                            timerBuilder, meterBuilder, exceptionMeterBuilder, method, childResource.getPath(),
+                            resource.getPath());
                     }
                 }
             }
@@ -336,13 +342,11 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
             exceptionMeters = exceptionMeterBuilder.build();
         }
     }
-    
+
     /****************************************************************************************************
-     * 																									*
-     *	THE CODE ENDING HERE DIFFERS FROM {@link VitamInstrumentedResourceMethodApplicationListener}	*
-     *																									*
+     * * THE CODE ENDING HERE DIFFERS FROM {@link VitamInstrumentedResourceMethodApplicationListener} * *
      ***************************************************************************************************/
-    
+
     private static class TimerRequestEventListener implements RequestEventListener {
         private final ImmutableMap<Method, Timer> timers;
         private Timer.Context context = null;
@@ -354,14 +358,14 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
         @Override
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
-                final Timer timer = this.timers.get(event.getUriInfo()
-                        .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
+                final Timer timer = timers.get(event.getUriInfo()
+                    .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
                 if (timer != null) {
-                    this.context = timer.time();
+                    context = timer.time();
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-                if (this.context != null) {
-                    this.context.close();
+                if (context != null) {
+                    context.close();
                 }
             }
         }
@@ -377,8 +381,8 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
         @Override
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
-                final Meter meter = this.meters.get(event.getUriInfo()
-                        .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
+                final Meter meter = meters.get(event.getUriInfo()
+                    .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
                 if (meter != null) {
                     meter.mark();
                 }
@@ -395,18 +399,18 @@ final public class VitamInstrumentedResourceMethodApplicationListener extends In
 
         @Override
         public void onEvent(final RequestEvent event) {
-            for (RequestEventListener listener : listeners) {
+            for (final RequestEventListener listener : listeners) {
                 listener.onEvent(event);
             }
         }
     }
-    
+
     @Override
     public RequestEventListener onRequest(final RequestEvent event) {
         final RequestEventListener listener = new ChainedRequestEventListener(
-                new TimerRequestEventListener(timers),
-                new MeterRequestEventListener(meters),
-                new ExceptionMeterRequestEventListener(exceptionMeters));
+            new TimerRequestEventListener(timers),
+            new MeterRequestEventListener(meters),
+            new ExceptionMeterRequestEventListener(exceptionMeters));
 
         return listener;
     }
