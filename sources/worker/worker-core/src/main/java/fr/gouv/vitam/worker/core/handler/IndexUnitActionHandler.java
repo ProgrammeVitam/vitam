@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -72,7 +73,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -128,13 +128,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         }
         // Update lifeCycle
         try {
-            if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
-                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    OutcomeMessage.INDEX_UNIT_KO.value());
-            } else {
-                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    OutcomeMessage.INDEX_UNIT_OK.value());
-            }
+            logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters,
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {

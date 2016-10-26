@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -76,7 +77,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
 
     private static final String HANDLER_ID = "OG_STORAGE";
-    private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
     private static final String SIP = "SIP/";
 
     // TODO should not be a private attribute -> to refactor
@@ -87,16 +87,20 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         .getClient();
 
     private static final String DEFAULT_TENANT = "0";
+    private static final int TENANT = 0;
+
     private static final String DEFAULT_STRATEGY = "default";
 
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
+    // TODO WORKFLOW will be in vitam-logbook file
     private static final String LOGBOOK_LF_STORAGE_MSG = "Stockage des objets";
     private static final String LOGBOOK_LF_STORAGE_OK_MSG = "Stockage des objets réalisé avec succès";
     private static final String LOGBOOK_LF_STORAGE_KO_MSG = "Stockage des objets en erreur";
     private static final String LOGBOOK_LF_STORAGE_BDO_MSG = "Stockage de l'objet";
     private static final String LOGBOOK_LF_STORAGE_BDO_KO_MSG = "Stockage de l'objet en erreur";
+    private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
 
     /**
      * Constructor
@@ -154,17 +158,12 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 itemStatus.getGlobalStatus().name());
-            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    StatusCode.OK.name());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    LOGBOOK_LF_STORAGE_OK_MSG);
-            } else {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    StatusCode.KO.name());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    LOGBOOK_LF_STORAGE_KO_MSG);
-            }
+            // TODO WORKFLOW message ok :LOGBOOK_LF_STORAGE_OK_MSG
+            // TODO WORKFLOW message ko :LOGBOOK_LF_STORAGE_KO_MSG
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                itemStatus.getGlobalStatus().name());
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
             updateLifeCycle();
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -206,7 +205,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 StatusCode.OK.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                result.getInfo());
+                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
             updateLifeCycle();
         } catch (final StorageClientException e) {
             LOGGER.error(e);
@@ -217,7 +216,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 StatusCode.KO.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                LOGBOOK_LF_STORAGE_BDO_KO_MSG);
+                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
             updateLifeCycle();
             throw e;
         }
@@ -326,7 +325,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             params.getContainerName());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newGUID().toString());
+            GUIDFactory.newEventGUID(TENANT).toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess, typeProcess);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
             params.getCurrentStep());
@@ -334,8 +333,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
+        // TODO WORKFLOW add message LOGBOOK_LF_STORAGE_MSG for started status STEP.
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LOGBOOK_LF_STORAGE_MSG);
+            VitamLogbookMessages.getCodeLfc(params.getCurrentStep(), StatusCode.STARTED));
     }
 
     /**
@@ -350,13 +350,13 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             params.getObjectName().replace("." + extension, ""));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, bdoId);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-            OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE);
+            HANDLER_ID);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LOGBOOK_LF_STORAGE_BDO_MSG);
+            VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
     }
 
     @Override

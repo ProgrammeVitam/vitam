@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
 import fr.gouv.vitam.common.graph.Graph;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -91,7 +92,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
@@ -104,8 +104,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Handler class used to extract metaData. </br>
- * Create and put a new file (metadata extracted)
- * json.json into container GUID
+ * Create and put a new file (metadata extracted) json.json into container GUID
  *
  */
 
@@ -137,6 +136,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String FILE_INFO = "FileInfo";
     private static final String METADATA = "Metadata";
     private static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
+    // TODO WORKFLOW will be in vitam-logbook file
     private static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE =
@@ -358,7 +358,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                                 .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
                             guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
                                 LogbookParameterName.outcomeDetailMessage,
-                                OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
                             LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
                         }
                     }
@@ -385,7 +385,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Add parents to archive units and save them into workspace
             addParentsAndSaveArchiveUnitToWorkspace(client, archiveUnitTree, containerId,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER);
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, itemStatus);
 
 
             // Save binaryDataObjectIdToGuid Map
@@ -444,7 +444,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void addParentsAndSaveArchiveUnitToWorkspace(WorkspaceClient client, ObjectNode archiveUnitTree,
-        String containerId, String path)
+        String containerId, String path, ItemStatus itemStatus)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         XMLStreamException, IOException, ProcessingException {
 
@@ -469,7 +469,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
                 guidToLifeCycleParameters.get(unitGuid).putParameterValue(
                     LogbookParameterName.outcomeDetailMessage,
-                    OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
                 LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
             }
 
@@ -881,17 +881,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newGUID().toString());
+            GUIDFactory.newEventGUID(0).toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LIFE_CYCLE_EVENT_TYPE_PROCESS);
+
+        // TODO WORKFLOW add treatment code for create objectGroup
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-            OG_LIFE_CYCLE_CREATION_EVENT_TYPE);
+            HANDLER_ID);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
+        // TODO WORKFLOW code outcomeDeatilsMessage started
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE.value());
+            VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
         LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleObjectGroupParameters);
 
         // Update guidToLifeCycleParameters
@@ -1014,7 +1017,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newGUID().toString());
+            GUIDFactory.newEventGUID(0).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LIFE_CYCLE_EVENT_TYPE_PROCESS);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType,
@@ -1024,7 +1027,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            StatusCode.STARTED.toString());
+            VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
         LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleUnitParameters);
 
         // Update guidToLifeCycleParameters
@@ -1317,18 +1320,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (!tmpFile.delete()) {
                     LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
                 }
-
                 // Create unreferenced object group
                 if (guidToLifeCycleParameters.get(objectGroupGuid) == null) {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId);
-
                     // Update Object Group lifeCycle creation event
                     guidToLifeCycleParameters.get(objectGroupGuid).setStatus(StatusCode.OK);
                     guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(LogbookParameterName.outcomeDetail,
                         StatusCode.OK.name());
                     guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
                         LogbookParameterName.outcomeDetailMessage,
-                        OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.OK));
                     LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
                 }
 
