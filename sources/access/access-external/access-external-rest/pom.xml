@@ -93,6 +93,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<unix.name>access-external</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
+	</properties>
 
 	<build>
 		<plugins>
