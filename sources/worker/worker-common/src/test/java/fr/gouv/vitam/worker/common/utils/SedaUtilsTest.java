@@ -157,11 +157,11 @@ public class SedaUtilsTest {
 
         versionList = utils.manifestVersionList(evenReader);
         assertEquals(5, versionList.size());
-        assertTrue(versionList.contains("PhysicalMaster"));
+        assertTrue(versionList.contains("PhysicalMaster_1"));
         assertTrue(versionList.contains("BinaryMaster"));
-        assertTrue(versionList.contains("Diffusion"));
+        assertTrue(versionList.contains("Diffusion_1"));
         assertTrue(versionList.contains("Thumbnail"));
-        assertTrue(versionList.contains("TextContent"));
+        assertTrue(versionList.contains("TextContent_1"));
     }
 
     @Test

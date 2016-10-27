@@ -109,6 +109,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 
 public class ExtractSedaActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
 
     // OUT RANK
@@ -145,6 +146,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
+    private static final String BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE = "ERROR: BinaryDataObject version must be unique";
     private static final String LEVEL = "level_";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
@@ -1264,20 +1266,32 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, 0);
-                for (final String id : entry.getValue()) {
+                List<String> versionList = new ArrayList<>();
+                for (int index = 0; index < entry.getValue().size(); index++) {
+                    final String id = entry.getValue().get(index);
                     final File binaryObjectFile = PropertiesUtils
                         .fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     final JsonNode binaryNode = JsonHandler.getFromFile(binaryObjectFile).get("BinaryDataObject");
-                    String nodeCategory = BINARY_MASTER;
+                    String nodeCategory = "";
                     if (binaryNode.get(SedaConstants.TAG_DO_VERSION) != null) {
                         nodeCategory = binaryNode.get(SedaConstants.TAG_DO_VERSION).asText();
+                        if (versionList.contains(nodeCategory)) {
+                            LOGGER.error(BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
+                            throw new ProcessingException(BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
+                        }
+                        versionList.add(nodeCategory);
                     }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
+                    if (nodeCategory.split("_").length == 1) {
+                        nodeCategory += nodeCategory + "_1";
+                        ((ObjectNode) binaryNode).put(SedaConstants.TAG_DO_VERSION, nodeCategory);
+                    }
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<>();
                         nodeCategoryArray.add(binaryNode);
                     } else {
-                        nodeCategoryArray.add(binaryNode);
+                        int binaryNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) -1;
+                        nodeCategoryArray.add(binaryNodePosition, binaryNode);
                     }
                     categoryMap.put(nodeCategory, nodeCategoryArray);
                     if (BINARY_MASTER.equals(nodeCategory)) {

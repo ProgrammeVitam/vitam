@@ -106,6 +106,7 @@ public class SedaUtils {
     private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
+    private static final int VERSION_POSITION = 0;
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -683,13 +684,12 @@ public class SedaUtils {
         final List<String> manifestVersionList = manifestVersionList(eventReader);
         final List<String> invalidVersionList = new ArrayList<>();
 
-        for (final String s : manifestVersionList) {
-            if (s != null) {
-                if (!fileVersionList.contains(s)) {
-                    LOGGER.debug(s + ": invalid version");
-                    invalidVersionList.add(s);
-                } else {
-                    LOGGER.debug(s + ": valid version");
+        for (final String version : manifestVersionList) {
+            if (version != null) {
+                String versionParts[] = version.split("_");
+                if (versionParts.length > 2
+                    || !fileVersionList.contains(versionParts[VERSION_POSITION])) {
+                    invalidVersionList.add(version);
                 }
             }
         }
