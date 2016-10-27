@@ -5,7 +5,7 @@ Métriques applicatives
 Besoins
 =======
 
-A des fins de monitoring des composants logiciel Java VITAM et de l'utilisation des ressources système par celles-ci, VITAM intègre un reporting et une gestion de métriques applicatives.
+À des fins de monitoring des composants logiciel Java VITAM et de l'utilisation des ressources système par ceux-ci, VITAM intègre un reporting et une gestion de métriques applicatives.
 
 
 Modèle générique
@@ -14,7 +14,7 @@ Modèle générique
 On peut noter les composants suivants :
 
 * Enregistreur de métriques : il s'agit de la librairie en charge de l'enregistrement d'une métrique.
-* Reporters de métriques: il s'agit des outils en charge de collecter les métriques enregistrées et d'en faire un reporting.
+* Reporters de métriques: il s'agit de librairies en charge de collecter les métriques enregistrées et d'en faire un reporting.
 * Stockage des métriques : il s'agit du composant stockant les métriques (de manière plus ou moins requêtable).
 * Visualisation des métriques : il s'agit du composant (souvent IHM) qui permet la recherche et la visualisation des métriques. 
 
@@ -75,7 +75,7 @@ Les reporters sont utilisés dans les composants logiciel Java. Ils sont en char
 Stockage des métriques
 ----------------------
 
-Si un reporter ElasticSearch de métriques est utilisé, celles-ci sont stockées dans le moteur d'indexation ElasticSearch, dans un cluster dédié au stockage des logs/métriques (pour séparer les données de logs/métriques et les données métier d'archives).
+Si un reporter de métriques ElasticSearch est utilisé, celles-ci seront stockées dans le moteur d'indexation ElasticSearch, dans un cluster dédié au stockage des logs/métriques (pour séparer les données de logs/métriques et les données métier d'archives).
 
  Ce cluster est configuré de la manière suivante :
 
@@ -93,9 +93,9 @@ Si un reporter ElasticSearch de métriques est utilisé, celles-ci sont stockée
 
 * Index : chaque index stockant des données de métriques correspond à 1 jour de métriques (déterminé à partir du timestamp de la métrique). Les index définis sont les suivants :
 
-    - ``metrics-vitam-jersey-YYYY.MM.dd`` pour les métriques de Jersey, avec un nom automatiquement généré sous la forme :
+    - ``metrics-vitam-jersey-YYYY.MM.dd`` pour les métriques de Jersey, avec un champ *nom* automatiquement généré sous la forme :
 
-        **URI:HTTP_METHOD:CONSUMED_TYPES:PRODUCED_TYPES:METRIC_TYPE**
+        **uri:http_method:consumed_types:produced_types:metric_type**
 
     - ``metrics-vitam-jvm-YYYY.MM.dd`` pour les métriques JVM.
 
@@ -121,16 +121,6 @@ La visalisation des métriques se fait par le composant Kibana. Il est instanci�
 Aucun mécanisme d'authentification n'est mis en place pour sécuriser l'accès à Kibana.
 
 .. hint:: La version opensource de Kibana, utilisée dans VITAM, ne supporte pas nativement l'authentification des clients ; d'autres solutions peuvent être mises en place (ex: l'utilisation du composant `shield <https://www.elastic.co/products/shield>`_ ), sous réserve d'une étude de compatibilité de la solution choisie.
-
-
-
-Intégration à un système de gestion de logs existants
-=====================================================
-
-L'intégration à un autre système de logs (pour y dupliquer les logs) est possible ; deux points d'ancrage sont possibles :
-
-* au niveau de logback ; ce point d'extension ne permet que d'obtenir les logs en provenance des applicatifs métier (java) ;
-* au niveau de rsyslog ; ce point d'extension permet d'agir sur les logs provenant de tous les composants déployés (y compris les bases de données et d'autres composants d'infrastructure déployés dans le cader de VITAM).
 
 
 Limites
