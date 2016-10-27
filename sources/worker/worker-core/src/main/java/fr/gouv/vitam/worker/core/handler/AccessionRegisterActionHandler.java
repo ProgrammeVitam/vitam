@@ -50,12 +50,9 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -63,19 +60,20 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 /**
  * Accession Register Handler
  */
-public class AccessionRegisterActionHandler extends ActionHandler implements AutoCloseable{
+public class AccessionRegisterActionHandler extends ActionHandler implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIO handlerIO;
 
     private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
+
     public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
     private static final int BDO_INFO_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
-    
+
 
     /**
      * Empty Constructor AccessionRegisterActionHandler
@@ -98,12 +96,10 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.FUND_REGISTER_OK);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
-        try(AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()){
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
             AccessionRegisterDetail register = generateAccessionRegister(params);
             adminClient.createorUpdateAccessionRegister(register);
@@ -116,7 +112,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
             itemStatus.increment(StatusCode.KO);
         }
 
-        LOGGER.debug("TransferNotificationActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("TransferNotificationActionHandler response: " + itemStatus.getGlobalStatus());
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
@@ -135,15 +131,18 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
         AccessionRegisterDetail register = new AccessionRegisterDetail();
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         try {
-            final InputStream archiveUnitMapStream = new FileInputStream((File) handlerIO.getInput().get(ARCHIVE_UNIT_MAP_RANK));
-            final InputStream objectGoupMapStream = new FileInputStream((File) handlerIO.getInput().get(OBJECTGOUP_MAP_RANK));
+            final InputStream archiveUnitMapStream =
+                new FileInputStream((File) handlerIO.getInput().get(ARCHIVE_UNIT_MAP_RANK));
+            final InputStream objectGoupMapStream =
+                new FileInputStream((File) handlerIO.getInput().get(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToInfoMapTmpFile =
                 new FileInputStream((File) handlerIO.getInput().get(BDO_INFO_MAP_RANK));
             final Map<String, Object> bdoInfoMap = JsonHandler.getMapFromInputStream(bdoToInfoMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
-            final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(SEDA_PARAMETERS_RANK))
-                .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+            final JsonNode sedaParameters =
+                JsonHandler.getFromFile((File) handlerIO.getInput().get(SEDA_PARAMETERS_RANK))
+                    .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
             if (sedaParameters != null) {
@@ -153,7 +152,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
                     } else {
-                        throw new ProcessingException("No "+ SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER +" found");
+                        throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
                     JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
@@ -199,6 +198,5 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
     }
 
     @Override
-    public void close() throws Exception {
-    }
+    public void close() throws Exception {}
 }

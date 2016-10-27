@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -239,7 +240,7 @@ public class SedaUtils {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newGUID().toString());
+                GUIDFactory.newEventGUID(0).toString());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 LIFE_CYCLE_EVENT_TYPE_PROCESS);
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventType, params.getCurrentStep());
@@ -248,7 +249,8 @@ public class SedaUtils {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 StatusCode.STARTED.toString());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                StatusCode.STARTED.toString());
+                VitamLogbookMessages.getCodeLfc(
+                    logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), StatusCode.STARTED));
 
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
@@ -262,7 +264,7 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
-    
+
     /**
      * @param logbookLifecycleParameters
      * @param params the parameters
@@ -278,7 +280,7 @@ public class SedaUtils {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-               LIFE_CYCLE_EVENT_TYPE_PROCESS);
+                LIFE_CYCLE_EVENT_TYPE_PROCESS);
 
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
@@ -294,6 +296,8 @@ public class SedaUtils {
     }
 
     /**
+     * 
+     * 
      * @param logbookLifecycleParameters logbook LC parameters
      * @param stepStatus the status code
      * @throws ProcessingException
@@ -307,7 +311,8 @@ public class SedaUtils {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 stepStatus.toString());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                logbookLifecycleParameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+                VitamLogbookMessages.getCodeLfc(
+                    logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), stepStatus));
 
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
@@ -427,7 +432,8 @@ public class SedaUtils {
         try {
             try {
                 xmlFile =
-                    client.getObject(guid, IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+                    client.getObject(guid,
+                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
                 LOGGER.error("Workspace error: Can not get file", e1);
                 throw new ProcessingException(e1);
@@ -594,7 +600,8 @@ public class SedaUtils {
                                         break;
                                     case SedaConstants.TAG_DIGEST:
                                         binaryObjectInfo
-                                            .setAlgo(DigestType.fromValue(((Attribute) startElement.getAttributes().next()).getValue()));
+                                            .setAlgo(DigestType.fromValue(
+                                                ((Attribute) startElement.getAttributes().next()).getValue()));
                                         final String messageDigest = evenReader.getElementText();
                                         binaryObjectInfo.setMessageDigest(messageDigest);
                                         break;

@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
+    // TODO WORKFLOW will be in vitam-logbook file
     private static final String ERROR_MESSAGE =
         "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
     private static final String EVENT_TYPE =
@@ -72,6 +74,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getClient();
     private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
+    private static final int TENANT = 0;
+
     private HandlerIO handlerIO;
     private final HandlerIO handlerInitialIOList;
 
@@ -149,12 +153,13 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                 final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
                     LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                         GUIDReader.getGUID(params.getContainerName()),
-                        EVENT_TYPE,
-                        GUIDFactory.newGUID(),
+                        HANDLER_ID,
+                        GUIDFactory.newEventGUID(TENANT),
                         LogbookTypeProcess.CHECK,
                         StatusCode.WARNING,
                         StatusCode.WARNING.toString(),
-                        ERROR_MESSAGE + objectGroup.getKey(),
+                        // TODO WORKFLOW
+                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
                         GUIDReader.getGUID(objectGroup.getValue().toString()));
                 try {
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);

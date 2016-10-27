@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -48,7 +49,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -108,14 +108,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         }
         // Update lifeCycle
         try {
-            if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) ||
-                StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    OutcomeMessage.INDEX_OBJECT_GROUP_KO.value());
-            } else {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    OutcomeMessage.INDEX_OBJECT_GROUP_OK.value());
-            }
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {

@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -95,9 +96,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 
-//TODO: refactor me 
-//TODO: review Logbook messages (operation / lifecycle) 
-//TODO: fully use VitamCode
+// TODO: refactor me
+// TODO: review Logbook messages (operation / lifecycle)
+// TODO: fully use VitamCode
 
 public class FormatIdentificationActionHandler extends ActionHandler implements AutoCloseable {
 
@@ -189,9 +190,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
                                 ObjectCheckFormatResult result =
                                     executeOneObjectFromOG(objectId, jsonFormatIdentifier, filename, version);
-                             
-                                    itemStatus.increment(result.getStatus());
-   
+
+                                itemStatus.increment(result.getStatus());
+
                                 if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
                                     return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                                 }
@@ -285,7 +286,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         // TODO WORKFLOW use the real message sub code
         // FIXME TODO WORKFLOW MUST BE itemStatus.getmESSAGE()
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            itemStatus.getItemId());
+            VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
         SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
             itemStatus.getGlobalStatus());
@@ -451,7 +452,11 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 objectCheckFormatResult.getSubStatus());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
+                // TODO WORKFLOW : "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
+                VitamLogbookMessages.getCodeLfc(
+                    logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
+                    objectCheckFormatResult.getSubStatus(), objectCheckFormatResult.getStatus(), diff.toString()));
+
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 objectCheckFormatResult.getStatus().name());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
