@@ -95,6 +95,13 @@ public class VitamMetricsConfigurationImplTest {
          */
         public TestResourceImpl() {
             super(new BasicVitamStatusServiceImpl());
+            // register the gauge if it doesn't exist
+            registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
+                @Override
+                public Integer getValue() {
+                    return counter;
+                }
+            });
         }
 
         /**
@@ -104,13 +111,6 @@ public class VitamMetricsConfigurationImplTest {
         public Response simpleGET() {
             // increment the counter each time this function is called
             counter++;
-            // register the gauge if it doesn't exist
-            registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
-                @Override
-                public Integer getValue() {
-                    return counter;
-                }
-            });
 
             return Response.status(Status.OK).build();
         }
@@ -168,12 +168,13 @@ public class VitamMetricsConfigurationImplTest {
 
     @SuppressWarnings("rawtypes")
     private void testBusinessGaugeValue() {
-        Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
+        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
         final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_RESOURCE_URI);
 
-        assertFalse(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
-        // Calling the resource should set the gauge and increment the counter
+        assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
+        assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(0));
+        // Calling the resource should and increment the counter
         RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
@@ -181,8 +182,6 @@ public class VitamMetricsConfigurationImplTest {
             .get(TEST_RESOURCE_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
-        gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
-        assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(1));
     }
 

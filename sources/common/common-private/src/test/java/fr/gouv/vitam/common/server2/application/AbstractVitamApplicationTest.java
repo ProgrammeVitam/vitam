@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.server2.benchmark.BenchmarkConfiguration;
 
 public class AbstractVitamApplicationTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplicationTest.class);
-    
+
     private static final String TEST_CONF_CONF = "benchmark-test.conf";
 
     private static class TestVitamApplication
@@ -112,47 +112,47 @@ public class AbstractVitamApplicationTest {
 
     @Test
     public void testMultipleServerSamePort() {
-        int port = JunitHelper.getInstance().findAvailablePort();
-        TestVitamApplication testVitamApplication =
+        final int port = JunitHelper.getInstance().findAvailablePort();
+        final TestVitamApplication testVitamApplication =
             new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
         LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
         assertFalse(testVitamApplication.getVitamServer().isStarted());
         try {
             testVitamApplication.start();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail("should not");
         }
         LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
         assertTrue(testVitamApplication.getVitamServer().isStarted());
         // Start second application
-        TestVitamApplication testVitamApplication2 =
+        final TestVitamApplication testVitamApplication2 =
             new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
         LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort());
         assertFalse(testVitamApplication2.getVitamServer().isStarted());
         try {
             testVitamApplication2.start();
             fail("should not");
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort() + " but ", e);
             assertFalse(testVitamApplication2.getVitamServer().isStarted());
         }
         try {
             testVitamApplication.stop();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail("should not");
         }
         LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
         assertFalse(testVitamApplication.getVitamServer().isStarted());
         try {
             testVitamApplication2.start();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail("should not");
         }
         LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort());
         assertTrue(testVitamApplication2.getVitamServer().isStarted());
         try {
             testVitamApplication2.stop();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail("should not");
         }
         JunitHelper.getInstance().releasePort(port);
