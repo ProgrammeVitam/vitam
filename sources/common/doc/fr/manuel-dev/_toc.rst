@@ -12,4 +12,5 @@ Common
    client.rst
    graph.rst
    VitamCode.rst
+   format-identifier.rst
    private/_toc.rst

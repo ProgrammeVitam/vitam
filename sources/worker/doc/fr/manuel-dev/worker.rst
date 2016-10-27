@@ -213,25 +213,73 @@ TODO
 4.9 Détail du handler : StoreObjectGroupActionHandler
 '''''''''''''''''''''''''''''''''''''''''''''''''''''
 4.9.1 description
+'''''''''''''''''
 Persistence des objets dans l'offre de stockage depuis le workspace.
+
 TODO
 
 
-Détail du handler : FormatIdentificationActionHandler
-'''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.10 Détail du handler : FormatIdentificationActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.10.1 Description
+''''''''''''''''''
+
 Ce handler permet d'identifier et contrôler automatiquement le format des objets versés.
 Il s'exécute sur les différents ObjectGroups déclarés dans le manifest. Pour chaque objectGroup, voici ce qui est effectué :
  - récupération du JSON de l'objectGroup présent sur le Workspace
  - transformation de ce Json en une map d'id d'objets / uri de l'objet associée
  - boucle sur les objets :
    - téléchargement de l'objet (File) depuis le Workspace
-   - appel Siegfried en lui passant le path vers l'objet à identifier + récupération de la réponse.
+   - appel l'outil de vérification de format (actuellement Siegfried) en lui passant le path vers l'objet à identifier + récupération de la réponse.
    - appel de l'AdminManagement pour faire une recherche getFormats par rapport au PUID récupéré.
    - mise à jour du Json : le format récupéré par Siegfried est mis à jour dans le Json (pour indexation future).
    - construction d'une réponse.
  - sauvegarde du JSON de l'objectGroup dans le Workspace.
  - aggrégation des retours pour générer un message + mise à jour du logbook. 
-  
+
+4.10.2 Détail des différentes maps utilisées :
+''''''''''''''''''''''''''''''''''''''''''''''
+Map<String, String> objectIdToUri
+    contenu         : cette map contient l'id du BDO associé à son uri.
+    création        : elle est créée dans le Handler après récupération du json listant les ObjectGroups
+    MAJ, put        : elle est populée lors de la lecture du json listant les ObjectGroups.
+    lecture, get    : lecture au fur et à mesure du traitement des BDO.
+    suppression     : elle n'est pas enregistrée sur le workspace et est présente en mémoire uniquement.
+
+4.10.3 exécution
+''''''''''''''''
+Ce Handler est exécuté dans l'étape "Contrôle et traitements des objets", juste après le Handler de vérification des empreintes.
+
+4.10.4 journalisation : logbook operation? logbook life cycle?
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Dans le traitement du Handler, sont mis à jour uniquement les journaux de cycle de vie des ObjectGroups.
+Les Outcome pour les journaux de cycle de vie peuvent être les suivants : 
+ - Le format PUID n'a pas été trouvé / ne correspond pas avec le référentiel des formats.
+ - Le format du fichier n'a pas pu être trouvé. 
+ - Le format du fichier a été complété dans les métadonnées (un "diff" est généré et ajouté).
+ - Le format est correct et correspond au référentiel des formats.
+ 
+(Note : les messages sont informatifs et ne correspondent aucunement à ce qui sera vraiment inséré en base) 
+ 
+4.10.5 modules utilisés
+'''''''''''''''''''''''
+Le Handler utilise les modules suivants : 
+ - Workspace (récupération / copie de fichiers)
+ - Logbook (mise à jour des journaux de cycle de vie des ObjectGroups)
+ - Common-format-identification (appel pour analyse des objets)
+ - AdminManagement (comparaison format retourné par l'outil d'analyse par rapport au référentiel des formats de Vitam).
+
+4.10.6 cas d'erreur
+'''''''''''''''''''
+Les différentes exceptions pouvant être rencontrées : 
+ - ReferentialException : si un problème est rencontré lors de l'interrogation du référentiel des formats de Vitam
+ - InvalidParseOperationException/InvalidCreateOperationException : si un problème est rencontré lors de la génération de la requête d'interrogation du référentiel des formats de Vitam
+ - FormatIdentifier*Exception : si un problème est rencontré avec l'outil d'analyse des formats (Siegfried)
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Content*Exception : si un problème est rencontré lors de l'interrogation du workspace
+ - ProcessingException : si un problème plus général est rencontré dans le Handler
+
 
 Worker-common
 -------------

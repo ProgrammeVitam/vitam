@@ -8,4 +8,4 @@ Architecture Fonctionnelle
    introduction.rst
    GUID.rst
    graph.rst
-
+   format-identifier.rst
