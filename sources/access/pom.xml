@@ -13,7 +13,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>access-common</module>
 		<module>access-internal</module>
 		<module>access-external</module>
 	</modules>
