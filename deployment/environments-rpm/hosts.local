@@ -41,7 +41,6 @@ localhost
 hosts-ingest-external
 hosts-access-external
 
-
 [hosts-ingest-external]
 localhost
 
@@ -51,10 +50,10 @@ localhost
 ##### Zone applicative
 
 [zone-applicative:children]
-hosts-ingest
+hosts-ingest-internal
 hosts-processing
 hosts-worker
-hosts-access
+hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
@@ -67,10 +66,10 @@ localhost
 [hosts-workspace]
 localhost
 
-[hosts-ingest]
+[hosts-ingest-internal]
 localhost
 
-[hosts-access]
+[hosts-access-internal]
 localhost
 
 [hosts-metadata]

@@ -136,7 +136,7 @@
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
-  no_log: true # OMA test as there may be secrets in verbose output
+  no_log: false # OMA test as there may be secrets in verbose output
 
 - name: copy files section
   copy:

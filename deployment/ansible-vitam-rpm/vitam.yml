@@ -81,9 +81,9 @@
     - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf, port_http: "{{vitam_workspace_port}}" }
 
 
-- hosts: hosts-ingest
+- hosts: hosts-ingest-internal
   roles:
-    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingest_port}}" } 
+    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingestinternal_port}}" } 
 
 - hosts: hosts-ingest-external
   roles:
@@ -100,9 +100,13 @@
     - siegfried
     - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}" } 
 
-- hosts: hosts-access
+- hosts: hosts-access-internal
   roles:
-    - {role: vitam, vitam_component: access, java_args: /vitam/conf/access/access.conf, port_http: "{{vitam_access_port}}" } 
+    - {role: vitam, vitam_component: access-internal, java_args: /vitam/conf/access-internal/access-internal.conf, port_http: "{{vitam_accessinternal_port}}" } 
+
+- hosts: hosts-access-external
+  roles:
+    - {role: vitam, vitam_component: access-external, java_args: /vitam/conf/access-external/access-external.conf, port_http: "{{vitam_accessexternal_port}}", port_https: "{{vitam_accessexternal_port_https}}", tls_active: true }
 
 - hosts: hosts-ihm-demo
   roles:

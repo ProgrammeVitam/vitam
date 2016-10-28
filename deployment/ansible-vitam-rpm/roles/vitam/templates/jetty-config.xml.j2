@@ -138,10 +138,10 @@
         </Call>
     </New>
         <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
-        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks</Set>
+        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_ingest-external.jks</Set>
         <Set name="KeyStorePassword">{{KeyStorePassword_ingest_external}}</Set>
         <Set name="KeyManagerPassword">{{KeyManagerPassword_ingest_external}}</Set>
-        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks</Set> 
+        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_ingest-external.jks</Set> 
         <Set name="TrustStorePassword">{{TrustStorePassword_ingest_external}}</Set> 
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
