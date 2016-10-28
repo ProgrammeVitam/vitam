@@ -275,7 +275,7 @@ public class StorageClientRestTest extends JerseyTest {
         client.getStorageInformation("idTenant", "idStrategy");
     }
 
-    /** FIXME : Waiting for server */
+    // FIXME : Waiting for server
     @Test
     public void createFromWorkspaceOK() throws Exception {
         when(mock.post())

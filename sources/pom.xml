@@ -202,6 +202,7 @@
 							<doctitle>Vitam API Reference (${project.version})</doctitle>
 							<windowtitle>Vitam API Reference (${project.version})</windowtitle>
 							<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
+							<overview>${basedir}/overview.html</overview>
 							<groups>
 								<group>
 									<title>Access </title>
