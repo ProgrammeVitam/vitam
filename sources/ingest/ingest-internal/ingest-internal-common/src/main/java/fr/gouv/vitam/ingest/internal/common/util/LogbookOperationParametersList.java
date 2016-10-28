@@ -59,6 +59,7 @@ public class LogbookOperationParametersList {
 
     /**
      * LogbookOperationParametersList Json Creator
+     * @param logbookOperationList 
      */
     @JsonCreator
     public LogbookOperationParametersList(List<LogbookOperationParameters> logbookOperationList) {

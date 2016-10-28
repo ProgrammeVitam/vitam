@@ -27,6 +27,11 @@
 
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -36,23 +41,19 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
@@ -61,22 +62,17 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 public class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
-    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
+    private final Map<String, Queue<LogbookOperationParameters>> delegatedCreations = new ConcurrentHashMap<>();
+    private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();
 
     LogbookOperationsClientRest(LogbookOperationsClientFactory factory) {
         super(factory);
     }
 
     @Override
-    public void create(LogbookParameters parameters)
+    public void create(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParameterHelper
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
-        final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        final String eip = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, OPERATIONS_URL + "/" + eip, null,
@@ -107,15 +103,9 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
     }
 
     @Override
-    public void update(LogbookParameters parameters)
+    public void update(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParameterHelper
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
-        final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        final String eip = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eip, null,
@@ -197,4 +187,109 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public void createDelegate(LogbookOperationParameters parameters) throws LogbookClientAlreadyExistsException {
+        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
+        if (delegatedCreations.containsKey(key)) {
+            throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+        }
+        Queue<LogbookOperationParameters> list = new ConcurrentLinkedQueue<>();
+        delegatedCreations.put(key, list);
+        list.add(LogbookOperationsClientHelper.copy(parameters));
+    }
+
+    @Override
+    public void updateDelegate(LogbookOperationParameters parameters) throws LogbookClientNotFoundException {
+        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
+        Queue<LogbookOperationParameters> list = delegatedCreations.get(key);
+        if (list == null) {
+            // Switch to update part
+            list = delegatedUpdates.get(key);
+            if (list == null) {
+                // New Update part
+                list = new ConcurrentLinkedQueue<>();
+                delegatedUpdates.put(key, list);
+            }
+        }
+        list.add(LogbookOperationsClientHelper.copy(parameters));
+    }
+
+    @Override
+    public void commitCreateDelegate(String eventIdProc)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        Queue<LogbookOperationParameters> list = delegatedCreations.remove(eventIdProc);
+        if (list != null) {
+            Response response = null;
+            try {
+                response = performRequest(HttpMethod.POST, OPERATIONS_URL, null,
+                list, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                final Status status = Status.fromStatusCode(response.getStatus());
+                switch (status) {
+                    case CREATED:
+                        LOGGER.debug(eventIdProc + " " + Response.Status.CREATED.getReasonPhrase());
+                        break;
+                    case CONFLICT:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                        throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    case BAD_REQUEST:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        throw new LogbookClientBadRequestException(
+                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    default:
+                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                }
+            } catch (VitamClientInternalException e) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            } finally {
+                consumeAnyEntityAndClose(response);
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    @Override
+    public void commitUpdateDelegate(String eventIdProc)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        Queue<LogbookOperationParameters> list = delegatedUpdates.remove(eventIdProc);
+        if (list != null) {
+            Response response = null;
+            try {
+                response = performRequest(HttpMethod.PUT, OPERATIONS_URL, null,
+                    list, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                final Status status = Status.fromStatusCode(response.getStatus());
+                switch (status) {
+                    case OK:
+                        LOGGER.debug(eventIdProc + " " + Response.Status.OK.getReasonPhrase());
+                        break;
+                    case NOT_FOUND:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                        throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    case BAD_REQUEST:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        throw new LogbookClientBadRequestException(
+                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    default:
+                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                }
+            } catch (VitamClientInternalException e) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            } finally {
+                consumeAnyEntityAndClose(response);
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
 }

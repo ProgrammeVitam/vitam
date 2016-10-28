@@ -80,7 +80,6 @@ public class ConnectionImpl implements Connection {
     private static final String RESOURCE_PATH = "/offer/v1";
     private static final String STATUS_PATH = "/status";
     private static final String OBJECTS_PATH = "/objects";
-    private static final int CHUNK_SIZE = 1024 * 1024;
 
     private static final String INTERNAL_SERVER_ERROR =
         "Internal Server Error, could not connect to the distant offer service.";

@@ -61,7 +61,7 @@ public class RulesManagerParser {
      * readObjectsFromCsvWriteAsArrayNode
      *
      * @param fileToParse
-     * @return
+     * @return ArrayNode
      * @throws IOException
      * @throws InvalidParseOperationException
      */

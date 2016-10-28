@@ -65,8 +65,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -112,7 +112,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private static final String XML = ".xml";
 
     private final IngestInternalConfiguration configuration;
-    private LogbookParameters parameters;
+    private LogbookOperationParameters parameters;
     private final ProcessingManagementClient processingClient;
     private final WorkspaceClient workspaceClient;
 
@@ -185,7 +185,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             // Log Ingest External operations
             VITAM_LOGGER.debug("Log Ingest External operations");
 
-            for (final LogbookParameters logbookParameters : logbookOperationParametersList.getLogbookOperationList()) {
+            for (final LogbookOperationParameters logbookParameters : logbookOperationParametersList.getLogbookOperationList()) {
                 callLogbookUpdate(logbookOperationsClient, logbookParameters);
             }
 
@@ -316,7 +316,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
     }
 
-    private void callLogbookUpdate(LogbookOperationsClient client, LogbookParameters parameters,
+    private void callLogbookUpdate(LogbookOperationsClient client, LogbookOperationParameters parameters,
         StatusCode logbookOutcome, String outcomeDetailMessage)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
 
@@ -325,7 +325,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         client.update(parameters);
     }
 
-    private void callLogbookUpdate(LogbookOperationsClient client, LogbookParameters logbookParameters)
+    private void callLogbookUpdate(LogbookOperationsClient client, LogbookOperationParameters logbookParameters)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         client.update(logbookParameters);
     }
@@ -340,7 +340,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      */
     private void pushSipStreamToWorkspace(final String urlWorkspace, final String containerName,
         final String archiveMimeType,
-        final InputStream uploadedInputStream, final LogbookParameters parameters)
+        final InputStream uploadedInputStream, final LogbookOperationParameters parameters)
         throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageCompressedFileException, ContentAddressableStorageServerException {
@@ -361,7 +361,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
     }
 
-    private boolean callProcessingEngine(final LogbookParameters parameters, final LogbookOperationsClient client,
+    private boolean callProcessingEngine(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
         final String containerName) throws InvalidParseOperationException,
         ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
         LogbookClientServerException {

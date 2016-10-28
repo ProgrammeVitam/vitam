@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static com.mongodb.client.model.Indexes.hashed;
-
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;

@@ -42,6 +42,7 @@ public class PutObjectResult {
      * @param distantObjectId The distant object id
      * @param digestHashBase16 the object digest hash
      * @param tenantId the request tenantId
+     * @param objectSize 
      */
     public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId, long objectSize) {
         this.distantObjectId = distantObjectId;
@@ -50,18 +51,30 @@ public class PutObjectResult {
         this.objectSize = objectSize;
     }
 
+    /**
+     * @return the object Id
+     */
     public String getDistantObjectId() {
         return distantObjectId;
     }
 
+    /**
+     * @return the digest
+     */
     public String getDigestHashBase16() {
         return digestHashBase16;
     }
 
+    /**
+     * @return the tenant Id
+     */
     public String getTenantId() {
         return tenantId;
     }
 
+    /**
+     * @return the object Size
+     */
     public long getObjectSize() {
         return objectSize;
     }

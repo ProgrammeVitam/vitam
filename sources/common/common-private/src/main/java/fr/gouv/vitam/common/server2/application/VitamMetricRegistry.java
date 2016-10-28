@@ -33,13 +33,13 @@ import com.codahale.metrics.MetricRegistry;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * A class extending the {@ MetricRegistry} to expose safe functions to register metrics.
+ * A class extending the MetricRegistry to expose safe functions to register metrics.
  */
-final public class VitamMetricRegistry extends MetricRegistry {
+final class VitamMetricRegistry extends MetricRegistry {
     private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
 
     /**
-     * {@ VitamMetricRegistry} constructor
+     * VitamMetricRegistry constructor
      */
     public VitamMetricRegistry() {
         // empty

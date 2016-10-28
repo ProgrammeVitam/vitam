@@ -85,6 +85,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         objectTypeFor = new HashMap<>();
     }
 
+    /**
+     * @return the default instance
+     */
     public static DefaultOfferService getInstance() {
         return INSTANCE;
     }

@@ -48,6 +48,7 @@ public class WorkspaceConfiguration extends StorageConfiguration {
      * setter jettConfig
      *
      * @param jettyConfig
+     * @return this
      */
     public WorkspaceConfiguration setJettyConfig(String jettyConfig) {
         this.jettyConfig = jettyConfig;

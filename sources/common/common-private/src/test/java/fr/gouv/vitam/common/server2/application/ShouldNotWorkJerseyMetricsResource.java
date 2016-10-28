@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server.application;
+package fr.gouv.vitam.common.server2.application;
 
 import java.util.Arrays;
 import java.util.HashSet;

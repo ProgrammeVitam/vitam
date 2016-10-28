@@ -1023,7 +1023,7 @@ public class WebApplicationResource {
                 final JsonNode logbookOperation = logbookOperationResult.get("result");
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream =
-                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation, operationId);
+                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
                 final ResponseBuilder response = Response.ok(csvOutArray);
                 response.header("Content-Disposition", "attachment;filename=rapport.csv");

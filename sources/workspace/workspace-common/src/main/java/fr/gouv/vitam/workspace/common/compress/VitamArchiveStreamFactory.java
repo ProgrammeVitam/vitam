@@ -48,7 +48,7 @@ public class VitamArchiveStreamFactory {
     /**
      * Create an archive input stream from an archiver name and an input stream.
      * 
-     * @param MediaType object {@link MediaType} the archive name, i.e. {@value #ZIP}, {@value #TAR}, or {@value #GZIP}
+     * @param mediaType MediaType object {@link MediaType} the archive name, i.e. {@value #ZIP}, {@value #TAR}, or {@value #GZIP}
      * @param in the input stream
      * @return the archive input stream
      * @throws ArchiveException if the archiver name is not known

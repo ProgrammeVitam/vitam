@@ -37,10 +37,16 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
 public class OfferReference {
     private String id;
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }

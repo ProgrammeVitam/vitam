@@ -456,7 +456,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param AccessionRegisterDetail object
+     * @param accessionRegister AccessionRegisterDetail object
      * @return Response jersey response
      */
     @Path("accession-register")

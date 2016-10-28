@@ -80,7 +80,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     /**
      * Get the information on the offer objects collection (free and used capacity, etc)
-     *
+     * 
+     * @param xTenantId
      * @return information on the offer objects collection
      *
      */
@@ -216,8 +217,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             SizedInputStream sis = new SizedInputStream(input);
             final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, sis,
                 xCommandHeader.equals(StorageConstants.COMMAND_END));
-            return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\""+sis
-                .getSize()+"\"}").build();
+            return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis
+                .getSize() + "\"}").build();
         } catch (IOException | ContentAddressableStorageException exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();

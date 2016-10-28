@@ -361,7 +361,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      * Return a {@link VitamMetrics} object for a given {@link VitamMetricsType} or null if the VitamMetrics does not
      * exists.
      *
-     * @param {@link VitamMetricsType} type
+     * @param type {@link VitamMetricsType} type
      * @return {@link VitamMetrics} VitamMetrics
      */
     public static final VitamMetrics getVitamMetrics(VitamMetricsType type) {

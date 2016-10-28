@@ -156,7 +156,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             throw new InvalidParseOperationException("Not correctly parsed: " + query);
         }
         int nb = 0;
-        final Query[] queries;
+        Query[] queries;
         if (commands.isArray()) {
             queries = new Query[commands.size()];
             // multiple elements in array
@@ -166,7 +166,18 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                     JsonHandler.checkUnicity(query.exactToken(), subcommand);
                 final Query subquery =
                     analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
+                if (subquery == null) {
+                    // NOP
+                    continue;
+                }
                 queries[nb++] = subquery;
+            }
+            if (nb != queries.length) {
+                Query[] newQueries = new Query[nb];
+                for (int i = 0; i < nb; i++) {
+                    newQueries[i] = queries[i];
+                }
+                queries = newQueries;
             }
         } else {
             throw new InvalidParseOperationException(
@@ -312,6 +323,8 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 return search(command, adapter);
             case SIZE:
                 return size(command, adapter);
+            case NOP:
+                return null;
             case GEOMETRY:
             case BOX:
             case POLYGON:

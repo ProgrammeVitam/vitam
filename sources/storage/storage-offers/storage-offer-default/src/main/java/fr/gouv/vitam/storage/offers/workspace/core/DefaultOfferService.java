@@ -133,6 +133,7 @@ public interface DefaultOfferService {
      * @param containerName the container name
      * @return Json with usableSpace information
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
+     * @throws ContentAddressableStorageServerException 
      */
     JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;

@@ -94,7 +94,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
      * read the configured parameters of launched server from the file
      *
      * @param configFile : name of configured file
-     * @throws Exception
+     * @throws VitamException 
      */
     public void configure(String configFile) throws VitamException {
         try {
@@ -112,7 +112,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
      * run a server instance with the configuration only
      *
      * @param configuration as MetaDataConfiguration
-     * @throws Exception
+     * @throws VitamApplicationServerException 
      */
 
     public static void run(MetaDataConfiguration configuration) throws VitamApplicationServerException {

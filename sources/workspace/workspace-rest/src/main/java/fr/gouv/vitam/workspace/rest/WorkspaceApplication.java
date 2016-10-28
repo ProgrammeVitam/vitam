@@ -131,6 +131,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      * Run workspace server
      *
      * @param configuration Workspace Configuration
+     * @throws VitamApplicationServerException 
      * @throws Exception Thrown if something goes wrong
      */
     public static void run(WorkspaceConfiguration configuration) throws VitamApplicationServerException {

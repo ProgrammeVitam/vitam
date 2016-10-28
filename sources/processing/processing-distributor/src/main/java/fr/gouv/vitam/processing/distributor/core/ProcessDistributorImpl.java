@@ -79,7 +79,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * continue)
  * - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
  * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
- *  {@code
+ *  <code>
  *    for (final EngineResponse response : responses) {
  *       tempStatusCode = response.getStatus();
  *       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
@@ -89,7 +89,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *           break;
  *       }
  *     }
- *  }
+ *  </code>
  * </pre>
  */
 public class ProcessDistributorImpl implements ProcessDistributor {

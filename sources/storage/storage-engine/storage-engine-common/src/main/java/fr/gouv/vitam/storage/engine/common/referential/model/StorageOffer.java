@@ -37,26 +37,44 @@ public class StorageOffer {
     private String baseUrl;
     private Map<String, String> parameters;
 
+    /**
+     * @return the base url
+     */
     public String getBaseUrl() {
         return baseUrl;
     }
 
+    /**
+     * @param baseUrl
+     */
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
+    /**
+     * @return the parameters
+     */
     public Map<String, String> getParameters() {
         return parameters;
     }
 
+    /**
+     * @param parameters
+     */
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }

@@ -92,6 +92,7 @@ public class ProcessingManagementClient {
      * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
      * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
      * @throws ProcessingBadRequestException thrown in case of bad request server error
+     * @throws ProcessingException 
      * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
      *         client and server
      */

@@ -139,7 +139,7 @@ public class Step {
     }
 
     /**
-     * @param stepType the stepType to set
+     * @param behavior the Process Behavior to set
      * @return the updated Step
      */
     public Step setBehavior(ProcessBehavior behavior) {

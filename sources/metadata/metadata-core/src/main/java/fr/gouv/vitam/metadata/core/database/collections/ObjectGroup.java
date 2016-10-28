@@ -152,6 +152,9 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     public static final String TYPEUNIQUE = "typeunique";
 
     // TODO add Nested objects or Parent/child relationships
+    /**
+     * Mapping of this Collection
+     */
     public static final String MAPPING = "{" + TYPEUNIQUE +
         // Will keep NBCHILD as value to get (_id is implicit)
         " : { " + "_source : { includes : [\"" + ObjectGroup.NB_COPY + "\"] }," +

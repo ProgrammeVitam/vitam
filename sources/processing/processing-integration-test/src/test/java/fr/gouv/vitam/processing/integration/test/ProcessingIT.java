@@ -73,7 +73,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -614,7 +614,7 @@ public class ProcessingIT {
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
-        LogbookParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
             operationId, "Process_SIP_unitary", objectId,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",

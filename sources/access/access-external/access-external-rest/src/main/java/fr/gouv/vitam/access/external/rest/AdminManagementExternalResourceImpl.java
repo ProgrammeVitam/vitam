@@ -77,7 +77,7 @@ public class AdminManagementExternalResourceImpl {
      * checkDocument
      * @param collection
      * @param document
-     * @return
+     * @return Response
      */
     @Path("/{collection}")
     @PUT
@@ -106,7 +106,7 @@ public class AdminManagementExternalResourceImpl {
      * importDocument
      * @param collection
      * @param document
-     * @return
+     * @return Response
      */
     @Path("/{collection}")
     @POST
@@ -147,7 +147,7 @@ public class AdminManagementExternalResourceImpl {
     /**
      * deleteDocuments
      * @param collection
-     * @return
+     * @return Response
      */
     @Path("/{collection}")
     @DELETE
@@ -174,7 +174,7 @@ public class AdminManagementExternalResourceImpl {
      * findDocuments
      * @param collection
      * @param select
-     * @return
+     * @return Response
      */
     @Path("/{collection}")
     @POST
@@ -209,7 +209,7 @@ public class AdminManagementExternalResourceImpl {
      * findDocumentByID
      * @param collection
      * @param documentId
-     * @return
+     * @return Response
      */
     @POST
     @Path("/{collection}/{id_document}")

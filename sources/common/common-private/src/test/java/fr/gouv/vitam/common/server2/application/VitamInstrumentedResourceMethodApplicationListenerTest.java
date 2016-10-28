@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server.application;
+package fr.gouv.vitam.common.server2.application;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.TestApplication;
 import fr.gouv.vitam.common.server2.application.VitamInstrumentedResourceMethodApplicationListener;
 import fr.gouv.vitam.common.server2.application.VitamMetrics;
 import fr.gouv.vitam.common.server2.application.VitamMetricsType;

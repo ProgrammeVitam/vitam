@@ -57,7 +57,7 @@ public class LibraryConfiguration {
      * setter jettyConfig
      * 
      * @param jettyConfig the jetty config
-     * @return
+     * @return this
      */
     public LibraryConfiguration setJettyConfig(String jettyConfig) {
         this.jettyConfig = jettyConfig;
@@ -67,7 +67,7 @@ public class LibraryConfiguration {
     /**
      * Getter : path of the root directory to serve static files from
      * 
-     * @return
+     * @return the path
      */
     public String getDirectoryPath() {
         return directoryPath;

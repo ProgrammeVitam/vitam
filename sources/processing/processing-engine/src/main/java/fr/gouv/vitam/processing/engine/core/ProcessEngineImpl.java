@@ -44,8 +44,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -204,7 +204,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         workParams.setStepUniqId(uniqueId);
         LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
-        final LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newGUID(),
             step.getStepName(),
             GUIDReader.getGUID(workParams.getContainerName()),
@@ -228,7 +228,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         workflowStatus.increment(stepResponse.getGlobalStatus());
 
         for (ItemStatus actionStatus : stepResponse.getItemsStatus().values()) {
-            final LogbookParameters actionParameters =
+            final LogbookOperationParameters actionParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDFactory.newEventGUID(tenantId),
                     actionStatus.getItemId(),

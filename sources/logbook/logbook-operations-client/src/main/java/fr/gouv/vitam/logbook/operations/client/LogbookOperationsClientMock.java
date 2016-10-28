@@ -26,17 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -44,7 +48,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
@@ -52,7 +56,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
  */
 class LogbookOperationsClientMock extends AbstractMockClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientMock.class);
-    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
     private static final String UPDATE = "UPDATE";
     private static final String CREATE = "CREATE";
@@ -95,28 +98,20 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         "    \"obIdReq\": null," +
         "    \"obIdIn\": null," +
         "    \"events\": []}";
+    private final Map<String, Queue<LogbookOperationParameters>> delegatedCreations = new ConcurrentHashMap<>();
+    private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();
 
     @Override
-    public void create(LogbookParameters parameters)
+    public void create(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParameterHelper
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        LogbookOperationsClientHelper.checkLogbookParameters(parameters);
         logInformation(CREATE, parameters);
     }
 
     @Override
-    public void update(LogbookParameters parameters)
+    public void update(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParameterHelper
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        LogbookOperationsClientHelper.checkLogbookParameters(parameters);
         logInformation(UPDATE, parameters);
     }
 
@@ -154,5 +149,65 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
         return new ObjectMapper().convertValue(response, JsonNode.class);
+    }
+
+    @Override
+    public void createDelegate(LogbookOperationParameters parameters) throws LogbookClientAlreadyExistsException {
+        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
+        if (delegatedCreations.containsKey(key)) {
+            throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+        }
+        Queue<LogbookOperationParameters> list = new ConcurrentLinkedQueue<>();
+        list.add(LogbookOperationsClientHelper.copy(parameters));
+        delegatedCreations.put(key, list);
+    }
+
+    @Override
+    public void updateDelegate(LogbookOperationParameters parameters) throws LogbookClientNotFoundException {
+        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
+        Queue<LogbookOperationParameters> list = delegatedCreations.get(key);
+        if (list == null) {
+            // Switch to update part
+            list = delegatedUpdates.get(key);
+            if (list == null) {
+                // New Update part
+                list = new ConcurrentLinkedQueue<>();
+                delegatedUpdates.put(key, list);
+            }
+        }
+        list.add(LogbookOperationsClientHelper.copy(parameters));
+    }
+
+    @Override
+    public void commitCreateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
+        Queue<LogbookOperationParameters> list = delegatedCreations.remove(eventIdProc);
+        if (list != null) {
+            Iterator<LogbookOperationParameters> iterator = list.iterator();
+            if (iterator.hasNext()) {
+                logInformation(CREATE, iterator.next());
+                while (iterator.hasNext()) {
+                    logInformation(UPDATE, iterator.next());
+                }
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    @Override
+    public void commitUpdateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
+        Queue<LogbookOperationParameters> list = delegatedCreations.remove(eventIdProc);
+        if (list != null) {
+            Iterator<LogbookOperationParameters> iterator = list.iterator();
+            while (iterator.hasNext()) {
+                logInformation(UPDATE, iterator.next());
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
     }
 }

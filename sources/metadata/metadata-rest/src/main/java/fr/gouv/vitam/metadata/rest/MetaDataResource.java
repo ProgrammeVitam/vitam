@@ -84,8 +84,9 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Insert or Select unit with json request
-     * @param request 
-     * @param xhttpOverride 
+     * 
+     * @param request
+     * @param xhttpOverride
      * @return Response
      */
 
@@ -93,8 +94,8 @@ public class MetaDataResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertOrSelectUnit(String request, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String
-        xhttpOverride) {
+    public Response insertOrSelectUnit(String request,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
 
         if (xhttpOverride != null) {
             if ("GET".equals(xhttpOverride)) {
@@ -110,6 +111,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Create unit with json request
+     * 
      * @return Response
      */
     private Response insertUnit(String insertRequest) {
@@ -230,6 +232,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param selectRequest
      * @param unitId
+     * @param xhttpOverride
      * @return {@link Response} will be contains an json filled by unit result
      * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -267,6 +270,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param updateRequest
      * @param unitId
+     * @param xhttpOverride
      * @return {@link Response} will be contains an json filled by unit result
      * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -286,7 +290,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    //TODO : maybe produces NOT_FOUND when unit is not found?
+    // TODO : maybe produces NOT_FOUND when unit is not found?
     private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
         JsonNode jsonResultNode;
@@ -374,6 +378,9 @@ public class MetaDataResource extends ApplicationStatusResource {
     // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
+     * 
+     * @param insertRequest
+     * @return the Response
      *
      * @throws InvalidParseOperationException
      */
@@ -499,9 +506,9 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Selects unit by request and unit id 
+     * Selects unit by request and unit id
      */
-    //TODO : maybe produce NOT_FOUND when objectGroup is not found?
+    // TODO : maybe produce NOT_FOUND when objectGroup is not found?
     private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
         Status status;
         JsonNode jsonResultNode;

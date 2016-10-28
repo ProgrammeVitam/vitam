@@ -43,7 +43,8 @@ public interface WorkerAction {
 
     /**
      *
-     * @param params {@link WorkerParameters}
+     * @param param  {@link WorkerParameters}
+     * @param handler 
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
      */

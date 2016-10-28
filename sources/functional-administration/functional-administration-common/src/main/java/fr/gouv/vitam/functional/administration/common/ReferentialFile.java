@@ -41,6 +41,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 
 /**
  * ReferentialFile<E>
+ * @param <E> Type of Referential
  *
  */
 public interface ReferentialFile<E> {

@@ -75,6 +75,7 @@ public class IngestResponse {
 
     /**
      * @param cause the cause to set
+     * @return this
      */
     public IngestResponse setCause(String cause) {
         this.cause = cause;
@@ -90,6 +91,7 @@ public class IngestResponse {
 
     /**
      * @param message the message to set
+     * @return this
      */
     public IngestResponse setMessage(String message) {
         this.message = message;
@@ -105,6 +107,7 @@ public class IngestResponse {
 
     /**
      * @param errorOccured the errorOccured to set
+     * @return this
      */
     public IngestResponse setErrorOccured(Boolean errorOccured) {
         this.errorOccured = errorOccured;
@@ -120,6 +123,7 @@ public class IngestResponse {
 
     /**
      * @param numberOfNumericalObject the NumericalObject to set from a received SIP
+     * @return this
      */
     public IngestResponse setNumericalObject(Long numberOfNumericalObject) {
         this.numberOfNumericalObject = numberOfNumericalObject;
@@ -135,6 +139,7 @@ public class IngestResponse {
 
     /**
      * @param containerGuid the containerGuid to set
+     * @return this
      */
     public IngestResponse setContainerGuid(String containerGuid) {
         this.containerGuid = containerGuid;
@@ -150,6 +155,7 @@ public class IngestResponse {
 
     /**
      * @param sedaGuid the sedaGuid to set
+     * @return this
      */
     public IngestResponse setSedaGuid(String sedaGuid) {
         this.sedaGuid = sedaGuid;
@@ -166,6 +172,7 @@ public class IngestResponse {
 
     /**
      * @param numberOfNumericalObject
+     * @return this
      */
     public IngestResponse setNumberOfNumericalObject(Long numberOfNumericalObject) {
         this.numberOfNumericalObject = numberOfNumericalObject;
@@ -183,6 +190,7 @@ public class IngestResponse {
      * Setter GuidNumObjList
      *
      * @param guidNumObjList
+     * @return this
      */
     public IngestResponse setGuidNumObjList(List<String> guidNumObjList) {
         if (guidNumObjList != null && !guidNumObjList.isEmpty()) {
@@ -193,6 +201,7 @@ public class IngestResponse {
 
     /**
      * @param guid
+     * @return this
      */
     public IngestResponse addGuidNumericObject(String guid) {
         guidNumObjList.add(guid);

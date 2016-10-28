@@ -38,6 +38,9 @@ public class StorageCapacityResult {
 
     private long usedSpace;
 
+    /**
+     * Empty constructor
+     */
     public StorageCapacityResult() {
         // Empty
     }
