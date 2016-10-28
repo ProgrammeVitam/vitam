@@ -51,6 +51,8 @@
     name: kibana
     state: restarted
     enabled: true
+  delegate_to: '{{ vitam_kibana_host }}'
+  run_once: true
 
 - name: add Packetbeat autostart at boot
   service:
