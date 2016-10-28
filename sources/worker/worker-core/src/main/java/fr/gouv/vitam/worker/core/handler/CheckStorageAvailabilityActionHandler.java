@@ -55,7 +55,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
-    private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
+    private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
@@ -64,7 +64,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
      *
      */
     public CheckStorageAvailabilityActionHandler() {
-        // empty constructor
+        storageClientFactory = StorageClientFactory.getInstance();
     }
 
     /**
@@ -88,8 +88,12 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
-
-            final JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+            final JsonNode storageCapacityNode;
+            
+            try (final StorageClient storageClient = storageClientFactory.getClient()) {
+                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+            }
+                        
             final StorageInformation information =
                 JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
             final long storageCapacity = information.getUsableSpace();

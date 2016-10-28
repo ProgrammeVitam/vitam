@@ -52,6 +52,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -351,6 +352,43 @@ public class WebApplicationResource {
             .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
             .header(GlobalDataRest.X_REQUEST_ID, guid)
             .build();
+    }
+
+    /**
+     * FIXME - This endpoint is front test only and should not be used. A chunk compatible endpoint MUST be made
+     * upload 2 : API Endpoint that can Handle chunk mode. 
+     * Chunks information are given in header (Fast catch of these header are present in the code)
+     * <br />The front should give some information
+     * <ul>
+     * <li>Flow-Chunk-Number => The index of the current chunk</li>
+     * <li>Flow-Chunk-Size => The configured maximal size of a chunk</li>
+     * <li>Flow-Current-Chunk-Size => The size of the current chunk</li>
+     * <li>Flow-Total-Size => The total size of the file (All chunks)</li>
+     * <li>Flow-Identifier => The identifier of the flow</li>
+     * <li>Flow-Filename => The file name</li>
+     * <li>Flow-Relative-Path => (?)The relative path (or the file name only)</li>
+     * <li>Flow-Total-Chunks => The number of chunks</li>
+     * </ul>
+     * 
+     * @param stream data input stream for the current chunk
+     * @param headers HTTP Headers containing chunk information
+     * @return Response
+     */
+    @Path("ingest/upload2")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response upload2(@Context HttpHeaders headers, InputStream stream) {
+        LOGGER.error("This method should not be used !!");
+        LOGGER.error("Headers number: " + headers.getLength());
+        MultivaluedMap<String, String> headersMap = headers.getRequestHeaders();
+        for (Map.Entry<String, List<String>> entry: headersMap.entrySet()) {
+            if (entry.getKey().startsWith("Flow-")) {
+                LOGGER.error("Header: " + entry.getKey() + ", value: " + entry.getValue());
+            }
+        }
+        
+        return Response.status(Status.OK).build();
     }
 
     /**

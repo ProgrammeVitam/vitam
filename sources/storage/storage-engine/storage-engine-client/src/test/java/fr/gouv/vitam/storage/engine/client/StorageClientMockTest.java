@@ -40,6 +40,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -53,18 +54,18 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 public class StorageClientMockTest {
 
     @Test
-    public void statusTest() throws VitamClientException {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+    public void statusTest() throws VitamApplicationServerException {
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.getStatus());
+        client.checkStatus();
     }
 
     @Test
     public void storageInfos() throws Exception {
         final JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT);
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client =
+            StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
         final JsonNode result = client.getStorageInformation("idTenant", "idStrategy");
         assertEquals(result, expectedResult);
     }
@@ -77,8 +78,8 @@ public class StorageClientMockTest {
             "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         final StoredInfoResult expectedResult = generateStoredInfoResult("guid");
 
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
 
         final StoredInfoResult result =
             client.storeFileFromWorkspace("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid", description);
@@ -87,24 +88,24 @@ public class StorageClientMockTest {
 
     @Test
     public void checkExists() throws VitamClientException {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
         assertTrue(client.exists("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid"));
         assertTrue(client.existsContainer("idTenant", "idStrategy"));
     }
 
     @Test
     public void checkDelete() throws VitamClientException {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
         assertTrue(client.delete("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid"));
         assertTrue(client.deleteContainer("idTenant", "idStrategy"));
     }
 
     @Test
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
         final InputStream stream = client.getContainer("tenantId", "strategyId", "guid", StorageCollectionType.OBJECTS);
         final InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

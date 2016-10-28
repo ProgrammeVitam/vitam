@@ -79,6 +79,7 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -387,8 +388,10 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
     private String getAtrFromStorage(String guid)
         throws StorageServerClientException, StorageNotFoundException, XMLStreamException, IOException {
-        final InputStream stream = StorageClientFactory.getInstance().getStorageClient()
-            .getContainer(DEFAULT_TENANT, DEFAULT_STRATEGY, guid + XML, StorageCollectionType.REPORTS);
-        return FileUtil.readInputStream(stream);
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            final InputStream stream =
+                storageClient.getContainer(DEFAULT_TENANT, DEFAULT_STRATEGY, guid + XML, StorageCollectionType.REPORTS);
+            return FileUtil.readInputStream(stream);
+        }
     }
 }

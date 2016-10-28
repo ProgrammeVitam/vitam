@@ -51,12 +51,11 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -75,8 +74,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      * @param configuration the workspace offer configuration to be applied
      */
-    public DefaultOfferResource(DefaultOfferConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
+    public DefaultOfferResource() {
         LOGGER.debug("DefaultOfferResource initialized");
     }
 

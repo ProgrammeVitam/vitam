@@ -109,7 +109,7 @@ public class StoreObjectGroupActionHandlerTest {
 
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
-        when(storageClientFactory.getStorageClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
         handler = new StoreObjectGroupActionHandler(storageClientFactory);
@@ -139,7 +139,7 @@ public class StoreObjectGroupActionHandlerTest {
         Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(), anyObject(),
             anyObject(),
             anyObject(), anyObject());
-        when(storageClientFactory.getStorageClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
 

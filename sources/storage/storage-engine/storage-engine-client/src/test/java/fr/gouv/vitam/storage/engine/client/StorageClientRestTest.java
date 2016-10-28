@@ -26,12 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -45,7 +43,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -53,19 +50,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -77,46 +71,59 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 /**
  * StorageClientRest Test
  */
-public class StorageClientRestTest extends JerseyTest {
+public class StorageClientRestTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
-    protected static int serverPort;
-    protected final StorageClientRest client;
-    private static JunitHelper junitHelper;
+    protected StorageClientRest client;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response get();
-
-        Response post();
-
-        Response head();
-
-        Response delete();
+ // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    public StorageClientRestTest() {
+        super(StorageClientFactory.getInstance());
     }
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        serverPort = junitHelper.findAvailablePort();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        junitHelper.releasePort(serverPort);
-    }
-
+    // Override the beforeTest if necessary
     @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(serverPort));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (StorageClientRest) getClient();
     }
 
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
+    }
+    
+    
     @Path("/storage/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
@@ -238,11 +245,6 @@ public class StorageClientRestTest extends JerseyTest {
         public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
             return expectedResponse.get();
         }
-    }
-
-    public StorageClientRestTest() {
-        client = new StorageClientRest(new SSLClientConfiguration(HOSTNAME, serverPort, false, "/"),
-            "/storage/v1", false);
     }
 
     @Test
@@ -473,7 +475,7 @@ public class StorageClientRestTest extends JerseyTest {
     @Test
     public void statusExecutionWithouthBody() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        client.getStatus();
+        client.checkStatus();
     }
 
     @Test
@@ -481,14 +483,13 @@ public class StorageClientRestTest extends JerseyTest {
         when(mock.get()).thenReturn(
             Response.status(Response.Status.NO_CONTENT).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        final StatusMessage message = client.getStatus();
-        assertEquals(0, message.getPid());
+        client.checkStatus();
     }
 
-    @Test(expected = VitamClientException.class)
+    @Test(expected = VitamApplicationServerException.class)
     public void failsStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_IMPLEMENTED).build());
-        client.getStatus();
+        client.checkStatus();
     }
 
     @Test(expected = StorageServerClientException.class)

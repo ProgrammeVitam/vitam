@@ -28,61 +28,99 @@ package fr.gouv.vitam.storage.engine.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
 
 /**
  *
  */
 public class StorageClientFactoryTest {
+    private final ClientConfiguration configuration = new ClientConfigurationImpl();
 
     @Before
     public void initFileConfiguration() {
-        StorageClientFactory.getInstance().changeConfigurationFile("storage-client-test.conf");
+        StorageClientFactory.changeMode(
+            StorageClientFactory.changeConfigurationFile("storage-client-test.conf"));
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        StorageClientFactory.getInstance().changeConfigurationFile("tmp");
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        StorageClientFactory.changeMode(null);
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertTrue(client instanceof StorageClientMock);
-        final StorageClientFactory.StorageClientType type = StorageClientFactory.getDefaultStorageClientType();
-        assertNotNull(type);
-        assertEquals(StorageClientFactory.StorageClientType.MOCK_STORAGE, type);
+        assertEquals(VitamClientType.MOCK, StorageClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
-        final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+        final StorageClient client =
+            StorageClientFactory.getInstance().getClient();
         assertTrue(client instanceof StorageClientRest);
-        final StorageClientFactory.StorageClientType type = StorageClientFactory.getDefaultStorageClientType();
-        assertNotNull(type);
-        assertEquals(StorageClientFactory.StorageClientType.STORAGE, type);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInitWithDefaultClientTypeNullThenThrowsException() throws Exception {
-        StorageClientFactory.changeDefaultClientType(null);
+        assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
-    public void testStorageClientTest() {
-        StorageClientFactory.changeDefaultClientType(StorageClientFactory.StorageClientType.STORAGE);
-        final StorageClientFactory.StorageClientType type = StorageClientFactory.getDefaultStorageClientType();
-        assertNotNull(type);
+    public void getClientInstanceTest() {
+        try {
+            StorageClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        try {
+            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        try {
+            StorageClientFactory.changeMode(configuration);
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        StorageClientFactory.changeMode(null);
+
+        final StorageClient client =
+            StorageClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        final StorageClient client2 =
+            StorageClientFactory.getInstance().getClient();
+        assertNotNull(client2);
+
+        assertNotSame(client, client2);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testWithWrongInitServerParameters() {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.STORAGE, null);
-    }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testWithWrongInitPortParameters() {
-        StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.STORAGE, null);
+    @Test
+    public void changeDefaultClientTypeTest() {
+        final StorageClient client =
+            StorageClientFactory.getInstance().getClient();
+        assertTrue(client instanceof StorageClientRest);
+        assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
+
+        StorageClientFactory.changeMode(null);
+        final StorageClient client2 =
+            StorageClientFactory.getInstance().getClient();
+        assertTrue(client2 instanceof StorageClientMock);
+        assertEquals(VitamClientType.MOCK, StorageClientFactory.getInstance().getVitamClientType());
+
+        StorageClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
+        final StorageClient client3 =
+            StorageClientFactory.getInstance().getClient();
+        assertTrue(client3 instanceof StorageClientRest);
+        assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
     }
 
 }
