@@ -3,9 +3,9 @@ KeyManagerPassword_ingest_external: <mot de passe manager du keystore de ingest-
 TrustStorePassword_ingest_external: <mot de passe du truststore de ingest-external>
 grantedKeyStorePassphrase_ingest_external: <mot de passe du grantedStore de ingest-external>
 p12_ihm_demo_password: <mot de passe du certificat IHM-demo>
+TrustStore_ihm_demo_password: <mot de passe du truststore IHM-demo>
 KeyStorePassword_access_external: <mot de passe du keystore de access-external>
 KeyManagerPassword_access_external: <mot de passe manager du keystore de access-external>
 TrustStorePassword_access_external: <mot de passe du truststore de access-external>
 grantedKeyStorePassphrase_access_external: <mot de passe du grantedStore de access-external>
 plateforme_secret: <secret de plate-forme>
-
