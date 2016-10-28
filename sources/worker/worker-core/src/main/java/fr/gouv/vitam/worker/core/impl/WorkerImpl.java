@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -91,11 +92,16 @@ public class WorkerImpl implements Worker {
     private final Map<String, Object> memoryMap = new HashMap<>();
     private final String workerId;
 
+    private final LogbookDbAccess mongoDbAccess;
+
     /**
-     * Empty Object constructor
+     * Constructor
+     * 
+     * @param mongoDbAccess mongoDbAccess
      **/
-    public WorkerImpl() {
+    public WorkerImpl(LogbookDbAccess mongoDbAccess) {
         workerId = GUIDFactory.newGUID().toString();
+        this.mongoDbAccess = mongoDbAccess;
 
         /**
          * temporary init: will be managed by spring annotation
@@ -118,7 +124,7 @@ public class WorkerImpl implements Worker {
         return this;
     }
 
-    private void init() {
+    private void init() {        
         /**
          * Pool of action 's object
          */
@@ -139,7 +145,7 @@ public class WorkerImpl implements Worker {
         actions.put(AccessionRegisterActionHandler.getId(),
             new AccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
-            new TransferNotificationActionHandler());
+            new TransferNotificationActionHandler(mongoDbAccess));
         actions.put(DummyHandler.getId(), new DummyHandler());
     }
 
@@ -213,10 +219,11 @@ public class WorkerImpl implements Worker {
                 switch (input.getUri().getPrefix()) {
                     case WORKSPACE: {
                         try {
-                            final File file = WorkerIOManagementHelper.findFileFromWorkspace(
+                            // TODO : remove optional when lazy file loading is implemented
+                            File file = WorkerIOManagementHelper.findFileFromWorkspace(
                                 client,
                                 workParams.getContainerName(),
-                                input.getUri().getPath(), workerId);
+                                input.getUri().getPath(), workerId, "true".equals(input.getOptional()));
                             handlerIO.addInput(file);
                             break;
                         } catch (final FileNotFoundException e) {

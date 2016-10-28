@@ -181,7 +181,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_INGEST_FINALISATION",
+      "stepName": "STP_ACCESSION_REGISTRATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
@@ -211,7 +211,18 @@
               }
             ]
           }
-        },
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_FINALISATION",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
         {
           "action": {
             "actionKey": "ATR_NOTIFICATION",
@@ -219,23 +230,28 @@
             "in": [
               {
                 "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
+                "optional": "true"
               },
               {
                 "name": "mapsBDO.file",
-                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
+                "optional": "true"
               },
               {
                 "name": "mapsBDOtoOG.file",
-                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
+                "optional": "true"
               },
               {
                 "name": "mapsBDOtoVersionBDO.file",
-                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
+                "optional": "true"
               },
               {
                 "name": "globalSEDAParameters.file",
-                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
+                "optional": "true"
               }
             ]
           }

@@ -49,6 +49,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookApplication.class);
     private static final String CONF_FILE_NAME = "logbook.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.logbook.port";
 
     static VitamServiceRegistry serviceRegistry = null;
 
@@ -57,7 +58,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
      * 
      * @param configuration
      */
-    protected LogbookApplication(String configuration) {
+    public LogbookApplication(String configuration) {
         super(LogbookConfiguration.class, configuration);
     }
     /**

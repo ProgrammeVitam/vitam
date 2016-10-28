@@ -67,13 +67,15 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     @Override
     public Map<String, ProcessStep> initOrderedWorkflow(String processId, WorkFlow workflow, String containerName)
         throws IllegalArgumentException {
-        final Map<String, ProcessStep> orderedWorkflow = new LinkedHashMap<>();
+        Map<String, ProcessStep> orderedWorkflow = new LinkedHashMap<>();
         String uniqueId;
         int iterator = 0;
         for (final Step step : workflow.getSteps()) {
-            final ProcessStep processStep = new ProcessStep(step, 0, 0);
-            uniqueId = containerName + "_" + workflow.getId() + "_" + iterator++ + "_" + step.getStepName();
+            ProcessStep processStep = new ProcessStep(step, containerName, workflow.getId(), iterator, 0, 0);
+            //ProcessStep processStep = new ProcessStep(step, 0, 0);
+            uniqueId = containerName + "_" + workflow.getId() + "_" + iterator + "_" + step.getStepName();
             orderedWorkflow.put(uniqueId, processStep);
+            iterator++;
         }
         WORKFLOWS_LIST.put(processId, orderedWorkflow);
         return orderedWorkflow;
@@ -83,9 +85,9 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     public void updateStep(String processId, String uniqueId, long elementToProcess, boolean elementProcessed)
         throws ProcessingException {
         if (WORKFLOWS_LIST.containsKey(processId)) {
-            final Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
             if (orderedSteps.containsKey(uniqueId)) {
-                final ProcessStep step = orderedSteps.get(uniqueId);
+                ProcessStep step = orderedSteps.get(uniqueId);
                 if (elementProcessed) {
                     step.setElementProcessed(step.getElementProcessed() + 1);
                 } else {
@@ -111,12 +113,29 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         }
     }
 
+
+    @Override
+    public Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException {
+        if (WORKFLOWS_LIST.containsKey(processId)) {
+            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            for (ProcessStep step : orderedSteps.values()) {
+                if (step.getStepStatusCode() != null && step.getStepStatusCode().isGreaterOrEqualToKo()) {
+                    return Boolean.TRUE;
+                }
+            }
+            return Boolean.FALSE;
+        } else {
+            throw new ProcessingException(PROCESS_DOES_NOT_EXIST);
+        }
+    }
+
+
     @Override
     public void updateStepStatus(String processId, String uniqueId, StatusCode status) throws ProcessingException {
         if (WORKFLOWS_LIST.containsKey(processId)) {
-            final Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
             if (orderedSteps.containsKey(uniqueId)) {
-                final ProcessStep step = orderedSteps.get(uniqueId);
+                ProcessStep step = orderedSteps.get(uniqueId);
                 step.setStepStatusCode(status);
                 orderedSteps.put(uniqueId, step);
                 WORKFLOWS_LIST.put(processId, orderedSteps);

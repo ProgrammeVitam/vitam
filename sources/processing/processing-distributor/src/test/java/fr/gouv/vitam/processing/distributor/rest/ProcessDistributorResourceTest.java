@@ -56,7 +56,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -107,7 +106,7 @@ public class ProcessDistributorResourceTest {
 
         try {
             vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
+            vitamServer.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -117,7 +116,7 @@ public class ProcessDistributorResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        ((BasicVitamServer) vitamServer).stop();
+        vitamServer.stop();
         junitHelper.releasePort(serverPort);
     }
 
@@ -247,8 +246,6 @@ public class ProcessDistributorResourceTest {
 
         private final String FAMILY_ID_E = "error";
         private final String WORKER_ID_E = "error";
-
-   
 
         @Override
         public void registerWorker(String familyId, String workerId, String workerInformation)

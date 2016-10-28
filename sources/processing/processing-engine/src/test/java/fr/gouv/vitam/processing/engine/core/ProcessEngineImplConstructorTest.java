@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,43 +23,35 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.worker.core.impl;
+ **/
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
+package fr.gouv.vitam.processing.engine.core;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
 /**
- * WorkerImpl Factory to create workerImpl
+ * Ugly coverage JUnit
  */
-public final class WorkerImplFactory {
+public class ProcessEngineImplConstructorTest {
 
-    private WorkerImplFactory() {
-
+    @Test
+    public void initWithoutMock() throws WorkflowNotFoundException {
+        new ProcessEngineImplFactory().create();
     }
 
-    /**
-     * @return WorkerImpl
-     */
-    public static Worker create(LogbookDbAccess mongoDbAccess) {
-        ParametersChecker.checkParameter("mongoDbAccess is a mandatory parameter", mongoDbAccess);
-        return new WorkerImpl(mongoDbAccess);
+    @Test
+    public void initWithMock() throws WorkflowNotFoundException {
+        new ProcessEngineImplFactory().create(Mockito.mock(ProcessDistributor.class));
     }
 
-    /**
-     * @param mongoDbAccess the database connector
-     * @param actionName the name of the action
-     * @param actionHandler the handler
-     * @return WorkerImpl
-     */
-    public static Worker create(LogbookDbAccess mongoDbAccess, String actionName,
-        ActionHandler actionHandler) {
-        ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
-        ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
-        ParametersChecker.checkParameter("mongoDbAccess is a mandatory parameter", mongoDbAccess);
-        return create(mongoDbAccess).addActionHandler(actionName, actionHandler);
+    @Test(expected = IllegalArgumentException.class)
+    public void initWithNullProcessDistributor() {
+        new ProcessEngineImplFactory().create(null);
     }
+
 
 }

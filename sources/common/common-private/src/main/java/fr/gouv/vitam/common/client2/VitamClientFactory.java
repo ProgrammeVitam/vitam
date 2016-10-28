@@ -254,6 +254,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
         this.initialisation(clientConfiguration.setServerPort(port), getResourcePath());
     }
+    
 
     @Override
     public VitamClientType getVitamClientType() {

@@ -73,5 +73,9 @@ public enum WorkerParameterName {
     /**
      * Current name of the step to be processed
      */
-    currentStep
+    currentStep,
+    /**
+     * If Current Workflow status is greater or equal ko 
+     */
+    workflowStatusKo
 }

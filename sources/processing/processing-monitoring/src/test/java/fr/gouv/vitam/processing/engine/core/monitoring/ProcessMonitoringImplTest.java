@@ -73,42 +73,37 @@ public class ProcessMonitoringImplTest {
 
     @Test
     public void processMonitoringInitSimpleWorkflowOK() {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        final Map<String, ProcessStep> initMap =
+        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflow(), "containerName");
         assertEquals(initMap.size(), 1);
-        assertNotNull(initMap.get("containerName_wf1_0_step1"));
+        ProcessStep processStep = initMap.get("containerName_wf1_0_step1");
+        assertNotNull(processStep);
+        assertEquals("containerName_wf1_0_step1", processStep.getId());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void processMonitoringInitSimpleWorkflowException() {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        final Map<String, ProcessStep> initMap =
+        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflowWithNullStep(), "containerName");
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownProcessThrowsException() throws Exception {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStep("UNKNOWN_PROCESS_ID", "UNIQUE_ID", 10, false);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        processMonitoring.initOrderedWorkflow("EXISTING_PROCESS_ID", new WorkFlow(), "containerName");
-        processMonitoring.updateStep("EXISTING_PROCESS_ID", "UNKNOWN_UNIQUE_STEP_ID", 10, false);
-    }
-
-    @Test(expected = ProcessingException.class)
-    public void processMonitoringUpdateStatusSimpleWorkflowUnknownProcessThrowsException() throws Exception {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        processMonitoring.updateStepStatus("UNKNOWN_PROCESS_ID", "UNIQUE_ID", StatusCode.OK);
+        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        processMonitoring.updateStepStatus("UNKNOWN_PROCESS_ID", "UNIQUE_ID", StatusCode.OK);        
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateStatusSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStepStatus("EXISTING_PROCESS_ID", "UNKNOWN_UNIQUE_STEP_ID", StatusCode.OK);
     }
 
@@ -117,21 +112,29 @@ public class ProcessMonitoringImplTest {
         final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         assertNotNull(processMonitoring.initOrderedWorkflow("EXISTING_PROCESS_ID_FOR_UPDATE", initSimpleWorkflow(),
             "containerName"));
-        processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", "containerName_wf1_0_step1", 10, false);
         Map<String, ProcessStep> orderedSteps = processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID_FOR_UPDATE");
         ProcessStep pStep = orderedSteps.get("containerName_wf1_0_step1");
-        assertEquals(10, pStep.getElementToProcess());
+        assertEquals(0, pStep.getElementToProcess());
 
-        processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", "containerName_wf1_0_step1", 0, true);
+        processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", pStep.getId(), 10, false);
         orderedSteps = processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID_FOR_UPDATE");
-        pStep = orderedSteps.get("containerName_wf1_0_step1");
+        pStep = orderedSteps.get(pStep.getId());
+        assertEquals("containerName_wf1_0_step1", pStep.getId());
+        assertEquals(10, pStep.getElementToProcess());
+        assertEquals(0, pStep.getElementProcessed());
+        
+        processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", pStep.getId(), 0, true);
+        orderedSteps = processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID_FOR_UPDATE");
+        pStep = orderedSteps.get(pStep.getId());
+        assertEquals("containerName_wf1_0_step1", pStep.getId());
         assertEquals(10, pStep.getElementToProcess());
         assertEquals(1, pStep.getElementProcessed());
 
-        processMonitoring.updateStepStatus("EXISTING_PROCESS_ID_FOR_UPDATE", "containerName_wf1_0_step1",
+        processMonitoring.updateStepStatus("EXISTING_PROCESS_ID_FOR_UPDATE", pStep.getId(),
             StatusCode.OK);
         orderedSteps = processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID_FOR_UPDATE");
-        pStep = orderedSteps.get("containerName_wf1_0_step1");
+        pStep = orderedSteps.get(pStep.getId());
+        assertEquals("containerName_wf1_0_step1", pStep.getId());
         assertEquals(StatusCode.OK, pStep.getStepStatusCode());
     }
 
@@ -140,7 +143,7 @@ public class ProcessMonitoringImplTest {
         simpleWorkflow.setId("wf1");
         final Step step1 = new Step();
         step1.setStepName("step1");
-        final List<Step> steps = new ArrayList();
+        List<Step> steps = new ArrayList<>();
         steps.add(step1);
         simpleWorkflow.setSteps(steps);
         return simpleWorkflow;
@@ -149,7 +152,7 @@ public class ProcessMonitoringImplTest {
     private WorkFlow initSimpleWorkflowWithNullStep() {
         final WorkFlow simpleWorkflow = new WorkFlow();
         simpleWorkflow.setId("wf1");
-        final List<Step> steps = new ArrayList();
+        final List<Step> steps = new ArrayList<>();
         steps.add(null);
         simpleWorkflow.setSteps(steps);
         return simpleWorkflow;

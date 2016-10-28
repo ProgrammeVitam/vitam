@@ -45,7 +45,7 @@ public interface ProcessMonitoring {
      * @param processId the id of the process to be initiated
      * @param workflow the workflow to init
      * @param containerName the name of the container to be processed
-     * @return a Map, a generated unique Id as a key, and as a value the step
+     * @return a List of ProcessSteps with a generated unique Id
      * @throws IllegalArgumentException if a step is null
      */
     Map<String, ProcessStep> initOrderedWorkflow(String processId, WorkFlow workflow, String containerName)
@@ -55,7 +55,7 @@ public interface ProcessMonitoring {
      * Update a step status in a workflow, knowing its unique id
      *
      * @param processId the id of the process to be updated
-     * @param uniqueId the unique Id of the step
+     * @param processStep the step with unique Id
      * @param status the Code of the status
      * @throws ProcessingException if the step does not exist
      */
@@ -77,10 +77,18 @@ public interface ProcessMonitoring {
      * Get workflow status with its workflow id If the workflow id does not exist, an empty Map is returned
      *
      * @param processId the id of the process
-     * @return a Map, containerName as a key, a map of steps as the value (the value is the map created in the
-     *         initOrderedWorkflow method)
+     * @return a map of steps 
      * @throws ProcessingException if the process does not exist
      */
     Map<String, ProcessStep> getWorkflowStatus(String processId) throws ProcessingException;
+
+    /**
+     * Return true if at least one of the step status is KO or FATAL.
+     * 
+     * @param processId the id of the workflow
+     * @return true if at least one of the step status is KO or FATAL, else false
+     * @throws ProcessingException if the process does not exist
+     */
+    Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException;
 
 }

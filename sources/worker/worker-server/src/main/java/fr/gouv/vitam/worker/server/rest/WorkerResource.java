@@ -48,8 +48,10 @@ import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -75,7 +77,9 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     public WorkerResource(WorkerConfiguration configuration) {
         LOGGER.info("init Worker Resource server");
-        worker = WorkerImplFactory.create();
+        DbConfigurationImpl databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+        this.worker =
+            WorkerImplFactory.create(LogbookMongoDbAccessFactory.create(databaseConfiguration));
     }
 
 
