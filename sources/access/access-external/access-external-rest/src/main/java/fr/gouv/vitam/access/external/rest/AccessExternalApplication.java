@@ -115,6 +115,7 @@ public class AccessExternalApplication
             //.register(AdminManagementClientFactory.getInstance());
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
+            .register(new AdminManagementExternalResourceImpl())
             .register(new AdminStatusResource(serviceRegistry));
     }
 
