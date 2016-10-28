@@ -162,6 +162,9 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
         return new ObjectMapper().convertValue(this.get(OBJECT_SIZE), RegisterValueDetail.class);
     }
     
+    /**
+     * Methods adding Indexes
+     */
     public static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {

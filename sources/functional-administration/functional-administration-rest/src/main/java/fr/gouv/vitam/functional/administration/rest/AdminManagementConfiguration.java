@@ -39,6 +39,13 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         super();
     }
 
+    /**
+     * Constructor 
+     * 
+     * @param dbHost the database host
+     * @param dbPort the database port
+     * @param dbName the database name
+     */
     public AdminManagementConfiguration(String dbHost, int dbPort, String dbName) {
         super(dbHost, dbPort, dbName);
     }

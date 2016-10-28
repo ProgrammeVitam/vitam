@@ -320,8 +320,9 @@ DefaultIngestWorkflow
 
   - ACCESSION_REGISTRATION :  enregistrement des archives prises en charge dans le Registre des Fonds
 
-- **Step 6** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée
+- **Step 6 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   - ATR_NOTIFICATION :
-    - génération de l'ArchiveTransferReply xml
+    - génération de l'ArchiveTransferReply xml (OK ou KO)
     - enregistrement de l'ArchiveTransferReply xml dans les offres de stockage
+    
