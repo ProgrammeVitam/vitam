@@ -59,17 +59,109 @@ La classe WorkerImpl permet de lancer ces différents handlers.
 ''''''''''''''''''''''''''''''''''''''''''''''''''''
 4.1.1 description
 '''''''''''''''''
-Ce handler permet de comparer le message digest déclaré dans le manifest et celui calculé par le workspace.
+
+Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches : 
+
+-- Vérification de l'empreinte par rapport à l'empreinte indiquée dans le manifeste (en utilisant algorithme déclaré dans manifeste)
+-- Calcul d'une empreinte en SHA-512 si l'empreinte du manifeste est calculée avec un algorithme différent
 
 4.1.2 exécution
 '''''''''''''''
-TODO
+CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow 
+et le fichier en InputStream par le workspace.
 
-4.1.3 journalisation : logbook operation? logbook life cycle?
+Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte de fichier en SHA-512
+
+.. code-block:: java
+			DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput().get(ALGO_RANK));
+            InputStream inputStream =
+                workspaceClient.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
+            Digest vitamDigest = new Digest(digestTypeInput);
+            Digest manifestDigest;
+            boolean isVitamDigest = false;
+            if (!binaryObject.getAlgo().equals(digestTypeInput)) {
+                manifestDigest = new Digest(binaryObject.getAlgo());
+                inputStream = manifestDigest.getDigestInputStream(inputStream);
+            } else {
+                manifestDigest = vitamDigest;
+                isVitamDigest = true;
+            }
+......................
+
+Si les empreintes sont différents, c'est le cas KO. 
+Le message { "MessageDigest": "value", "Algorithm": "algo", "ComputedMessageDigest": "value"} va être stocké dans le journal
+Sinon le message { "MessageDigest": "value", "Algorithm": "algo", "SystemMessageDigest": "value", "SystemAlgorithm": "algo"} va être stocké dans le journal
+Mais il y a encore deux cas à ce moment:
+	si l'empreinte est avec l'algorithme SHA-512, c'est le cas OK.
+	sinon, c'est le cas WARNING. le nouveau empreint et son algorithme seront mis à jour dans la collection ObjectGroup.
+
+CheckConformityActionHandler compte aussi le nombre de OK, KO et WARNING.
+Si nombre de KO est plus de 0, l'action est KO.
+
+4.1.3 journalisation :
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 logbook lifecycle
+''''''''''''''''''''''
+CA 1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste)
 
-4.1.4 modules utilisés
+Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450. 
+Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vérification d'empreinte doit être effectuée (celle de l'objet avec celle inscrite dans le manifeste SEDA). Cette étape est déjà existante actuellement. 
+Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam. 
+
+CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - Started
+- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "Started"
+* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - OK
+- Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "OK"
+* outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+Comportement du workflow décrit dans l'US #680
+
+- La collection ObjectGroup est aussi mis à jour, en particulier le champs : Message Digest : {  empreinte, algorithme utlisé }
+
+CA 1.3 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - KO
+- Lorsque l'action est KO, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "KO"
+* outcomeDetailMessage FR : « Échec de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>
+Empreinte calculée : <Empreinte calculée par Vitam>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+Comportement du workflow décrit dans l'US #680
+
+****************************
+CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) 
+
+Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le système doit calculer l'empreinte en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam. 
+Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte). 
+
+CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - Started
+- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "Started"
+* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+CA 2.2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - OK
+- Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "OK"
+* outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte Manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+"Empreinte calculée (<algorithme utilisé "XXX">): <Empreinte calculée par Vitam>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+4.1.5 modules utilisés
 ''''''''''''''''''''''
 processing, worker, workspace et logbook
 
