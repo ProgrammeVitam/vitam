@@ -52,6 +52,7 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - IndexUnitActionHandler
 - StoreObjectGroupActionHandler
 - FormatIdentificationActionHandler
+- AccessionRegisterActionHandler
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
@@ -385,3 +386,39 @@ Le worker client contient le code permettant l'appel vers les API Rest offert pa
 Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
 
 
+4.11 Détail du handler : AccessionRegisterActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.11.1 Description
+''''''''''''''''''
+AccessionRegisterActionHandler permet de fournir une vue globale et dynamique des archives 
+sous la responsabilité du service d'archives, pour chaque tenant.
+
+4.11.2 Détail des maps utilisées
+''''''''''''''''''''''''''''''''
+Map<String, String> objectGroupIdToGuid
+    contenu         : cette map contient l'id du groupe d'objet relié à son guid
+
+Map<String, String> archiveUnitIdToGuid
+	contenu         : cette map contient l'id du groupe d'objet relié à son guid
+    
+Map<String, Object> bdoToBdoInfo
+	contenu         : cette map contient l'id du binary data object relié à son information
+	
+4.11.3 exécution
+''''''''''''''''
+L'alimentation du registre des fonds a lieu pendant la phase de finalisation de l'entrée, 
+une fois que les objets et les units sont rangés. ("stepName": "STP_INGEST_FINALISATION")
+
+Le Registre des Fonds est alimenté de la manière suivante:
+	-- un identifiant unique
+	-- des informations sur le service producteur (OriginatingAgency)
+	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
+	-- date de début de l’enregistrement (Start Date)
+	-- date de fin de l’enregistrement (End Date)
+	-- date de dernière mise à jour de l’enregistrement (Last update)
+	-- nombre d’units (Total Units)
+	-- nombre de GOT (Total ObjectGroups) 
+	-- nombre d'Objets (Total Objects)
+	-- volumétrie des objets (Object Size)
+	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
+	-- status (ItemStatus)
