@@ -158,7 +158,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
         context.addFilter(WafFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR));
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         return context;
     }
 

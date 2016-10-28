@@ -178,6 +178,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                                 VitamLogbookMessages.getCodeOp(actionStatus.getItemId(),
                                     actionStatus.getGlobalStatus()) + " Detail= " + actionStatus.computeStatusMeterMessage(),
                                 GUIDReader.getGUID(workParams.getContainerName()));
+                        // FIXME use Bulk operation
                         client.update(actionParameters);
 
                     }

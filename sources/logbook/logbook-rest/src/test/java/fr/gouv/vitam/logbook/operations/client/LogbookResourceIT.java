@@ -76,7 +76,7 @@ public class LogbookResourceIT {
     private static int databasePort;
     private static int serverPort;
     private static LogbookApplication application;
-    private static final int NB_TEST = 100;
+    private static final int NB_TEST = 1000;
     
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;

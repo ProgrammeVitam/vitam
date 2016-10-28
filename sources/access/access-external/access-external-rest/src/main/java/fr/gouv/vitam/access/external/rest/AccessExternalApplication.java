@@ -133,11 +133,11 @@ public class AccessExternalApplication
             context.addEventListener(new EnvironmentLoaderListener());
             context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR));
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
         context.addFilter(WafFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR));
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
 
     }
 

@@ -72,7 +72,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
 
         try {
             response = performRequest(HttpMethod.POST, "/units", headers,
-                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessExternalClientServerException(UNAUTHORIZED);
@@ -142,7 +142,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
 
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
-                updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessExternalClientServerException(UNAUTHORIZED);
@@ -247,7 +247,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL, headers,
-                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
