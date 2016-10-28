@@ -124,10 +124,10 @@ angular.module('core')
     });
   };
 
+
   return {
     getClient: getClient
   };
-
 })
 
   /*idOperationService to find operation id in result*/

@@ -27,82 +27,84 @@
 
 'use strict';
 
+var translateProvider;
+
 angular.
 module('ihm.demo').
-config(['$locationProvider' ,'$routeProvider',
-  function config($locationProvider, $routeProvider) {
-    $locationProvider.hashPrefix('!');
+  config(['$locationProvider' ,'$routeProvider',
+    function config($locationProvider, $routeProvider) {
+      $locationProvider.hashPrefix('!');
 
-    $routeProvider.
-    when('/login', {
-      templateUrl: 'views/login.html'
-    }).
-    when('/archiveSearch', {
-      template: '<archive-search></archive-search>'
-    }).
-    when('/admin', {
-      templateUrl: "views/admin.html"
-    }).
-    when('/archiveGestion', {
-      templateUrl: "views/in-progress.html"
-    }).
-    when('/uploadSIP', {
-      templateUrl: "views/upload-sip.html",
-      controller: "uploadController"
-    }).
-    when('/archiveunit/:archiveId', {
-      template: '<archive-unit></archive-unit>'
-    }).
-    when('/admin/logbookOperations', {
-      template: '<logbook-operations></logbook-operations>'
-    }).
-    when('/admin/formats', {
-      template: '<file-format></file-format>'
-    }).
-    when('/admin/rules', {
-      template: '<file-rules></file-rules>'
-    }).
-    when('/admin/logbookLifecycle', {
-      templateUrl:  "views/in-progress.html"
-    }).
-    when('/admin/managementrules', {
-      templateUrl:  "views/in-progress.html"
-    }).
-    when('/admin/importPronoun', {
-      templateUrl: "views/import-Pronoun.html"
-    }).
-    when('/admin/importFileRules', {
-      templateUrl: "views/import-FileRules.html"
-    }).
-    when('/admin/recette', {
-      templateUrl: "views/recette-features.html"
-    }).
-    when('/admin/journalOperations', {
-      template: '<all-logbook-operation></all-logbook-operation>'
-    }).
-    when('/admin/detailOperation/:entryId', {
-      templateUrl: 'views/logbookEntryFull.html',
-      controller: 'OperationLogbookEntryController'
-    }).
-    when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
-      template: '<lifecycle></lifecycle>'
-    }).
-    when('/uploadperf', {
-      template: '<upload-sip-perf></upload-sip-perf>'
-    }).
-    when('/accessionRegister/search', {
-      template: '<accession-register-search></accession-register-search>'
-    }).
-    otherwise('/uploadSIP');
-  }
-])
-  .config(function($translateProvider) {
-    // TODO Need to update the file loaded when API will throw vitam references
-      $translateProvider.useStaticFilesLoader({
-        'prefix':'static/languages_',
-        'suffix':'.json'
-      });
-      $translateProvider.preferredLanguage('en');
-      $translateProvider.fallbackLanguage('fr');
-   }
+      $routeProvider.
+      when('/login', {
+        templateUrl: 'views/login.html'
+      }).
+      when('/archiveSearch', {
+        template: '<archive-search></archive-search>'
+      }).
+      when('/admin', {
+        templateUrl: "views/admin.html"
+      }).
+      when('/archiveGestion', {
+        templateUrl: "views/in-progress.html"
+      }).
+      when('/uploadSIP', {
+        templateUrl: "views/upload-sip.html",
+        controller: "uploadController"
+      }).
+      when('/archiveunit/:archiveId', {
+        template: '<archive-unit></archive-unit>'
+      }).
+      when('/admin/logbookOperations', {
+        template: '<logbook-operations></logbook-operations>'
+      }).
+      when('/admin/formats', {
+        template: '<file-format></file-format>'
+      }).
+      when('/admin/rules', {
+        template: '<file-rules></file-rules>'
+      }).
+      when('/admin/logbookLifecycle', {
+        templateUrl:  "views/in-progress.html"
+      }).
+      when('/admin/managementrules', {
+        templateUrl:  "views/in-progress.html"
+      }).
+      when('/admin/importPronoun', {
+        templateUrl: "views/import-Pronoun.html"
+      }).
+      when('/admin/importFileRules', {
+        templateUrl: "views/import-FileRules.html"
+      }).
+      when('/admin/recette', {
+        templateUrl: "views/recette-features.html"
+      }).
+      when('/admin/journalOperations', {
+        template: '<all-logbook-operation></all-logbook-operation>'
+      }).
+      when('/admin/detailOperation/:entryId', {
+        templateUrl: 'views/logbookEntryFull.html',
+        controller: 'OperationLogbookEntryController'
+      }).
+      when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
+        template: '<lifecycle></lifecycle>'
+      }).
+      when('/uploadperf', {
+        template: '<upload-sip-perf></upload-sip-perf>'
+      }).
+      when('/accessionRegister/search', {
+        template: '<accession-register-search></accession-register-search>'
+      }).
+      otherwise('/uploadSIP');
+    }
+  ])
+  .config(
+    function($translateProvider/*, $http, MessagesResource*/) {
+      translateProvider = $translateProvider;
+
+      $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
+      $translateProvider.useLoader('MessagesResource', {});
+      // prefered language set options for useLoader
+      $translateProvider.preferredLanguage('fr');
+    }
   );

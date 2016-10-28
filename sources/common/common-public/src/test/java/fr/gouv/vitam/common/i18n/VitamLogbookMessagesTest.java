@@ -34,6 +34,7 @@
  */
 package fr.gouv.vitam.common.i18n;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -82,6 +83,8 @@ public class VitamLogbookMessagesTest {
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, TRANSACTION, StatusCode.KO, FIN).startsWith(LFC + StatusCode.KO.name() + " " + TRANSACTION));
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, TRANSACTION, StatusCode.KO, FIN).endsWith(FIN));
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, TRANSACTION, StatusCode.FATAL).startsWith(LFC + StatusCode.FATAL.name() + " " + TRANSACTION));
+        
+        assertNotNull(VitamLogbookMessages.getAllMessages());
 
     }
 

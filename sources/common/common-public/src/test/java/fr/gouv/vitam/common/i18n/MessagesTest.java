@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.i18n;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Locale;
 
@@ -22,6 +23,7 @@ public class MessagesTest {
         assertEquals("!HelloWorld.OK!", mesg3);
         final String mesg4 = messages.getString("HelloWorld.OK", "value1", "value2");
         assertEquals("!HelloWorld.OK! value1 value2", mesg4);
+        assertNotNull(messages.getAllMessages());
     }
 
     @Test
@@ -32,6 +34,7 @@ public class MessagesTest {
         assertEquals("Bonjour Vitam", mesg1);
         final String mesg2 = messages.getString("HelloWorld.KO", "value1", "value2");
         assertEquals("KO value1 on value2 !", mesg2);
+        assertNotNull(messages.getAllMessages());
     }
 
     @Test
@@ -42,6 +45,7 @@ public class MessagesTest {
         assertEquals("Bonjour Vitam", mesg1);
         final String mesg2 = messages.getString("HelloWorld.KO", "value1", "value2");
         assertEquals("KO value1 on value2 !", mesg2);
+        assertNotNull(messages.getAllMessages());
     }
 
 }

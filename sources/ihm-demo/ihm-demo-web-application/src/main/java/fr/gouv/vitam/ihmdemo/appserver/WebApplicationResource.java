@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -119,6 +120,19 @@ public class WebApplicationResource {
 
     @Context
     private HttpServletRequest request;
+
+
+    /**
+     * Retrieve all the messages for logbook 
+     * @return Response
+     */
+    @GET
+    @Path("/messages/logbook")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLogbookMessages() {
+        // TODO: If translation key could be the same in diferent .properties file, MUST add an unique prefix per file
+        return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
+    }
 
     /**
      * @param criteria criteria search for units
@@ -186,8 +200,8 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param headers 
-     * @param sessionId 
+     * @param headers
+     * @param sessionId
      * @param options the queries for searching
      * @return Response
      */
@@ -234,7 +248,6 @@ public class WebApplicationResource {
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                
                 result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
@@ -311,7 +324,7 @@ public class WebApplicationResource {
      * @throws XMLStreamException
      * @throws IOException
      */
-    //TODO : add file name
+    // TODO : add file name
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)

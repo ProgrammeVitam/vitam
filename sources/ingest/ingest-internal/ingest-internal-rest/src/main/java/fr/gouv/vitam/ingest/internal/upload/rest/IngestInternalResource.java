@@ -185,9 +185,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             VITAM_LOGGER.debug("Log Ingest External operations");
 
             for (final LogbookParameters logbookParameters : logbookOperationParametersList.getLogbookOperationList()) {
-                parameters.putParameterValue(LogbookParameterName.eventType, INGEST_EXT);
-                callLogbookUpdate(logbookOperationsClient, parameters, logbookParameters.getStatus(),
-                    logbookParameters.getMapParameters().get(LogbookParameterName.outcomeDetailMessage));
+                callLogbookUpdate(logbookOperationsClient, logbookParameters);
             }
 
             parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
@@ -323,6 +321,11 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         parameters.setStatus(logbookOutcome);
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
         client.update(parameters);
+    }
+
+    private void callLogbookUpdate(LogbookOperationsClient client, LogbookParameters logbookParameters)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        client.update(logbookParameters);
     }
 
     /**

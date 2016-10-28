@@ -23,7 +23,7 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td>{{detail.evType}}</td>
+                    <td>{{detail.evType | translate}}</td>
                     <td>{{detail.evDateTime}}</td>
                     <td>{{detail.outcome}}</td>
                     <td>{{detail.outMessg}}</td>
@@ -31,7 +31,7 @@
                 </tbody>
                 <tbody ng-repeat="event in detail.events">
                 <tr>
-                    <td>{{event.evType}}</td>
+                    <td>{{event.evType | translate}}</td>
                     <td>{{event.evDateTime}}</td>
                     <td>{{event.outcome}}</td>
                     <td>{{event.outMessg}}</td>
