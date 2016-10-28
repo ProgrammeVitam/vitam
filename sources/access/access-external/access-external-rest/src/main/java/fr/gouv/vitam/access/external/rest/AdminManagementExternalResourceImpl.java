@@ -56,7 +56,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * Admin Management External Resource Implement
  */
-@Path("/access-external/v1")
+@Path("/admin-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);

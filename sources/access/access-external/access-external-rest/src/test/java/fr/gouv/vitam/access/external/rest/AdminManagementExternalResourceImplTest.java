@@ -43,7 +43,7 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImplTest.class);
 
-    private static final String RESOURCE_URI = "/access-external/v1";
+    private static final String RESOURCE_URI = "/admin-external/v1";
 
     private static final String FORMAT_URI = "/formats";
 
