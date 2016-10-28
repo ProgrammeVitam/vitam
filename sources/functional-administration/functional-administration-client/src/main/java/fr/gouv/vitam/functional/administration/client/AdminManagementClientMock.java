@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
@@ -44,13 +45,18 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
  * Mock client implementation for AdminManagement
@@ -83,6 +89,36 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             .setRuleMeasurement("Annee")
             .setRuleValue(ruleValue);
 
+    }
+
+    private RegisterValueDetail createRegisterValueDetail() {
+        return new RegisterValueDetail()
+            .setDeleted(50L)
+            .setRemained(50L)
+            .setTotal(100L);
+    }
+
+    private AccessionRegisterDetail createAccessionRegisterDetails(String id) {
+        return new AccessionRegisterDetail()
+            .setId(id)
+            .setOriginatingAgency("USA")
+            .setSubmissionAgency("AG2")
+            .setLastUpdate("01/10/1990")
+            .setTotalObjects(createRegisterValueDetail())
+            .setTotalObjectGroups(createRegisterValueDetail())
+            .setTotalUnits(createRegisterValueDetail())
+            .setObjectSize(createRegisterValueDetail())
+            .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED);
+    }
+
+    private AccessionRegisterSummary createAccessionRegister(String id) {
+        return new AccessionRegisterSummary()
+            .setId(id)
+            .setOriginatingAgency("USA")
+            .setTotalObjects(createRegisterValueDetail())
+            .setTotalObjectGroups(createRegisterValueDetail())
+            .setTotalUnits(createRegisterValueDetail())
+            .setObjectSize(createRegisterValueDetail());
     }
 
     private String fileFormatListToJsonString(List<FileFormat> formatList)
@@ -159,7 +195,6 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         LOGGER.debug("get rule by id request:");
         final FileRules file = createFileRules(id);
         return JsonHandler.toJsonNode(file);
-
     }
 
     @Override
@@ -168,6 +203,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
+
         final FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
         final FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
         final List<FileRules> fileRulesList = new ArrayList<>();
@@ -193,4 +229,35 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         LOGGER.info("AccessionRegister: " + result);
     }
 
+    @Override
+    public JsonNode getAccessionRegister(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
+        LOGGER.debug("get document Register Fund request:");
+        final AccessionRegisterSummary file1 = createAccessionRegister("1");
+        final AccessionRegisterSummary file2 = createAccessionRegister("2");
+
+        RequestResponseOK response = new RequestResponseOK();
+        response.setHits(2, 0, 1);
+        response.setQuery(null);
+        response.addResult(JsonHandler.toJsonNode(file1));
+        response.addResult(JsonHandler.toJsonNode(file2));
+        return response.toJsonNode();
+    }
+
+    @Override
+    public JsonNode getAccessionRegisterDetail(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
+        LOGGER.debug("get document Accession Register request:");
+        final AccessionRegisterDetail detail1 = createAccessionRegisterDetails("1");
+        final AccessionRegisterDetail detail2 = createAccessionRegisterDetails("2");
+
+        RequestResponseOK response = new RequestResponseOK();
+        response.setHits(2, 0, 1);
+        response.setQuery(null);
+        response.addResult(JsonHandler.toJsonNode(detail1));
+        response.addResult(JsonHandler.toJsonNode(detail2));
+        return response.toJsonNode();
+    }
 }

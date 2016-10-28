@@ -146,7 +146,7 @@ public class VitamCollectionTest {
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);
-        assertEquals(esClient, vitamCollection.getEsClient());
+        assertEquals(esClient, vitamCollection.getEsClient());        
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
         final MongoCollection<CollectionSample> collection =
             (MongoCollection<CollectionSample>) vitamCollection.getCollection();

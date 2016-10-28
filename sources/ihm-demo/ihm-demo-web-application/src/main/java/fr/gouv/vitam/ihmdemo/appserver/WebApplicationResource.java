@@ -248,6 +248,7 @@ public class WebApplicationResource {
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
                 result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
@@ -425,7 +426,7 @@ public class WebApplicationResource {
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             result = adminClient.getFormats(JsonHandler.getFromString(query));
-            return Response.status(Status.OK).entity(result).build();            
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -457,7 +458,7 @@ public class WebApplicationResource {
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             result = adminClient.getFormatByID(formatId);
-            return Response.status(Status.OK).entity(result).build();            
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -482,14 +483,14 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(InputStream input) {
-       try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-               client.checkFormat(input);
-               return Response.status(Status.OK).build();
+        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client.checkFormat(input);
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
-        LOGGER.error(e);
-        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -505,8 +506,8 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(InputStream input) {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                client.importFormat(input);
-                return Response.status(Status.OK).build();
+            client.importFormat(input);
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final DatabaseConflictException e) {
@@ -531,7 +532,7 @@ public class WebApplicationResource {
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
-        }catch(Exception e){
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -671,8 +672,8 @@ public class WebApplicationResource {
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = JsonHandler.createObjectNode();
-               result = adminClient.getRuleByID(ruleId);
-            return Response.status(Status.OK).entity(result).build();               
+            result = adminClient.getRuleByID(ruleId);
+            return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -685,7 +686,7 @@ public class WebApplicationResource {
         }
     }
 
- 
+
     /***
      * check the referential rules
      *
@@ -702,11 +703,11 @@ public class WebApplicationResource {
             client.checkRulesFile(input);
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();            
+            return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();            
-        } 
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -747,17 +748,82 @@ public class WebApplicationResource {
     public Response deleteRulesFile() {
         try (final AdminManagementClient client =
             AdminManagementClientFactory.getInstance().getClient()) {
-            client.deleteRulesFile();            
-            return Response.status(Status.OK).build();            
+            client.deleteRulesFile();
+            return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();            
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
+    /**
+     * Get the action registers filtered with option query
+     * 
+     * @param options the queries for searching
+     * @return Response
+     */
+    @POST
+    @Path("/admin/accession-register")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAccessionRegister(String options) {
+        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        String query = "";
+        JsonNode result = null;
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.createObjectNode();
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            result = client.getAccessionRegister(JsonHandler.getFromString(query));
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
 
+    /**
+     * Get the detail of an accessionregister matching options query
+     * 
+     * @param options query criteria
+     * @return accession register details
+     */
+    @POST
+    @Path("/admin/accession-register/detail")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAccessionRegisterDetail(String options) {
+        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        String query = "";
+        JsonNode result = null;
+        try (final AdminManagementClient client =
+            AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.createObjectNode();
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            result = client.getAccessionRegisterDetail(JsonHandler.getFromString(query));
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.status(Status.OK).entity(result).build();
+    }
 
     /**
      * This resource returns all paths relative to a unit
@@ -1024,4 +1090,5 @@ public class WebApplicationResource {
                 .build();
         }
     }
+
 }

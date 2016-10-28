@@ -1179,4 +1179,65 @@ public class WebApplicationResourceTest {
         ServerApplication.getWebApplicationConfig().setSipDirectory(currentSipDirectory);
     }
 
+    @Test
+    public void testSearchFundsRegisterOK() throws Exception {
+        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegister(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/accession-register");
+    }
+
+    @Test
+    public void testSearchFundsRegisterBadRequest() throws Exception {
+        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegister(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            .thenThrow(new InvalidParseOperationException(""));
+
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/admin/accession-register");
+    }
+
+    @Test
+    public void testGetAccessionRegisterDetailOK() throws Exception {
+        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegisterDetail(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/accession-register/detail");
+    }
+
+    @Test
+    public void testGetAccessionRegisterDetailBadRequest() throws Exception {
+        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegisterDetail(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            .thenThrow(new InvalidParseOperationException(""));
+
+        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/admin/accession-register/detail");
+    }
 }

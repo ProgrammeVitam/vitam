@@ -25,32 +25,36 @@
  * accept its terms.
  */
 
-/**
- Used in order to display a simple field (no children). This directive allow update with edit-mode
+// Define resources in order to call WebApp http endpoints for accession-register
+angular.module('core')
+  .factory('accessionRegisterResource', function($http, IHM_URLS) {
 
- It takes some mandatory parameters:
- field-object: The field properties (fieldSet for example)
- edit-mode: true if the view is in edition mode ($ctrl.isEditMode for example)
- field-size: The size of the col-md-XX bootstrap css class.
- Default to 11 (12 - 1), can be other value depend to parent col-xs-XX and to sibling col-md-XX div
- intercept-user-change: Callback function to be called when a user update the input field in edit mode
- The callback should take exactly one parameter called fieldSet as this example: intercept-user-change="callback(fieldSet)"
+    var ACCESSION_REGISTER_ROOT = '/admin/accession-register/';
+    var ACCESSION_REGISTER_DETAIL = 'detail/';
+    var accessionRegisterResource = {};
 
- In addition, an optional parameter is available:
- display-value: Allow to override the default fieldObject.fieldValue as value. As example, filtering can be used.
- field-label: Allow to override the label of the field with a specific value
- */
-angular.module('archive.unit')
-  .directive('archiveUnitField', function() {
-    return {
-      scope: {
-        fieldObject: '=fieldObject',
-        displayValue: '=displayValue',
-        editMode: '=editMode',
-        fieldSize: '=fieldSize',
-        interceptUserChange: '&interceptUserChange',
-        fieldLabel: '=fieldLabel'
-      },
-      templateUrl: 'modules/archive-unit/directives/archive-unit-field.directive.html'
+    /** Get details of an accession register (POST method)
+     *
+     * @param {Object} criteria - The requested criteria for search
+     * @param {String} criteria.OriginatingAgency - The requested originating agency id
+     * @returns {HttpPromise} The promise returned by the http call containing accession register details
+     */
+    accessionRegisterResource.getDetails = function (criteria) {
+      console.log('Options: ', criteria);
+      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + ACCESSION_REGISTER_DETAIL, criteria);
     };
+
+    /** Get summary of an accession register (POST method)
+     *
+     * @param {Object} criteria - The requested criteria for search
+     * @param {String} criteria.OriginatingAgency - The requested originating agency id
+     * @returns {HttpPromise} The promise returned by the http call containing accession register summary
+     */
+    accessionRegisterResource.getSummary = function (criteria) {
+      console.log('Options: ', criteria);
+      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT, criteria);
+    };
+
+    return accessionRegisterResource;
+
   });

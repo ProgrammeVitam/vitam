@@ -25,23 +25,7 @@
  * accept its terms.
  */
 
-/*
-  used in order to display a set of fields. This directive allow update with edit-mode
+'use strict';
 
-  It takes some mandatory parameters:
-    field-object: The fields object (fieldSet for example)
-    edit-mode: true if the view is in edition mode ($ctrl.isEditMode for example)
-    intercept-user-change: Callback function to be called when a user update the input field in edit mode
-      The callback should take exactly one parameter called fieldSet as this example: intercept-user-change="callback(fieldSet)"
- */
-angular.module('archive.unit')
-  .directive('archiveUnitFieldtree', function() {
-    return {
-      scope: {
-        fieldObject: '=fieldObject',
-        editMode: '=editMode',
-        interceptUserChange: '&interceptUserChange'
-      },
-      templateUrl: 'modules/archive-unit/directives/archive-unit-fieldtree.directive.html'
-    };
-  });
+// Define the `accession.register.details` module
+angular.module('accession.register.details', []);

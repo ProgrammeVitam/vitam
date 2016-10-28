@@ -37,8 +37,11 @@ package fr.gouv.vitam.functional.administration.common;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.IndexOptions;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 /**
  * Accession Register Summary document
@@ -55,6 +58,10 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public static final String TOTAL = "Total";
     public static final String DELETED = "Deleted";
     public static final String REMAINED = "Remained";
+    
+    private static final BasicDBObject[] indexes = {
+        new BasicDBObject(ORIGINATING_AGENCY, 1)
+    };
     
     /**
      * Empty Constructor
@@ -74,12 +81,20 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
     
     /**
+     * @param id
+     * @return AccessionRegisterDetail
+     */
+    public AccessionRegisterSummary setId(String id) {
+        this.append(VitamDocument.ID, id);
+        return this;
+    }
+    
+    /**
      * @param orgAgency
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setOriginatingAgency(String orgAgency) {
         this.append(ORIGINATING_AGENCY, orgAgency);
-        this.append(VitamDocument.ID, orgAgency);
         return this;
     }
     
@@ -147,5 +162,15 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
         return new ObjectMapper().convertValue(this.get(OBJECT_SIZE), RegisterValueDetail.class);
     }
     
+    public static void addIndexes() {
+        // if not set, Unit and Tree are worst
+        for (final BasicDBObject index : indexes) {
+            if (index.containsField(ORIGINATING_AGENCY)) {
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index, new IndexOptions().unique(true));
+            } else {
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index);
+            }
+        }
+    }
 
 }

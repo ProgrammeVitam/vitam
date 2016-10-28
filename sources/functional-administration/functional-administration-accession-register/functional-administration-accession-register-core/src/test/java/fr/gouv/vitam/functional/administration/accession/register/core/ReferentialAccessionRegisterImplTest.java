@@ -34,11 +34,14 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.List;
 
 import org.bson.Document;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,11 +59,14 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
@@ -90,10 +96,9 @@ public class ReferentialAccessionRegisterImplTest {
         mongod = mongodExecutable.start();
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
             new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
-
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK), AccessionRegisterDetail.class);
         client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-
+        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
     }
 
     @AfterClass
@@ -102,6 +107,12 @@ public class ReferentialAccessionRegisterImplTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
         client.close();
+    }
+
+    @After
+    public void afterTest() {
+        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        collection.deleteMany(new Document());
     }
 
     @Test
@@ -118,4 +129,17 @@ public class ReferentialAccessionRegisterImplTest {
         assertEquals(2, collection.count());
     }
 
+    @Test
+    public void testFindAccessionRegisterDetail() throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
+        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        assertEquals(1, collection.count());
+
+        final Select select = new Select();
+        select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
+        List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
+        assertEquals(1, detail.size());
+        AccessionRegisterDetail item = detail.get(0);
+        assertEquals("OriginatingAgency", item.getOriginatingAgency());
+    }
 }

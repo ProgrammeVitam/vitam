@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -26,13 +26,21 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
+import static com.mongodb.client.model.Indexes.hashed;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoWriteException;
+import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,6 +77,10 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
     public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)
         throws ReferentialException {
 
+
+        // TODO replace with real tenant
+        int tenantId = 0;
+        LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(), registerDetail.getOriginatingAgency());
         // store accession register detail
         try {
             this.mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
@@ -77,17 +89,22 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
         }
-
+        
         // store accession register summary
         RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
         try {
             AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
+                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(tenantId).getId())
                 .setOriginatingAgency(registerDetail.getOriginatingAgency())
                 .setTotalObjects(initialValue)
                 .setTotalObjectGroups(initialValue)
                 .setTotalUnits(initialValue)
                 .setObjectSize(initialValue);
+
+
+            LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(), registerDetail.getOriginatingAgency());
+
             this.mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         } catch (InvalidParseOperationException e) {
@@ -147,5 +164,60 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
         if (mongoAccess != null) {
             mongoAccess.close();
         }
+    }
+
+    public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
+        try (@SuppressWarnings("unchecked")
+        final MongoCursor<AccessionRegisterSummary> registers =
+            (MongoCursor<AccessionRegisterSummary>) mongoAccess.select(select,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+            final List<AccessionRegisterSummary> result = new ArrayList<>();
+            if (registers == null || !registers.hasNext()) {
+                throw new ReferentialException("Register Summary not found");
+            }
+            while (registers.hasNext()) {
+                result.add(registers.next());
+            }
+            return result;
+        } catch (final ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            throw new ReferentialException(e);
+        }
+    }
+
+    /**
+     * search for an accession register's operation detail
+     * 
+     * @param select the search criteria for the select operation
+     * @return A list of AccressionRegisterDetails matching the 'select' criteria.
+     * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
+     */
+    public List<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
+        try (@SuppressWarnings("unchecked")
+        final MongoCursor<AccessionRegisterDetail> registers =
+            (MongoCursor<AccessionRegisterDetail>) mongoAccess.select(select,
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+
+            final List<AccessionRegisterDetail> result = new ArrayList<>();
+            if (registers == null || !registers.hasNext()) {
+                throw new ReferentialException("Register Detail not found");
+            }
+            while (registers.hasNext()) {
+                result.add(registers.next());
+            }
+            return result;
+
+        } catch (final ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            throw new ReferentialException(e);
+        }
+    }
+    
+    /**
+     * Reset MongoDB Index (import optimization?)
+     */
+    public static void resetIndexAfterImport() {
+        LOGGER.info("Rebuild indexes");
+        AccessionRegisterSummary.addIndexes();
     }
 }

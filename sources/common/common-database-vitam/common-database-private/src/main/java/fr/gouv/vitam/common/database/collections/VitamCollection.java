@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.collections;
 
 import static com.mongodb.client.model.Indexes.hashed;
+import static com.mongodb.client.model.Indexes.text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -73,7 +75,6 @@ public class VitamCollection {
             collection.createIndex(hashed(VitamDocument.ID));
         }
     }
-
 
     /**
      * Initialize the ES Client

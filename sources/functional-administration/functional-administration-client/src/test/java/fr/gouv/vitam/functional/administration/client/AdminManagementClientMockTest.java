@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,6 +38,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -141,4 +144,32 @@ public class AdminManagementClientMockTest {
     public void givenClientMockWhenCreateAccessionRegister() throws Exception {
         client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
     }
+
+    @Test
+    public void getFundRegisterTest()
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
+        IOException {
+        AdminManagementClientFactory.changeMode(null);
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        assertNotNull(client.getAccessionRegister(select.getFinalSelect()));
+    }
+    
+    @Test
+    public void getAccessionRegisterDetailTest()
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
+        IOException {
+        AdminManagementClientFactory.changeMode(null);
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        JsonNode detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
+        JsonNode detail = detailResponse.get("results");
+        assertNotNull(detail);
+        assertTrue(detail.isArray());
+        ArrayNode detailAsArray = (ArrayNode) detail;
+        assertEquals(2, detailAsArray.size());
+        JsonNode item = detailAsArray.get(0);
+        assertEquals("AG2", item.get("SubmissionAgency").asText());
+    }
+    
 }

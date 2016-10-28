@@ -77,6 +77,7 @@ public final class DslQueryHelper {
     private static final String EVENTID = "EventID";
     private static final String EVENTTYPE = "EventType";
     private static final String RULES = "RULES";
+    private static final String ACCESSION_REGISTER = "ACCESSIONREGISTER";
     private static final String RULETYPE = "RuleType";
     private static final String ORDER_BY = "orderby";
     private static final String TITLE_AND_DESCRIPTION = "titleAndDescription";
@@ -89,6 +90,7 @@ public final class DslQueryHelper {
     private static final String TRANSACTED_DATE = "TransactedDate";
     private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
     private static final String YES = "yes";
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
 
 
 
@@ -132,6 +134,14 @@ public final class DslQueryHelper {
                     query.add(exists(PUID));
                     break;
 
+                case ACCESSION_REGISTER:
+                    query.add(exists(ORIGINATING_AGENCY));
+                    break;
+
+                case ORIGINATING_AGENCY:
+                    query.add(eq(ORIGINATING_AGENCY, searchValue));
+                    break;
+
                 case RULES:
                     query.add(exists(RULEVALUE));
                     break;
@@ -149,7 +159,6 @@ public final class DslQueryHelper {
                     if (!searchValue.isEmpty()) {
                         query.add(eq("RuleType", searchValue));
                     }
-                    break;
 
                 case EVENTID:
                     if ("all".equals(searchValue)) {
