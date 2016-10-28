@@ -89,7 +89,7 @@ public class SelectParserSingle extends RequestParserSingle {
      * <pre><code>
      *   SelectParserSingle parser = new SelectParserSingle(...);
      *   parser.parse(jsonQuery);
-     *   parser.addCondition(and(eq(FieldName, value)));
+     *   parser.addCondition(eq(FieldName, value));
      *   JsonNode newJsonQuery = parser.getRootNode();
      * </code></pre>
      * 
@@ -99,15 +99,17 @@ public class SelectParserSingle extends RequestParserSingle {
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         SelectParserSingle newOne = new SelectParserSingle(this.adapter);
-        newOne.parse(rootNode.deepCopy());
+        newOne.parse(rootNode);
         Select select = newOne.getRequest();
         Query query = select.getQuery();
         Query newQuery = QueryHelper.and().add(query, condition);
-        select.setQuery(newQuery);
-        parse(select.getFinalSelect());
+        getRequest().setQuery(newQuery);
+        JsonNode newJsonNode = getRequest().getFinalSelect().deepCopy();
+        parse(newJsonNode);
         newOne.request = null;
         newOne.rootNode = null;
         newOne.sourceRequest = null;
+
     }
 
     /**

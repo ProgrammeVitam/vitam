@@ -335,7 +335,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * <pre><code>
      *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
      *   parser.parse(jsonQuery);
-     *   parser.addCondition(and(eq(FieldName, value)));
+     *   parser.addCondition(eq(FieldName, value));
      *   JsonNode newJsonQuery = parser.getRootNode();
      * </code></pre>
      * 
@@ -345,18 +345,19 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
-        RequestMultiple request = newOne.getNewRequest();
+        newOne.parse(rootNode);
+        RequestMultiple request = newOne.getRequest();
         Query query = request.getNthQuery(0);
         Query newQuery = QueryHelper.and().add(query, condition);
-        request.getQueries().set(0, newQuery);
+        getRequest().getQueries().set(0, newQuery);
         if (newOne instanceof SelectParserMultiple) {
-            parse(((Select) request).getFinalSelect());
+            parse(((Select) getRequest()).getFinalSelect().deepCopy());
         } else if (newOne instanceof InsertParserMultiple) {
-            parse(((Insert) request).getFinalInsert());
+            parse(((Insert) getRequest()).getFinalInsert().deepCopy());
         } else if (newOne instanceof UpdateParserMultiple) {
-            parse(((Update) request).getFinalUpdate());
+            parse(((Update) getRequest()).getFinalUpdate().deepCopy());
         } else {
-            parse(((Delete) request).getFinalDelete());
+            parse(((Delete) getRequest()).getFinalDelete().deepCopy());
         }
         newOne.request = null;
         newOne.rootNode = null;
