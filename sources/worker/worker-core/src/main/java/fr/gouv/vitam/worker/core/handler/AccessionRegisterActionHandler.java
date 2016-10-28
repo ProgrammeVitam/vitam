@@ -185,7 +185,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
                     .setRemained(archiveUnitMap.size()))
                 .setTotalObjects(new RegisterValueDetail()
                     .setTotal(bdoInfoMap.size())
-                    .setRemained(archiveUnitMap.size()))
+                    .setRemained(bdoInfoMap.size()))
                 .setObjectSize(new RegisterValueDetail()
                     .setTotal(objectSize)
                     .setRemained(objectSize));

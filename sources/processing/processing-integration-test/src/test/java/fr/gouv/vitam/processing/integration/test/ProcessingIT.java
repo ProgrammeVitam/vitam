@@ -75,6 +75,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -146,6 +147,7 @@ public class ProcessingIT {
     private static String SIP_FUND_REGISTER_OK = "integration/OK-registre-fonds.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
     private static String SIP_NO_FORMAT = "integration/SIP_NO_FORMAT.zip";
+    private static String SIP_DOUBLE_BM = "integration/SIP_DoubleBM.zip";
     private static String SIP_NO_FORMAT_NO_TAG = "integration/SIP_NO_FORMAT_TAG.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration/SIP_Conformity_KO.zip";
     private static String SIP_ORPHELINS = "integration/SIP-orphelins.zip";
@@ -418,6 +420,28 @@ public class ProcessingIT {
         // checkMonitoring - meaning something has been added in the monitoring tool
         Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
+    }
+    
+
+    @Test(expected=ProcessingException.class)
+    public void testWorkflowSipDoubleVersionBM() throws Exception {
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_DOUBLE_BM);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 
 

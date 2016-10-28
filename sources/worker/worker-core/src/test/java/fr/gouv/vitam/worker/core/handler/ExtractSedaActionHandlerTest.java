@@ -42,7 +42,6 @@ import java.net.URISyntaxException;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
@@ -105,7 +104,6 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
-    @Ignore
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         assertNotNull(ExtractSedaActionHandler.getId());
@@ -179,6 +177,38 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
+    @Test
+    public void givenSipWithDoubleBMThenFatal()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+    }
+    
+    @Test
+    public void givenSipTransformToUsage_1ThenSuccess()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
         PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
