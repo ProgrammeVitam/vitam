@@ -7,6 +7,10 @@
 
 - hosts: vitam
   roles:
+    - packetbeat
+
+- hosts: vitam
+  roles:
     - vitam_browser
 
 - hosts: hosts-mongo-express

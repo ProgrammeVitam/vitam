@@ -1,5 +1,32 @@
 ---
+# Installation order
+#
+# 	1. Consul
+#	2. Elasticsearch Log
+#	3. Log server
+#	4. rsyslog
+#	5. Elasticsearch Data
+#	6. Mongo
+#	7. Vitam applications
 
+### CONSUL INSTALLATION ### 
+# KWA : TODO : installer les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
+- hosts: vitam
+  serial: 1
+  roles:
+    - consul
+
+### ELASTICSEARCH LOG INSTALLATION ### 
+- hosts: hosts-elasticsearch-log
+  roles:
+    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log }
+
+### LOG SERVER INSTALLATION ### 
+- hosts: hosts-log-server
+  roles:
+    - {role: log-server, cluster_name: elasticsearch-log}
+
+### RSYSLOG INSTALLATION ### 
 # Vitam solution deployment
 # TODO : à régler properment
 - hosts: vitam
@@ -7,12 +34,12 @@
     - normalize-host
     - rsyslog
 
-# Consul installation
-# KWA : TODO : installer les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
-- hosts: vitam
-  serial: 1
+### ELASTICSEARCH DATA INSTALLATION ### 
+- hosts: hosts-elasticsearch-data
   roles:
-    - consul
+    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_data_http_port}}", port_tcp: "{{elasticsearch_data_tcp_port}}", groupe: data }
+
+### MONGO DB INSTALLATION ### 
 
 # mongodb commons (yum install, etc...)
 - hosts: mongo_common
@@ -38,16 +65,6 @@
 # - hosts: hosts-mongodb
 #   roles:
 #     - mongodb
-
-# ElasticSearch-data installation
-- hosts: hosts-elasticsearch-data
-  roles:
-    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_data_http_port}}", port_tcp: "{{elasticsearch_data_tcp_port}}", groupe: data }
-
-- hosts: hosts-elasticsearch-log
-  roles:
-    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log }
-
 
 
 ## VITAM ###################################################################################""
@@ -103,8 +120,4 @@
 - hosts: hosts-functional-administration
   roles:
     - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}" }
-
-- hosts: hosts-log-server
-  roles:
-    - {role: log-server, cluster_name: elasticsearch-log}
 

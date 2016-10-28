@@ -27,7 +27,6 @@
     regexp: '^# elasticsearch\.url:.*$'
     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
 
-
 #### Logstash installation ####
 
 - name: install java (prerequisite for other components)

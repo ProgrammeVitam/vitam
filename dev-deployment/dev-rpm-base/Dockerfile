@@ -69,6 +69,7 @@ COPY devlocal.repo /etc/yum.repos.d/devlocal.repo
 
 COPY vitam-build-repo /usr/bin
 COPY vitam-deploy /usr/bin
+COPY vitam-deploy-extra /usr/bin
 RUN chmod a+x /usr/bin/vitam-*
 
 COPY profile-build-repo.sh /etc/profile.d

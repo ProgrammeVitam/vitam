@@ -30,6 +30,9 @@ package fr.gouv.vitam.common.server2.application;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.DispatcherType;
 
@@ -44,6 +47,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -55,6 +59,8 @@ import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamApplicationConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfigurationImpl;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
@@ -69,12 +75,18 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplication.class);
     protected static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument for ";
     private static final String CONF_FILE_NAME = "vitam.conf";
+    private static final String METRICS_CONF_FILE_NAME = "vitam.metrics.conf";
+    private static final Map<VitamMetricsType, VitamMetrics> METRICS;
 
     private C configuration;
     private Handler applicationHandler;
     private final Class<C> configurationType;
     private final String configurationFilename;
     private VitamServer vitamServer;
+
+    static {
+        METRICS = configureMetrics();
+    }
 
     /**
      * Protected constructor assigning application and configuration types </br>
@@ -180,6 +192,36 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         }
     }
 
+    private static final Map<VitamMetricsType, VitamMetrics> configureMetrics() {
+        final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
+
+        // Load default business metrics
+        // TODO find a better way to have a default BUSINESS VitamMetrics
+        if (!metrics.containsKey(VitamMetricsType.BUSINESS)) {
+            metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
+        }
+        // Load the metrics configuration
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
+            final VitamMetricsConfigurationImpl metricsConfigurations =
+                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfigurationImpl.class);
+
+            for (final VitamMetricConfiguration metricConfiguration : metricsConfigurations
+                .getMetricsConfigurations()) {
+                final VitamMetrics metric = new VitamMetrics(metricConfiguration);
+                metrics.put(metric.getType(), metric);
+            }
+
+            // Start the reporting of every metrics
+            for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
+                entry.getValue().start();
+            }
+        } catch (final IOException e) {
+            LOGGER.error(e);
+        }
+
+        return metrics;
+    }
+
     /**
      * This method must add the Application resources and eventually registering specific component
      *
@@ -220,6 +262,11 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
+        // Register Jersey Metrics Listener
+        if (METRICS.containsKey(VitamMetricsType.JERSEY)) {
+            resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
+                METRICS.get(VitamMetricsType.JERSEY).getRegistry()));
+        }
         // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
         // Not supported MultiPartFeature.class
@@ -299,4 +346,28 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             vitamServer.stop();
         }
     }
+
+    /**
+     * Return the {@code VitamMetricsType#BUSINESS} {@link VitamMetrics} object. This {@code VitamMetrics} can be used
+     * to register custom metrics wherever in the application.
+     *
+     * @return {@link VitamMetrics} BUSINESS VitamMetrics
+     */
+    public static final VitamMetrics getBusinessVitamMetrics() {
+        return METRICS.get(VitamMetricsType.BUSINESS);
+    }
+
+    /**
+     * Return a {@link VitamMetrics} object for a given {@link VitamMetricsType} or null if the VitamMetrics does not
+     * exists.
+     *
+     * @param {@link VitamMetricsType} type
+     * @return {@link VitamMetrics} VitamMetrics
+     */
+    public static final VitamMetrics getVitamMetrics(VitamMetricsType type) {
+        ParametersChecker.checkParameter("VitamMetricsType", type);
+
+        return METRICS.get(type);
+    }
+
 }
