@@ -70,10 +70,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -425,6 +427,25 @@ public class SelectParserSingleTest {
         final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
+    }
+
+    @Test
+    public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserSingle request = new SelectParserSingle();
+        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        Select select = new Select();
+        select.setQuery(and().add(term("var01", "value1"), gte("var02", 3)));
+        select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
+            .addUnusedProjection("var4");
+        request.parse(select.getFinalSelect());
+        assertNotNull(request.getRequest());
+        request.addCondition(eq("var5", "value"));
+        assertEquals(
+            "{\"$query\":{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "{\"$eq\":{\"var5\":\"value\"}}]}," +
+                "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
+            request.getRootNode().toString());
     }
 
     @Test

@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.flt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -385,6 +387,28 @@ public class SelectParserMultipleTest {
         final String ex = "{}";
         request.parseQueryOnly(ex);
         assertNotNull(request);
+    }
+
+    @Test
+    public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserMultiple request = new SelectParserMultiple();
+        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        Select select = new Select();
+        select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
+        select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
+        select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
+            .addUnusedProjection("var4");
+        request.parse(select.getFinalSelect());
+        assertNotNull(request.getRequest());
+        request.addCondition(eq("var5", "value"));
+        assertEquals(
+            "{\"$roots\":[]," +
+            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "{\"$eq\":{\"var5\":\"value\"}}]}," +
+                "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+                "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
+            request.getRootNode().toString());
     }
 
     @Test
