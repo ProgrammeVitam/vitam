@@ -31,9 +31,12 @@ import java.util.Iterator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -77,6 +80,34 @@ public class SelectParserSingle extends RequestParserSingle {
     public void parse(final JsonNode request) throws InvalidParseOperationException {
         parseJson(request);
         internalParseSelect();
+    }
+
+    /**
+     * Allow to add one condition to the current parsed Request</br>
+     * </br>
+     * Example:</br>
+     * <pre><code>
+     *   SelectParserSingle parser = new SelectParserSingle(...);
+     *   parser.parse(jsonQuery);
+     *   parser.addCondition(and(eq(FieldName, value)));
+     *   JsonNode newJsonQuery = parser.getRootNode();
+     * </code></pre>
+     * 
+     * @param condition the condition to add
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        SelectParserSingle newOne = new SelectParserSingle(this.adapter);
+        newOne.parse(rootNode.deepCopy());
+        Select select = newOne.getRequest();
+        Query query = select.getQuery();
+        Query newQuery = QueryHelper.and().add(query, condition);
+        select.setQuery(newQuery);
+        parse(select.getFinalSelect());
+        newOne.request = null;
+        newOne.rootNode = null;
+        newOne.sourceRequest = null;
     }
 
     /**
