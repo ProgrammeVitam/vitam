@@ -93,7 +93,7 @@ Si un reporter de métriques ElasticSearch est utilisé, celles-ci seront stock�
 
 * Index : chaque index stockant des données de métriques correspond à 1 jour de métriques (déterminé à partir du timestamp de la métrique). Les index définis sont les suivants :
 
-    - ``metrics-vitam-jersey-YYYY.MM.dd`` pour les métriques de Jersey, avec un champ *nom* automatiquement généré sous la forme :
+    - ``metrics-vitam-jersey-YYYY.MM.dd`` pour les métriques de Jersey, avec un champ *name* automatiquement généré sous la forme :
 
         **uri:http_method:consumed_types:produced_types:metric_type**
 
@@ -128,7 +128,5 @@ Limites
 
 La solution implémentée dans Vitam possède les limites connues suivantes :
 
-* Cette solution réutilise les principes de centralisation de logs basés sur les systèmes syslog ; par conséquent, elle en hérite certaines de ces limites, et notamment l'absence de sécurité dans les protocoles syslog (udp ou tcp) (absence d'authentification, de vérification d'intégrité ou de confidentialité des informations) ;
-
-.. tip:: Il est à noter que les logs ne sont pas complètement perdus en cas de perte du système de centralisation des logs ; en effet, ils sont dans tous les cas déposés dans des fichiers locaux aux noeuds.
-
+* Du fait que la librairie Dropwizard Metrics fait une aggregation des métriques et que le système de visualisation Kibana fonctionne lui aussi à l'aide d'aggrégations, les résultats visualisés sont corrects dans la limite d'une certaine précision (certaines données deviennent non-représentatives de la réalité). 
+* Il n'existe à ce jour que 3 types de métriques, **Meter**, **Timer** et **ExceptionMeter** supportés par le plugin Jersey Dropwizard Metrics.
