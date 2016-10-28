@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -42,7 +43,11 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
+import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
@@ -321,6 +326,41 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     @Override
     public RequestMultiple getRequest() {
         return request;
+    }
+
+    /**
+     * Allow to add one condition to the current parsed Request on top Query</br>
+     * </br>
+     * Example:</br>
+     * <pre><code>
+     *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
+     *   parser.parse(jsonQuery);
+     *   parser.addCondition(and(eq(FieldName, value)));
+     *   JsonNode newJsonQuery = parser.getRootNode();
+     * </code></pre>
+     * 
+     * @param condition the condition to add
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
+        RequestMultiple request = newOne.getNewRequest();
+        Query query = request.getNthQuery(0);
+        Query newQuery = QueryHelper.and().add(query, condition);
+        request.getQueries().set(0, newQuery);
+        if (newOne instanceof SelectParserMultiple) {
+            parse(((Select) request).getFinalSelect());
+        } else if (newOne instanceof InsertParserMultiple) {
+            parse(((Insert) request).getFinalInsert());
+        } else if (newOne instanceof UpdateParserMultiple) {
+            parse(((Update) request).getFinalUpdate());
+        } else {
+            parse(((Delete) request).getFinalDelete());
+        }
+        newOne.request = null;
+        newOne.rootNode = null;
+        newOne.sourceRequest = null;
     }
 
     /**
