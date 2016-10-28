@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,46 +23,34 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.server;
+ **/
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.mongodb.MongoClient;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
+package fr.gouv.vitam.metadata.api.exception;
 
 /**
- * Factory to get MongoDbAccess for Admin
+ * Exception indicating the Metadata server has an internal error
  */
-public final class MongoDbAccessAdminFactory {
+public class MetaDataClientServerException extends MetaDataException {
 
-    private MongoDbAccessAdminFactory() {
-        // Empty
-    }
-    
     /**
-     * Creation of one MongoDbAccess
-     *
-     * @param configuration config of MongoDbAcess
-     * @return the MongoDbAccess
-     * @throws IllegalArgumentException if argument is null
+     * @param message message to associate with the exception
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        final List<Class<?>> classList = new ArrayList<>();
-        for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
-            classList.add(e.getClasz());
-        }
-        FunctionalAdminCollections.class.getEnumConstants();
-
-        MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
+    public MetaDataClientServerException(String message) {
+        super(message);
     }
 
+    /**
+     * @param cause cause to associate with the exception
+     */
+    public MetaDataClientServerException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public MetaDataClientServerException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

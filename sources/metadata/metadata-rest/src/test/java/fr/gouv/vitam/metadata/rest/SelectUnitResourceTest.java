@@ -61,6 +61,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -110,6 +111,8 @@ public class SelectUnitResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
+
+    private static MetaDataApplication application;
 
     private static final String buildDSLWithOptions(String query, String data) {
         return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
@@ -180,7 +183,11 @@ public class SelectUnitResourceTest {
             new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        MetaDataApplication.run(configuration);
+
+        application = new MetaDataApplication(configuration);
+        application.start();
+        JunitHelper.unsetJettyPortSystemProperty();
+
         RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
     }
@@ -190,7 +197,7 @@ public class SelectUnitResourceTest {
         if (node == null) {
             return;
         }
-        MetaDataApplication.stop();
+        application.stop();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);

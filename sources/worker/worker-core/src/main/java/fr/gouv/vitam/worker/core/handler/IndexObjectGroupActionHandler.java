@@ -45,8 +45,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -138,14 +138,11 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        // FIXME P0  once implementing autocloseable should be in the try (resource) too
-        final MetaDataClient metadataClient = MetaDataClientFactory
-            .create(params.getUrlMetadata());
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());        
-        try (// TODO P0 : whould use worker configuration instead of the processing configuration
+        try (// TODO : whould use worker configuration instead of the processing configuration
             final WorkspaceClient workspaceClient = WorkspaceClientFactory
                 .getInstance().getClient();
-            final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName)) {
+            final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             if (input != null) {
                 final ObjectNode json = (ObjectNode) JsonHandler.getFromInputStream(input);

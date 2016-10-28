@@ -27,12 +27,17 @@
 package fr.gouv.vitam.metadata.rest;
 
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.http.BindHttpException;
 import org.elasticsearch.node.Node;
+import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
@@ -42,6 +47,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -50,15 +58,20 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
     private static final String METADATA_CONF = "metadata.conf";
     private static final String METADATA_AUTH_CONF = "metadata-auth.conf";
     private static MongodExecutable mongodExecutable;
-    private final MetaDataApplication application = new MetaDataApplication();
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
@@ -71,6 +84,10 @@ public class MetaDataApplicationTest {
     private static int TCP_PORT = 9300;
     private static int HTTP_PORT = 9200;
     private static Node node;
+
+    private static MetaDataConfiguration config;
+
+    private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -109,6 +126,9 @@ public class MetaDataApplicationTest {
             return;
         }
 
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        nodes.add(new ElasticsearchNode("localhost", TCP_PORT));
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         port = junitHelper.findAvailablePort();
@@ -117,6 +137,8 @@ public class MetaDataApplicationTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+
+        config = new MetaDataConfiguration("localhost", port, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG);
     }
 
     @AfterClass
@@ -140,65 +162,18 @@ public class MetaDataApplicationTest {
         Assume.assumeTrue("Elasticsearch not started but should", node != null);
     }
 
-    @Test(expected = VitamApplicationServerException.class)
-    public void givenEmptyArgsWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure("");
-    }
-
-    // FIXME P0: fix it (when server v2)
-    @Ignore
-    @Test(expected = Exception.class)
-    public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
+    @Test
+    public final void testFictiveLaunch() {
         try {
-            application.configure("src/test/resources/notFound.conf");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+            new MetaDataApplication(config);
+        } catch (final IllegalStateException e) {
+            fail("should not raized an exception");
         }
     }
 
-    @Test
-    public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        final File conf = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setDbPort(port);
-        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
-        PropertiesUtils.writeYaml(newConf, config);
-        final int serverPort = junitHelper.findAvailablePort();
-        application.configure(newConf.getAbsolutePath());
-        newConf.delete();
-        junitHelper.releasePort(serverPort);
-        MetaDataApplication.stop();
-    }
 
-    @Test
-    public void givenConfigFileWhenConfigureApplicationThenRunServer() throws Exception {
-        final File conf = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setDbPort(port);
-        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
-        PropertiesUtils.writeYaml(newConf, config);
-        final int serverPort = junitHelper.findAvailablePort();
-        application.configure(newConf.getAbsolutePath());
-        newConf.delete();
-        junitHelper.releasePort(serverPort);
-        MetaDataApplication.stop();
-    }
-    
-    @Test
-    public void givenPortNegativeWhenConfigureApplicationThenUseDefaultPortToRunServer() throws Exception {
-        final File conf = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setDbPort(port);
-        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
-        PropertiesUtils.writeYaml(newConf, config);
-        final int serverPort = junitHelper.findAvailablePort();
-        application.configure(newConf.getAbsolutePath());
-        newConf.delete();
-        junitHelper.releasePort(serverPort);
-        MetaDataApplication.stop();
+    @Test(expected = IllegalStateException.class)
+    public final void shouldRaiseException() throws VitamException {
+        new MetaDataApplication((String) null);
     }
 }

@@ -105,7 +105,9 @@ public class StoreObjectGroupActionHandlerTest {
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
-        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
 
@@ -132,7 +134,9 @@ public class StoreObjectGroupActionHandlerTest {
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
-        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
 

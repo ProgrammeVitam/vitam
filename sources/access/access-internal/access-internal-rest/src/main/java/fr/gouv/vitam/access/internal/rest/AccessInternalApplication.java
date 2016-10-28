@@ -114,8 +114,8 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
         // Logbook dependency
         serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
             .register(LogbookOperationsClientFactory.getInstance())
-        // Metadata dependency
-            //.register(MetaDataClientFactory.getInstance());
+         // Metadata dependency
+            .register(MetaDataClientFactory.getInstance())
         // Storage dependency
             .register(StorageClientFactory.getInstance());
         if (mock != null) {

@@ -80,6 +80,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -173,8 +174,8 @@ public class ProcessingIT {
             wkrapplication.stop();
             lgbapplication.stop();
             ProcessManagementApplication.stop();
-            MetaDataApplication.stop();
-        } catch (Exception e) {
+            medtadataApplication.stop();
+        } catch (final Exception e) {
             LOGGER.error(e);
         }
     }
@@ -222,16 +223,20 @@ public class ProcessingIT {
         // AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
 
         // launch metadata
-        medtadataApplication = new MetaDataApplication();
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication.configure(CONFIG_METADATA_PATH);
+        medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        medtadataApplication.start();
+        SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
+
+        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
         SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
         workspaceApplication .start();
+        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch logbook
@@ -239,6 +244,7 @@ public class ProcessingIT {
             .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
         lgbapplication.start();
+        SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
@@ -246,11 +252,13 @@ public class ProcessingIT {
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
         ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
+        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
+        SystemPropertyUtil.clear("jetty.worker.port");
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 

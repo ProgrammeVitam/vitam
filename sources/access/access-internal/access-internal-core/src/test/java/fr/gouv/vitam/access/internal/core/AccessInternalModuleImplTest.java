@@ -73,6 +73,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -138,9 +139,11 @@ public class AccessInternalModuleImplTest {
 
     @Before
     public void setUp() {
+        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
-        metaDataClient = mock(MetaDataClient.class);
-        PowerMockito.when(MetaDataClientFactory.create(Matchers.anyObject())).thenReturn(metaDataClient);
+        metaDataClient = mock(MetaDataClientRest.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metaDataClient);
         logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
         logbookOperationClient = mock(LogbookOperationsClient.class);
         LogbookLifeCyclesClientFactory factorylc = mock(LogbookLifeCyclesClientFactory.class);

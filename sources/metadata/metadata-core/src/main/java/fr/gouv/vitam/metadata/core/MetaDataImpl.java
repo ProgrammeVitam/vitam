@@ -61,6 +61,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
@@ -74,6 +75,7 @@ public class MetaDataImpl implements MetaData {
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private final DbRequestFactory dbRequestFactory;
+    private MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
      * MetaDataImpl constructor
@@ -84,8 +86,12 @@ public class MetaDataImpl implements MetaData {
      */
     private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
-        mongoDbAccessFactory.create(configuration);
+        mongoDbAccess = mongoDbAccessFactory.create(configuration);
         this.dbRequestFactory = dbRequestFactory;
+    }
+
+    public MongoDbAccessMetadataImpl getMongoDbAccess() {
+        return mongoDbAccess;
     }
 
     /**

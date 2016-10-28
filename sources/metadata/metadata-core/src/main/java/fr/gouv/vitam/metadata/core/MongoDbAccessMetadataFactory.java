@@ -71,6 +71,6 @@ public class MongoDbAccessMetadataFactory {
         
         MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), false, esClient);
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient);
     }
 }

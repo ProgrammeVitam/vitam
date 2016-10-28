@@ -53,6 +53,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MongoDbAccess.class);
 
+    private ElasticsearchAccessMetadata esClient;
+
     /**
      *
      * @param mongoClient MongoClient
@@ -64,6 +66,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
         ElasticsearchAccessMetadata esClient) {
         super(mongoClient, dbname, recreate);
+        this.esClient = esClient;
 
         MetadataCollections.C_UNIT.initialize(getMongoDatabase(), recreate);
         MetadataCollections.C_OBJECTGROUP.initialize(getMongoDatabase(), recreate);
@@ -79,7 +82,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         });
 
         // init Unit Mapping for ES
-        MetadataCollections.C_UNIT.initialize(esClient);
+        MetadataCollections.C_UNIT.initialize(this.esClient);
         MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT);
     }
 
@@ -170,5 +173,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
             .append("lock", false));
     }
 
-
+    public ElasticsearchAccessMetadata getEsClient() {
+        return esClient;
+    }
 }

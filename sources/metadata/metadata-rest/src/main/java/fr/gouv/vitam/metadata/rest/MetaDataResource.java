@@ -47,8 +47,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -61,6 +60,7 @@ import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 /**
  * Units resource REST API
@@ -77,9 +77,12 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param configuration {@link MetaDataConfiguration}
      */
     public MetaDataResource(MetaDataConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
         LOGGER.info("init MetaData Resource server");
+    }
+
+    MongoDbAccessMetadataImpl getMongoDbAccess() {
+        return ((MetaDataImpl) metaDataImpl).getMongoDbAccess();
     }
 
     /**
