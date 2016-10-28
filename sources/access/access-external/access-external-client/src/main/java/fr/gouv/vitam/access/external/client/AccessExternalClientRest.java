@@ -46,9 +46,9 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
     private static final int TENANT_ID = 0;
 
-    private static final String LOGBOOK_OPERATIONS_URL = "/logbook/operations";
-    private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/logbook/unitlifecycles";
-    private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/logbook/objectgrouplifecycles";
+    private static final String LOGBOOK_OPERATIONS_URL = "/operations";
+    private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
+    private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
 
     /**
      * @param server - localhost

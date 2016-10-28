@@ -32,6 +32,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -71,11 +73,11 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
      * @param configurationPath the path to the configuration file
      * @return ClientConfiguration
      */
-    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
-        ClientConfiguration configuration = null;
+    static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
+        SecureClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+                SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock",
                 configurationPath,

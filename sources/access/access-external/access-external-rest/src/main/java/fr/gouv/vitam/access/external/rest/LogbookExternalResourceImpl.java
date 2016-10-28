@@ -41,13 +41,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -89,9 +87,7 @@ public class LogbookExternalResourceImpl {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperationbyId(operationId);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
@@ -156,10 +152,7 @@ public class LogbookExternalResourceImpl {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(result.size(), 0, 1)
-                    .setQuery(JsonHandler.getFromString(query))
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
@@ -228,9 +221,7 @@ public class LogbookExternalResourceImpl {
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
@@ -263,9 +254,7 @@ public class LogbookExternalResourceImpl {
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);

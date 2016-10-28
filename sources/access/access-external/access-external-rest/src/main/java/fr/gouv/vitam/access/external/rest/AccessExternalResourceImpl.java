@@ -68,7 +68,6 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -110,9 +109,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             result = client.selectUnits(queryDsl);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
@@ -213,9 +210,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             result = client.selectUnitbyId(queryDsl, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -300,9 +295,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             result = client.updateUnitbyId(queryDsl, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .setResult(result))
+                .entity(result)
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -365,9 +358,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 result = client.selectObjectbyId(query, idObjectGroup);
                 return Response.status(Status.OK)
                     .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                    .entity(new RequestResponseOK()
-                        .setHits(1, 0, 1)
-                        .setResult(result))
+                    .entity(result)
                     .build();
             }
         } catch (InvalidParseOperationException e) {

@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class AccessInternalClientFactory extends VitamClientFactory<AccessInternalClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientFactory.class);
-    private static final String CONFIGURATION_FILENAME = "access-client.conf";
+    private static final String CONFIGURATION_FILENAME = "access-internal-client.conf";
     private static final AccessInternalClientFactory ACCESS_CLIENT_FACTORY = new AccessInternalClientFactory();
     private static final String RESOURCE_PATH = "/access/v1";
 
