@@ -18,13 +18,24 @@
     owner: root
     mode: 0644
 
+- name: Fetch the packetbeat template file
+  fetch:
+    src: '/etc/packetbeat/packetbeat.template.json'
+    dest: '/tmp/packetbeat/'
+    flat: yes
+
 - name: create packetbeat index
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/packetbeat'
     method: PUT
-    body: "{{ lookup('file', '/etc/packetbeat/packetbeat.template.json') }}"
+    body: "{{ lookup('file', '/tmp/packetbeat/packetbeat.template.json') }}"
     body_format: json
     status_code: 200,201
+
+- name: Erase temporary packetbeat template file
+  file:
+   path: '/tmp/packetbeat'
+   state: absent
 
 - name: load kibana dashboards to .kibana elasticsearch index
   uri:
