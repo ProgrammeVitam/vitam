@@ -61,14 +61,14 @@ La classe WorkerImpl permet de lancer ces différents handlers.
 4.1.1 description
 '''''''''''''''''
 
-Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches : 
+Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches :
 
 -- Vérification de l'empreinte par rapport à l'empreinte indiquée dans le manifeste (en utilisant algorithme déclaré dans manifeste)
 -- Calcul d'une empreinte en SHA-512 si l'empreinte du manifeste est calculée avec un algorithme différent
 
 4.1.2 exécution
 '''''''''''''''
-CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow 
+CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow
 et le fichier en InputStream par le workspace.
 
 Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte de fichier en SHA-512
@@ -90,7 +90,7 @@ Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte
             }
 ......................
 
-Si les empreintes sont différents, c'est le cas KO. 
+Si les empreintes sont différents, c'est le cas KO.
 Le message { "MessageDigest": "value", "Algorithm": "algo", "ComputedMessageDigest": "value"} va être stocké dans le journal
 Sinon le message { "MessageDigest": "value", "Algorithm": "algo", "SystemMessageDigest": "value", "SystemAlgorithm": "algo"} va être stocké dans le journal
 Mais il y a encore deux cas à ce moment:
@@ -106,9 +106,9 @@ logbook lifecycle
 ''''''''''''''''''''''
 CA 1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste)
 
-Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450. 
-Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vérification d'empreinte doit être effectuée (celle de l'objet avec celle inscrite dans le manifeste SEDA). Cette étape est déjà existante actuellement. 
-Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam. 
+Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450.
+Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vérification d'empreinte doit être effectuée (celle de l'objet avec celle inscrite dans le manifeste SEDA). Cette étape est déjà existante actuellement.
+Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
 
 CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - Started
 - Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
@@ -140,10 +140,10 @@ Empreinte calculée : <Empreinte calculée par Vitam>"
 Comportement du workflow décrit dans l'US #680
 
 ****************************
-CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) 
+CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste)
 
-Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le système doit calculer l'empreinte en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam. 
-Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte). 
+Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le système doit calculer l'empreinte en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
+Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte).
 
 CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - Started
 - Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
@@ -328,7 +328,7 @@ Il s'exécute sur les différents ObjectGroups déclarés dans le manifest. Pour
    - mise à jour du Json : le format récupéré par Siegfried est mis à jour dans le Json (pour indexation future).
    - construction d'une réponse.
  - sauvegarde du JSON de l'objectGroup dans le Workspace.
- - aggrégation des retours pour générer un message + mise à jour du logbook. 
+ - aggrégation des retours pour générer un message + mise à jour du logbook.
 
 4.10.2 Détail des différentes maps utilisées :
 ''''''''''''''''''''''''''''''''''''''''''''''
@@ -346,17 +346,17 @@ Ce Handler est exécuté dans l'étape "Contrôle et traitements des objets", ju
 4.10.4 journalisation : logbook operation? logbook life cycle?
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 Dans le traitement du Handler, sont mis à jour uniquement les journaux de cycle de vie des ObjectGroups.
-Les Outcome pour les journaux de cycle de vie peuvent être les suivants : 
+Les Outcome pour les journaux de cycle de vie peuvent être les suivants :
  - Le format PUID n'a pas été trouvé / ne correspond pas avec le référentiel des formats.
- - Le format du fichier n'a pas pu être trouvé. 
+ - Le format du fichier n'a pas pu être trouvé.
  - Le format du fichier a été complété dans les métadonnées (un "diff" est généré et ajouté).
  - Le format est correct et correspond au référentiel des formats.
- 
-(Note : les messages sont informatifs et ne correspondent aucunement à ce qui sera vraiment inséré en base) 
- 
+
+(Note : les messages sont informatifs et ne correspondent aucunement à ce qui sera vraiment inséré en base)
+
 4.10.5 modules utilisés
 '''''''''''''''''''''''
-Le Handler utilise les modules suivants : 
+Le Handler utilise les modules suivants :
  - Workspace (récupération / copie de fichiers)
  - Logbook (mise à jour des journaux de cycle de vie des ObjectGroups)
  - Common-format-identification (appel pour analyse des objets)
@@ -364,7 +364,7 @@ Le Handler utilise les modules suivants :
 
 4.10.6 cas d'erreur
 '''''''''''''''''''
-Les différentes exceptions pouvant être rencontrées : 
+Les différentes exceptions pouvant être rencontrées :
  - ReferentialException : si un problème est rencontré lors de l'interrogation du référentiel des formats de Vitam
  - InvalidParseOperationException/InvalidCreateOperationException : si un problème est rencontré lors de la génération de la requête d'interrogation du référentiel des formats de Vitam
  - FormatIdentifier*Exception : si un problème est rencontré avec l'outil d'analyse des formats (Siegfried)
@@ -422,3 +422,4 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- volumétrie des objets (Object Size)
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
+

@@ -10,3 +10,4 @@ Architecture Technique
    jetty.rst
    certs-auth.rst
    format-identifier.rst
+   messages.rst
