@@ -58,11 +58,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -515,7 +513,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
+                .setHits(fileFundRegisters.size(), 0, 1)
                 .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
             .build();
     }

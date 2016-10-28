@@ -1,14 +1,22 @@
-Administration-Management-format
-################################
+Administration-Management-client
+#######
 
 Utilisation
 ###########
 
 Paramètres
 **********
-
+Administration-Management-client-format
 Les paramètres sont les InputStreams du fichier Pronom pour l'import ou la validation.
 Pour la recherche des formats, les paramètres sont les requête DSL construites par les builders de common-database
+
+Administration-Management-client-rules
+Les paramètres sont les InputStreams du fichier CSV pour l'import ou la validation.
+Pour la recherche des règles, les paramètres sont les requête DSL construites par les builders de common-database
+
+Administration-Management-client-accession-register
+Les paramètres sont les InputStreams du fichier pour l'import ou la validation.
+Pour la recherche des registres, les paramètres sont les requête DSL construites par les builders de common-database
 
 La factory
 **********
@@ -52,16 +60,17 @@ Le client propose actuellement 14 méthodes :
 .. code-block:: java
 
 	  Status status();
-	  void checkFormat(InputStream stream);
-	  void importFormat(InputStream stream);
-	  void deleteFormat();
-	  JsonNode getFormatByID(String id);
-	  JsonNode getFormats(JsonNode query);
-     checkRulesFile(InputStream stream);
-     importRulesFile(InputStream stream);
-     deleteRulesFile();
-     JsonNode getRuleByID(String id);
-     JsonNode getRule(JsonNode query);
-     createorUpdateAccessionRegister(AccessionRegisterDetail register);
-     JsonNode getAccessionRegister(JsonNode query);
-     JsonNode getAccessionRegisterDetail(JsonNode query);
+     void checkFormat(InputStream stream);
+     void importFormat(InputStream stream);
+     void deleteFormat();
+     JsonNode getFormatByID(String id);
+     JsonNode getFormats(JsonNode query);
+checkRulesFile(InputStream stream);
+importRulesFile(InputStream stream);
+deleteRulesFile();
+JsonNode getRuleByID(String id);
+JsonNode getRule(JsonNode query);
+createorUpdateAccessionRegister(AccessionRegisterDetail register);
+JsonNode getAccessionRegister(JsonNode query);
+JsonNode getAccessionRegisterDetail(JsonNode query);
+
