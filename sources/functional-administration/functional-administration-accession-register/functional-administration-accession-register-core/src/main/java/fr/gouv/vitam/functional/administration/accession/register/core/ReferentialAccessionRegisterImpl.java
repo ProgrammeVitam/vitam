@@ -166,6 +166,13 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
         }
     }
 
+    /**
+     * Find documents
+     * 
+     * @param select the select query
+     * @return a list of accessionRegisterSummary
+     * @throws ReferentialException
+     */
     public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterSummary> registers =

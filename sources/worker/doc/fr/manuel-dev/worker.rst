@@ -53,6 +53,7 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - StoreObjectGroupActionHandler
 - FormatIdentificationActionHandler
 - AccessionRegisterActionHandler
+- TransferNotificationActionHandler
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
@@ -101,9 +102,9 @@ CheckConformityActionHandler compte aussi le nombre de OK, KO et WARNING.
 Si nombre de KO est plus de 0, l'action est KO.
 
 4.1.3 journalisation :
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-logbook lifecycle
 ''''''''''''''''''''''
+logbook lifecycle
+'''''''''''''''''
 CA 1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste)
 
 Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450.
@@ -374,20 +375,85 @@ Les différentes exceptions pouvant être rencontrées :
  - ProcessingException : si un problème plus général est rencontré dans le Handler
 
 
-Worker-common
--------------
+4.11 Détail du handler : TransferNotificationActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.11.1 Description
+''''''''''''''''''
 
-Le worker-common contient majoritairement des classes utilitaires.
-A terme, il faudra que SedaUtils notamment soit "retravaillé" pour que les différentes méthodes soit déplacées dans les bons Handlers.
+Ce handler permet de finaliser le processus d'entrée d'un SIP. Cet Handler est un peu spécifique car il sera lancé même si une étape précédente tombe en erreur.
+Il permet de générer un xml de notification qui sera :
+ - une notification KO si une étape du workflow est tombée en erreur.
+ - une notification OK si le process est OK, et que le SIP a bien été intégré sans erreur.
+  
+La première étape dans ce handler est de déterminer l'état du Workflow : OK ou KO.
+ 
+4.10.2 Détail des différentes maps utilisées :
+''''''''''''''''''''''''''''''''''''''''''''''
+Map<String, Object> archiveUnitSystemGuid
+    contenu         : cette map contient la liste des archives units avec son identifiant tel que déclaré dans le manifest, associé à son GUID. 
 
-Worker-client
--------------
-Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
-Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
+Map<String, Object> binaryDataObjectSystemGuid
+    contenu         : cette map contient la liste Data Objects avec leur GUID généré associé à l'identifiant déclaré dans le manifest. 
+
+Map<String, Object> bdoObjectGroupSystemGuid
+    contenu         : cette map contient la liste groupes d'objets avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
+
+4.10.3 exécution
+''''''''''''''''
+Ce Handler est exécuté en dernière position. Il sera exécuté quoi qu'il se passe avant.
+Même si le processus est KO avant, le Handler sera exécuté.
+
+*Cas OK :* 
+@TODO@ 
+
+*Cas KO :*
+Pour l'opération d'ingest en cours, on va récupérer dans les logbooks plusieurs informations :
+ - récupération des logbooks operations générés par l'opération d'ingest.
+ - récupération des logbooks lifecycles pour les archive units présentes dans le SIP.
+ - récupération des logbooks lifecycles pour les groupes d'objets présents dans le SIP.
+
+Le Handler s'appuie sur des fichiers qui lui sont transmis. Ces fichiers peuvent ne pas être présents si jamais le process est en erreur avec la génération de ces derniers.
+ - un fichier globalSedaParameters.file contenant des informations sur le manifest (messageIdentifier).
+ - un fichier mapsUnits.file : présentant une map d'archive unit
+ - un fichier mapsBDO.file : présentant la liste des binary data objects
+ - un fichier mapsBDOtoOG=.file : mappant le binary data object à son object group
+
+A noter que ces fichiers ne sont pas obligatoires pour le bon déroulement du handler.  
+  
+Le handler va alors procéder à la génération d'un XML à partir des informationss aggrégées.
+Voici sa structure générale :  
+ - MessageIdentifier est rempli avec le MessageIdentifier présent dans le fichier globalSedaParameters. Il est vide si le fichier n'existe pas.
+ - dans la balise ReplyOutcome :
+   - dans Operation, on aura une liste d'events remplis par les différentes opérations KO et ou FATAL. La liste sera forcément remplie avec au moins un event. Cette liste est obtenue par l'interrogation de la collection LogbookOperations.
+   - dans ArchiveUnitList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleUnits.
+   - dans DataObjectList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleObjectGroups.
+
+Le XML est alors enregistré sur le Workspace. 
+
+4.10.4 journalisation : logbook operation? logbook life cycle?
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Dans le traitement du Handler, le logbook est interrogé : opérations et cycles de vie.
+Cependant aucune mise à jour est effectuée lors de l'exécution de ce handler.
+
+
+4.10.5 modules utilisés
+'''''''''''''''''''''''
+Le Handler utilise les modules suivants : 
+ - Workspace (récupération / copie de fichiers)
+ - Logbook (partie server) : pour le moment la partie server du logbook est utilisée pour récupérer les différents journaux (opérations et cycles de vie).
+ - Storage : permettant de stocker l'ATR.
+
+4.10.6 cas d'erreur
+'''''''''''''''''''
+Les différentes exceptions pouvant être rencontrées : 
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Content*Exception : si un problème est rencontré lors de l'interrogation du workspace
+ - XML*Exception : si un souci est rencontré sur la génération du XML 
+ - ProcessingException : si un problème plus général est rencontré dans le Handler
 
 
 4.11 Détail du handler : AccessionRegisterActionHandler
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
 4.11.1 Description
 ''''''''''''''''''
 AccessionRegisterActionHandler permet de fournir une vue globale et dynamique des archives 
@@ -423,3 +489,14 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
 
+   
+Worker-common
+-------------
+
+Le worker-common contient majoritairement des classes utilitaires.
+A terme, il faudra que SedaUtils notamment soit "retravaillé" pour que les différentes méthodes soit déplacées dans les bons Handlers.
+
+Worker-client
+-------------
+Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
+Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.

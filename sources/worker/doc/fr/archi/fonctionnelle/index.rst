@@ -8,3 +8,4 @@ architecture-fontionnelle-processing
    introduction.rst
    worker.rst
    notification-atr-ok.rst
+   notification-atr-ko.rst
