@@ -60,7 +60,7 @@ vitam_functional_administration_port: 8004
 vitam_functional_administration_baseurl: "http://{{vitam_functional_administration_host}}:{{vitam_functional_administration_port}}"
 
 # Normally no need for the host ? Maybe use the same strategy as data ?
-elasticsearch_log_host: "{{groups['hosts-elasticsearch-log'][0]}}"
+elasticsearch_log_host: "{{ (groups['hosts-elasticsearch-log'] | length > 0) | ternary(groups['hosts-elasticsearch-log'][0], '') }}"
 elasticsearch_log_http_port: "9201"
 elasticsearch_log_tcp_port: "9301"
 
@@ -73,17 +73,17 @@ mongoc_port: 27018
 mongod_port: 27019
 mongo_user: "vitamdb"
 
-vitam_mongodb_host: "{{ groups['mongos'][0] }}"
+vitam_mongodb_host: "{{ (groups['mongos'] | length > 0) | ternary(groups['mongos'][0], '') }}"
 vitam_mongodb_port: "{{mongos_port}}"
 
 vitam_logstash_host: "logstash.service.{{consul_domain}}"
 vitam_logstash_port: 10514
 
 # Normally no need for the host ?
-vitam_kibana_host: "{{groups['hosts-log-server'][0]}}"
+vitam_kibana_host: "{{ (groups['hosts-elasticsearch-log'] | length > 0) | ternary(groups['hosts-elasticsearch-log'][0], '') }}"
 vitam_kibana_port: 5601
 
-vitam_curator_host: "{{groups['hosts-log-server'][0]}}"
+vitam_curator_host: "{{ (groups['hosts-elasticsearch-log'] | length > 0) | ternary(groups['hosts-elasticsearch-log'][0], '') }}"
 
 vitam_library_port: 8090
 
