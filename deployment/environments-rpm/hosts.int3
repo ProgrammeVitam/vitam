@@ -13,8 +13,9 @@ vitam-iaas-mongodb-01.int3
 
 [vitam:children]
 hosts-ihm-demo
-hosts-ingest
-hosts-access
+hosts-ingest-internal
+hosts-access-external
+hosts-access-internal
 hosts-mongodb
 hosts-mongo-express
 hosts-logbook
@@ -49,13 +50,16 @@ vitam-iaas-bhv-01.int3
 [hosts-workspace]
 vitam-iaas-workspace-01.int3
 
-[hosts-ingest]
+[hosts-ingest-internal]
 vitam-iaas-bhv-01.int3
 
 [hosts-ingest-external]
 vitam-iaas-bhv-01.int3
 
-[hosts-access]
+[hosts-access-internal]
+vitam-iaas-bhv-01.int3
+
+[hosts-access-external]
 vitam-iaas-bhv-01.int3
 
 [hosts-metadata]

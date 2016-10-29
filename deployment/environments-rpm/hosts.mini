@@ -2,8 +2,9 @@
 
 [hosts:children]
 hosts-ihm-demo
-hosts-ingest
-hosts-access
+hosts-ingest-internal
+hosts-access-external
+hosts-access-internal
 hosts-mongodb
 hosts-logbook
 hosts-metadata
@@ -27,13 +28,16 @@ vitam-iaas-mini-01.int3
 [hosts-workspace]
 vitam-iaas-mini-01.int3
 
-[hosts-ingest]
+[hosts-ingest-internal]
 vitam-iaas-mini-01.int3
 
 [hosts-ingest-external]
 vitam-iaas-mini-01.int3
 
-[hosts-access]
+[hosts-access-external]
+vitam-iaas-mini-01.int3
+
+[hosts-access-internal]
 vitam-iaas-mini-01.int3
 
 [hosts-processing]

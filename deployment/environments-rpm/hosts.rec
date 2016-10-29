@@ -2,8 +2,9 @@
 
 [hosts:children]
 hosts-ihm-demo
-hosts-ingest
-hosts-access
+hosts-ingest-internal
+hosts-access-internal
+hosts-access-external
 hosts-mongodb
 hosts-logbook
 hosts-metadata
@@ -27,10 +28,13 @@ vitam-prod-app-12.internet.agri
 [hosts-ingest-external]
 vitam-prod-app-15.internet.agri
 
-[hosts-ingest]
+[hosts-ingest-external]
 vitam-prod-app-10.internet.agri
 
-[hosts-access]
+[hosts-access-external]
+vitam-prod-app-10.internet.agri
+
+[hosts-access-internal]
 vitam-prod-app-10.internet.agri
 
 [hosts-metadata]

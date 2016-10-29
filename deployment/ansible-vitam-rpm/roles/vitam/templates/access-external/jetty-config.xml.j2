@@ -138,11 +138,11 @@
         </Call>
     </New>
         <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
-        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_ingest-external.jks</Set>
-        <Set name="KeyStorePassword">{{KeyStorePassword_ingest_external}}</Set>
-        <Set name="KeyManagerPassword">{{KeyManagerPassword_ingest_external}}</Set>
-        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_ingest-external.jks</Set> 
-        <Set name="TrustStorePassword">{{TrustStorePassword_ingest_external}}</Set> 
+        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_access-external.jks</Set>
+        <Set name="KeyStorePassword">{{KeyStorePassword_access_external}}</Set>
+        <Set name="KeyManagerPassword">{{KeyManagerPassword_access_external}}</Set>
+        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_access-external.jks</Set> 
+        <Set name="TrustStorePassword">{{TrustStorePassword_access_external}}</Set> 
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
         <Set name="WantClientAuth">true</Set>
@@ -169,7 +169,7 @@
         </Array>
       </Set>
         <Set name="UseCipherSuitesOrder">true</Set>
-        <Set name="RenegotiationAllowed">true</Set>     
+        <Set name="RenegotiationAllowed">true</Set>
     </New>
     <New id="sslConnectionFactory" class="org.eclipse.jetty.server.SslConnectionFactory">
         <Arg name="sslContextFactory">

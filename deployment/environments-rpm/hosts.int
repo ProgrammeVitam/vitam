@@ -57,10 +57,10 @@ vitam-iaas-app-01.int
 ##### Zone applicative
 
 [zone-applicative:children]
-hosts-ingest
+hosts-ingest-internal
 hosts-processing
 hosts-worker
-hosts-access
+hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
@@ -74,10 +74,10 @@ vitam-iaas-app-03.int
 [hosts-workspace]
 vitam-iaas-storage-01.int
 
-[hosts-ingest]
+[hosts-ingest-internal]
 vitam-iaas-app-02.int
 
-[hosts-access]
+[hosts-access-internal]
 vitam-iaas-app-01.int
 
 [hosts-metadata]
