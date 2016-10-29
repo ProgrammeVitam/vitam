@@ -120,7 +120,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             DEFAULT_ALLKEYS.put(name.getDbname(), 1);
         }
     }
-    
+
 
     /**
      *
@@ -129,7 +129,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @param recreate True to recreate the index
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
-    
+
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate) {
         super(mongoClient, dbname, recreate);
         LogbookCollections.OPERATION.initialize(getMongoDatabase(), recreate);
@@ -681,21 +681,21 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    final void createBulkLogbook(LogbookCollections collection, final LogbookParameters item,
-        final LogbookParameters... items)
+    final void createBulkLogbook(LogbookCollections collection, final LogbookParameters... items)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
-        final VitamDocument document = getDocument(item);
-        if (items != null && items.length > 0) {
-            final List<VitamDocument> events = new ArrayList<>(items.length);
-            for (final LogbookParameters item2 : items) {
-                final VitamDocument currentEvent = getDocumentForUpdate(item2);
-                currentEvent.remove(LogbookDocument.EVENTS);
-                currentEvent.remove(LogbookDocument.ID);
-                events.add(currentEvent);
-            }
-            document.append(LogbookDocument.EVENTS, events);
+        if (items == null || items.length == 0) {
+            throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
+        int i = 0;
+        final VitamDocument document = getDocument(items[i]);
+        final List<VitamDocument> events = new ArrayList<>(items.length - 1);
+        for (i = 1; i < items.length; i++) {
+            final VitamDocument currentEvent = getDocumentForUpdate(items[i]);
+            currentEvent.remove(LogbookDocument.EVENTS);
+            currentEvent.remove(LogbookDocument.ID);
+            events.add(currentEvent);
+        }
+        document.append(LogbookDocument.EVENTS, events);
         try {
             collection.getCollection().insertOne(document);
         } catch (final MongoException e) {
@@ -715,24 +715,22 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public final void createBulkLogbookOperation(final LogbookOperationParameters operationItem,
-        final LogbookOperationParameters... operationItems)
+    public final void createBulkLogbookOperation(final LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.OPERATION, operationItem, operationItems);
+        createBulkLogbook(LogbookCollections.OPERATION, operationItems);
     }
 
     @Override
-    public final void createBulkLogbookLifeCycleUnit(final LogbookLifeCycleUnitParameters lifecycleItem,
-        final LogbookLifeCycleUnitParameters... lifecycleItems)
+    public final void createBulkLogbookLifeCycleUnit(final LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItem, lifecycleItems);
+        createBulkLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItems);
     }
 
     @Override
-    public final void createBulkLogbookLifeCycleObjectGroup(final LogbookLifeCycleObjectGroupParameters lifecycleItem,
+    public final void createBulkLogbookLifeCycleObjectGroup(
         final LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItem, lifecycleItems);
+        createBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItems);
     }
 
     @SuppressWarnings("rawtypes")

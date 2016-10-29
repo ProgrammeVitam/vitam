@@ -41,6 +41,7 @@ public final class WorkerImplFactory {
     }
 
     /**
+     * @param mongoDbAccess 
      * @return WorkerImpl
      */
     public static Worker create(LogbookDbAccess mongoDbAccess) {

@@ -69,7 +69,6 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
     private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
-    private static final String STATUS = "/status";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);

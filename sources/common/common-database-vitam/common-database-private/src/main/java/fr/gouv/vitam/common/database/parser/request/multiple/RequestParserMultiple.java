@@ -299,6 +299,10 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             LOGGER.debug("Depth step: {}:{}", lastDepth, lastDepth - prevDepth);
         } else {
             query = analyzeOneCommand(queryItem.getKey(), queryItem.getValue());
+            if (query == null) {
+                // NOP
+                return;
+            }
             final int prevDepth = lastDepth;
             if (exactdepth > 0) {
                 lastDepth = exactdepth;

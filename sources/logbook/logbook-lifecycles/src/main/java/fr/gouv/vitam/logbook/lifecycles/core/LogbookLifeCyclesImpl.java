@@ -144,13 +144,9 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         try {
             SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
+            parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
             Select selectRequest = parser.getRequest();
-            Select newRequest = new Select();
-            newRequest.setQuery(
-                QueryHelper.and().add(selectRequest.getQuery(),
-                    QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId)));
-            newRequest.setFilter(selectRequest.getFilter()).setProjection(selectRequest.getProjection());
-            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(newRequest);
+            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new LogbookDatabaseException(e);
@@ -188,13 +184,9 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         try {
             SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
+            parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
             Select selectRequest = parser.getRequest();
-            Select newRequest = new Select();
-            newRequest.setQuery(
-                QueryHelper.and().add(selectRequest.getQuery(),
-                    QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId)));
-            newRequest.setFilter(selectRequest.getFilter()).setProjection(selectRequest.getProjection());
-            cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(newRequest);
+            cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new LogbookDatabaseException(e);

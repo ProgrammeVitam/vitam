@@ -55,7 +55,7 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfigu
  * provides an access to the {@code VitamMetricRegistry} and the possibility to start/stop the reporting.
  *
  */
-public class VitamMetrics {
+class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
 
     private final VitamMetricsType type;

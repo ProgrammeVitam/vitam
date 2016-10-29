@@ -41,18 +41,30 @@ public class HotStrategy {
     private Integer copy;
     private List<OfferReference> offers = new ArrayList<>();
 
+    /**
+     * @return the number of copy
+     */
     public Integer getCopy() {
         return copy;
     }
 
+    /**
+     * @param copy
+     */
     public void setCopy(Integer copy) {
         this.copy = copy;
     }
 
+    /**
+     * @return the list of offer references
+     */
     public List<OfferReference> getOffers() {
         return offers;
     }
 
+    /**
+     * @param offers
+     */
     public void setOffers(List<OfferReference> offers) {
         this.offers = offers;
     }

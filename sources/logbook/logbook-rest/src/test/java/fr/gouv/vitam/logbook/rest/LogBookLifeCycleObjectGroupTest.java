@@ -30,6 +30,8 @@ import static com.jayway.restassured.RestAssured.given;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,8 +47,10 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -75,6 +79,7 @@ public class LogBookLifeCycleObjectGroupTest {
     private static MongodProcess mongod;
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
+    private static final String LIFE_OBJECT_GROUP_URI = "/operations/{id_op}/objectgrouplifecycles";
 
     private static int databasePort;
     private static int serverPort;
@@ -274,6 +279,25 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        // Test Iterator
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
+            .when()
+            .get(LIFE_OBJECT_GROUP_URI,
+                logbookLifeCyclesObjectGroupParametersStart
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
+
+                @Override
+                public boolean matches(Object item) {
+                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                }
+
+                @Override
+                public void describeTo(Description description) {}
+            });
     }
 
     @Test

@@ -83,7 +83,7 @@ public class ActionDefinition {
     /**
      * set action type
      *
-     * @param actionType the type of the action
+     * @param behavior the process behavior
      * @return the updated ActionDefinition object
      */
     public ActionDefinition setBehavior(ProcessBehavior behavior) {

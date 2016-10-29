@@ -55,7 +55,7 @@ public interface ProcessMonitoring {
      * Update a step status in a workflow, knowing its unique id
      *
      * @param processId the id of the process to be updated
-     * @param processStep the step with unique Id
+     * @param uniqueId the step with unique Id
      * @param status the Code of the status
      * @throws ProcessingException if the step does not exist
      */

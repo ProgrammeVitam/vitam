@@ -63,7 +63,7 @@ import jersey.repackaged.com.google.common.collect.ImmutableMap;
  * WARNING This class doesn't support nested Jersey resource
  * </p>
  */
-final public class VitamInstrumentedResourceMethodApplicationListener
+final class VitamInstrumentedResourceMethodApplicationListener
     extends InstrumentedResourceMethodApplicationListener {
 
     private final MetricRegistry metrics;

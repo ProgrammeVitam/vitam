@@ -51,6 +51,7 @@ public abstract class RequestResponse {
      * RequestResponse constructor
      *
      * @param query the query of type JsonNode which will be setted for RequestResponse
+     * @return this
      */
     public RequestResponse setQuery(JsonNode query) {
         this.query = query;

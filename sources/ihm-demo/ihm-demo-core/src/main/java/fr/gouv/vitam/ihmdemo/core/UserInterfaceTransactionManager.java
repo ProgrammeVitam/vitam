@@ -51,6 +51,8 @@ public class UserInterfaceTransactionManager {
      *
      * @param parameters search criteria as DSL query
      * @return result
+     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -69,6 +71,8 @@ public class UserInterfaceTransactionManager {
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
      * @return result
+     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -86,6 +90,8 @@ public class UserInterfaceTransactionManager {
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
      * @return result
+     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
@@ -103,6 +109,8 @@ public class UserInterfaceTransactionManager {
      * @param preparedDslQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return JsonNode object including DSL queries, context and results
+     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientNotFoundException 
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessClientServerException if the server encountered an exception
      * @throws AccessClientNotFoundException if the requested object does not exist
@@ -123,6 +131,8 @@ public class UserInterfaceTransactionManager {
      * @param version the requested version of the usage
      * @return InputStream the object data
      * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessClientServerException if the server encountered an exception
      * @throws AccessClientNotFoundException if the requested object does not exist
      */

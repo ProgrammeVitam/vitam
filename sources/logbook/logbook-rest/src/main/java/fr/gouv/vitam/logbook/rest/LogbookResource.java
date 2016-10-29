@@ -27,31 +27,24 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -105,13 +98,15 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param configuration
      */
     public LogbookResource(LogbookConfiguration configuration) {
-        if (configuration.isDbAuthentication()){
+        if (configuration.isDbAuthentication()) {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), true, configuration.getDbUserName(), configuration.getDbPassword());
-            
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
+
         } else {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                    configuration.getDbName());
         }
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
@@ -126,17 +121,16 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * TOTO : a true GET with body Select an operation
+     * Select an operation
      *
      * @param operationId the operation id
      * @return the response with a specific HTTP status
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
+    public Response getOperation(@PathParam("id_op") String operationId) {
         Status status;
         try {
             final LogbookOperation result = logbookOperation.getById(operationId);
@@ -154,9 +148,9 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
-        } catch (final LogbookException exc) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -165,27 +159,26 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
         }
     }
 
     /**
-     * Create a new operation
+     * Create or Select a new operation
      *
      * @param operationId path param, the operation id
      * @param operation the json serialized as a LogbookOperationParameters.
      * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
-     * @throws InvalidParseOperationException
      */
     @POST
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrSelectOperation(@PathParam("id_op") String operationId,
-        LogbookOperationParameters operation, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-        throws InvalidParseOperationException {
+        LogbookOperationParameters operation,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
             return getOperation(operationId);
@@ -262,23 +255,16 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     *
+     * Select a list of operations
+     * 
      * @param query DSL as String
      * @return Response containt the list of loglook operation
-     * @throws InvalidParseOperationException
-     * @throws LogbookException
-     * @throws LogbookNotFoundException
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonGenerationException
      */
     @GET
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(String query)
-        throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
-        JsonMappingException, IOException {
+    public Response selectOperation(String query) {
         Status status;
         try {
             final List<LogbookOperation> result = logbookOperation.select(JsonHandler.getFromString(query));
@@ -298,9 +284,9 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
-        } catch (final LogbookException exc) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -309,57 +295,93 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
         }
     }
 
 
     /**
-     * @param query as JsonNode
+     * select Operation With Post Override Or Bulk Create
+     * 
+     * @param query as JsonNode or Operations Logbooks as ArrayNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     * @throws LogbookException
-     * @throws InvalidParseOperationException
-     * @throws LogbookNotFoundException
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonGenerationException
+     * @return Response of SELECT query with POST method or CREATED for not GET Overriden method
      */
     @POST
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(String query,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
-        throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
-        JsonMappingException, IOException {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
+    public Response selectOperationWithPostOverrideOrBulkCreate(String query,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+        if (xhttpOverride != null && HttpMethod.GET.equals(xhttpOverride)) {
             return selectOperation(query);
-
         } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
-                .build();
+            // query is in fact a bulk LogbookOperationsParameter
+            try {
+                ParametersChecker.checkParameter("Logbook parameters", query);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("Operations is incorrect", e);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            try {
+                LogbookOperationParameters[] arrayOperations =
+                    JsonHandler.getFromString(query, LogbookOperationParameters[].class);
+                logbookOperation.createBulkLogbookOperation(arrayOperations);
+            } catch (LogbookDatabaseException e) {
+                LOGGER.error(e);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            } catch (LogbookAlreadyExistsException e) {
+                LOGGER.error(e);
+                return Response.status(Response.Status.CONFLICT).build();
+            } catch (InvalidParseOperationException | IllegalArgumentException e) {
+                LOGGER.error(e);
+                Status status = Status.PRECONDITION_FAILED;
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(
+                        new VitamError(status.getStatusCode())
+                            .setContext("logbook")
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(e.getMessage())))
+                    .build();
+            }
+            return Response.status(Response.Status.CREATED).build();
         }
 
     }
 
+    /**
+     * Update Operation With Bulk Mode
+     * 
+     * @param arrayNodeOperations as ArrayNode of operations to add to existing Operation Logbook entry
+     * @return Response with a status of OK if updated
+     */
+    @PUT
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateOperationBulk(String arrayNodeOperations) {
+        try {
+            LogbookOperationParameters[] arrayOperations =
+                JsonHandler.getFromString(arrayNodeOperations, LogbookOperationParameters[].class);
+            logbookOperation.updateBulkLogbookOperation(arrayOperations);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
     private String logbookOperationToJsonString(List<LogbookOperation> logbook)
-        throws JsonGenerationException, JsonMappingException, IOException {
-        final OutputStream out = new ByteArrayOutputStream();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, logbook);
-        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        final String logbookAsString = new String(data);
-        return logbookAsString;
+        throws IllegalArgumentException {
+        return JsonHandler.unprettyPrint(logbook);
     }
 
     /***** LIFE CYCLES UNIT - START *****/
@@ -420,7 +442,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())));
+                    .setDescription(exc.getMessage())));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -429,7 +451,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())));
+                    .setDescription(exc.getMessage())));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
@@ -459,7 +481,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 return Response.status(status)
                     .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(e.getMessage())))
                     .build();
             }
             /**
@@ -473,7 +495,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -481,7 +503,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -489,7 +511,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.CREATED).build();
@@ -521,7 +543,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 return Response.status(status)
                     .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(e.getMessage())))
                     .build();
             }
             /**
@@ -535,7 +557,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -543,7 +565,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -551,7 +573,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -579,7 +601,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -587,7 +609,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -595,7 +617,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -642,7 +664,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setHits(0, 0, 1)
                     .setResult(JsonHandler.createArrayNode()))
                 .build();
-        } catch (final LogbookException exc) {
+        } catch (final LogbookException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -651,7 +673,7 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
         }
     }
@@ -714,7 +736,7 @@ public class LogbookResource extends ApplicationStatusResource {
             ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())));
+                    .setDescription(exc.getMessage())));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -722,7 +744,7 @@ public class LogbookResource extends ApplicationStatusResource {
             ResponseBuilder builder = Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())));
+                    .setDescription(exc.getMessage())));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
@@ -753,7 +775,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 return Response.status(status)
                     .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(e.getMessage())))
                     .build();
             }
             /**
@@ -767,7 +789,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -775,7 +797,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -783,7 +805,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.CREATED).build();
@@ -814,7 +836,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 return Response.status(status)
                     .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(e.getMessage())))
                     .build();
             }
             /**
@@ -827,7 +849,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -835,7 +857,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -843,7 +865,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -871,7 +893,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -879,7 +901,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -887,7 +909,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase())))
+                    .setDescription(exc.getMessage())))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -946,7 +968,7 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setContext("logbook")
                         .setState("code_vitam")
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                        .setDescription(exc.getMessage())))
                 .build();
         }
     }

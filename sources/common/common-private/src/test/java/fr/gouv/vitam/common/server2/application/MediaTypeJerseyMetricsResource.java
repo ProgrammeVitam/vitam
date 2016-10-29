@@ -25,59 +25,90 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server.application;
+package fr.gouv.vitam.common.server2.application;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/home")
-public class SimpleJerseyMetricsResource {
+@Path("/home4")
+public class MediaTypeJerseyMetricsResource {
 
     static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home:GET:*:*",
-        "/home:PUT:*:*",
-        "/home:POST:*:*",
-        "/home:DELETE:*:*",
-        "/home:HEAD:*:*",
-        "/home:OPTIONS:*:*"));
+        "/home4:GET:*:application/json",
+        "/home4:GET:*:application/xml",
+        "/home4/users:GET:*:application/json",
+        "/home4:GET:*:application/octet-stream,text/plain",
+        "/home4:POST:multipart/form-data:*",
+        "/home4:POST:application/xhtml+xml:*",
+        "/home4/users:POST:multipart/form-data:*",
+        "/home4:POST:application/svg+xml,application/atom+xml:*",
+        "/home4:DELETE:multipart/form-data:application/json,text/plain"));
 
     @GET
-    public Response simpleGet() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getJSON() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    @PUT
-    public Response simplePut() {
+    @GET
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getXML() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @GET
+    @Path("/users")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUsersJSON() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.TEXT_PLAIN})
+    public Response getTextOrOctetStream() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     @POST
-    public Response simplePost() {
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response postFormData() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_XHTML_XML)
+    public Response postXhtmlXml() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @POST
+    @Path("/users")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response postUsersFormData() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @POST
+    @Consumes({MediaType.APPLICATION_SVG_XML, MediaType.APPLICATION_ATOM_XML})
+    public Response postSvgXmlOrAtomXml() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     @DELETE
-    public Response simpleDelete() {
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    public Response delete() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
-    @HEAD
-    public Response simpleHead() {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @OPTIONS
-    public Response simpleOptions() {
-        throw new UnsupportedOperationException("Not implemented");
-    }
 }

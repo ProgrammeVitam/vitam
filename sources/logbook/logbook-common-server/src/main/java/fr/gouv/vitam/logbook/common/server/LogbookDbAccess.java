@@ -301,42 +301,37 @@ public interface LogbookDbAccess {
     /**
      * Create one Logbook Operation with already multiple sub-events
      *
-     * @param operationItem to be created event
-     * @param operationItems next events to add/update
+     * @param operationItems with first and next events to add/update
      *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookOperation(final LogbookOperationParameters operationItem,
-        LogbookOperationParameters... operationItems) throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-    /**
-     * Create one Logbook LifeCycle with already multiple sub-events
-     *
-     * @param lifecycleItem to be created event
-     * @param lifecycleItems next events to add/update
-     *
-     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
-     */
-    void createBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters lifecycleItem,
-        LogbookLifeCycleUnitParameters... lifecycleItems)
+    void createBulkLogbookOperation(LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
      * Create one Logbook LifeCycle with already multiple sub-events
      *
-     * @param lifecycleItem to be created event
-     * @param lifecycleItems next events to add/update
+     * @param lifecycleItems with first and next events to add/update
      *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters lifecycleItem,
-        LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+    void createBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
+    /**
+     * Create one Logbook LifeCycle with already multiple sub-events
+     *
+     * @param lifecycleItems with first and next events to add/update
+     *
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws LogbookDatabaseException
+     * @throws LogbookAlreadyExistsException
+     */
+    void createBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**

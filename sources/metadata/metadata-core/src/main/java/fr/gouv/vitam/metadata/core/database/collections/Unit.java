@@ -112,6 +112,9 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String TYPEUNIQUE = "typeunique";
 
     // TODO add Nested objects or Parent/child relationships
+    /**
+     * Mapping of this Collection
+     */
     public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
         "properties : { " + Unit.UNITDEPTHS + " : { type : \"object\", enabled : false }, " +
         Unit.UNITUPS + " : { type : \"string\", index : \"not_analyzed\" }, " +

@@ -93,6 +93,7 @@ public class ProcessManagementApplication
      *
      * @param arguments the command-line arguments
      * @throws RuntimeException Thrown if something goes wrong
+     * @throws VitamApplicationServerException 
      */
 
     public static void startApplication(String... arguments) throws RuntimeException, VitamApplicationServerException {
@@ -112,6 +113,7 @@ public class ProcessManagementApplication
      * run a vitamServer instance with the configuration and port
      *
      * @param configuration as ServerConfiguration
+     * @throws VitamApplicationServerException 
      * @throws Exception Thrown if something goes wrong
      */
     public static void run(ServerConfiguration configuration) throws VitamApplicationServerException {

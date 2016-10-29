@@ -114,7 +114,7 @@ public class HandlerIO {
     /**
      * @param source HandlerIO with param
      * @param destination HandlerIO with class element
-     * @return
+     * @return true if everything ok
      */
     public static boolean checkHandlerIO(HandlerIO source, HandlerIO destination) {
         if (source.getInput().size() != destination.getInput().size() ||

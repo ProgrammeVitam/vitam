@@ -30,7 +30,6 @@ import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
@@ -48,6 +47,7 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
      * @param host database server IP address
      * @param port database server port
      * @param dbName database name
+     * @param clusterName 
      * @param elasticsearchNodes elasticsearch nodes
      * @param jettyConfig jetty config fiel name
      */
@@ -68,8 +68,12 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
      * @param host database server IP address
      * @param port database server port
      * @param dbName database name
+     * @param clusterName 
      * @param elasticsearchNodes elasticsearch nodes
      * @param jettyConfig jetty config fiel name
+     * @param dbAuthentication 
+     * @param dbUserName 
+     * @param dbPassword 
      */
     public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName, String dbPassword) {

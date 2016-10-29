@@ -88,5 +88,15 @@ public class LogbookOperationsImpl implements LogbookOperations {
         return mongoDbAccess.getLogbookOperation(idProcess);
     }
 
+    @Override
+    public final void createBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        mongoDbAccess.createBulkLogbookOperation(operationArray);
+    }
 
+    @Override
+    public final void updateBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        mongoDbAccess.updateBulkLogbookOperation(operationArray);
+    }
 }

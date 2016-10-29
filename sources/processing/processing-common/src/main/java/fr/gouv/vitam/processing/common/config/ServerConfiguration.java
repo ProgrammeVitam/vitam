@@ -91,6 +91,7 @@ public class ServerConfiguration {
      * jettyConfig getter
      *
      * @param jettyConfig to be set
+     * @return this
      */
     public ServerConfiguration setJettyConfig(String jettyConfig) {
         this.jettyConfig = jettyConfig;

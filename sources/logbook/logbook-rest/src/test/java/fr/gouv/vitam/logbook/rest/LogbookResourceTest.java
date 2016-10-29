@@ -31,6 +31,8 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -55,6 +57,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -240,6 +243,59 @@ public class LogbookResourceTest {
                     LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testBulk() {
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        // Create
+        LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        queue.add(start);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.unprettyPrint(queue))
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // Update
+        queue.clear();
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.unprettyPrint(queue))
+            .when()
+            .put(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test

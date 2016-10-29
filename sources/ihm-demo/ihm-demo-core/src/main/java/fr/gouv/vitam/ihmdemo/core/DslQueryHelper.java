@@ -58,11 +58,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public final class DslQueryHelper {
 
-    // empty constructor
-    private DslQueryHelper() {
-        // empty constructor
-    }
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -90,8 +85,13 @@ public final class DslQueryHelper {
     private static final String TRANSACTED_DATE = "TransactedDate";
     private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
     private static final String YES = "yes";
-    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
 
+
+    // empty constructor
+    private DslQueryHelper() {
+        // empty constructor
+    }
 
 
     /**

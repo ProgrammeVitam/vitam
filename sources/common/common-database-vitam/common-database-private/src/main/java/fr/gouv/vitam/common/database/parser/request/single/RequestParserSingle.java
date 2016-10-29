@@ -212,6 +212,11 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
             query = path(array, adapter);
         } else {
             query = analyzeOneCommand(queryItem.getKey(), queryItem.getValue());
+            if (query == null) {
+                // NOP
+                request.setQuery(nop());
+                return;
+            }
         }
         hasFullTextQuery = hasFullTextCurrentQuery;
         request.setQuery(query.setFullText(hasFullTextQuery));

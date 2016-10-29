@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;

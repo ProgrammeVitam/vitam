@@ -28,6 +28,9 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import static org.junit.Assert.fail;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -76,8 +79,8 @@ public class LogbookResourceIT {
     private static int databasePort;
     private static int serverPort;
     private static LogbookApplication application;
-    private static final int NB_TEST = 1000;
-    
+    private static final int NB_TEST = 100;
+
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
@@ -236,6 +239,7 @@ public class LogbookResourceIT {
             client.create(logbookParametersStart);
 
             // Update multiple OK
+            long start = System.nanoTime();
             int i = 0;
             try {
                 for (i = 0; i < NB_TEST; i++) {
@@ -243,8 +247,23 @@ public class LogbookResourceIT {
                 }
             } catch (LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
-                throw e;
+                fail(e.getMessage());
             }
+            long stop = System.nanoTime();
+            long start2 = System.nanoTime();
+            i = 0;
+            try {
+                for (i = 0; i < NB_TEST; i++) {
+                    client.updateDelegate(logbookParametersAppend);
+                }
+                client.commitUpdateDelegate(eip.getId());
+            } catch (LogbookClientServerException e) {
+                LOGGER.error("Issue after " + i);
+                fail(e.getMessage());
+            }
+            long stop2 = System.nanoTime();
+            LOGGER.warn("Multiple updates vs bulk updates: {} ms vs {} ms", (stop - start) / 1000000,
+                (stop2 - start2) / 1000000);
             client.checkStatus();
         }
     }
@@ -348,7 +367,7 @@ public class LogbookResourceIT {
                 }
             } catch (LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
-                throw e;
+                fail(e.getMessage());
             }
         }
     }

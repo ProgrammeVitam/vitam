@@ -39,6 +39,9 @@ import javax.xml.bind.Marshaller;
 public class MarshallerObjectCache {
     private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
 
+    /**
+     * Empty constructor
+     */
     public MarshallerObjectCache() {
         // Empty constructor
     }

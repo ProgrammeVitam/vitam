@@ -53,6 +53,7 @@ public class AccessParams {
     /**
      * setter server configuration
      * @param serverConfiguration - return hostname, port, dbName, collectionName
+     * @return this
      */
     // TODO @return missing
     public AccessParams setServerConfiguration(AccessInternalConfiguration serverConfiguration) {

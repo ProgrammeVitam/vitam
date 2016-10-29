@@ -105,7 +105,7 @@ public class VitamError {
     }
 
     /**
-     * @param list of errors as List
+     * @param errors list of errors as List
      * @return the VitamError object with the list of errors is setted
      */
     public VitamError setErrors(List<VitamError> errors) {

@@ -84,7 +84,7 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
      * Prepare the application to be run or started.
      *
      * @param args
-     * @return the VitamServer
+     * @throws VitamApplicationServerException 
      * @throws IllegalStateException
      */
     public void start(String[] args) throws VitamApplicationServerException {
@@ -118,6 +118,9 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
         }
     }
 
+    /**
+     * @return true if started
+     */
     public boolean isStarted() {
         return vitamServer != null && vitamServer.getServer() != null && vitamServer.getServer().isStarted();
     }

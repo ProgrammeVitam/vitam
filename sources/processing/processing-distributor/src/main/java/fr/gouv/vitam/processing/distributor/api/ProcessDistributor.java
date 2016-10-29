@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.api;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -52,7 +49,7 @@ public interface ProcessDistributor {
      * Distribute different steps (execute a workflow actions step by step)
      *
      * @param workParams {@link fr.gouv.vitam.processing.common.parameter.WorkerParameters} null not allowed
-     * @param processStep {@link ProcessStep} null not allowed
+     * @param step {@link ProcessStep} null not allowed
      * @param workflowId workflow Id
      *
      * @return CompositeItemStatus : list of action response

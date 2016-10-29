@@ -37,18 +37,30 @@ public class StorageStrategy {
     @JsonProperty("hot")
     private HotStrategy hotStrategy;
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * @return the hot strategy
+     */
     public HotStrategy getHotStrategy() {
         return hotStrategy;
     }
 
+    /**
+     * @param hotStrategy
+     */
     public void setHotStrategy(HotStrategy hotStrategy) {
         this.hotStrategy = hotStrategy;
     }

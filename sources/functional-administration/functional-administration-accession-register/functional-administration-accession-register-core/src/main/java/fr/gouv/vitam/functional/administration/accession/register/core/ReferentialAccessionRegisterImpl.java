@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
-import static com.mongodb.client.model.Indexes.hashed;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +36,6 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;

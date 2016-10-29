@@ -71,7 +71,7 @@ public class PaginationHelper {
 
     /**
      * @param sessionId
-     * @param headers
+     * @param pagination
      * @return JsonNode
      * @throws VitamException
      */
