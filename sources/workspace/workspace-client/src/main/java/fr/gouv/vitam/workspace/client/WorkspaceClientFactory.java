@@ -44,7 +44,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
     private static final String RESOURCE_PATH = "/workspace/v1";
 
     private WorkspaceClientFactory() {
-        super(null, RESOURCE_PATH, true, true);
+        super(null, RESOURCE_PATH);
     }
 
     /**

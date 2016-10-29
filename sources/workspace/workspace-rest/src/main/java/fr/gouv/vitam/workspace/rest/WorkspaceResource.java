@@ -47,9 +47,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -61,7 +58,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -107,7 +103,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param container as entry json
      * @return Response
      */
-    @Path("containers")
+    @Path("/containers")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -182,7 +178,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param folder entry param of folder
      * @return Response
      */
-    @Path("containers/{containerName}/folders")
+    @Path("/containers/{containerName}/folders")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -261,14 +257,14 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param containerName name of container
      * @return Response
      */
-    @Path("containers/{containerName}/objects")
+    @Path("/containers/{containerName}/objects/{objectName:.*}")
     @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     // FIXME REVIEW change to correct API (no FormData)
-    public Response putObject(@FormDataParam("object") InputStream stream,
-        @FormDataParam("object") FormDataContentDisposition header, @FormDataParam("objectName") String objectName,
-        @PathParam("containerName") String containerName) {
+    public Response putObject(InputStream stream,
+        @PathParam("containerName") String containerName,
+        @PathParam("objectName") String objectName) {
         try {
             workspace.putObject(containerName, objectName, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -289,7 +285,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param objectName object name
      * @return Response
      */
-    @Path("containers/{containerName}/objects/{objectName:.*}")
+    @Path("/containers/{containerName}/objects/{objectName:.*}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -314,9 +310,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @return Response
      * @throws IOException when there is an error of get object
      */
-    @Path("containers/{containerName}/objects/{objectName:.*}")
+    @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObject(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) throws IOException {
@@ -343,7 +339,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @return Response
      * @throws IOException when there is an error of get object
      */
-    @Path("containers/{containerName}/objects/{objectName:.*}")
+    @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -425,7 +421,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param archiveType
      * @return Response
      */
-    @Path("containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName}")
     @PUT
     @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
     @Produces(MediaType.APPLICATION_JSON)

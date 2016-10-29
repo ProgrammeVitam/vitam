@@ -255,8 +255,10 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-            given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.NOT_FOUND.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            given()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
         }
 
     }
@@ -268,8 +270,9 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            given().contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
         }
 
     }
@@ -281,8 +284,10 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
             given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
                 .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
@@ -316,9 +321,11 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
-
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
+            
             given().then().statusCode(Status.OK.getStatusCode()).when()
                 .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
@@ -331,8 +338,11 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
+            
         }
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             final Digest digest = new Digest(DigestType.fromValue(ALGO));
@@ -349,7 +359,7 @@ public class WorkspaceResourceTest {
     // get object
     @Test
     public void givenObjectNotFoundWhenGetObjectThenReturnNotFound() {
-        given().contentType(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).then()
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
@@ -361,10 +371,12 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
-            given().contentType(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).then()
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
                 .statusCode(Status.OK.getStatusCode()).when()
                 .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
@@ -386,8 +398,10 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
             given().then().statusCode(Status.OK.getStatusCode()).when()
                 .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
@@ -487,10 +501,10 @@ public class WorkspaceResourceTest {
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
 
-            with().multiPart("objectName", FOLDER_NAME + "/" + OBJECT_NAME)
-                .multiPart("object", FOLDER_NAME + "/" + OBJECT_NAME, stream).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
-
+            with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ FOLDER_NAME + "/" + OBJECT_NAME)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
             given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
                 .statusCode(Status.OK.getStatusCode()).when()

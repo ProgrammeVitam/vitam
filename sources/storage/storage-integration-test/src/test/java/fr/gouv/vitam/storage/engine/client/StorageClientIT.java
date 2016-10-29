@@ -186,7 +186,7 @@ public class StorageClientIT {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
         workspaceApplication.stop();
-        StorageApplication.stop();
+        storageApplication.stop();
         // junitHelper.releasePort(workspacePort);
         // junitHelper.releasePort(serverPort);
     }

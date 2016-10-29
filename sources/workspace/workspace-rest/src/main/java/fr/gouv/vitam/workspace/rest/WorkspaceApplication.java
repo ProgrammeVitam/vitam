@@ -92,8 +92,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new WorkspaceResource(getConfiguration()))
-            .register(new AdminStatusResource())
-            .register(MultiPartFeature.class);
+            .register(new AdminStatusResource());
     }
 
 }

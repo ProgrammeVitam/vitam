@@ -90,13 +90,13 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
             this.expectedResponse = expectedResponse;
         }
 
-        @Path("{containerName}/objects")
+        @Path("{containerName}/objects/{objectName}")
         @POST
-        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(@FormDataParam("object") InputStream stream,
-            @FormDataParam("object") FormDataContentDisposition header,
-            @FormDataParam("objectName") String objectName, @PathParam("containerName") String containerName) {
+        public Response create(InputStream stream,
+            @PathParam("containerName") String containerName,
+            @PathParam("objectName") String objectName) {
             return expectedResponse.post();
         }
 
@@ -116,7 +116,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
         @Path("{containerName}/objects/{objectName}")
         @GET
-        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response get(@PathParam("containerName") String containerName,
             @PathParam("objectName") String objectName) {

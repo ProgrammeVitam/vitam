@@ -42,9 +42,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -53,7 +50,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
@@ -262,13 +258,9 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
 
 
         Response response = null;
-        try (final FormDataMultiPart multiPart = new FormDataMultiPart()) {
-
-            multiPart.bodyPart(new FormDataBodyPart("objectName", objectName, MediaType.TEXT_PLAIN_TYPE));
-            multiPart.bodyPart(
-                new StreamDataBodyPart("object", stream, objectName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
-            response = performRequest(HttpMethod.POST, CONTAINERS + containerName + OBJECTS, null,
-                multiPart, MediaType.MULTIPART_FORM_DATA_TYPE,
+        try {
+            response = performRequest(HttpMethod.POST, CONTAINERS + containerName + OBJECTS+objectName, null, stream,
+                 MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
@@ -277,9 +269,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (final IOException exc) {
-            // Do nothing since FormDataMultiPart#close() cannot throw IOException based on its implementation
-            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ContentAddressableStorageServerException(e);
@@ -297,8 +286,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         Response response = null;
         InputStream stream = null;
         try {
-            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             /*
              * response = client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
