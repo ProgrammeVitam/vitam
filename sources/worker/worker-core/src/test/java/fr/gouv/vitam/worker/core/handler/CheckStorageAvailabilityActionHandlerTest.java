@@ -74,7 +74,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -89,7 +89,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -105,7 +105,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());

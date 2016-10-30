@@ -41,13 +41,11 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
 /**
@@ -63,8 +61,8 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
      * 
      * @param dbConfiguration
      */
-    public ReferentialAccessionRegisterImpl(DbConfiguration dbConfiguration) {
-        this.mongoAccess = MongoDbAccessAdminFactory.create(dbConfiguration);
+    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration) {
+        this.mongoAccess = dbConfiguration;
     }
 
     /**
@@ -75,7 +73,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
         throws ReferentialException {
 
 
-        // TODO replace with real tenant
+        // TODO P1 replace with real tenant
         int tenantId = 0;
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
@@ -160,9 +158,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null) {
-            mongoAccess.close();
-        }
+        // Empty
     }
 
     /**
@@ -179,7 +175,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
         final MongoCursor<AccessionRegisterSummary> registers =
             (MongoCursor<AccessionRegisterSummary>) mongoAccess.select(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
-            final List<AccessionRegisterSummary> result = new ArrayList<AccessionRegisterSummary>();
+            final List<AccessionRegisterSummary> result = new ArrayList<>();
             if (registers == null || !registers.hasNext()) {
                 throw new ReferentialException("Register Summary not found");
             }

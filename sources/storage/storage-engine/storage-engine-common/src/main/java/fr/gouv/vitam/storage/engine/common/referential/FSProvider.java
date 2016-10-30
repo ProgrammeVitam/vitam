@@ -65,7 +65,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     @Override
     public StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException {
-        // TODO : only 1 strategy for now, need to use this id in later implementation
+        // TODO P1 : only 1 strategy for now, need to use this id in later implementation
         if (storageStrategy != null) {
             return storageStrategy;
         }
@@ -80,7 +80,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     @Override
     public StorageOffer getStorageOffer(String idOffer) throws StorageTechnicalException {
-        // TODO : only 1 offer for now, need to use this id in later implementation
+        // TODO P1 : only 1 offer for now, need to use this id in later implementation
         if (storageOffer != null) {
             return storageOffer;
         }

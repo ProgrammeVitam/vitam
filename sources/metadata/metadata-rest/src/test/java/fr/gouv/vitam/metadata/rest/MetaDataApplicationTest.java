@@ -145,7 +145,7 @@ public class MetaDataApplicationTest {
         application.configure("");
     }
 
-    // TODO: fix it (when server v2)
+    // FIXME P0: fix it (when server v2)
     @Ignore
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {

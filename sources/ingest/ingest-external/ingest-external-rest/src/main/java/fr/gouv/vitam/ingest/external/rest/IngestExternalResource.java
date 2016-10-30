@@ -76,7 +76,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @return Response
      * @throws XMLStreamException
      */
-    //TODO : add file name
+    //TODO P0 : add file name
     @Path("upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -97,7 +97,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         "The application 'Xxxx' requested an ingest operation and this operation has errors."))
                 .build();
         }
-        // TODO Fix ByteArray vs Close vs AsyncResponse
+        // FIXME P0 Fix ByteArray vs Close vs AsyncResponse
         return Response.status(Status.OK).entity(response.getEntity())
             .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
     }

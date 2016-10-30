@@ -117,7 +117,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
         }
         GlobalDatas.sanityValueCheck(rootNode.toString());
         // Fix varname using adapter
-        // XXX TODO Note: values are not changed. This shall be a specific computation
+        // TODO P1 Note: values are not changed. This shall be a specific computation
         // For instance: mavar : #id
         final JsonNode newRootNode = insertAdapter.getFixedVarNameJsonNode(rootNode);
         try {

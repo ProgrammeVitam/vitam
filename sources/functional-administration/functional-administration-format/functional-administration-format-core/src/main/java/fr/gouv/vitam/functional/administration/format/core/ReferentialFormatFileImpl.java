@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -53,7 +52,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileFormatExcept
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -86,8 +84,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
      *
      * @param dbConfiguration
      */
-    public ReferentialFormatFileImpl(DbConfiguration dbConfiguration) {
-        mongoAccess = MongoDbAccessAdminFactory.create(dbConfiguration);
+    public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
+        mongoAccess = dbConfiguration;
     }
 
     @Override
@@ -241,8 +239,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null) {
-            mongoAccess.close();
-        }
+        // Empty
     }
 }

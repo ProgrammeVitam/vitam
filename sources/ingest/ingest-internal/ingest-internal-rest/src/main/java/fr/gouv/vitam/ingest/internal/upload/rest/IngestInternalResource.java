@@ -114,7 +114,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private final IngestInternalConfiguration configuration;
     private LogbookOperationParameters parameters;
     private final ProcessingManagementClient processingClient;
-    private final WorkspaceClient workspaceClient;
+    private final WorkspaceClient workspaceClientMock;
 
     /**
      * IngestInternalResource constructor
@@ -126,7 +126,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClientMock = null;
         processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
     }
 
@@ -142,7 +142,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         ProcessingManagementClient processingClient) {
         super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
-        this.workspaceClient = workspaceClient;
+        this.workspaceClientMock = workspaceClient;
         this.processingClient = processingClient;
     }
 
@@ -351,11 +351,22 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         VITAM_LOGGER.debug("Try to push stream to workspace...");
 
         // call workspace
-        if (!workspaceClient.isExistingContainer(containerName)) {
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
+        if (workspaceClientMock != null) {
+            if (!workspaceClientMock.isExistingContainer(containerName)) {
+                workspaceClientMock.createContainer(containerName);
+                workspaceClientMock.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
+            } else {
+                throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
+            }
         } else {
-            throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
+            try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+                if (!workspaceClient.isExistingContainer(containerName)) {
+                    workspaceClient.createContainer(containerName);
+                    workspaceClient.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
+                } else {
+                    throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
+                }
+            }
         }
 
         VITAM_LOGGER.debug(" -> push stream to workspace finished");

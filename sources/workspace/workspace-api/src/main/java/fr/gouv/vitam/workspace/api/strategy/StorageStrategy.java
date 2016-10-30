@@ -26,10 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.api.strategy;
 
-// TODO REVIEW is not used in the release
+// FIXME P0 REVIEW is not used in the release
 /**
  * Describes the strategy of storage data into the workspace
  */
 public class StorageStrategy {
-    // TODO
+    // FIXME P0
 }

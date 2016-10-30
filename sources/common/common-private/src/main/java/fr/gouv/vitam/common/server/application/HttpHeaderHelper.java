@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Class helper to manage specifics Vitam headers
  */
 
-// TODO: This is a copy of the api-design module header management. In another item we should refactor both to make this
+// TODO P1: This is a copy of the api-design module header management. In another item we should refactor both to make this
 // http header management common vitam.
 
 public final class HttpHeaderHelper {

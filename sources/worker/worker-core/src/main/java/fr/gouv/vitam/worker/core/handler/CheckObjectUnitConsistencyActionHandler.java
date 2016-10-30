@@ -64,7 +64,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
-    // TODO WORKFLOW will be in vitam-logbook file
+    // TODO P0 WORKFLOW will be in vitam-logbook file
     private static final String ERROR_MESSAGE =
         "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
     private static final String EVENT_TYPE =
@@ -133,12 +133,12 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
         final List<String> ogList = new ArrayList<>();
 
-        // TODO: Use MEMORY to stock this map after extract seda
+        // TODO P0: Use MEMORY to stock this map after extract seda
         final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
         final Map<String, Object> objectGroupToUnitStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
 
-        // TODO: Use MEMORY to stock this map after extract seda
+        // TODO P0: Use MEMORY to stock this map after extract seda
         final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));
         final Map<String, Object> objectGroupToGuidStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);
@@ -158,7 +158,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                         LogbookTypeProcess.CHECK,
                         StatusCode.WARNING,
                         StatusCode.WARNING.toString(),
-                        // TODO WORKFLOW
+                        // TODO P0 WORKFLOW
                         VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
                         GUIDReader.getGUID(objectGroup.getValue().toString()));
                 try {

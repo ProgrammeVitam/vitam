@@ -132,7 +132,7 @@ public class LogBookLifeCycleUnitTest {
         mongod = mongodExecutable.start();
         serverPort = junitHelper.findAvailablePort();
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         JunitHelper.setJettyPortSystemProperty(serverPort);
 
         try {

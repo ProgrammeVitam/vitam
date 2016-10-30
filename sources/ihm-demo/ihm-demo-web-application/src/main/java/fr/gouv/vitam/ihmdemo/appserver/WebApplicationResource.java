@@ -131,7 +131,7 @@ public class WebApplicationResource {
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookMessages() {
-        // TODO: If translation key could be the same in diferent .properties file, MUST add an unique prefix per file
+        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
     }
 
@@ -326,7 +326,7 @@ public class WebApplicationResource {
      * @throws XMLStreamException
      * @throws IOException
      */
-    // TODO : add file name
+    // TODO P1 : add file name
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -338,7 +338,7 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         try {
             response = IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-            // TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
+            // FIXME P0 : utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
             responseXml = response.readEntity(String.class);
             guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -354,8 +354,8 @@ public class WebApplicationResource {
             .build();
     }
 
+    // FIXME P0 - This endpoint is front test only and should not be used. A chunk compatible endpoint MUST be made
     /**
-     * FIXME - This endpoint is front test only and should not be used. A chunk compatible endpoint MUST be made
      * upload 2 : API Endpoint that can Handle chunk mode. 
      * Chunks information are given in header (Fast catch of these header are present in the code)
      * <br />The front should give some information
@@ -940,7 +940,7 @@ public class WebApplicationResource {
 
         try {
             subject.login(token);
-            // TODO add access log
+            // TODO P1 add access log
             LOGGER.info("Login success: " + username);
         } catch (final Exception uae) {
             LOGGER.debug("Login fail: " + username);

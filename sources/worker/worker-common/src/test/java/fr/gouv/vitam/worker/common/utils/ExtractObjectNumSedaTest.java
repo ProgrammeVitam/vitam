@@ -68,7 +68,7 @@ public class ExtractObjectNumSedaTest {
     private final InputStream seda;
     private SedaUtils utils;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
-        .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL");
+        .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083");
 
     public ExtractObjectNumSedaTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);

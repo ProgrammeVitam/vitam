@@ -171,11 +171,12 @@ public class LogbookMongoDbAccessFactoryTest {
     public void testCreateFn() throws VitamException, InvalidCreateOperationException {
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
-        final String status = mongoDbAccess.toString();
-        assertTrue(status.indexOf("LogbookOperation") > 0);
+        String status = mongoDbAccess.toString();
         ((LogbookMongoDbAccessImpl) mongoDbAccess).flushOnDisk();
 
         LogbookMongoDbAccessImpl.ensureIndex();
+        status = mongoDbAccess.toString();
+        assertTrue(status.indexOf("LogbookOperation") > 0);
         assertEquals(status, mongoDbAccess.toString());
         LogbookMongoDbAccessImpl.removeIndexBeforeImport();;
         assertEquals(status, mongoDbAccess.toString());

@@ -151,7 +151,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String TYPEUNIQUE = "typeunique";
 
-    // TODO add Nested objects or Parent/child relationships
+    // TODO P1 add Nested objects or Parent/child relationships
     /**
      * Mapping of this Collection
      */
@@ -325,7 +325,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         }
     }
 
-    // TODO add methods to add Object, incrementing NB_COPY
+    // TODO P1 add methods to add Object, incrementing NB_COPY
 
     /**
      * Check if the current ObjectGroup has Unit as immediate parent

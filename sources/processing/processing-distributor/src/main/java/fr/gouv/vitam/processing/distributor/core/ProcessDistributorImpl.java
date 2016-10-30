@@ -72,7 +72,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * The Process Distributor call the workers and intercept the response for manage a post actions step
  *
  * <pre>
- * TODO :
+ * TODO P1:
  * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
  * Workspace
  * - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
@@ -137,7 +137,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      */
     public ProcessDistributorImpl() {}
 
-    // FIXME : make this method (distribute()) more generic
+    // FIXME P1 : make this method (distribute()) more generic
     @Override
     public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
@@ -147,7 +147,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
-        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
+        //WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try {
             // update workParams
             LOGGER.debug("Status {}", ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId));
@@ -155,8 +155,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId).toString());
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
-                try (final WorkspaceClient workspaceClient =
-                    WorkspaceClientFactory.getInstance().getInstance().getClient()) {
+                try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
                     List<URI> objectsList = null;
 
                     // Test regarding Unit to be indexed
@@ -199,7 +198,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 break;
                             } else {
                                 // Load configuration
-                                // TODO : management of parallel distribution and availability
+                                // TODO P1 : management of parallel distribution and availability
                                 loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                                 // run step
                                 workParams.setObjectName(objectUri.getPath());
@@ -209,7 +208,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                         workerClient.submitStep("requestId",
                                             new DescriptionStep(step, (DefaultWorkerParameters) workParams));
                                 }
-                                // FIXME : This is inefficient. The aggregation of results must be placed here and not
+                                // FIXME P1 : This is inefficient. The aggregation of results must be placed here and not
                                 // in
                                 // ProcessResponse
                                 responses.setItemsStatus(actionsResponse);
@@ -233,7 +232,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
                     responses.increment(StatusCode.FATAL);
                 } else {
-                    // TODO : management of parallel distribution and availability
+                    // TODO P1 : management of parallel distribution and availability
                     loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                     workParams.setObjectName(step.getDistribution().getElement());
                     responses.setItemsStatus(

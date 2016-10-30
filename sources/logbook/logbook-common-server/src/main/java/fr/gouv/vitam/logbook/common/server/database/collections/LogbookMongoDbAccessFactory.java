@@ -48,7 +48,7 @@ public final class LogbookMongoDbAccessFactory {
         ParametersChecker.checkParameter("configuration", configuration);        
         MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
-        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), true);
+        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);
     }
 
     /**
@@ -62,6 +62,6 @@ public final class LogbookMongoDbAccessFactory {
         ParametersChecker.checkParameter("configuration", configuration);
         MongoClient mongoClient =
             MongoDbAccess.createMongoClient2(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
-        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), true);
+        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);
     }
 }

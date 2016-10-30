@@ -31,5 +31,5 @@ package fr.gouv.vitam.storage.driver.model;
  * Holds every needed parameters that may be needed to remove an object on the distant storage offer
  */
 public class RemoveObjectRequest {
-    // TODO : implements me
+    // TODO P1 : implements me
 }

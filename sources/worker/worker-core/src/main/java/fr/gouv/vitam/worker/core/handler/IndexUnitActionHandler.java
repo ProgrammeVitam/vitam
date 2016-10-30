@@ -155,10 +155,10 @@ public class IndexUnitActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
 
         InputStream input;
-        // TODO once implementing autocloseable should be in the try (resource) too
+        // FIXMe P0 once implementing autocloseable should be in the try (resource) too
         final MetaDataClient metadataClient = MetaDataClientFactory.create(params.getUrlMetadata());
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try ( // TODO : whould use worker configuration instead of the processing configuration
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try ( // TODO P0 : whould use worker configuration instead of the processing configuration
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             input =
                 workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);

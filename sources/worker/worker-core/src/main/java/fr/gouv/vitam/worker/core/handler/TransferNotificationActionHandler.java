@@ -164,10 +164,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
-            // FIXME : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
+            // FIXME P0 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
             // a(n) 'attribute declaration' component.
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+            //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
             try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
                 HandlerIO.transferFileFromTmpIntoWorkspace(
                     workspaceClient,
@@ -641,7 +641,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @return the logbook opetaion
      * @throws ProcessingException thrown when an error occured wile retrieving the logbook operation in mongo
      */
-    // TODO : should use the logbook client with a rest api when REST cursors are implemented in logbook
+    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
     private LogbookOperation getLogbookOperation(String containerName) throws ProcessingException {
         try {
             return mongoDbAccess.getLogbookOperation(containerName);
@@ -658,8 +658,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @return mongo cursor on the lifecycle units
      * @throws ProcessingException thrown when an error occured wile retrieving the logbook lifecycle units in mongo
      */
-    // TODO : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    // FIXME : should filter only on events with an outcome equals FATAL or KO
+    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
+    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO
     private MongoCursor<LogbookLifeCycleUnit> getLogbookLifecycleUnits(String containerName)
         throws ProcessingException {
         try {
@@ -686,8 +686,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws ProcessingException thrown when an error occured wile retrieving the logbook lifecycle object groups in
      *         mongo
      */
-    // TODO : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    // FIXME : should filter only on events with an outcome equals FATAL or KO    
+    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
+    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO    
     private MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifecycleObjectGroups(String idProc)
         throws ProcessingException {
         try {
@@ -740,7 +740,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      */
     private void writeEvent(XMLStreamWriter xmlsw, Document event, String eventType, String eventIdentifierManifest)
         throws XMLStreamException {
-        // TODO : NOT_IMPLEMENTED_YET to be replaced everywhere its used
+        // TODO P0 : NOT_IMPLEMENTED_YET to be replaced everywhere its used
         final String NOT_IMPLEMENTED_YET = "TO_BE_FILLED_AFTER_WF_TF";
         if (event.get(LogbookMongoDbName.outcome.getDbname()) != null &&
             (StatusCode.FATAL.toString().equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) ||
@@ -757,7 +757,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE,
                     event.get(LogbookMongoDbName.eventType.getDbname()).toString());
             }
-            if (NOT_IMPLEMENTED_YET != null) {
+            if (NOT_IMPLEMENTED_YET != null) { // FIXME P0
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE_CODE, NOT_IMPLEMENTED_YET);
             }
             if (event.get(LogbookMongoDbName.eventDateTime.getDbname()) != null) {
@@ -776,7 +776,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_OUTCOME_DETAIL_MESSAGE,
                     event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).toString());
             }
-            if (NOT_IMPLEMENTED_YET != null) {
+            if (NOT_IMPLEMENTED_YET != null) { // FIXME P0
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_OUTCOME_DETAIL_MESSAGE_CODE,
                     NOT_IMPLEMENTED_YET);
             }

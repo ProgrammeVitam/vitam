@@ -60,7 +60,7 @@ import fr.gouv.vitam.common.model.StatusCode;
  * </pre>
  */
 
-// TODO: see WorkerParametersFactory and create a common factory
+// TODO P1 : see WorkerParametersFactory and create a common factory
 // for all "vitam parameters" using generic (for example)
 public class LogbookParametersFactory {
 

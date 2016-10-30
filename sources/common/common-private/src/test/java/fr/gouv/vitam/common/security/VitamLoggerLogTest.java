@@ -30,7 +30,7 @@ import org.junit.Test;
 
 public class VitamLoggerLogTest {
     // The class is currently a dummy log class needed by ESAPI . We make dummy unit tests .
-    // TODO : If the VitamLoggerLog become a 'real' class, the unit test must be improved 
+    // TODO P1 : If the VitamLoggerLog become a 'real' class, the unit test must be improved 
     @Test
     public void test_getter_setter(){
         VitamLoggerLog vll = new VitamLoggerLog(null);

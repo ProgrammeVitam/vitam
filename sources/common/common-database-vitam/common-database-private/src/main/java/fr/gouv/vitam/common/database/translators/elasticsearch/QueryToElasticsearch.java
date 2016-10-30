@@ -95,7 +95,7 @@ public class QueryToElasticsearch {
             .must(command)
             .filter(roots);
 
-        // TODO add TenantId filter
+        // TODO P1 add TenantId filter
     }
 
     /**
@@ -191,7 +191,7 @@ public class QueryToElasticsearch {
 
         String key = element.getKey();
 
-        // TODO remove after POC validation all DATE from Vitam code
+        // TODO P0 remove after POC validation all DATE from Vitam code
         JsonNode node = element.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
         if (node != null) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
@@ -276,7 +276,7 @@ public class QueryToElasticsearch {
      */
     private static QueryBuilder matchCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
-        // TODO add operator (and, or)
+        // TODO P1 add operator (and, or)
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
@@ -610,7 +610,7 @@ public class QueryToElasticsearch {
      */
     private static boolean isAttributeNotAnalyzed(String attributeName) {
 
-        // TODO returns True if this attribute is not analyzed by ElasticSearch, else False
+        // TODO P1 returns True if this attribute is not analyzed by ElasticSearch, else False
         return true;
     }
 

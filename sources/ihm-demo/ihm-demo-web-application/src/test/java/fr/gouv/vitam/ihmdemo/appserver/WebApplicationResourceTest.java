@@ -92,7 +92,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
     IngestExternalClientFactory.class, AdminManagementClientFactory.class,
     JsonTransformer.class, WebApplicationConfig.class})
-// FIXME Remove IOUtils.toByteArray(stream)
+// FIXME P0 Remove IOUtils.toByteArray(stream)
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
@@ -121,7 +121,7 @@ public class WebApplicationResourceTest {
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         final WebApplicationConfig webApplicationConfig =
             new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)

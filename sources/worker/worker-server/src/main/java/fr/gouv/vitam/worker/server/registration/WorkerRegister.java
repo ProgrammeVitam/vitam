@@ -61,7 +61,7 @@ public class WorkerRegister implements Runnable {
         this.configuration = configuration;
     }
 
-    // FIXME bad registration should stop the worker or setup an requestable information on bad status
+    // TODO P2 bad registration should stop the worker or setup an requestable information on bad status
     @Override
     public synchronized void run() {
         LOGGER.debug("WorkerRegister run : begin");

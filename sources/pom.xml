@@ -30,6 +30,7 @@
 		<module>functional-administration</module>
 		<module>technical-administration</module>
 		<module>ihm-demo</module>
+		<module>integration-test</module>
 	</modules>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->

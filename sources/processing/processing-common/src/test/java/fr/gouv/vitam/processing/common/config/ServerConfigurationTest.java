@@ -32,7 +32,7 @@ import org.junit.Test;
 
 public class ServerConfigurationTest {
 
-    private static final String Test = "test";
+    private static final String Test = "http://localhost:8083";
 
     @Test
     public void testConstructor() {

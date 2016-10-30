@@ -42,7 +42,7 @@ public class DatabaseCursor {
      * @param limit number limit of unit per response
      */
     public DatabaseCursor(int total, int offset, int limit) {
-        // TODO REVIEW is there any illegal values ?
+        // TODO P1 REVIEW is there any illegal values ?
         this.total = total;
         this.offset = offset;
         this.limit = limit;

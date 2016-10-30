@@ -102,7 +102,7 @@ public class WorkerResourceTest {
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;

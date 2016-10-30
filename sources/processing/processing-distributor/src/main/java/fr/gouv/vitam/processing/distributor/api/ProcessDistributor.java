@@ -36,13 +36,11 @@ import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
- * interface ProcessDistributor
- *
- * improves a availability and scalability
- *
+ * interface ProcessDistributor</br>
+ * </br>
+ * improves a availability and scalability </br>
  * Various methods Distributor engine
  */
-// TODO REVIEW improve comment form
 public interface ProcessDistributor {
 
     /**

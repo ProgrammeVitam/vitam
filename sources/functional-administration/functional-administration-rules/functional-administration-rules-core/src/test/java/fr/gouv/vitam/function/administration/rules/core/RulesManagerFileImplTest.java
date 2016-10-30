@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 
 public class RulesManagerFileImplTest {
     String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
@@ -86,7 +87,8 @@ public class RulesManagerFileImplTest {
             .build());
         mongod = mongodExecutable.start();
         rulesFileManager = new RulesManagerFileImpl(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            MongoDbAccessAdminFactory.create(
+                new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
 
     }
 

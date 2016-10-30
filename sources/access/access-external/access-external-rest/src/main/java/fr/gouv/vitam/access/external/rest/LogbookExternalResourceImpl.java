@@ -51,7 +51,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
-// FIXME: Do not use logbookCLient, Call access-internal instead
+// FIXME P0 : Do not use logbookCLient, Call access-internal instead
 /**
  * AccessResourceImpl implements AccessResource
  */
@@ -136,7 +136,7 @@ public class LogbookExternalResourceImpl {
     }
 
     /**
-     * TODO : create a true GET with request in body
+     * GET with request in body
      *
      * @param query DSL as String
      * @return Response containt the list of loglook operation

@@ -31,7 +31,7 @@ package fr.gouv.vitam.common.model;
  * DatabaseCursor class Show database position of request response
  */
 
-//TODO ; refactor to the common vitam
+//TODO P1 ; refactor to the common vitam
 
 public class DatabaseCursor {
     private int total;

@@ -61,7 +61,7 @@ public class ProcessingManagementClient {
     private final String url;
     private static final String RESOURCE_PATH = "/processing/v1";
 
-    // FIXME REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
+    // FIXME P0 REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
     /**
      * @param url of metadata server
      */

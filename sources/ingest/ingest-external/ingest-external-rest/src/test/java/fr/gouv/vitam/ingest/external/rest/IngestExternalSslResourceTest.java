@@ -63,14 +63,14 @@ public class IngestExternalSslResourceTest {
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les test parallèle sur jenkins
+        // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
-        // TODO activate authentication
+        // TODO P1 activate authentication
         // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
         try {
             vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());

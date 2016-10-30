@@ -127,8 +127,6 @@ public class IngestExternalClientFactory {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            // TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the
-            // mock)
             LOGGER.error("Error when retrieving configuration file {}, using mock",
                 configurationPath,
                 fnf);

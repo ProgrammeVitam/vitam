@@ -107,7 +107,7 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
      *
      * @param configuration null for MOCK
      */
-    // FIXME should not be public (but IT test)
+    // TODO P2 should not be public (but IT test)
     public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }

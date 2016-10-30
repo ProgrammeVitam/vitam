@@ -66,7 +66,7 @@ import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
-// TODO: there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong (should be a
+// FIXME P1 : there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong (should be a
 // fix me)
 public class AccessInternalResourceImplTest {
     // LOGGER
@@ -82,7 +82,7 @@ public class AccessInternalResourceImplTest {
     private static AccessInternalApplication application;
 
     // QUERIES AND DSL
-    // TODO
+    // TODO P1
     // Create a "GET" query inspired by DSL, exemple from tech design story 76
     private static final String QUERY_TEST = "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
         " $filter : { $orderby : { '#id' } }," +

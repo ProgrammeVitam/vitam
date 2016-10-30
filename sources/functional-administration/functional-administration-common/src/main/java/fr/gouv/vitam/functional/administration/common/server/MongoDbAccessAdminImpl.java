@@ -107,7 +107,7 @@ implements MongoDbAccessReferential {
     /**
      * deleteCollection implement
      */
-    // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
+    // FIXME P0 delete the collection without any check on legal to do so (does any object using this referential ?) ?
     // Fonctionnalité demandé par les POs pour la démo
     @Override
     public void deleteCollection(FunctionalAdminCollections collection) {

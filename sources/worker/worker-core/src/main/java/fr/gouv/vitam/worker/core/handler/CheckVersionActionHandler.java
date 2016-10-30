@@ -86,7 +86,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add Workspace:SIP/manifest.xml and check it
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 
 }

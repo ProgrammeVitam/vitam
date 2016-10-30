@@ -105,7 +105,7 @@ public class SSLConfiguration {
      * @throws VitamException
      */
     public SSLContext createSSLContext() throws VitamException {
-        // TODO use JKS Keystore
+        // TODO P1 use JKS Keystore
         KeyManager[] keyManagers = null;
         if (keystore != null) {
             keyManagers = readKeyManagers();

@@ -36,7 +36,7 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 /**
  * Process Monitoring Interface offers services in order to monitor workflows
  */
-// TODO : propose a method that could purge the workflows
+// FIXME P0 : propose a method that could purge the workflows
 public interface ProcessMonitoring {
 
     /**

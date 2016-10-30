@@ -74,7 +74,7 @@ public class JavaExecuteScript {
     private static int execute(String scriptPath, String arg, long timeoutScanDelay) throws IngestExternalException {
         final CommandLine cmd = new CommandLine(scriptPath).addArgument(arg);
         final DefaultExecutor defaultExecutor = new DefaultExecutor();
-        // TODO : Le résultat de la commande (sortie du scanner) doit être prise en compte pour informer le client du
+        // TODO P1 : Le résultat de la commande (sortie du scanner) doit être prise en compte pour informer le client du
         // problème.
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(out);

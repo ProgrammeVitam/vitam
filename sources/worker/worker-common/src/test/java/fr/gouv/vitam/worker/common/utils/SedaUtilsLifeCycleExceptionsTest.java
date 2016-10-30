@@ -84,7 +84,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private final InputStream seda_2;
     private final SedaUtils utils = SedaUtilsFactory.create();
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ).setContainerName(OBJ)
+        .newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ).setContainerName(OBJ)
         .setCurrentStep("TEST");
 
     private static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;

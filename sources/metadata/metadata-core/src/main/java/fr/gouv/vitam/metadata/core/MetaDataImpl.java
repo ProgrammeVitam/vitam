@@ -185,7 +185,7 @@ public class MetaDataImpl implements MetaData {
             Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
-    // TODO : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
+    // FIXME P0 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
     private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)

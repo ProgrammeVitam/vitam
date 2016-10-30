@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  *
  */
 
-//TODO ; refactor to the common vitam
+//TODO P1 ; refactor to the common vitam
 public class RequestResponseError extends RequestResponse {
 
     private VitamError error;

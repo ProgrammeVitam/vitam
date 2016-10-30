@@ -94,7 +94,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * StorageDistribution service Implementation 
  * process continue if needed)
  */
-//TODO: see what to do with RuntimeException (catch it and log it to let the
+//TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
@@ -104,12 +104,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
     private final String urlWorkspace;
-    // FIXME see API
-    // TODO : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
+    // TODO P2 see API
+    // TODO P2 : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
     // specification about that
     private final DigestType digestType;
-    // FOR JUNIT TEST ONLY (TODO: review WorkspaceClientFactory to offer a mocked WorkspaceClient)
-    private WorkspaceClient mockedWorkspaceClient;
+    // FOR JUNIT TEST ONLY (TODO P1: review WorkspaceClientFactory to offer a mocked WorkspaceClient)
+    private final WorkspaceClient mockedWorkspaceClient;
 
     /**
      * Constructs the service with a given configuration
@@ -119,8 +119,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     public StorageDistributionImpl(StorageConfiguration configuration) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
         urlWorkspace = configuration.getUrlWorkspace();
-        // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
-        // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
+        WorkspaceClientFactory.changeMode(urlWorkspace);
+        mockedWorkspaceClient = null;
+        // TODO P2 : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
+        // TODO P2 Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
         // allow check of duplicated files)
         digestType = DigestType.SHA256;
@@ -138,9 +140,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         digestType = digest;
     }
 
-    // TODO : review design : for the moment we handle createObjectDescription AND jsonData in the same params but
+    // TODO P1 : review design : for the moment we handle createObjectDescription AND jsonData in the same params but
     // they should not be both resent at the same time. Maybe encapsulate or create 2 methods
-    // TODO: refactor me !
+    // TODO P1 : refactor me !
     @Override
     public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
@@ -160,9 +162,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             StorageLogbookParameters parameters = null;
             // For each offer, store object on it
             for (final OfferReference offerReference : offerReferences) {
-                // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
+                // TODO P1 : sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
-                // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to
+                // TODO P1 special notice: when parallel, try to get only once the inputstream and then multiplexing it to
                 // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
                 Map<String, Object> result =
@@ -179,7 +181,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
                     exc);
             }
-            // TODO Handle Status result if different for offers
+            // TODO P1 Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, offerResults);
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
@@ -199,7 +201,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 objectId, offerIds));
         }
 
-        // TODO Witch status code return if an offer is updated (Status.OK) and another is created (Status.CREATED) ?
+        // TODO P1 Witch status code return if an offer is updated (Status.OK) and another is created (Status.CREATED) ?
         final StoredInfoResult result = new StoredInfoResult();
         final LocalDateTime now = LocalDateTime.now();
         final StringBuilder description = new StringBuilder();
@@ -234,14 +236,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         return result;
     }
 
-    // TODO : globalize try and retry mechanism to avoid implementing it manually on all methods (C++ would have been
+    // TODO P1 : globalize try and retry mechanism to avoid implementing it manually on all methods (C++ would have been
     // great here) by creating an interface of Retryable actions and different implementations for each retryable action
-    // TODO: refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
+    // TODO P1 : refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
     private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription,
         String tenantId, String objectId, DataCategory category, OfferReference offerReference,
         StorageLogbookParameters logbookParameters, String requester)
         throws StorageTechnicalException, StorageObjectAlreadyExistsException {
-        // TODO: optimize workspace InputStream to not request workspace for each offer but only once.
+        // TODO P1 : optimize workspace InputStream to not request workspace for each offer but only once.
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         // Retrieve storage offer description and parameters
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -308,7 +310,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
         }
 
-        // TODO: refactor for more than one offer
+        // TODO P1 : refactor for more than one offer
         if (logbookParameters == null) {
             logbookParameters = getParameters(putObjectRequest, putObjectResult, messageDigest, offer, objectStored,
                 requester);
@@ -388,7 +390,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
         throws StorageNotFoundException, StorageTechnicalException {
-        try (WorkspaceClient workspaceClient = (urlWorkspace != null) ? 
+        try (WorkspaceClient workspaceClient = (mockedWorkspaceClient == null) ? 
             WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is closed
             mockedWorkspaceClient) {
             return workspaceClient.getObject(containerGUID, objectURI);
@@ -414,7 +416,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
 
             // HACK: HARDCODE ! actually we only have one offer
-            // TODO: review algo
+            // TODO P1 : review algo
             final OfferReference offerReference = offerReferences.get(0);
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -442,13 +444,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     private List<OfferReference> choosePriorityOffers(HotStrategy hotStrategy) {
         final List<OfferReference> offerReferences = new ArrayList<>();
         if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
-            // TODO : this code will be changed in the future to handle priority (not in current US scope) and copy
+            // TODO P1 : this code will be changed in the future to handle priority (not in current US scope) and copy
             offerReferences.add(hotStrategy.getOffers().get(0));
         }
         return offerReferences;
     }
 
-    // TODO : refactor this method, too many arguments
     private StorageLogbookParameters getStorageLogbookParameters(String objectIdentifier, GUID objectGroupIdentifier,
         String digest, String digestAlgorithm, String size, String agentIdentifiers, String agentIdentifierRequester,
         String outcomeDetailMessage, String objectIdentifierIncome, StorageLogbookOutcome outcome) {

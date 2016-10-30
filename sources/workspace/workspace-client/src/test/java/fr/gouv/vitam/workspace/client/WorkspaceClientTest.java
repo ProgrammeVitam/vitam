@@ -38,8 +38,11 @@ import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
-// TODO REVIEW comment this to inform this is an utility class for test
+/**
+ * This class is only an utility class for other tests
+ */
 public abstract class WorkspaceClientTest extends VitamJerseyTest {
+    protected static final String HOST = "http://localhost";
     protected static final String PATH = "/workspace/v1";
     protected WorkspaceClient client;
 

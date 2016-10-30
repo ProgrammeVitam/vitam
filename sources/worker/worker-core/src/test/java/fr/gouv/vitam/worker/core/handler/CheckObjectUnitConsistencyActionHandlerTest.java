@@ -78,7 +78,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setContainerName(OBJ).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ)
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
     private HandlerIO action;
 

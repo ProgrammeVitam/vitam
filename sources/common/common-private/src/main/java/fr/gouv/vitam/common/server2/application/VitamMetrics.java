@@ -168,7 +168,7 @@ class VitamMetrics {
         registry.registerAll(garbageCollector);
         registry.registerAll(memoryGauges);
         // ThreadStatesGaugeSet not working because duplicate metrics names.
-        // TODO open a github issue demanding a fix
+        // TODO P0 open a github issue demanding a fix
     }
 
     /**

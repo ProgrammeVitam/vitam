@@ -39,14 +39,14 @@ public enum VitamHttpHeader {
     /**
      * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy 
      */
-     //TODO : change regex to be more
+     //TODO P1 : change regex to be more
      //precise (something like ^\s*\w+$ or \s*\w+\s*$)
      
     STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
      * The X_STRATEGY_ID header, used in requests to use a particular strategy
      */ 
-     //TODO : change regex to be more precise
+     //TODO P1 : change regex to be more precise
      //(something like ^\s*\w+$ or \s*\w+\s*$)
      
     TENANT_ID(GlobalDataRest.X_TENANT_ID, ".+"),

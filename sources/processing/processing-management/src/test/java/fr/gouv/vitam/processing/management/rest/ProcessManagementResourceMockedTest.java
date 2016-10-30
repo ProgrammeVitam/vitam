@@ -102,8 +102,8 @@ public class ProcessManagementResourceMockedTest {
         mock = Mockito.mock(ProcessManagement.class);
 
         final ServerConfiguration serverConfiguration = new ServerConfiguration();
-        serverConfiguration.setUrlWorkspace("fakeUrl");
-        serverConfiguration.setUrlMetada("fakeUrl");
+        serverConfiguration.setUrlWorkspace("http://localhost:8083");
+        serverConfiguration.setUrlMetada("http://localhost:8083");
         resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);

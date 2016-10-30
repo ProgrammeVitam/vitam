@@ -98,7 +98,7 @@ public class ExtractSedaActionHandlerTest {
         assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final CompositeItemStatus response = handler.execute(params, action);
@@ -109,7 +109,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         assertNotNull(ExtractSedaActionHandler.getId());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
@@ -124,7 +124,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
@@ -140,7 +140,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
@@ -155,7 +155,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
@@ -170,7 +170,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
@@ -185,7 +185,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
@@ -200,7 +200,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
@@ -215,7 +215,7 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));

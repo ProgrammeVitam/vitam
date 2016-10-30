@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -71,6 +72,8 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 
@@ -82,7 +85,7 @@ import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
-    private final DbConfigurationImpl adminConfiguration;
+    private final MongoDbAccessAdminImpl mongoAccess;
 
     /**
      * Constructor
@@ -91,18 +94,22 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-
+        DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
-            this.adminConfiguration =
+            adminConfiguration =
                 new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(),
                     true, configuration.getDbUserName(), configuration.getDbPassword());
         } else {
-            this.adminConfiguration =
+            adminConfiguration =
                 new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
                     configuration.getDbName());
         }
-
+        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         LOGGER.debug("init Admin Management Resource server");
+    }
+
+    MongoDbAccess getLogbookDbAccess() {
+        return mongoAccess;
     }
 
     /**
@@ -115,7 +122,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             formatManagement.checkFile(xmlPronom);
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
@@ -140,7 +147,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             formatManagement.importFile(xmlPronom);
             return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final ReferentialException e) {
@@ -173,7 +180,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() throws FileFormatException {
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             formatManagement.deleteCollection();
             return Response.status(Status.OK).build();
         } catch (Exception e) {
@@ -196,7 +203,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
             if (fileFormat == null) {
@@ -229,7 +236,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<FileFormat> fileFormatList = new ArrayList<>();
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(adminConfiguration)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
             return Response.status(Status.OK)
@@ -274,7 +281,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
 
-        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(adminConfiguration)) {
+        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess)) {
             rulesManagerFileImpl.checkFile(rulesStream);
             return Response.status(Status.OK).build();
         } catch (final FileRulesException e) {
@@ -306,7 +313,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response importRulesFile(InputStream rulesStream)
         throws InvalidParseOperationException, ReferentialException, IOException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             rulesFileManagement.importFile(rulesStream);
             return Response.status(Status.OK).entity(Status.OK.name()).build();
         } catch (final FileRulesException e) {
@@ -337,7 +344,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() throws FileRulesException {
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             rulesFileManagement.deleteCollection();
             return Response.status(Status.OK).build();
         } catch (Exception e) {
@@ -367,7 +374,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         List<FileRules> fileRules = null;
         JsonNode result = null;
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = findRulesByRuleValueQueryBuilder(ruleId);
             fileRules = rulesFileManagement.findDocuments(result);
@@ -422,7 +429,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<FileRules> filerulesList = new ArrayList<>();
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(adminConfiguration)) {
+        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
             return Response.status(Status.OK)
@@ -468,7 +475,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess)) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(Status.CREATED).build();
         } catch (ReferentialException e) {
@@ -497,7 +504,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<AccessionRegisterSummary> fileFundRegisters = new ArrayList<>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFundRegisters = accessionRegisterManagement.findDocuments(select);
         } catch (final InvalidParseOperationException e) {
@@ -513,7 +520,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
-                .setHits(fileFundRegisters.size(), 0, 1)
+                .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
                 .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
             .build();
     }
@@ -534,7 +541,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);
         List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<AccessionRegisterDetail>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileAccessionRegistersDetail = accessionRegisterManagement.findDetail(select);
         } catch (final InvalidParseOperationException e) {
@@ -549,7 +556,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(status).build();
         }
 
-        // TODO Check hints
+        // FIXME P0 Check hints
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(1, 0, 1)

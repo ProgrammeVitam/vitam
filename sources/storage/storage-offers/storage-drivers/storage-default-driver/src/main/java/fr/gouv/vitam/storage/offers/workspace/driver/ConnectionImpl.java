@@ -70,13 +70,13 @@ import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 /**
  * Workspace Connection Implementation
  */
-// TODO: always close javax.ws.rs.core.Response (because can make problems)
+// FIXME P0: always close javax.ws.rs.core.Response (because can make problems)
 public class ConnectionImpl implements Connection {
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
-    // TODO: RESSOURCE_PATH came from driver initalisation
+    // TODO P0: RESSOURCE_PATH came from driver initalisation
     private static final String RESOURCE_PATH = "/offer/v1";
     private static final String STATUS_PATH = "/status";
     private static final String OBJECTS_PATH = "/objects";
@@ -111,7 +111,7 @@ public class ConnectionImpl implements Connection {
         final ClientConfig config = new ClientConfig();
         config.register(JacksonJsonProvider.class);
         config.register(JacksonFeature.class);
-        // TODO: multipart ?
+        // FIXME P0 : multipart ?
         config.register(MultiPartFeature.class);
         client = ClientBuilder.newClient(config);
         client.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
@@ -155,7 +155,7 @@ public class ConnectionImpl implements Connection {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                    // FIXME P0 : this is ugly but necessarily in order to close the response and avoid concurrent issues
                     // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
                     // remove the IOUtils.toByteArray after correction of concurrent problem
                     final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
@@ -324,7 +324,7 @@ public class ConnectionImpl implements Connection {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     status.getReasonPhrase());
             case NOT_FOUND:
-                // TODO: make a *NotFoundException for this case
+                // FIXME P0 : make a *NotFoundException for this case
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
                     .getReasonPhrase());
             case SERVICE_UNAVAILABLE:

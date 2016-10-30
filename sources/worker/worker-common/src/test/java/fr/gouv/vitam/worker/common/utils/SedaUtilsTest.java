@@ -84,7 +84,7 @@ public class SedaUtilsTest {
 
     private final SedaUtils utils = SedaUtilsFactory.create();
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setContainerName(OBJ).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ)
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
 
     public SedaUtilsTest() throws FileNotFoundException {
@@ -99,7 +99,7 @@ public class SedaUtilsTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
-    // TODO : Fix it bug on jenkins
+    // TODO P0 : Fix it bug on jenkins
     @Ignore
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
@@ -107,7 +107,7 @@ public class SedaUtilsTest {
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
     }
 
-    // TODO : Fix it bug on jenkins
+    // TODO P0 : Fix it bug on jenkins
     @Ignore
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
@@ -118,7 +118,7 @@ public class SedaUtilsTest {
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
-    // TODO : Fix it bug on jenkins
+    // TODO P0 : Fix it bug on jenkins
     @Ignore
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {

@@ -64,7 +64,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 public class StorageDistributionImplTest {
-    // FIXME Fix Fake Driver
+    // FIXME P1 Fix Fake Driver
 
     private static final String STRATEGY_ID = "strategyId";
     private static final String TENANT_ID = "tenantId";
@@ -76,7 +76,7 @@ public class StorageDistributionImplTest {
     public static void initStatic() throws StorageDriverNotFoundException {
 
         final StorageConfiguration configuration = new StorageConfiguration();
-        configuration.setUrlWorkspace("there");
+        configuration.setUrlWorkspace("http://localhost:8080");
         client = Mockito.mock(WorkspaceClient.class);        
         simpleDistribution = new StorageDistributionImpl(configuration);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1);
@@ -105,7 +105,7 @@ public class StorageDistributionImplTest {
     }
 
     @Test
-    // FIXME Update Fake driver : Add objectExistsInOffer
+    // FIXME P1 Update Fake driver : Add objectExistsInOffer
     public void testStoreData_OK() throws Exception {
         final String objectId = "id1";
         StoredInfoResult storedInfoResult = null;

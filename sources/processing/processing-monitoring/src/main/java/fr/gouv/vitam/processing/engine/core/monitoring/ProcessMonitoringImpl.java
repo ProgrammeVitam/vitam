@@ -59,7 +59,7 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
      *
      * @return the ProcessMonitoring instance
      */
-    // TODO : Probably we should use a factory
+    // TODO P0 : Probably we should use a factory
     public static ProcessMonitoringImpl getInstance() {
         return INSTANCE;
     }

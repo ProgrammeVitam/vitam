@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 /**
  * Storage web application
  */
-// TODO refacto config
+// FIXME P0 refacto config
 public final class StorageApplication extends AbstractVitamApplication<StorageApplication, StorageConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageApplication.class);
@@ -80,6 +80,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
                     STORAGE_CONF_FILE_NAME));
             }
             final StorageApplication application = new StorageApplication(args[0]);
+            // FIXME P0 AutoCheck check with default offer
             application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -89,6 +90,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        // FIXME P0 AutoCheck setup with default offer
         resourceConfig.register(new StorageResource(getConfiguration()));
         resourceConfig.register(new AdminStatusResource());
     }

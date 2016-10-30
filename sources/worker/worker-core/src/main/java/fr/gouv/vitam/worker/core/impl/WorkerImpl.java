@@ -80,7 +80,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  * manages and executes actions by step
  */
-// TODO REVIEW since Factory => class and constructors package protected (many tests broken)
+// TODO P0 REVIEW since Factory => class and constructors package protected (many tests broken)
 public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
@@ -221,7 +221,7 @@ public class WorkerImpl implements Worker {
                 switch (input.getUri().getPrefix()) {
                     case WORKSPACE: {
                         try {
-                            // TODO : remove optional when lazy file loading is implemented
+                            // TODO P1 : remove optional when lazy file loading is implemented
                             File file = WorkerIOManagementHelper.findFileFromWorkspace(
                                 client,
                                 workParams.getContainerName(),

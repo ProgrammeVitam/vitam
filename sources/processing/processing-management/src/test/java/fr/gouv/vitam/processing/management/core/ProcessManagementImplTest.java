@@ -45,15 +45,15 @@ public class ProcessManagementImplTest {
 
     @Test(expected = WorkflowNotFoundException.class)
     public void test2() throws ProcessingException {
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("fakeUrl")
-            .setUrlWorkspace("fakeUrl"));
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083"));
         processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "XXX");
     }
 
     @Test
     public void givenProcessingManagementWhenExcuteThenReturnReponse() throws ProcessingException {
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("fakeUrl")
-            .setUrlWorkspace("fakeUrl"));
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083"));
         processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "DefaultIngestWorkflow");
     }
 }

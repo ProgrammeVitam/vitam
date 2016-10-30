@@ -61,7 +61,7 @@ public class CheckVersionActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
             .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
     private final HandlerIO handlerIO = new HandlerIO("");
 

@@ -90,7 +90,7 @@ public class ContainerExtractionUtilsTest {
         containerExtractionUtils = new ContainerExtractionUtils();
         final WorkerParameters workParams =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID())
-                .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL").setObjectName(folder);
+                .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(folder);
 
         final ContainerExtractionUtilsFactory factory = new ContainerExtractionUtilsFactory();
         containerExtractionUtils = factory.create();

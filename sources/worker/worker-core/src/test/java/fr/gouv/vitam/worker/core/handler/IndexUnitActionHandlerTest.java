@@ -101,7 +101,7 @@ public class IndexUnitActionHandlerTest {
         assertNotNull(IndexUnitActionHandler.getId());
         assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final CompositeItemStatus response = handler.execute(params, action);
@@ -114,7 +114,7 @@ public class IndexUnitActionHandlerTest {
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -126,7 +126,7 @@ public class IndexUnitActionHandlerTest {
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
@@ -139,7 +139,7 @@ public class IndexUnitActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);

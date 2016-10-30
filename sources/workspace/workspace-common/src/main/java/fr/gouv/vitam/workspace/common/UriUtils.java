@@ -46,7 +46,7 @@ public final class UriUtils {
      * @param uriString path file uri
      * @return a URI path
      */
-    // FIXME REVIEW does not what it says
+    // TODO P1 REVIEW does not what it says
     public static String splitUri(String uriString) {
         String splitedString;
         if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {

@@ -37,11 +37,12 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
-// FIXME REVIEW add a factory plus constructor and class as package protected
+// FIXME P0 REVIEW add a factory plus constructor and class as package protected
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private final ProcessEngine processEngine;
@@ -91,6 +92,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         ItemStatus response;
         workParams.setUrlMetadata(serverConfig.getUrlMetada());
         workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
+        WorkspaceClientFactory.changeMode(serverConfig.getUrlWorkspace());
         try {
             response = processEngine.startWorkflow(workParams, workflowId);
         } catch (final WorkflowNotFoundException e) {
