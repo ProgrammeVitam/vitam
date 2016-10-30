@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
@@ -84,7 +85,8 @@ public class ReferentialFormatFileImplTest {
             .build());
         mongod = mongodExecutable.start();
         formatFile = new ReferentialFormatFileImpl(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            MongoDbAccessAdminFactory.create(
+                new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
 
     }
 

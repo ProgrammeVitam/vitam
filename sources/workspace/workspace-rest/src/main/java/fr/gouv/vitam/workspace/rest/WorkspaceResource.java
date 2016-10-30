@@ -53,17 +53,16 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
@@ -91,40 +90,39 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param configuration the storage config
      */
     public WorkspaceResource(WorkspaceConfiguration configuration) {
-        // FIXME REVIEW this implements directly the Filesystem implementation while it should not! You should have a
+        // FIXME P1 REVIEW this implements directly the Filesystem implementation while it should not! You should have a
         // Factory/Helper to create the right one, ignoring here what is the chosen implementation.
         workspace = new FileSystem(configuration);
         LOGGER.info("init Workspace Resource server");
     }
 
     /**
-     * creates a container into the workspace *
+     * creates a container into the workspace
      *
-     * @param container as entry json
+     * @param containerName as path param
      * @return Response
      */
-    @Path("/containers")
+    @Path("/containers/{containerName}")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createContainer(Entry container) {
-        // FIXME REVIEW should be changed to POST /containers/{containername}
+    public Response createContainer(@PathParam("containerName") String containerName) {
+        // FIXME P0 REVIEW should be changed to POST /containers/{containername}
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                container);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(container));
+                containerName);
+            SanityChecker.checkParameter(containerName);
 
-            workspace.createContainer(container.getName());
+            workspace.createContainer(containerName);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(container.getName()).build();
+            return Response.status(Status.CONFLICT).entity(containerName).build();
         }
 
-        return Response.status(Status.CREATED).entity(container.getName()).build();
+        return Response.status(Status.CREATED).entity(containerName).build();
     }
 
     /**
@@ -135,17 +133,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}")
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteContainer(@PathParam("containerName") String containerName) {
-        // FIXME REVIEW true by default ? SHould not be! need to test if container is empty
+        // FIXME P1 REVIEW true by default ? SHould not be! need to test if container is empty
 
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            SanityChecker.checkParameter(containerName);
             workspace.deleteContainer(containerName, true);
-
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
 
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
@@ -159,46 +161,79 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}")
     @HEAD
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response isExistingContainer(@PathParam("containerName") String containerName) {
-        final boolean exists = workspace.isExistingContainer(containerName);
-        if (exists) {
-            return Response.status(Status.OK).entity(containerName).build();
-        } else {
-            return Response.status(Status.NOT_FOUND).build();
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            SanityChecker.checkParameter(containerName);
+            final boolean exists = workspace.isExistingContainer(containerName);
+            if (exists) {
+                return Response.status(Status.OK).entity(containerName).build();
+            } else {
+                return Response.status(Status.NOT_FOUND).build();
+            }
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
+    }
 
+    /**
+     * Get container information like capacity
+     *
+     * @param containerName the container name
+     * @return a Json with usableSpace and usedSpace information
+     */
+    @Path("/container/{containerName}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getContainerInformation(@PathParam("containerName") String containerName) {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            SanityChecker.checkParameter(containerName);
+            final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
+            return Response.status(Status.OK).entity(containerInformation).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        }
     }
 
     /**
      * creates a folder into a container
      *
      * @param containerName path param of container name
-     * @param folder entry param of folder
+     * @param folderName path param of folder
      * @return Response
      */
-    @Path("/containers/{containerName}/folders")
+    @Path("/containers/{containerName}/folders/{folderName}")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createFolder(@PathParam("containerName") String containerName, Entry folder) {
-        // FIXME REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
+    public Response createFolder(@PathParam("containerName") String containerName,
+        @PathParam("folderName") String folderName) {
+        // FIXME P0 REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(folder));
-            workspace.createFolder(containerName, folder.getName());
-        } catch (final InvalidParseOperationException e) {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            SanityChecker.checkParameter(containerName, folderName);
+            workspace.createFolder(containerName, folderName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(containerName + "/" + folder.getName()).build();
+            return Response.status(Status.CONFLICT).entity(containerName + "/" + folderName).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folder.getName()).build();
+            return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
         }
 
-        return Response.status(Status.CREATED).entity(containerName + "/" + folder.getName()).build();
+        return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
     }
 
     /**
@@ -210,13 +245,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/folders/{folderName}")
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFolder(@PathParam("containerName") String containerName,
         @PathParam("folderName") String folderName) {
 
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            SanityChecker.checkParameter(containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
@@ -234,17 +274,116 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/folders/{folderName}")
     @HEAD
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response isExistingFolder(@PathParam("containerName") String containerName,
         @PathParam("folderName") String folderName) {
-
-        final boolean exists = workspace.isExistingFolder(containerName, folderName);
-        if (exists) {
-            return Response.status(Status.OK).entity(containerName + "/" + folderName).build();
-        } else {
-            return Response.status(Status.NOT_FOUND).build();
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            SanityChecker.checkParameter(containerName, folderName);
+    
+            final boolean exists = workspace.isExistingFolder(containerName, folderName);
+            if (exists) {
+                return Response.status(Status.OK).entity(containerName + "/" + folderName).build();
+            } else {
+                return Response.status(Status.NOT_FOUND).build();
+            }
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
+    }
+    /**
+     * uncompress a sip into the workspace
+     *
+     * @param stream data input stream
+     * @param containerName name of container
+     * @param folderName name of folder
+     * @param archiveType
+     * @return Response
+     */
+    @Path("/containers/{containerName}/folders/{folderName}")
+    @PUT
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uncompressObject(InputStream stream,
+        @PathParam("containerName") String containerName,
+        @PathParam("folderName") String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            SanityChecker.checkParameter(containerName, folderName);
+            try {
+                workspace.uncompressObject(containerName, folderName, archiveType, stream);
+            } catch (final ContentAddressableStorageNotFoundException e) {
+                LOGGER.error(e);
+                return Response.status(Status.NOT_FOUND).entity(containerName).build();
+            } catch (final ContentAddressableStorageAlreadyExistException e) {
+                LOGGER.error(e);
+                return Response.status(Status.CONFLICT).entity(containerName).build();
+            } catch (final ContentAddressableStorageCompressedFileException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                // TODO P0 : For now it is generic code "0000" since vitam error code have not been defined
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(
+                        new VitamError(status.getStatusCode())
+                            .setContext("WORKSPACE")
+                            .setState("vitam_code")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(status.getReasonPhrase())))
+                    .build();
+
+            } catch (final ContentAddressableStorageException e) {
+                LOGGER.error(e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+            }
+            return Response.status(Status.CREATED).entity(containerName).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } finally {
+            StreamUtils.closeSilently(stream);
+        }
+
+    }
+
+    /**
+     * gets the list of object from folder
+     *
+     * @param containerName name of container
+     * @param folderName name of folder
+     * @return Response
+     */
+    @Path("/containers/{containerName}/folders/{folderName}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUriDigitalObjectListByFolder(@PathParam("containerName") String containerName,
+        @PathParam("folderName") String folderName) {
+
+        List<URI> uriList = null;
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            SanityChecker.checkParameter(containerName, folderName);
+            uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
+
+        } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
+            LOGGER.error(eNotFoundException);
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException eAddressableStorageException) {
+            LOGGER.error(eAddressableStorageException);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        if (uriList == null || uriList.isEmpty()) {
+            return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
+        }
+        return Response.status(Status.OK).entity(uriList).build();
 
     }
 
@@ -261,21 +400,27 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME REVIEW change to correct API (no FormData)
     public Response putObject(InputStream stream,
         @PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) {
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            SanityChecker.checkParameter(containerName, objectName);
             workspace.putObject(containerName, objectName, stream);
+            return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        } finally {
+            StreamUtils.closeSilently(stream);
         }
-
-        return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
     }
 
     /**
@@ -287,13 +432,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) {
 
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            SanityChecker.checkParameter(containerName, objectName);
             workspace.deleteObject(containerName, objectName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -312,13 +462,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObject(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) throws IOException {
         InputStream stream = null;
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            SanityChecker.checkParameter(containerName, objectName);
             stream = workspace.getObject(containerName, objectName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -341,13 +496,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectInformation(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) throws IOException {
         JsonNode jsonResultNode;
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            SanityChecker.checkParameter(containerName, objectName);
             jsonResultNode = workspace.getObjectInformation(containerName, objectName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -369,7 +529,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @HEAD
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response computeObjectDigest(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName, @HeaderParam("X-digest-algorithm") String algo) {
@@ -377,7 +536,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-        } catch (final IllegalArgumentException e) {
+            SanityChecker.checkParameter(containerName, objectName);
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -412,110 +572,5 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * uncompress a sip into the workspace
-     *
-     * @param stream data input stream
-     * @param containerName name of container
-     * @param folderName name of folder
-     * @param archiveType
-     * @return Response
-     */
-    @Path("/containers/{containerName}/folders/{folderName}")
-    @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response uncompressObject(InputStream stream,
-        @PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
-
-        try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }
-
-        try {
-            workspace.uncompressObject(containerName, folderName, archiveType, stream);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(containerName).build();
-        } catch (final ContentAddressableStorageCompressedFileException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            // TODO : For now it is generic code "0000" since vitam error code have not been defined
-            return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("WORKSPACE")
-                        .setState("vitam_code")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
-                .build();
-
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
-        }
-
-        return Response.status(Status.CREATED).entity(containerName).build();
-    }
-
-    /**
-     * gets the list of object from folder
-     *
-     * @param containerName name of container
-     * @param folderName name of folder
-     * @return Response
-     */
-    @Path("/containers/{containerName}/folders/{folderName}")
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUriDigitalObjectListByFolder(@PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
-
-        List<URI> uriList = null;
-        try {
-            uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
-
-        } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
-            LOGGER.error(eNotFoundException);
-            return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageException eAddressableStorageException) {
-            LOGGER.error(eAddressableStorageException);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
-        }
-
-        if (uriList == null || uriList.isEmpty()) {
-            return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
-        }
-        return Response.status(Status.OK).entity(uriList).build();
-
-    }
-
-    /**
-     * Get container information like capacity
-     *
-     * @param containerName the container name
-     * @return a Json with usableSpace and usedSpace information
-     */
-    @Path("/container/{containerName}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getContainerInformation(@PathParam("containerName") String containerName) {
-        try {
-            final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
-            return Response.status(Status.OK).entity(containerInformation).build();
-        } catch (final ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        }
-    }
 }
 

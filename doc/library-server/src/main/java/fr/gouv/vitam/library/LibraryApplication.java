@@ -163,7 +163,7 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
         contextHandler.setResourceBase(getConfiguration().getDirectoryPath());
         contextHandler.setContextPath("/");
         // Mixing everything
-        contextHandler.addServlet(staticServlet, "/doc/*"); // TODO: externalise constant in config
+        contextHandler.addServlet(staticServlet, "/doc/*"); // TODO P1: externalise constant in config
         contextHandler.addServlet(jerseyServlet, "/*");
         return contextHandler;
     }

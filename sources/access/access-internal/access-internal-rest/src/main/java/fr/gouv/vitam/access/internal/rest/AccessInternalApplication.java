@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 
 
 /**
@@ -54,7 +56,7 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
     private static final String CONF_FILE_NAME = "access.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
-    // Only for Junit FIXME
+    // Only for Junit TODO P2
     static AccessInternalModule mock = null;
     static VitamServiceRegistry serviceRegistry = null;
     /**
@@ -111,11 +113,11 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
         setServiceRegistry(new VitamServiceRegistry());
         // Logbook dependency
         serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
-            .register(LogbookOperationsClientFactory.getInstance());
+            .register(LogbookOperationsClientFactory.getInstance())
         // Metadata dependency
-        //.register(MetaDataClientFactory.getInstance());
+            //.register(MetaDataClientFactory.getInstance());
         // Storage dependency
-        //.register(StorageClientFactory.getInstance());
+            .register(StorageClientFactory.getInstance());
         if (mock != null) {
             resourceConfig.register(new AccessInternalResourceImpl(mock))
             .register(new AdminStatusResource());
@@ -124,6 +126,7 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
             .register(new AdminStatusResource(serviceRegistry));
         }
     }
+
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
         serviceRegistry = newServiceRegistry;
     }

@@ -31,5 +31,5 @@ package fr.gouv.vitam.storage.driver.model;
  * Holds result data that come as a result of a request to remove an object on the distant storage offer
  */
 public class RemoveObjectResult {
-    // TODO : implements me
+    // TODO P1 : implements me
 }

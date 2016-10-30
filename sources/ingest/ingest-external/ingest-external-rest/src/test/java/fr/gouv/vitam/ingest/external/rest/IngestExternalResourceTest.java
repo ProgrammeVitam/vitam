@@ -79,7 +79,7 @@ public class IngestExternalResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les test parallèle sur jenkins
+        // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 

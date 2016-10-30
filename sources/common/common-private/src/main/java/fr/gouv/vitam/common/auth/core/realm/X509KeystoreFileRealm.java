@@ -86,7 +86,7 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         return doGetX509AuthenticationInfo((X509AuthenticationToken) token);
     }
 
-    // TODO éviter de relire les 2 fichiers granted et trusted à chaque tentative d'authentification
+    // TODO P1 éviter de relire les 2 fichiers granted et trusted à chaque tentative d'authentification
     @Override
     protected X509AuthenticationInfo doGetX509AuthenticationInfo(X509AuthenticationToken x509AuthenticationToken) {
 

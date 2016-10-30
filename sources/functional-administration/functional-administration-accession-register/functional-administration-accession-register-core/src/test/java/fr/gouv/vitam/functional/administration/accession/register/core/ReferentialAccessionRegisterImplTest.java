@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImp
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
@@ -87,11 +88,11 @@ public class ReferentialAccessionRegisterImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
             AccessionRegisterDetail.class);
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
     }
 

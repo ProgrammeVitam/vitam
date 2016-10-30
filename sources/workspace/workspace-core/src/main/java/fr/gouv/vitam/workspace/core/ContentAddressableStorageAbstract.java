@@ -78,7 +78,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
-    // TODO: passed to protected but is it desired ? Better with getter ?
+    // TODO P0: passed to protected but is it desired ? Better with getter ?
     protected final BlobStoreContext context;
 
     private static final int MAX_RESULTS = 51000;
@@ -222,7 +222,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             }
-            // FIXME REVIEW should it be a check of emptyness?
+            // FIXME P1 REVIEW should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
         } finally {
             context.close();
@@ -367,7 +367,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.debug(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
 
-            // TODO
+            // TODO P1
             // Get the uri
             // Today the uri null so
 
@@ -382,7 +382,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
-                    // FIXME REVIEW the UriUtils does not what is specified: it
+                    // TODO P1 REVIEW the UriUtils does not what is specified: it
                     // only removes the first folder, not the
                     // extension and only for uri with "." in it
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));

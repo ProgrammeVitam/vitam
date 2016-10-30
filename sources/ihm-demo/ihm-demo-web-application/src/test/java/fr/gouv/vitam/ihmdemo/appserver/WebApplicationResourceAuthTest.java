@@ -74,7 +74,7 @@ public class WebApplicationResourceAuthTest {
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         ServerApplication.run(new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
             .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT).setJettyConfig(JETTY_CONFIG)

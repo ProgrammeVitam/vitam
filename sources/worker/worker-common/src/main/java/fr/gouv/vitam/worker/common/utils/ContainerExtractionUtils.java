@@ -39,14 +39,14 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * Class Utils to get Objects from a container into the workspace
  */
 public class ContainerExtractionUtils {
-    // FIXME REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in every
+    // FIXME P1 REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in every
     // class!
     // Each class then can add extra organization for its own
-    // TODO
+    // TODO P1
     // Retrieve the hard code value for the path of the folder of digital objects
     private static final String DIGITAL_OBJECT_FOLDER_NAME = "SIP";
 
-    // FIXME REVIEW Since build through Factory: use package protected class and constructors for ALL
+    // FIXME P1 REVIEW Since build through Factory: use package protected class and constructors for ALL
     /**
      * Constructor that instantiates a workspace client factory
      *
@@ -66,9 +66,8 @@ public class ContainerExtractionUtils {
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
         throws ProcessingException, ContentAddressableStorageServerException{
-        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
-        try (final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.getInstance().getClient()) {
+        //WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             final String guidContainer = workParams.getContainerName();
             return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
         }

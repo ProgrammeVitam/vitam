@@ -147,7 +147,7 @@ public class IngestExternalImpl implements IngestExternal {
                 VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.UNKNOWN),
                 containerName);
 
-            // TODO should be the file name from a header
+            // TODO P1 should be the file name from a header
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
             logbookParametersList.add(startedParameters);
 
@@ -184,7 +184,7 @@ public class IngestExternalImpl implements IngestExternal {
             String mimeType = CommonMediaType.ZIP;
             boolean isSupportedMedia = false;
 
-            // TODO: add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
+            // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (antiVirusResult) {
                 case STATUS_ANTIVIRUS_OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
@@ -309,8 +309,9 @@ public class IngestExternalImpl implements IngestExternal {
                 IngestInternalClientFactory.getInstance().getIngestInternalClient();
 
             try {
-                // TODO Response async
+                // FIXME P0 Response async
                 responseResult = ingestClient.upload(ingestGuid, logbookParametersList, inputStream, mimeType);
+                // FIXME P0 Status could be >= 400 but still getting an ATR KO!
                 if (responseResult.getStatus() >= 400) {
                     throw new IngestExternalException("Ingest Internal Exception");
                 }

@@ -877,13 +877,11 @@ public class StorageResourceTest {
 
         @Override
         public InputStream getStorageContainer(String tenantId, String strategyId) throws StorageNotFoundException {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public JsonNode createContainer(String tenantId, String strategyId) throws StorageAlreadyExistsException {
-            // TODO Auto-generated method stub
             return null;
         }
 
@@ -1008,7 +1006,6 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode status() throws StorageException {
-            // TODO Auto-generated method stub
             return null;
         }
 

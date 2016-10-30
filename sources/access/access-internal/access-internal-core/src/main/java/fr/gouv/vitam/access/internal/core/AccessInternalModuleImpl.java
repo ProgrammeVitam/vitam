@@ -86,13 +86,13 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 /**
  * AccessModuleImpl implements AccessModule
  */
-// TODO: fully externalize logbook part if possible (like helper)
+// FIXME P0 : fully externalize logbook part if possible (like helper)
 public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private LogbookOperationsClient logbookOperationClient;
-    // FIXME : should use the try with resources, then dont use the client as an attribute
+    // FIXME P0 : should use the try with resources, then dont use the client as an attribute
     private final StorageClient storageClient;
 
     private final AccessInternalConfiguration accessConfiguration;
@@ -103,7 +103,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String EVENT_TYPE = "Update_archive_unit_unitary";
 
-    // TODO setting in other place
+    // TODO P1 setting in other place
     private final Integer tenantId = 0;
     private boolean mock;
 
@@ -215,13 +215,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     jsonNode = metaDataClient.selectUnitbyId(jsonQuery.toString(), idDocument);
                     break;
                 case OBJECT_GROUP:
-                    // TODO: metadata should return NotFound if the objectGroup is not found
+                    // FIXME P0: metadata should return NotFound if the objectGroup is not found
                     jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery.toString(), idDocument);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
             }
-            // TODO: ProcessingException should probably be handled by clients ?
+            // TODO P1 : ProcessingException should probably be handled by clients ?
         } catch (MetadataInvalidSelectException | MetaDataDocumentSizeException | MetaDataExecutionException |
             ProcessingException e) {
             throw new AccessInternalExecutionException(e);
@@ -249,8 +249,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         selectRequest.parse(queryJson);
         final Select request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
-        // TODO : create helper to build this kind of projection
-        // TODO : it would be nice to be able to handle $slice in projection via builder
+        // TODO P1 : create helper to build this kind of projection
+        // TODO P1 : it would be nice to be able to handle $slice in projection via builder
         request.parseProjection(
             "{\"$fields\":{\"_qualifiers." + qualifier.trim() + ".versions\": { $slice: [" + version + "," +
                 "1]},\"_id\":0," + "\"_qualifiers." + qualifier.trim() + ".versions._id\":1}}");
@@ -258,6 +258,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
+        // FIXME P0: do not use direct access but POJO
         final List<String> valuesAsText = jsonResponse.get("$result").findValuesAsText("_id");
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
@@ -336,7 +337,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             }
             // Create logbook operation
-            // TODO: interest of this private method ?
+            // TODO P1: interest of this private method ?
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED, "update archiveunit:" + idUnit, idUnit);
             logbookOperationClient.create(logbookOpParamStart);
@@ -408,12 +409,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private void rollBackLogbook(GUID updateOpGuidStart, JsonNode queryJson, String objectIdentifier) {
         try {
-            // TODO: interest of this private method ?
+            // TODO P1: interest of this private method ?
             final LogbookOperationParameters logbookOpParamEnd =
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, "Echec de l'écriture de la mise à jour des métadonnées", objectIdentifier);
             logbookOperationClient.update(logbookOpParamEnd);
-            // TODO: interest of this private method ?
+            // TODO P1: interest of this private method ?
             final LogbookLifeCycleUnitParameters logbookParametersEnd =
                 getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
                     objectIdentifier);
@@ -462,7 +463,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 return JsonHandler.writeAsString(diffNode.get("_diff"));
             }
         }
-        // TODO : empty string or error because no diff for this id ?
+        // TODO P1 : empty string or error because no diff for this id ?
         return "";
     }
 }

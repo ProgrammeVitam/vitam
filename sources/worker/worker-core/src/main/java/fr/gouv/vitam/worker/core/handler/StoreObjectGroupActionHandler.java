@@ -61,7 +61,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -80,7 +79,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "OG_STORAGE";
     private static final String SIP = "SIP/";
 
-    // TODO should not be a private attribute -> to refactor
+    // FIXME P1 should not be a private attribute -> to refactor
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
     private final StorageClientFactory storageClientFactory;
@@ -95,7 +94,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
-    // TODO WORKFLOW will be in vitam-logbook file
+    // FIXME P0 WORKFLOW will be in vitam-logbook file
     private static final String LOGBOOK_LF_STORAGE_MSG = "Stockage des objets";
     private static final String LOGBOOK_LF_STORAGE_OK_MSG = "Stockage des objets réalisé avec succès";
     private static final String LOGBOOK_LF_STORAGE_KO_MSG = "Stockage des objets en erreur";
@@ -159,8 +158,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 itemStatus.getGlobalStatus().name());
-            // TODO WORKFLOW message ok :LOGBOOK_LF_STORAGE_OK_MSG
-            // TODO WORKFLOW message ko :LOGBOOK_LF_STORAGE_KO_MSG
+            // TODO P0 WORKFLOW message ok :LOGBOOK_LF_STORAGE_OK_MSG
+            // TODO P0 WORKFLOW message ko :LOGBOOK_LF_STORAGE_KO_MSG
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 itemStatus.getGlobalStatus().name());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -239,7 +238,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         final JsonNode jsonOG;
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup objects ids
             jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
@@ -337,7 +336,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
-        // TODO WORKFLOW add message LOGBOOK_LF_STORAGE_MSG for started status STEP.
+        // TODO P0 WORKFLOW add message LOGBOOK_LF_STORAGE_MSG for started status STEP.
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(params.getCurrentStep(), StatusCode.STARTED));
     }
@@ -365,7 +364,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add objectGroup.json add input and check it
+        // TODO P0 Add objectGroup.json add input and check it
     }
 
 }

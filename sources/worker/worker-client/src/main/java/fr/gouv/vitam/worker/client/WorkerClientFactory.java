@@ -129,7 +129,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      *
      * @param configuration null for MOCK
      */
-    // FIXME should not be public (but IT test)
+    // TODO P2 should not be public (but IT test)
     public static final void changeMode(WorkerClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }

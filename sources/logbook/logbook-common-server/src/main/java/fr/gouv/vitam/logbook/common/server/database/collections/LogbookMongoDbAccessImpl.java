@@ -253,7 +253,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
-        // TODO Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
+        // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
         // Logbook operation event . Must be removed when the processing will be reworked
         final ObjectNode operationSlice = JsonHandler.createObjectNode();
         operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);

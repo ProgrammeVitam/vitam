@@ -919,14 +919,6 @@ public class DbRequestTest {
     }
 
     @Test
-    public void testSetDebug() {
-        final DbRequest request = new DbRequest();
-        assertEquals(true, request.debug);
-        request.setDebug(false);
-        assertEquals(false, request.debug);
-    }
-
-    @Test
     public void testResult() throws Exception {
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);

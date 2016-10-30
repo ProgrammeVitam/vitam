@@ -28,7 +28,6 @@ package fr.gouv.vitam.workspace.rest;
 
 import static java.lang.String.format;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;

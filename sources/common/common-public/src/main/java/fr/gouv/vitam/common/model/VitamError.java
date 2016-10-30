@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Access RequestResponseError class
  *
  */
-// FIXME to remove in profit of common.error.VitamError
+// FIXME P0 to remove in profit of common.error.VitamError
 public final class VitamError {
 
     private int code;

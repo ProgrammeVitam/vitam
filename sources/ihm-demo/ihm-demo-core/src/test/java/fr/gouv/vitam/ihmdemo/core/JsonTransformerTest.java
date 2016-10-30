@@ -140,6 +140,6 @@ public class JsonTransformerTest {
     @Test
     public void testBuildLogbookStatCsvFile() throws VitamException, IOException {
         final ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation);
-        // TODO : validate the created report
+        // TODO P1 : validate the created report
     }
 }

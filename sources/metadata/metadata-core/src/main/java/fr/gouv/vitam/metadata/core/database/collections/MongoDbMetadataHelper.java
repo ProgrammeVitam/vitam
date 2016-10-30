@@ -260,7 +260,7 @@ public class MongoDbMetadataHelper {
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
         ancestorIds.addAll(targetIds);
-        // TODO understand why it add empty string
+        // TODO P1 understand why it add empty string
         ancestorIds.remove("");
         final int size = ancestorIds.size();
         if (size > 0) {

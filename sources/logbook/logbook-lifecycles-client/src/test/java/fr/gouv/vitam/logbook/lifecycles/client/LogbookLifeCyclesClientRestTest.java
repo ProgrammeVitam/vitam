@@ -285,7 +285,7 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         client.update(log);
     }
 
-    // TODO
+    // TODO P0
     @Ignore
     @Test
     public void commitExecutionUnitLifeCycle() throws Exception {
@@ -294,7 +294,7 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         client.commit(log);
     }
 
-    // TODO
+    // TODO P0
     @Ignore
     @Test
     public void rollbacktExecutionUnitLifeCycle() throws Exception {

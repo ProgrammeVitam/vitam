@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 /**
  * DirectedGraph
  */
-// TODO merge Graph and DirectedGraph since most of the code is the same
+// TODO P1 merge Graph and DirectedGraph since most of the code is the same
 public class DirectedGraph {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DirectedGraph.class);
@@ -193,7 +193,7 @@ public class DirectedGraph {
                 reverse.addEdge(w, v);
             }
         }
-        // TODO clean memory ?
+        // TODO P1 clean memory ?
         return reverse;
     }
 
@@ -219,7 +219,7 @@ public class DirectedGraph {
     private int getIndex(String id) {
         int key = 0;
         if (indexMapping != null) {
-            // FIXME better to directly get the private xmlIdToIndex.get(id) and checking if not null
+            // FIXME P1 better to directly get the private xmlIdToIndex.get(id) and checking if not null
             if (indexMapping.containsValue(id)) {
                 final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
                 key = xmlIdToIndex.get(id);

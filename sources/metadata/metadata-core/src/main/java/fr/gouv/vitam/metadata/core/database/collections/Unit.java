@@ -111,7 +111,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String TYPEUNIQUE = "typeunique";
 
-    // TODO add Nested objects or Parent/child relationships
+    // TODO P1 add Nested objects or Parent/child relationships
     /**
      * Mapping of this Collection
      */
@@ -318,7 +318,7 @@ public class Unit extends MetadataDocument<Unit> {
 
     @Override
     protected boolean updated() throws MetaDataExecutionException {
-        // XXX TODO only addition is taken into consideration there: removal shall be done elsewhere
+        // XXX TODO P1 only addition is taken into consideration there: removal shall be done elsewhere
         final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
         BasicDBObject update = null;
         if (vt != null) {
@@ -737,7 +737,7 @@ public class Unit extends MetadataDocument<Unit> {
         throws MetaDataExecutionException {
         final String old = getObjectGroupId(false);
         final String newGOT = data.getId();
-        // TODO when update is ready: change Junit to reflect this case
+        // TODO P1 when update is ready: change Junit to reflect this case
         if (old != null && !old.isEmpty() && !old.equals(newGOT)) {
             throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
         }

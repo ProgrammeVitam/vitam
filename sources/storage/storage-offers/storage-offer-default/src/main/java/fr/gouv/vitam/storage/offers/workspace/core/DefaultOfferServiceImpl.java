@@ -153,7 +153,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         try (final InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
             FileOutputStream fOut = new FileOutputStream(path, true)) {
-            // FIXME très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
+            // FIXME P0 très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
             fOut.write(ByteStreams.toByteArray(digestObjectPart));
             fOut.flush();
         } catch (final IOException exc) {
@@ -162,14 +162,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         // ending remove it
         if (ending) {
-            // FIXME double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre
+            // FIXME P0 double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre
             // de putObject
             // ou mieux : faire une écriture par bloc (buffer) et mettre à jour le Digest au fur et à mesure ainsi
             try (InputStream in = new FileInputStream(path)) {
                 defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, in);
                 // do we validate the transfer before remove temp file ?
                 Files.deleteIfExists(Paths.get(path));
-                // TODO: to optimize (big file case) !
+                // FIXME P0: to optimize (big file case) !
                 final String digest = defaultStorage.computeObjectDigest(containerName,
                     objectTypeFor.get(objectId) + "/" + objectId, messageDigest.type());
                 // remove digest algo
@@ -183,7 +183,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 throw exc;
             }
         } else {
-            // TODO: to optimize (big file case) !
+            // FIXME P0 : to optimize (big file case) !
             return BaseXx.getBase16(messageDigest.digest());
         }
     }
@@ -197,7 +197,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!defaultStorage.isExistingContainer(containerName)) {
-            // FIXME logique incorrecte: ne devrait pas être créé dynamiquement mais uniquement si demandé
+            // FIXME P1 logique incorrecte: ne devrait pas être créé dynamiquement mais uniquement si demandé
             // Devrait donc retourner une valeur du type NOT_EXIST
             try {
                 defaultStorage.createContainer(containerName);
@@ -214,7 +214,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return result;
     }
 
-    // FIXME : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce
+    // FIXME P0 : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce
     // qui rend alors
     // le calcul faux sémantiquement ici (aurait dans ce cas dû générer une exception)
     private DigestType getDigestAlgoFor(String id) {

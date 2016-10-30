@@ -67,7 +67,7 @@ public class ProcessManagementResourceTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         final ServerConfiguration configuration = new ServerConfiguration();

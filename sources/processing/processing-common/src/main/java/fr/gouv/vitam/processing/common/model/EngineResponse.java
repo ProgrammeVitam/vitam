@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.model.StatusCode;
  *
  */
 
-//TODO : remove interface since we want to use this object as a rest response entity.
+//TODO P1 : remove interface since we want to use this object as a rest response entity.
 public interface EngineResponse {
 
     /**

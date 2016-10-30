@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -69,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -127,8 +125,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoClo
      *
      * @param dbConfiguration
      */
-    public RulesManagerFileImpl(DbConfiguration dbConfiguration) {
-        mongoAccess = MongoDbAccessAdminFactory.create(dbConfiguration);
+    public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
+        mongoAccess = dbConfiguration;
     }
 
     @Override
@@ -416,9 +414,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoClo
 
     @Override
     public void close() throws Exception {
-        if (mongoAccess != null) {
-            mongoAccess.close();
-        }
         if (client != null) {
             client.close();
         }

@@ -99,7 +99,7 @@ public class CheckObjectsNumberActionHandlerTest {
     @Before
     public void setUp() throws Exception {
         workParams = WorkerParametersFactory.newWorkerParameters();
-        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
             .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);

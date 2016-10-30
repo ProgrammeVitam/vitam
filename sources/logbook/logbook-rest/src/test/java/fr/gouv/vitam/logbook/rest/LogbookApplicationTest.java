@@ -94,7 +94,7 @@ public class LogbookApplicationTest {
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         JunitHelper.setJettyPortSystemProperty(serverPort);
 
         oldPort = VitamServerFactory.getDefaultPort();

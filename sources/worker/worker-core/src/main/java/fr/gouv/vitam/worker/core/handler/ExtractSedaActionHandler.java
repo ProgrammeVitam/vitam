@@ -137,7 +137,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String FILE_INFO = "FileInfo";
     private static final String METADATA = "Metadata";
     private static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    // TODO WORKFLOW will be in vitam-logbook file
+    // TODO P0 WORKFLOW will be in vitam-logbook file
     private static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE =
@@ -258,8 +258,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public void extractSEDA(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        // TODO : whould use worker configuration instead of the processing configuration
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // TODO P0: whould use worker configuration instead of the processing configuration
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             extractSEDAWithWorkspaceClient(workspaceClient, containerId, itemStatus);
         }
@@ -806,7 +806,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws InvalidParseOperationException {
         final File tmpJsonFile = PropertiesUtils.fileFromTmpFolder(jsonFileName);
         final JsonNode jsonBDO = JsonHandler.getFromFile(tmpJsonFile);
-        // FIXME are you sure it is ALWAYS a BINARY MASTER here ?
+        // FIXME P0 are you sure it is ALWAYS a BINARY MASTER here ?
         binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId, BINARY_MASTER);
         JsonNode objectNode = mapNewTechnicalDataObjectGroupToBDO(jsonBDO, binaryDataOjectId);
         objectNode = addExtraField(objectNode);
@@ -888,14 +888,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LIFE_CYCLE_EVENT_TYPE_PROCESS);
 
-        // TODO WORKFLOW add treatment code for create objectGroup
+        // TODO P0 WORKFLOW add treatment code for create objectGroup
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
             HANDLER_ID);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             StatusCode.STARTED.toString());
-        // TODO WORKFLOW code outcomeDeatilsMessage started
+        // TODO P0 WORKFLOW code outcomeDeatilsMessage started
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
         LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleObjectGroupParameters);
@@ -1053,7 +1053,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String elementID = ((Attribute) startElement.getAttributes().next()).getValue();
         final QName name = startElement.getName();
         int stack = 1;
-        // TODO : check why the use of this key (concatenation)
+        // TODO P0 : check why the use of this key (concatenation)
         // final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString() + elementGuid);
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(ARCHIVE_UNIT_TMP_FILE_PREFIX + elementGuid);
         String groupGuid;
@@ -1081,7 +1081,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                 startElement.getName().getLocalPart()));
             writer.add(eventFactory.createAttribute("id", elementGuid));
-            // TODO allow recursive
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && event.asStartElement().getName().equals(name)) {
@@ -1428,7 +1427,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final List<String> binaryOjectList = new ArrayList<>();
                 binaryOjectList.add(key);
                 objectGroupIdToBinaryDataObjectId.put(GUIDFactory.newGUID().toString(), binaryOjectList);
-                // TODO Create OG / OG lifeCycle
+                // TODO P0 Create OG / OG lifeCycle
             }
         }
     }

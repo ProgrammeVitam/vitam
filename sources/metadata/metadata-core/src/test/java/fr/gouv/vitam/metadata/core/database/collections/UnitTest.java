@@ -76,7 +76,7 @@ public class UnitTest {
         final List<Unit> units = new ArrayList<Unit>();
         units.add(subUnit1);
         units.add(subUnit2);
-        // TODO REVIEW add multiple units at once seems in error
+        // TODO P1 REVIEW add multiple units at once seems in error
         // unit.addUnits(units);
     }
 

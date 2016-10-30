@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
@@ -65,7 +66,6 @@ public class AccessExternalApplication
     private static final String CONF_FILE_NAME = "access-external.conf";
     private static final String SHIRO_FILE = "shiro.ini";
     private static final String MODULE_NAME = "AccessExternal";
-
 
     static VitamServiceRegistry serviceRegistry = null;
 
@@ -106,12 +106,12 @@ public class AccessExternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        // FIXME Logbook Should be remove
+        // FIXME P0 Logbook Should be remove
         serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
             .register(LogbookOperationsClientFactory.getInstance())
-            .register(AccessInternalClientFactory.getInstance());
-        // FIXME missing when ready (included with correct configuration file)
-            //.register(AdminManagementClientFactory.getInstance());
+            .register(AccessInternalClientFactory.getInstance())
+        // FIXME P0 missing when ready (included with correct configuration file)
+            .register(AdminManagementClientFactory.getInstance());
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())

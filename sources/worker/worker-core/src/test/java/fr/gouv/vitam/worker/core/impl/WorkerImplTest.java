@@ -89,7 +89,7 @@ public class WorkerImplTest {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create(mongoDbAccess);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             null);
     }
@@ -101,7 +101,7 @@ public class WorkerImplTest {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create(mongoDbAccess);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             new Step());
     }
@@ -119,7 +119,7 @@ public class WorkerImplTest {
         actions.add(action);
         step.setActions(actions);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }
@@ -151,7 +151,7 @@ public class WorkerImplTest {
         workerImpl = WorkerImplFactory.create(mongoDbAccess)
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }
@@ -183,7 +183,7 @@ public class WorkerImplTest {
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8011/")
-                .setUrlMetadata("fakeUrl")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }
@@ -214,7 +214,7 @@ public class WorkerImplTest {
         workerImpl = WorkerImplFactory.create(mongoDbAccess)
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }

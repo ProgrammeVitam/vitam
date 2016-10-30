@@ -62,7 +62,7 @@ public final class MongoDbAccessAdminFactory {
 
         MongoClient mongoClient =
             MongoDbAccess.createMongoClient2(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), true);
+        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
     }
 
 }

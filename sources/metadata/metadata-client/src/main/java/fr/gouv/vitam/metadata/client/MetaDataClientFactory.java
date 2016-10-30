@@ -36,7 +36,7 @@ public class MetaDataClientFactory {
      * @param url server url
      * @return new MetaDataClient
      */
-    // FIXME REVIEW refactor comme logbookClient
+    // FIXME P0 REVIEW refactor like logbookClient
     public static MetaDataClient create(String url) {
         ParametersChecker.checkParameter("Server Url can not be null", url);
         return new MetaDataClient(url);

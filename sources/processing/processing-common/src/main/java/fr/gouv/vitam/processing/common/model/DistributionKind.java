@@ -30,7 +30,7 @@ package fr.gouv.vitam.processing.common.model;
  * Enum of kind for distributor
  */
 public enum DistributionKind {
-    // TODO comment on each lines + since each is the same enum = String, remove String
+    // TODO P1 comment on each lines + since each is the same enum = String, remove String
     REF("REF"),
     LIST("LIST");
 

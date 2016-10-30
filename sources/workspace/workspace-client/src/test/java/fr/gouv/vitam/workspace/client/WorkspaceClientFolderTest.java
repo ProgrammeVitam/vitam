@@ -74,10 +74,11 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
         }
 
         @POST
-        @Path("{containerName}/folders")
+        @Path("{containerName}/folders/{folderName}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(@PathParam("containerName") String containerName, Entry folder) {
+        public Response create(@PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName) {
             return expectedResponse.post();
         }
 

@@ -109,21 +109,11 @@ public class DbRequest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
-    boolean debug = true;
-
     /**
      * Constructor
      */
     public DbRequest() {
         // Empty constructor
-    }
-
-    /**
-     * @param debug If True, in debug mode
-     */
-    // TODO: use LOGGER.isDebugEnabled instead ?
-    public void setDebug(final boolean debug) {
-        this.debug = debug;
     }
 
     /**
@@ -162,7 +152,7 @@ public class DbRequest {
             } else {
                 LOGGER.error(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO should be adapted to have a correct error feedback
+                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(requestParser.model())
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -170,9 +160,7 @@ public class DbRequest {
 
                 return result;
             }
-            if (debug) {
-                LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
-            }
+            LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
             rank++;
         }
         // Stops if no result (empty)
@@ -181,7 +169,7 @@ public class DbRequest {
             if (newResult == null) {
                 LOGGER.error(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO should be adapted to have a correct error feedback
+                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(result.type)
                     .addError(result.getCurrentIds().toString())
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -193,16 +181,14 @@ public class DbRequest {
             } else {
                 LOGGER.error(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO should be adapted to have a correct error feedback
+                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
                     .addError(WHERE_PREVIOUS_RESULT_WAS + result);
                 return result;
             }
-            if (debug) {
-                LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
-            }
+            LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
         }
         // Result contains the selection on which to act
         // Insert allow to have no result
@@ -223,12 +209,12 @@ public class DbRequest {
                     try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                         while (cursor.hasNext()) {
                             final Unit unit = cursor.next();
-                            // TODO use Bulk
+                            // TODO P0 use Bulk
                             MetadataCollections.C_UNIT.getEsClient().addEntryIndex(unit);
                         }
                     }
                 }
-                // TODO index ObjectGroup
+                // TODO P1 index ObjectGroup
             }
             if (GlobalDatasDb.PRINT_REQUEST) {
                 LOGGER.debug("Results: " + result);
@@ -238,7 +224,7 @@ public class DbRequest {
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
             LOGGER.error(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-            // XXX TODO should be adapted to have a correct error feedback
+            // XXX TODO P1 should be adapted to have a correct error feedback
             result = new ResultError(result.type)
                 .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
                 .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -299,7 +285,7 @@ public class DbRequest {
      */
     protected Result checkObjectGroupStartupRoots(final RequestParserMultiple request, final Result defaultStartSet)
         throws InvalidParseOperationException {
-        // TODO add unit tests
+        // TODO P1 add unit tests
         final Set<String> roots = request.getRequest().getRoots();
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
@@ -344,7 +330,7 @@ public class DbRequest {
             // no limitation: using roots
             return current;
         }
-        // TODO add unit tests
+        // TODO P1 add unit tests
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
@@ -441,7 +427,7 @@ public class DbRequest {
     protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth)
         throws InvalidParseOperationException {
 
-        // TODO add unit tests
+        // TODO P1 add unit tests
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
@@ -596,7 +582,7 @@ public class DbRequest {
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Set<String> ids, int relativeDepth) {
-        // TODO add unit tests
+        // TODO P1 add unit tests
         // Select all items from ids
         final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
@@ -660,7 +646,7 @@ public class DbRequest {
         } else {
 
             // Mongo
-            // TODO add unit tests
+            // TODO P1 add unit tests
             final Bson query = QueryToMongodb.getCommand(realQuery);
             Bson finalQuery;
             if (previous.getCurrentIds().isEmpty()) {
@@ -799,7 +785,7 @@ public class DbRequest {
                 return last;
             }
             // OBJECTGROUPS:
-            // TODO add unit tests
+            // TODO P1 add unit tests
             final UpdateResult result =
                 MongoDbMetadataHelper.update(MetadataCollections.C_OBJECTGROUP,
                     roots, update, last.getCurrentIds().size());
@@ -865,7 +851,7 @@ public class DbRequest {
                     (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                         in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
                 final Set<String> notFound = new HashSet<>(last.getCurrentIds());
-                // TODO optimize by trying to update only once the unit
+                // TODO P2 optimize by trying to update only once the unit
                 try (MongoCursor<Unit> cursor = iterable.iterator()) {
                     if (cursor.hasNext()) {
                         final Unit parentUnit = cursor.next();
@@ -874,7 +860,7 @@ public class DbRequest {
                     }
                 }
                 if (!notFound.isEmpty()) {
-                    // FIXME some Junit failed on this
+                    // FIXME P1 some Junit failed on this
                     LOGGER.error("Cannot find parent: " + notFound);
                     // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
                 }
@@ -884,7 +870,7 @@ public class DbRequest {
                 return last;
             }
             // OBJECTGROUPS:
-            // TODO add unit tests
+            // TODO P1 add unit tests
             final ObjectGroup og = new ObjectGroup(data);
             if (MongoDbMetadataHelper.exists(MetadataCollections.C_OBJECTGROUP, og.getId())) {
                 // Should not exist
@@ -901,7 +887,7 @@ public class DbRequest {
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                     in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
             final Set<String> notFound = new HashSet<>(last.getCurrentIds());
-            // TODO optimize by trying to update only once the og
+            // TODO P2 optimize by trying to update only once the og
             try (MongoCursor<Unit> cursor = iterable.iterator()) {
                 if (cursor.hasNext()) {
                     final Unit parentUnit = cursor.next();
@@ -910,7 +896,7 @@ public class DbRequest {
                 }
             }
             if (!notFound.isEmpty()) {
-                // FIXME some Junit failed on this
+                // FIXME P1 some Junit failed on this
                 LOGGER.error("Cannot find parent: " + notFound);
                 // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
             }
@@ -946,7 +932,7 @@ public class DbRequest {
                 last.setNbResult(result.getDeletedCount());
                 return last;
             }
-            // TODO add unit tests
+            // TODO P1 add unit tests
             // OBJECTGROUPS:
             final DeleteResult result =
                 MongoDbMetadataHelper.delete(MetadataCollections.C_OBJECTGROUP,

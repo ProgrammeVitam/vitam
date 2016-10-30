@@ -112,7 +112,7 @@ public class Graph {
 
     private int addMapIdToIndex(String idXml) {
         if (indexMapping != null) {
-            // FIXME since called many times, better to assign one for all this inverseBidiMap to a private variable
+            // FIXME P1 since called many times, better to assign one for all this inverseBidiMap to a private variable
             final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
             if (xmlIdToIndex.get(idXml) == null) {
                 count++;

@@ -170,7 +170,7 @@ public class DriverManager {
      * @param offersIds the offers IDs list
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
-    //TODO : change link direction between driver and offer and persist it differently
+    //TODO P1 : change link direction between driver and offer and persist it differently
     public static void addOffersToDriver(String name, List<String> offersIds) throws StorageDriverMapperException {
         for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
             if (driverInfo.name.equals(name)) {

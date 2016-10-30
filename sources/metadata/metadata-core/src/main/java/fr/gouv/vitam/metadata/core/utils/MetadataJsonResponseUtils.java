@@ -72,7 +72,7 @@ public final class MetadataJsonResponseUtils {
 
         final ObjectNode jsonListResponse = populateJsonHintAndContext(result);
 
-        // TODO : review if statement because if result.getFinal().get("Result") == null and selectRequest
+        // TODO P1 : review if statement because if result.getFinal().get("Result") == null and selectRequest
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
         if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||

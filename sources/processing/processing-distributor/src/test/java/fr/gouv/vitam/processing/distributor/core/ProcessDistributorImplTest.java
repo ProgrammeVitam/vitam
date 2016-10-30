@@ -84,8 +84,8 @@ public class ProcessDistributorImplTest {
         urlWorkspace = "http://localhost:" + Integer.toString(port);
         params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID());
-        // TODO: ??? mandatory
-        params.setUrlMetadata("fakeUrlMetadata");
+        // TODO P1 : ??? mandatory
+        params.setUrlMetadata("http://localhost:8083");
         params.setUrlWorkspace(urlWorkspace);
         processMonitoring = ProcessMonitoringImpl.getInstance();
         final List<Step> steps = new ArrayList<>();

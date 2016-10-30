@@ -122,7 +122,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
         LOGGER.info(START_MESSAGE);
-        // TODO replace with real tenant
+        // TODO P1 replace with real tenant
         int tenantId = 0;
         /**
          * Check if workflow exist in the pool of workflows
@@ -256,7 +256,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
-        // FIXME use Bulk operation
+        // FIXME P0 use Bulk operation
         client.update(parameters);
 
         // update the process monitoring with the final status
@@ -264,7 +264,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             workParams.getProcessId(), uniqueId,
             stepResponse.getGlobalStatus());
         LOGGER.info("End Workflow: " + uniqueId + " Step:" + step.getStepName());
-        // TODO : deal with the pause
+        // TODO P1 : deal with the pause
         // else if (step.getStepType().equals(StepType.PAUSE)) {
         // THEN PAUSE
         // }

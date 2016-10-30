@@ -38,7 +38,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 /**
  * Worker Interface.
  */
-// TODO REVIEW improve comment form
 public interface Worker {
 
     /**

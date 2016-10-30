@@ -55,7 +55,6 @@ public class AccessParams {
      * @param serverConfiguration - return hostname, port, dbName, collectionName
      * @return this
      */
-    // TODO @return missing
     public AccessParams setServerConfiguration(AccessInternalConfiguration serverConfiguration) {
         this.serverConfiguration = serverConfiguration;
         return this;

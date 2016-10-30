@@ -74,7 +74,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         super(factory);
     }
 
-    // TODO : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats, régles
+    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats, régles
     // de gestions, contrat , etc)
     @Override
     public Status checkFormat(InputStream stream) throws ReferentialException {

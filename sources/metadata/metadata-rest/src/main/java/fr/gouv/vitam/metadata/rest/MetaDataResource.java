@@ -290,7 +290,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // TODO : maybe produces NOT_FOUND when unit is not found?
+    // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
     private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
         JsonNode jsonResultNode;
@@ -374,7 +374,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             .build();
     }
 
-    // OBJECT GROUP RESOURCE. TODO see to externalize it (one resource for units, one resource for object group) to
+    // OBJECT GROUP RESOURCE. TODO P1 see to externalize it (one resource for units, one resource for object group) to
     // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
@@ -508,7 +508,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // TODO : maybe produce NOT_FOUND when objectGroup is not found?
+    // FIXME P0 : maybe produce NOT_FOUND when objectGroup is not found?
     private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
         Status status;
         JsonNode jsonResultNode;

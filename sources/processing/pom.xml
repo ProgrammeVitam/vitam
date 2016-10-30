@@ -18,6 +18,5 @@
 		<module>processing-distributor</module>
 		<module>processing-distributor-client</module>
 		<module>processing-monitoring</module>
-		<module>processing-integration-test</module>
 	</modules>
 </project>

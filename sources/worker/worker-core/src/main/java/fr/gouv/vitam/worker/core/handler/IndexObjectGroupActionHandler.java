@@ -138,11 +138,11 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        // TODO once implementing autocloseable should be in the try (resource) too
+        // FIXME P0  once implementing autocloseable should be in the try (resource) too
         final MetaDataClient metadataClient = MetaDataClientFactory
             .create(params.getUrlMetadata());
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());        
-        try (// TODO : whould use worker configuration instead of the processing configuration
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());        
+        try (// TODO P0 : whould use worker configuration instead of the processing configuration
             final WorkspaceClient workspaceClient = WorkspaceClientFactory
                 .getInstance().getClient();
             final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName)) {
@@ -170,7 +170,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add objectGroup.json add input and check it
+        // TODO P0 Add objectGroup.json add input and check it
 
     }
 

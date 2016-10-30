@@ -78,7 +78,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
      * @param request the request to use, could be null
      * @throws IllegalArgumentException if one of mandatory arguments is null or empty
      */
-    // TODO Add later on capability to handle maxNbPart in order to control the rate
+    // TODO P1 Add later on capability to handle maxNbPart in order to control the rate
     public VitamRequestIterator(MockOrRestClient client, String method, String path,
         MultivaluedHashMap<String, Object> headers,
         JsonNode request) {
@@ -121,7 +121,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
     }
     
     private boolean handleFirst(Response response) {
-        // TODO Ignore for the moment X-Cursor-Timeout
+        // TODO P1 Ignore for the moment X-Cursor-Timeout
         xCursorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_CURSOR_ID);
         if (xCursorId == null && !closed) {
             throw new BadRequestException("No Cursor returned");
@@ -134,7 +134,7 @@ public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
     }
 
     private boolean handleNext(Response response) {
-        // TODO Ignore for the moment X-Cursor-Timeout
+        // TODO P1 Ignore for the moment X-Cursor-Timeout
         objectResponse = response.readEntity(RequestResponseOK.class);
         iterator = objectResponse.getResults().iterator();
         return true;

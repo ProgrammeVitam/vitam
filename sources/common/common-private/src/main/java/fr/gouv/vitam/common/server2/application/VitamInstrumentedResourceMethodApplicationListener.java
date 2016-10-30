@@ -322,11 +322,11 @@ final class VitamInstrumentedResourceMethodApplicationListener
             final ImmutableMap.Builder<Method, Meter> exceptionMeterBuilder = ImmutableMap.<Method, Meter>builder();
 
             /*
-             * TODO: This class does not handle nested resources for the moment. This feature should be implemented
+             * TODO P1: This class does not handle nested resources for the moment. This feature should be implemented
              */
             for (final Resource resource : event.getResourceModel().getResources()) {
 
-                /* TODO: Remove the application.wadl resources with a better option */
+                /* TODO P1: Remove the application.wadl resources with a better option */
                 if (resource.getPath().equals("application.wadl")) {
                     continue;
                 }

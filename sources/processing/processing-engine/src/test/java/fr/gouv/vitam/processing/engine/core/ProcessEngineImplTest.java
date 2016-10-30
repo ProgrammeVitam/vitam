@@ -60,7 +60,7 @@ public class ProcessEngineImplTest {
     @Before
     public void init() throws WorkflowNotFoundException {
         workParams = WorkerParametersFactory.newWorkerParameters();
-        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("fakeUrl").setUrlWorkspace("fakeUrl")
+        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
             .setContainerName(GUIDFactory.newGUID().getId());
 
         processDistributor = Mockito.mock(ProcessDistributor.class);

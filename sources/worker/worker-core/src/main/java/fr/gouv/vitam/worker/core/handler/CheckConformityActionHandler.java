@@ -120,7 +120,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
@@ -169,7 +169,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             if (nbKO != 0) {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK, nbKO, nbWarning, nbOK));
-                // TODO WORKFLOW
+                // TODO P0 WORKFLOW
                 // " -- " + nbKO + " binary Object KO, " + nbWarning + " binary Object Warning, " + nbOK +
                 // " binary object OK");
             } else {

@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -51,7 +52,7 @@ import fr.gouv.vitam.workspace.common.Entry;
 
 public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
-    private static final String CONTAINER_NAME = "myContainer";
+    private static final String CONTAINER_NAME = "myContainer" + GUIDFactory.newGUID().toString();
 
     @Override
     MockResource getMockResource() {
@@ -68,20 +69,22 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
         }
 
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(Entry container) {
+        @Path("{containerName}")
+        public Response create(@PathParam("containerName") String containerName) {
             return expectedResponse.post();
         }
 
         @DELETE
         @Path("{containerName}")
+        @Produces(MediaType.APPLICATION_JSON)
         public Response delete(@PathParam("containerName") String containerName) {
             return expectedResponse.delete();
         }
 
         @HEAD
         @Path("{containerName}")
+        @Produces(MediaType.APPLICATION_JSON)
         public Response isExistingContainer(@PathParam("containerName") String containerName) {
             return expectedResponse.head();
         }

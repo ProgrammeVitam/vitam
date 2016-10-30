@@ -118,7 +118,7 @@ public class MetaDataClient {
     /**
      * @return : status of metadata server 200 : server is alive
      */
-    // TODO REVIEW See Logbook REST
+    // TODO P1 REVIEW See Logbook REST
     public Response status() {
         return client.target(url).path("status").request().get();
     }

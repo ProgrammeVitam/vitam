@@ -159,7 +159,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Manifest uri list is a mandatory parameter", uriListManifest);
         ParametersChecker.checkParameter("Workspace uri list is a mandatory parameter", uriListWorkspace);
         ParametersChecker.checkParameter("ItemStatus is a mandatory parameter", itemStatus);
-        // TODO
+        // TODO P1
         // Use Java 8, Methods Reference, lambda expressions and streams
 
         /**
@@ -178,15 +178,14 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         } else {
 
             /**
-             * count the number of object in the manifest found in the sip TODO : is long relevant (since it is 2^31) ?
+             * count the number of object in the manifest found in the sip
              */
             int countConsistentDigitalObjectFromManifest = 0;
             /**
-             * count the number of digital object in the sip found in the manifest TODO : is long relevant (since it is
-             * 2^31) ?
+             * count the number of digital object in the sip found in the manifest
              */
             int countConsistentDigitalObjectFromWorkspace = 0;
-            // TODO REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
+            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
             // faster and better
             for (final URI uriManifest : uriListManifest) {
                 if (uriListWorkspace.contains(uriManifest)) {
@@ -226,6 +225,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add Workspace:SIP/manifest.xml and check it
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 }

@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Worker web application
@@ -50,10 +51,10 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     private static final String CONF_FILE_NAME = "worker.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
-    // Only for Junit FIXME
+    // Only for Junit TODO P2
     static Worker mock = null;
     static VitamServiceRegistry serviceRegistry = null;
-    
+
     /**
      * WorkerApplication constructor
      *
@@ -98,7 +99,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
         serviceRegistry = newServiceRegistry;
     }
-    
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
@@ -107,13 +108,13 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
         } else {
             resourceConfig.register(new WorkerResource(getConfiguration()));
             // Logbook dependency
-            serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance());
-            // Workspace dependency
-            //serviceRegistry.register(WorkspaceClientFactory.getInstance());
+            serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
+                // Workspace dependency
+                .register(WorkspaceClientFactory.getInstance());
             // Metadata dependency
-            //serviceRegistry.register(MetaDataClientFactory.getInstance());
+            // serviceRegistry.register(MetaDataClientFactory.getInstance());
             // Processing dependency: optional ?
-            //serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
+            // serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }

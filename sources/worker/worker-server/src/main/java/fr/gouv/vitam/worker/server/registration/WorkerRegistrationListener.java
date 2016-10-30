@@ -65,7 +65,7 @@ public class WorkerRegistrationListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
-        // TODO unregister
+        // TODO P1 unregister
     }
 
 }

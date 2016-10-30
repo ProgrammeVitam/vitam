@@ -112,7 +112,7 @@ public class WorkspaceResourceTest {
         configuration.setJettyConfig("jetty-config-test.xml");
 
         port = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
         workspaceApplication = new WorkspaceApplication(configuration);
         workspaceApplication.start();
@@ -135,23 +135,23 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerAlreadyExistsWhenCreateContainerThenReturnConflict() {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).expect()
-            .statusCode(Status.CONFLICT.getStatusCode()).when().post("/containers");
+        given().contentType(ContentType.JSON).expect()
+            .statusCode(Status.CONFLICT.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
     }
 
     @Test
     public void givenContainerNotFoundWhenDeleteContainerThenReturnNotFound() {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+        with().contentType(ContentType.JSON).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+        given().contentType(ContentType.JSON).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
 
     }
@@ -163,8 +163,8 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerThenReturnOk() {
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         given().then().statusCode(Status.OK.getStatusCode()).when().head("/containers/" + CONTAINER_NAME);
     }
@@ -172,8 +172,8 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() {
 
-        given().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        given().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
     }
 
@@ -181,32 +181,35 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerNotFoundWhenCreateFolderThenReturnNotFound() {
 
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+        given().contentType(ContentType.JSON).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenCreateFolderThenReturnConflict() {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.CONFLICT.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+        given().contentType(ContentType.JSON).then()
+            .statusCode(Status.CONFLICT.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
     }
 
     @Test
     public void givenFolderNotFoundWhenDeleteFolderThenReturnNotFound() {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
+        given().contentType(ContentType.JSON).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .delete("/containers" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
@@ -214,20 +217,21 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenContainerNotFoundWhenDeleteFolderThenReturnNotFound() {
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
+        given().contentType(ContentType.JSON).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .delete("/containers" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenDeleteFolderThenReturnNotContent() {
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
+        given().contentType(ContentType.JSON).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()
             .delete("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
@@ -240,11 +244,12 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenFolderAlreadyExistsWhenCheckFolderThenReturnOk() {
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
         given().then().statusCode(Status.OK.getStatusCode()).when()
             .head("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
@@ -256,9 +261,9 @@ public class WorkspaceResourceTest {
     public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             given()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.NOT_FOUND.getStatusCode());
         }
 
     }
@@ -267,12 +272,12 @@ public class WorkspaceResourceTest {
     public void givenContainerAlreadyExistsWhenPutObjectThenReturnCreated() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             given().contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
         }
 
     }
@@ -281,13 +286,13 @@ public class WorkspaceResourceTest {
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
 
             given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
                 .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
@@ -318,14 +323,14 @@ public class WorkspaceResourceTest {
     public void givenObjectAlreadyExistsWhenCheckObjectThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
-            
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
+
             given().then().statusCode(Status.OK.getStatusCode()).when()
                 .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
@@ -335,14 +340,14 @@ public class WorkspaceResourceTest {
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
-            
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
+
         }
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             final Digest digest = new Digest(DigestType.fromValue(ALGO));
@@ -368,13 +373,13 @@ public class WorkspaceResourceTest {
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
 
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
                 .statusCode(Status.OK.getStatusCode()).when()
@@ -395,13 +400,13 @@ public class WorkspaceResourceTest {
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
 
             given().then().statusCode(Status.OK.getStatusCode()).when()
                 .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
@@ -412,8 +417,8 @@ public class WorkspaceResourceTest {
     @Test
     public void givenZipImputWhenUnzipThenReturnOK() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
             given().contentType(CommonMediaType.ZIP).body(stream)
                 .then().statusCode(Status.CREATED.getStatusCode()).when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
@@ -439,11 +444,12 @@ public class WorkspaceResourceTest {
     @Test
     public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-            with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when()
+                .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
 
             final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
@@ -462,8 +468,8 @@ public class WorkspaceResourceTest {
         try (InputStream stream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
 
             RequestResponseError response = new RequestResponseError().setError(
@@ -485,8 +491,8 @@ public class WorkspaceResourceTest {
     // uriList
     @Test
     public void givenEmptyFolderWhenfindingThenReturnNoContent() throws IOException {
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()
@@ -497,14 +503,13 @@ public class WorkspaceResourceTest {
     public void givenNotEmptyFolderWhenfindingThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
-            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-
+            with().contentType(ContentType.JSON).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-            .contentType(ContentType.BINARY).body(stream)
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/"+ FOLDER_NAME + "/" + OBJECT_NAME)
-            .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
 
             given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
                 .statusCode(Status.OK.getStatusCode()).when()
@@ -516,14 +521,13 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerNameFolderNameNotExistWhenfindingThenReturn_NoContent() {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        with().contentType(ContentType.JSON).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FAKE_FOLDER_NAME);
 
     }
-
 
 }

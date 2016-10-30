@@ -96,8 +96,7 @@ angular.module('core')
 
       if (!angular.isObject(value)) {
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
-        // FIXME P2 Always true there
-        if (!isMgtChild) {
+        if (!isMgtChild) { // FIXME P0 NOSONAR P2 Always true there
           fieldSet.isModificationAllowed = true;
         }
       } else {

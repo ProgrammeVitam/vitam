@@ -83,7 +83,7 @@ public class ValidationXsdUtilsTest {
                 SEDA_VITAM_VALIDATION_FILE));
     }
 
-    // FIXME should be wrong but is True
+    // FIXME P1 should be wrong but is True
     @Ignore
     @Test(expected = SAXException.class)
     public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {

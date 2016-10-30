@@ -196,7 +196,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
 
         // Load default business metrics
-        // TODO find a better way to have a default BUSINESS VitamMetrics
+        // TODO P1 find a better way to have a default BUSINESS VitamMetrics
         if (!metrics.containsKey(VitamMetricsType.BUSINESS)) {
             metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
         }

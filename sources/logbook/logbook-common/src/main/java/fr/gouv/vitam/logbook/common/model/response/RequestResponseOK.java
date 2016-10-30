@@ -30,7 +30,7 @@ package fr.gouv.vitam.logbook.common.model.response;
  * Logbook RequestResponseOK class contains hits and result objects
  *
  */
-//TODO ; refactor to the common vitam
+//TODO P1 ; refactor to the common vitam
 public class RequestResponseOK extends RequestResponse {
     private DatabaseCursor hits;
 

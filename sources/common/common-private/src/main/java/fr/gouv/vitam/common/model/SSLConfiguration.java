@@ -55,7 +55,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 /**
  * SSL Configuration
  */
-// FIXME to remove once V2 done
+// FIXME P0 to remove once V2 done
 public class SSLConfiguration {
 
     private static final String PARAMETERS = "SSLConfiguration parameters";
@@ -89,7 +89,7 @@ public class SSLConfiguration {
      */
     public SSLContext createSSLContext() throws VitamException {
 
-        // TODO use JKS Keystore
+        // TODO P1 use JKS Keystore
         KeyManager[] keyManagers = null;
         if (keystore != null) {
             keyManagers = readKeyManagers();

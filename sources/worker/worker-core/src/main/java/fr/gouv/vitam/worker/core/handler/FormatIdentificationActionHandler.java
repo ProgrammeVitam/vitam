@@ -96,9 +96,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 
-// TODO: refactor me
-// TODO: review Logbook messages (operation / lifecycle)
-// TODO: fully use VitamCode
+// TODO P1: refactor me
+// TODO P0: review Logbook messages (operation / lifecycle)
+// TODO P0: fully use VitamCode
 
 public class FormatIdentificationActionHandler extends ActionHandler implements AutoCloseable {
 
@@ -107,7 +107,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
-    // TODO should not be a private attribute -> to refactor
+    // TODO P0 should not be a private attribute -> to refactor
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
@@ -165,7 +165,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
         String filename = null;
-        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup metadatas
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
@@ -223,12 +223,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 } catch (IOException e) {
                     throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                 }
-                // TODO: uggly, i don't know how to do this correctly
-                /*
-                 * workspaceClient.putObject(params.getContainerName(), IngestWorkflowConstants.OBJECT_GROUP_FOLDER +
-                 * "/" + params.getObjectName(), new
-                 * ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
-                 */
             }
 
         } catch (final ProcessingException e) {
@@ -238,11 +232,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             // workspace error
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-            /*
-             * } catch (final InvalidParseOperationException e) { // try to write modified json metadata error
-             * LOGGER.error(e); response.setStatus(StatusCode.FATAL); response.setOutcomeMessages(HANDLER_ID,
-             * OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-             */
         } finally {
             try {
                 // delete the file
@@ -257,7 +246,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             commitLifecycleLogbook(itemStatus, params.getObjectName());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            // TODO WORKFLOW is it warning of something else ? is it really KO logbook message ?
+            // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
             if (!StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) &&
                 !StatusCode.KO.equals(itemStatus.getGlobalStatus())) {
                 itemStatus.setItemId("LOGBOOK_COMMIT_KO");
@@ -284,8 +273,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
      * @throws ProcessingException thrown if one error occurred
      */
     private void commitLifecycleLogbook(ItemStatus itemStatus, String ogID) throws ProcessingException {
-        // TODO WORKFLOW use the real message sub code
-        // FIXME TODO WORKFLOW MUST BE itemStatus.getmESSAGE()
+        // TODO P0 WORKFLOW use the real message sub code
+        // FIXME P0 TODO WORKFLOW MUST BE itemStatus.getmESSAGE()
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
@@ -322,7 +311,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 result = adminClient.getFormats(select.getFinalSelect());
             }
 
-            // TODO : what should we do if more than 1 result (for the moment, we take into account the first one)
+            // TODO P1 : what should we do if more than 1 result (for the moment, we take into account the first one)
             if (result.size() == 0) {
                 // format not found in vitam referential
                 objectCheckFormatResult.setStatus(StatusCode.KO);
@@ -362,7 +351,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
             objectCheckFormatResult.setSubStatus("FILE_FORMAT_NOT_FOUND");
-            // TODO WORKFLOW : use sub status for lifecycle message, for now we send the substatus
+            // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 objectCheckFormatResult.getSubStatus());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -449,11 +438,11 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
             objectCheckFormatResult.setSubStatus("FILE_FORMAT_METADATA_UPDATE");
-            // TODO WORKFLOW : use sub status for lifecycle message, for now we send the substatus
+            // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 objectCheckFormatResult.getSubStatus());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                // TODO WORKFLOW : "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
+                // TODO P0 WORKFLOW : "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
                 VitamLogbookMessages.getCodeLfc(
                     logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
                     objectCheckFormatResult.getSubStatus(), objectCheckFormatResult.getStatus(), diff.toString()));
@@ -461,7 +450,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 objectCheckFormatResult.getStatus().name());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
-            // TODO : create a real json object
+            // TODO P1 : create a real json object
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\"}");
             try {

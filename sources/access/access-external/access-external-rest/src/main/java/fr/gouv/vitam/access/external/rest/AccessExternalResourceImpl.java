@@ -521,7 +521,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        // FIXME To be passed to client
+        // FIXME P1 To be passed to client
         @SuppressWarnings("unused")
         final String xTenantId = "0";
         AsyncInputStreamHelper helper = null;
