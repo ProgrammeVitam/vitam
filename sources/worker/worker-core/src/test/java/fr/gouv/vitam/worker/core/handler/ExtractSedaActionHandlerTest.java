@@ -44,7 +44,6 @@ import javax.xml.stream.XMLStreamException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -71,6 +70,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;    
     private final InputStream seda_arborescence;
     private HandlerIO action;
 
@@ -83,6 +83,9 @@ public class ExtractSedaActionHandlerTest {
     public void setUp() throws URISyntaxException {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
         action = new HandlerIO("");
         for (int i = 0; i < ExtractSedaActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
             action.addOutput(TMP_TESTS);
@@ -94,8 +97,6 @@ public class ExtractSedaActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException {
         assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -112,7 +113,6 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
 
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -130,7 +130,6 @@ public class ExtractSedaActionHandlerTest {
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -146,7 +145,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -162,7 +160,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -178,7 +175,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -194,7 +190,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -210,7 +205,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -226,7 +220,6 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

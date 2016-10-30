@@ -167,7 +167,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // FIXME : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
             // a(n) 'attribute declaration' component.
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+            WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
                 HandlerIO.transferFileFromTmpIntoWorkspace(
                     workspaceClient,
                     params.getContainerName() + ATR_FILE_NAME,

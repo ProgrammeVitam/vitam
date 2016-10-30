@@ -36,10 +36,10 @@ import org.jclouds.providers.ProviderMetadata;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 
 /**
@@ -52,12 +52,12 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     /**
      * @param configuration to associate with the FileSystem
      */
-    public FileSystem(StorageConfiguration configuration) {
+    public FileSystem(WorkspaceConfiguration configuration) {
         super(configuration);
     }
-
+    
     @Override
-    public BlobStoreContext getContext(StorageConfiguration configuration) {
+    public BlobStoreContext getContext(WorkspaceConfiguration configuration) {
         final Properties props = new Properties();
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
         LOGGER.debug("Get File System Context");

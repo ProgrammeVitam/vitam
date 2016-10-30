@@ -165,7 +165,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
         String filename = null;
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup metadatas
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());

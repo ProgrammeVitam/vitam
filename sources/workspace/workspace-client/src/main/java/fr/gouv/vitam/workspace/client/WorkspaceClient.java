@@ -33,31 +33,23 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
@@ -66,6 +58,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
@@ -75,32 +68,24 @@ import fr.gouv.vitam.workspace.common.ErrorMessage;
  * Workspace client which calls rest services
  */
 // FIXME REVIEW Since Factory => class and constructors as package protected
-public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable {
+public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage, AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
-    private static final String RESOURCE_PATH = "/workspace/v1";
-
+    private static final String OBJECTS = "/objects/";
+    private static final String FOLDERS = "/folders/";
+    private static final String CONTAINERS = "/containers/";
     public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
-    public static final String X_DIGEST = "X-digest";
-
-    private final String serviceUrl;
-    private final Client client;
+    public static final String X_DIGEST = "X-digest"; 
 
     /**
-     * Instantiates a workspace client with an url parameter
+     * Instantiates a workspace client with a factory
      *
-     * @param serviceUrl
+     * @param factory
      */
-    // FIXME REVIEW User should not specify such url: the factory should handle it (see Logbook client)
-    public WorkspaceClient(String serviceUrl) {
-        this.serviceUrl = serviceUrl + RESOURCE_PATH;
-
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        config.register(MultiPartFeature.class);
-        client = ClientBuilder.newClient(config);
+    WorkspaceClient(WorkspaceClientFactory factory) {
+        super(factory);
     }
+
 
     @Override
     public void createContainer(String containerName)
@@ -108,11 +93,11 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-
         Response response = null;
         try {
-            response = client.target(serviceUrl).path("/containers").request()
-                .post(Entity.json(new Entry(containerName)));
+            response = performRequest(HttpMethod.POST, CONTAINERS, null,
+                new Entry(containerName), MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
@@ -120,11 +105,14 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
 
     }
@@ -143,7 +131,8 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
 
         Response response = null;
         try {
-            response = client.target(serviceUrl).path("/containers/" + containerName).request().delete();
+            response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, null,
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -151,12 +140,16 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
+
     }
 
     @Override
@@ -165,11 +158,20 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
     }
 
     @Override
-    public boolean isExistingContainer(String containerName) {
+    public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-        final Response response = client.target(serviceUrl).path("/containers/" + containerName).request().head();
-        return Response.Status.OK.getStatusCode() == response.getStatus();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName, null,
+                MediaType.APPLICATION_JSON_TYPE);
+            return Response.Status.OK.getStatusCode() == response.getStatus();
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
@@ -177,16 +179,26 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
-        final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/folders").request()
-            .post(Entity.json(new Entry(folderName)));
-        if (Status.CREATED.getStatusCode() == response.getStatus()) {
-            LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.CREATED.getReasonPhrase());
-        } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-            throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, CONTAINERS + containerName + FOLDERS, null,
+                new Entry(folderName), MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            if (Status.CREATED.getStatusCode() == response.getStatus()) {
+                LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.CREATED.getReasonPhrase());
+            } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                throw new ContentAddressableStorageAlreadyExistException(
+                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -198,8 +210,8 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         Response response = null;
         try {
             response =
-                client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName)
-                    .request().delete();
+                performRequest(HttpMethod.DELETE, CONTAINERS + containerName + FOLDERS + folderName, null,
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -207,22 +219,33 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public boolean isExistingFolder(String containerName, String folderName) {
+    public boolean isExistingFolder(String containerName, String folderName)
+        throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName)
-                .request().head();
-        return Response.Status.OK.getStatusCode() == response.getStatus();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + FOLDERS + folderName, null,
+                MediaType.APPLICATION_JSON_TYPE);
+            return Response.Status.OK.getStatusCode() == response.getStatus();
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     // FIXME REVIEW change the contract of the implementation later on (POST on /objects/name directly in
@@ -235,24 +258,22 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
 
 
         Response response = null;
-        try (final FormDataMultiPart multiPart = new FormDataMultiPart()) {
-
-            multiPart.bodyPart(new FormDataBodyPart("objectName", objectName, MediaType.TEXT_PLAIN_TYPE));
-            multiPart.bodyPart(
-                new StreamDataBodyPart("object", stream, objectName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
-            response = client.target(serviceUrl).path("/containers/" + containerName + "/objects").request()
-                .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+        try {
+            response = performRequest(HttpMethod.POST, CONTAINERS + containerName + OBJECTS+objectName, null, stream,
+                 MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + objectName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (final IOException exc) { // NOSONAR no log to do
-            // Do nothing since FormDataMultiPart#close() cannot throw IOException based on its implementation
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
 
     }
@@ -265,12 +286,7 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         Response response = null;
         InputStream stream = null;
         try {
-            WebTarget webTarget = client.target(serviceUrl);
-            webTarget = webTarget.path("/containers/" + containerName + "/objects/" + objectName);
-            Invocation.Builder builder = webTarget.request(MediaType.MULTIPART_FORM_DATA);
-            builder = builder.accept(MediaType.APPLICATION_OCTET_STREAM);
-            response = builder.get();
-
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             /*
              * response = client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
@@ -280,7 +296,9 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                 // to be improved
-                try (final InputStream streamClosedAutomatically = response.readEntity(InputStream.class)) {
+                // FIXME utiliser async pour retourner le stream
+                final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                try {
                     stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
                 } catch (final IOException e) {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -291,13 +309,16 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
-        }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
 
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
@@ -309,8 +330,8 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         Response response = null;
         try {
             response =
-                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                    .request().delete();
+                performRequest(HttpMethod.DELETE, CONTAINERS + containerName + OBJECTS + objectName, null,
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + objectName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
@@ -321,34 +342,56 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
-    public boolean isExistingObject(String containerName, String objectName) {
+    public boolean isExistingObject(String containerName, String objectName)
+        throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                .request().head();
-        return Response.Status.OK.getStatusCode() == response.getStatus();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
+                MediaType.APPLICATION_JSON_TYPE);
+            return Response.Status.OK.getStatusCode() == response.getStatus();
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
-    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName) {
+    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName) throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName)
-                .request().get();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + FOLDERS + folderName, null,
+                MediaType.APPLICATION_JSON_TYPE);
 
-        if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
-            return response.readEntity(new GenericType<List<URI>>() {});
-        } else {
-            return Collections.emptyList();
+            if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response.readEntity(new GenericType<List<URI>>() {
+                    // Empty
+                });
+            } else {
+                if (response != null) {
+                    LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                }
+                return Collections.<URI>emptyList();
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -356,7 +399,8 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
     public void uncompressObject(String containerName, String folderName, String archiveType,
         InputStream inputStreamObject)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException {
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
+        ContentAddressableStorageZipException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName, archiveType);
         LOGGER.debug("-- Begin uncompress object in container:" + containerName + "/archiveType:" +
@@ -364,33 +408,39 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
 
         if (isExistingContainer(containerName)) {
             if (!isExistingFolder(containerName, folderName)) {
+                Response response = null;
+                try {
+                    response =
+                        performRequest(HttpMethod.PUT, CONTAINERS + containerName + FOLDERS + folderName, null,
+                            inputStreamObject, CommonMediaType.valueOf(archiveType), 
+                            MediaType.APPLICATION_JSON_TYPE);
 
-                final Response response =
-                    client.target(serviceUrl)
-                        .path("/containers/" + containerName + "/folders/" + folderName)
-                        .request()
-                        .put(Entity.entity(inputStreamObject, archiveType));
-
-                if (Response.Status.CREATED.getStatusCode() == response.getStatus()) {
-                    LOGGER.debug(containerName + File.separator + folderName + " : " +
-                        Response.Status.CREATED.getReasonPhrase());
-                } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                    LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
-                    throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-                } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                    LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-                    throw new ContentAddressableStorageAlreadyExistException(
-                        ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-                } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
-                    "application/json".equals(response.getHeaderString("Content-Type"))) {
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                    throw new ContentAddressableStorageCompressedFileException(
-                        ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                } else {
-
-
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                    throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    if (Response.Status.CREATED.getStatusCode() == response.getStatus()) {
+                        LOGGER.debug(containerName + File.separator + folderName + " : " +
+                            Response.Status.CREATED.getReasonPhrase());
+                    } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                        LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+                        throw new ContentAddressableStorageNotFoundException(
+                            ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                    } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
+                        LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                        throw new ContentAddressableStorageAlreadyExistException(
+                            ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                    } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
+                        "application/json".equals(response.getHeaderString("Content-Type"))) {
+                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                        throw new ContentAddressableStorageZipException(
+                            ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    } else {
+                        LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                        throw new ContentAddressableStorageServerException(
+                            ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    }
+                } catch (VitamClientInternalException e) {
+                    LOGGER.error("Internal Server Error", e);
+                    throw new ContentAddressableStorageServerException(e);
+                } finally {
+                    consumeAnyEntityAndClose(response);
                 }
 
             } else {
@@ -403,7 +453,6 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
         }
-
     }
 
     @Override
@@ -413,39 +462,52 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName, algo);
 
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                .request()
-                .header(X_DIGEST_ALGORITHM, algo.getName())
-                .head();
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(X_DIGEST_ALGORITHM, algo.getName());
+            response =
+                performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
+                    MediaType.APPLICATION_JSON_TYPE);
 
-        if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-            return response.getHeaderString(X_DIGEST);
-        } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response.getHeaderString(X_DIGEST);
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         Response response = null;
         try {
             response =
-                client.target(serviceUrl).path("/containers/" + containerName).request().get();
+                performRequest(HttpMethod.GET, CONTAINERS + containerName, null,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response.readEntity(ContainerInformation.class);
             } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageNotFoundException(response.getStatusInfo().getReasonPhrase());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -457,8 +519,8 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
         Response response = null;
         try {
             response =
-                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                    .request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).get();
+                performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
+                    MediaType.APPLICATION_JSON_TYPE);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response.readEntity(JsonNode.class);
@@ -466,18 +528,19 @@ public class WorkspaceClient implements ContentAddressableStorage, AutoCloseable
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new ContentAddressableStorageServerException(e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public void close() {
-        if (client != null) {
-            client.close();
-        }
+        super.close();
     }
 }

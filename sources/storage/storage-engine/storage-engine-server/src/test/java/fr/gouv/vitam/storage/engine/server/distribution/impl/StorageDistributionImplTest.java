@@ -58,6 +58,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  *
@@ -76,7 +77,7 @@ public class StorageDistributionImplTest {
 
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setUrlWorkspace("there");
-        client = Mockito.mock(WorkspaceClient.class);
+        client = Mockito.mock(WorkspaceClient.class);        
         simpleDistribution = new StorageDistributionImpl(configuration);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1);
     }

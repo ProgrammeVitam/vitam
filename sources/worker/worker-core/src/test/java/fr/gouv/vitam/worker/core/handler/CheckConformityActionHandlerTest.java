@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckConformityActionHandlerTest {
     CheckConformityActionHandler handler;
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
     private static final String HANDLER_ID = "CHECK_DIGEST";
     
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
@@ -73,7 +75,9 @@ public class CheckConformityActionHandlerTest {
     public void setUp(){
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
     }
 
     @After

@@ -62,7 +62,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * Integration driver offer tests
@@ -128,8 +128,8 @@ public class DriverToOfferTest {
         application.stop();
         
         // delete files
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1");
         final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
         final File object = new File(folder.getAbsolutePath(), guid);
@@ -153,9 +153,9 @@ public class DriverToOfferTest {
                 final PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                final StorageConfiguration conf =
+                final WorkspaceConfiguration conf =
                     PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                        StorageConfiguration.class);
+                        WorkspaceConfiguration.class);
                 final File container = new File(conf.getStoragePath() + "/1");
                 assertNotNull(container);
                 final File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);

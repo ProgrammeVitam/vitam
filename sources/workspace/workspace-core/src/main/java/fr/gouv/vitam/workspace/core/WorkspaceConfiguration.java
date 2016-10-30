@@ -24,7 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.workspace.core;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+
 /**
- * This package contains Workspace configuration
+ * workspace jetty configuration
  */
-package fr.gouv.vitam.workspace.api.config;
+public class WorkspaceConfiguration extends DefaultVitamApplicationConfiguration{
+    protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
+    private String storagePath;
+
+    /**
+     * getter for storage path
+     *
+     * @return String
+     */
+    public String getStoragePath() {
+        return storagePath;
+    }
+
+    /**
+     * setter for storage path
+     *
+     * @param storagePath as String, path to storage
+     * @return this
+     */
+    public WorkspaceConfiguration setStoragePath(String storagePath) {
+        this.storagePath = storagePath;
+        return this;
+    }
+}

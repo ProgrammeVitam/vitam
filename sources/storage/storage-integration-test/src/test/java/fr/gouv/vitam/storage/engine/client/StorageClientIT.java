@@ -70,7 +70,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
-
+    private static WorkspaceApplication workspaceApplication;
 
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String STORAGE_CONF = "storage-engine.conf";
@@ -100,7 +100,8 @@ public class StorageClientIT {
         // junitHelper = JunitHelper.getInstance();
         // serverPort = junitHelper.findAvailablePort();
         // launch workspace
-        WorkspaceApplication.startApplication("workspace.conf");
+        workspaceApplication = new WorkspaceApplication("workspace.conf");
+        workspaceApplication.start();
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
         final StorageConfiguration serverConfiguration =
@@ -127,7 +128,8 @@ public class StorageClientIT {
 
         storageClient = StorageClientFactory.getInstance().getClient();
 
-        workspaceClient = WorkspaceClientFactory.create("http://localhost:" + workspacePort);
+        WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         destroyWorkspaceFiles();
         createWorkspaceFiles();
     }
@@ -183,8 +185,10 @@ public class StorageClientIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
-        WorkspaceApplication.stop();
+        workspaceApplication.stop();
         storageApplication.stop();
+        // junitHelper.releasePort(workspacePort);
+        // junitHelper.releasePort(serverPort);
     }
 
 

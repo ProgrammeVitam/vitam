@@ -37,7 +37,6 @@ import java.io.InputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -70,6 +69,7 @@ public class StoreObjectGroupActionHandlerTest {
     StoreObjectGroupActionHandler handler;
     private static final String HANDLER_ID = "OG_STORAGE";
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;    
     private MetaDataClient metadataClient;
     private StorageClient storageClient;
     private HandlerIO action;
@@ -91,6 +91,9 @@ public class StoreObjectGroupActionHandlerTest {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
     @Test
@@ -105,7 +108,6 @@ public class StoreObjectGroupActionHandlerTest {
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
 
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
@@ -133,8 +135,6 @@ public class StoreObjectGroupActionHandlerTest {
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
-
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
 
         Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(), anyObject(),
             anyObject(),

@@ -259,7 +259,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO : whould use worker configuration instead of the processing configuration
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             extractSEDAWithWorkspaceClient(workspaceClient, containerId, itemStatus);
         }
     }

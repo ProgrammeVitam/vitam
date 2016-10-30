@@ -70,6 +70,7 @@ public class IndexUnitActionHandlerTest {
     private static final String HANDLER_ID = "UNIT_METADATA_INDEXATION";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
+    private WorkspaceClientFactory workspaceClientFactory;
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
     private static final String INGEST_TREE = "INGEST_TREE.json";
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.json";
@@ -86,6 +87,9 @@ public class IndexUnitActionHandlerTest {
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);  
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         action = new HandlerIO("");
         action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourceFile(INGEST_TREE));
@@ -96,7 +100,6 @@ public class IndexUnitActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException {
         assertNotNull(IndexUnitActionHandler.getId());
         assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -110,8 +113,6 @@ public class IndexUnitActionHandlerTest {
         when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -124,8 +125,6 @@ public class IndexUnitActionHandlerTest {
         when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -139,8 +138,6 @@ public class IndexUnitActionHandlerTest {
         when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");

@@ -254,9 +254,15 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (DefaultOfferServiceImpl.getInstance().isObjectExist(xTenantId, idObject)) {
-            return Response.status(Response.Status.NO_CONTENT).build();
+        try {
+            if (DefaultOfferServiceImpl.getInstance().isObjectExist(xTenantId, idObject)) {
+                return Response.status(Response.Status.NO_CONTENT).build();
+            } else{
+                return Response.status(Response.Status.NOT_FOUND).build();                
+            }
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
     }
 }

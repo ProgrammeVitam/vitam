@@ -24,37 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.workspace.api.config;
+package fr.gouv.vitam.workspace.api.exception;
 
-// TODO REVIEW missing javadoc comment to describe the use of the class
 /**
- * Represents the service storage settings
+ * Thrown when there is an error on a zip file resource (format, etc).
  */
-public class StorageConfiguration {
-    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
-    // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
-    // a filesystem implementation package.
-
-    private String storagePath;
+public class WorkspaceClientServerException extends ContentAddressableStorageException {
+    private static final long serialVersionUID = -7976465493734475323L;
 
     /**
-     * getter for storage path
-     *
-     * @return String
+     * @param message as String message to associate with the exception
      */
-    public String getStoragePath() {
-        return storagePath;
+    public WorkspaceClientServerException(String message) {
+        super(message);
     }
 
     /**
-     * setter for storage path
-     *
-     * @param storagePath as String, path to storage
-     * @return this
+     * @param cause as String to associate with the exception
      */
-    public StorageConfiguration setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
-        return this;
+    public WorkspaceClientServerException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * setter jettConfig
+     *
+     * @param jettyConfig
+     * @return this
+     * */
+    public WorkspaceClientServerException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

@@ -31,6 +31,7 @@ import java.util.List;
 
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -60,12 +61,14 @@ public class ContainerExtractionUtils {
      * @param workParams parameters of workspace server
      * @return List of Uri
      * @throws ProcessingException - throw when workspace is unavailable.
+     * @throws ContentAddressableStorageServerException 
      *
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
-        throws ProcessingException {
+        throws ProcessingException, ContentAddressableStorageServerException{
+        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
+            WorkspaceClientFactory.getInstance().getClient()) {
             final String guidContainer = workParams.getContainerName();
             return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
         }
@@ -77,9 +80,10 @@ public class ContainerExtractionUtils {
      * @param workspaceClient
      * @param guidContainer
      * @return List<URI> - list uri
+     * @throws ContentAddressableStorageServerException 
      */
     private List<URI> getDigitalObjectUriListFromWorkspace(WorkspaceClient workspaceClient, String guidContainer)
-        throws ProcessingException {
+        throws ProcessingException, ContentAddressableStorageServerException{
         final List<URI> uriListWorkspace =
             workspaceClient.getListUriDigitalObjectFromFolder(guidContainer, DIGITAL_OBJECT_FOLDER_NAME);
         uriListWorkspace.remove(uriListWorkspace.size() - 1);

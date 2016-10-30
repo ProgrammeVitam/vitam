@@ -100,8 +100,9 @@ public interface ContentAddressableStorage {
      *
      * @param containerName name of container
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
-    public boolean isExistingContainer(String containerName);
+    public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
 
     // folder (or directory)
 
@@ -135,8 +136,9 @@ public interface ContentAddressableStorage {
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
-    boolean isExistingFolder(String containerName, String folderName);
+    boolean isExistingFolder(String containerName, String folderName) throws ContentAddressableStorageServerException;
 
     // Object
 
@@ -189,9 +191,10 @@ public interface ContentAddressableStorage {
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
 
-    public boolean isExistingObject(String containerName, String objectName);
+    public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageServerException;
 
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
@@ -250,9 +253,10 @@ public interface ContentAddressableStorage {
      * @return container information like usableSpace and usedSpace
      * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
      *         exist
+     * @throws ContentAddressableStorageServerException 
      */
     ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Retrieves information about an object at location containerName/objectName

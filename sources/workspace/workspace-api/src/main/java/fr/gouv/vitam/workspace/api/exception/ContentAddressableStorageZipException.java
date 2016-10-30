@@ -24,34 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.workspace.rest;
-
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+package fr.gouv.vitam.workspace.api.exception;
 
 /**
- * workspace jetty configuration
+ * Thrown when there is an error on a zip file resource (format, etc).
  */
-public class WorkspaceConfiguration extends StorageConfiguration {
-
-    private String jettyConfig;
+public class ContentAddressableStorageZipException extends ContentAddressableStorageException {
+    private static final long serialVersionUID = -7976465493734475323L;
 
     /**
-     * getter jettyConfig
-     *
-     * @return jettyConfig
+     * @param message as String message to associate with the exception
      */
-    public String getJettyConfig() {
-        return jettyConfig;
+    public ContentAddressableStorageZipException(String message) {
+        super(message);
     }
 
     /**
-     * setter jettConfig
-     *
-     * @param jettyConfig
-     * @return this
+     * @param cause as String to associate with the exception
      */
-    public WorkspaceConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
+    public ContentAddressableStorageZipException(Throwable cause) {
+        super(cause);
     }
+
+    /**
+     * @param message : message to associate with the exception
+     * @param cause : cause to associate with the exception
+     */
+    public ContentAddressableStorageZipException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

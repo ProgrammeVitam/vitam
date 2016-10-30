@@ -78,6 +78,7 @@ public class TransferNotificationActionHandlerTest {
 
     private static LogbookDbAccess mongoDbAccess;
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;    
     private HandlerIO action;
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
@@ -89,9 +90,10 @@ public class TransferNotificationActionHandlerTest {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
         mongoDbAccess = mock(LogbookDbAccess.class);
-
         action = new HandlerIO("containerName");
         action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourceFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));

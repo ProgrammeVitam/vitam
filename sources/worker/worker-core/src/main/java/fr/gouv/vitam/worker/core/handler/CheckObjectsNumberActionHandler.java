@@ -43,6 +43,7 @@ import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /** 
  * Handler checking that digital objects number in workspace matches with manifest.xml.
@@ -89,7 +90,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) throws ContentAddressableStorageServerException {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -138,8 +139,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return List of uri
      * @throws ProcessingException throws when error in execution
+     * @throws ContentAddressableStorageServerException 
      */
-    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException {
+    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException, ContentAddressableStorageServerException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }

@@ -28,22 +28,16 @@ package fr.gouv.vitam.workspace.rest;
 
 import static java.lang.String.format;
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.VitamServer;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * The Workspace APPLICATION.
@@ -51,140 +45,54 @@ import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceApplication, WorkspaceConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
-    private static final String CONF_FILE_NAME = "workspace.conf";
-    private static final String MODULE_NAME = "Access";
+    private static String MODULE_NAME = ServerIdentity.getInstance().getRole();
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.workspace.port";
-
-    private static final WorkspaceApplication APPLICATION = new WorkspaceApplication();
-    private static VitamServer vitamServer;
-
 
     /**
      * WorkspaceApplication constructor
+     *
+     * @param configurationFile
+     * @throws IllegalStateException
      */
-    public WorkspaceApplication() {
-        super(WorkspaceApplication.class, WorkspaceConfiguration.class);
+    public WorkspaceApplication(String configurationFile) {
+        super(WorkspaceConfiguration.class, configurationFile);
+    }
+
+    /**
+     * WorkspaceApplication constructor
+     *
+     * @param configuration
+     * @throws IllegalStateException
+     */
+    protected WorkspaceApplication(WorkspaceConfiguration configuration) {
+        super(WorkspaceConfiguration.class, configuration);
     }
 
     /**
      * runs the APPLICATION
      *
-     * @param args indicate the APPLICATION server config
+     * @param configuration Workspace Configuration
+     * @throws VitamApplicationServerException 
+     * @throws Exception Thrown if something goes wrong
      */
     public static void main(String[] args) {
+        if (args == null || args.length == 0) {
+            LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT + MODULE_NAME);
+            throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT + MODULE_NAME);
+        }
         try {
-            startApplication(args);
-
-            if (vitamServer != null && vitamServer.isStarted()) {
-                vitamServer.join();
-            }
-
+            final WorkspaceApplication application = new WorkspaceApplication(args[0]);
+            application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    /**
-     * Parses command-line arguments and runs the APPLICATION.
-     *
-     * @param arguments the command-line arguments not null & not empty
-     * @throws IllegalArgumentException Thrown if arguments goes wrong
-     * @throws VitamApplicationServerException Thrown if something goes wrong
-     */
-
-    public static void startApplication(String... arguments)
-        throws IllegalArgumentException, VitamApplicationServerException {
-
-        if (arguments == null || arguments.length == 0) {
-            LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-            throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                CONF_FILE_NAME));
-        }
-
-        APPLICATION.configure(APPLICATION.computeConfigurationPathFromInputArguments(arguments));
-        run(APPLICATION.getConfiguration());
-    }
-
-    /**
-     * Start workspace application with the configuration class used by unit test
-     *
-     * @param configuration
-     * @throws IllegalArgumentException
-     * @throws VitamApplicationServerException
-     */
-    public static void startApplication(WorkspaceConfiguration configuration)
-        throws IllegalArgumentException, VitamApplicationServerException {
-
-        if (configuration == null) {
-            LOGGER.error(format(VitamServer.CONFIGURATION_IS_A_MANDATORY_ARGUMENT, "WorkspaceConfiguration"));
-            throw new IllegalArgumentException(
-                format(VitamServer.CONFIGURATION_IS_A_MANDATORY_ARGUMENT, "WorkspaceConfiguration"));
-        }
-
-        APPLICATION.setConfiguration(configuration);
-        run(APPLICATION.getConfiguration());
-    }
-
-
-    /**
-     * Run workspace server
-     *
-     * @param configuration Workspace Configuration
-     * @throws VitamApplicationServerException 
-     * @throws Exception Thrown if something goes wrong
-     */
-    public static void run(WorkspaceConfiguration configuration) throws VitamApplicationServerException {
-
-        final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
-        vitamServer = VitamServerFactory.newVitamServerByJettyConf(configuration.getJettyConfig());
-        vitamServer.configure(context);
-
-        try {
-            vitamServer.start();
-        } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-            throw new VitamApplicationServerException(
-                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * stop a workspace server
-     *
-     * @throws Exception in case of error
-     */
-    public static void stop() throws Exception {
-        vitamServer.stop();
-    }
-
-    /**
-     * Implement this method to construct your APPLICATION specific handler
-     *
-     * @return the generated Handler
-     */
     @Override
-    protected Handler buildApplicationHandler() {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        resourceConfig.register(new WorkspaceResource(getConfiguration()));
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        return context;
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new WorkspaceResource(getConfiguration()))
+            .register(new AdminStatusResource());
     }
 
-    /**
-     * Must return the name as a string of your configuration file. Example : "logbook.conf"
-     *
-     * @return the name of the APPLICATION configuration file
-     */
-    @Override
-    protected String getConfigFilename() {
-        return CONF_FILE_NAME;
-    }
 }

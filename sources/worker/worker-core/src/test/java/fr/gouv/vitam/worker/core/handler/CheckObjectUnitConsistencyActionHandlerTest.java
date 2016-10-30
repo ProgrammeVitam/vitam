@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.junit.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
@@ -71,6 +72,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private static final String EMPTY = "EMPTY_MAP.json";
 
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
+    
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
@@ -83,6 +86,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
@@ -100,7 +106,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.addInput(PropertiesUtils.getResourceFile(EMPTY));
         action.addInput(PropertiesUtils.getResourceFile(EMPTY));
 
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+
 
         handler = new CheckObjectUnitConsistencyActionHandler();
 
@@ -117,9 +123,6 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
         action.addInput(PropertiesUtils.getResourceFile(OG_AU));
         action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
-
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);

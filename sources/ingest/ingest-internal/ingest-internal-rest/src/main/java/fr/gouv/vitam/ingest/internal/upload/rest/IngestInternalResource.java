@@ -125,7 +125,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     public IngestInternalResource(IngestInternalConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
-        workspaceClient = WorkspaceClientFactory.create(configuration.getWorkspaceUrl());
+        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
     }
 

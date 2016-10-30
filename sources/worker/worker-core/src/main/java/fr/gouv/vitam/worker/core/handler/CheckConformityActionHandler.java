@@ -120,8 +120,8 @@ public class CheckConformityActionHandler extends ActionHandler {
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
+        WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());

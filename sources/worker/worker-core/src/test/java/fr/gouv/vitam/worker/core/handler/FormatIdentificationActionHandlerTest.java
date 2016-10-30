@@ -62,6 +62,7 @@ public class FormatIdentificationActionHandlerTest {
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
+    private WorkspaceClientFactory workspaceClientFactory;    
 
     public FormatIdentificationActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -72,6 +73,8 @@ public class FormatIdentificationActionHandlerTest {
     public void setUp() {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         deleteFiles();
     }
@@ -127,7 +130,7 @@ public class FormatIdentificationActionHandlerTest {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         handler = new FormatIdentificationActionHandler();
@@ -147,7 +150,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
@@ -178,7 +181,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
 
         assertEquals(FormatIdentificationActionHandler.getId(), HANDLER_ID);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
@@ -205,7 +208,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup2)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
@@ -231,7 +234,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
@@ -256,7 +259,7 @@ public class FormatIdentificationActionHandlerTest {
         when(adminManagementClient.getFormats(anyObject())).thenThrow(new ReferentialException(""));
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
@@ -276,7 +279,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierTechnicalException(""));
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
 
         handler = new FormatIdentificationActionHandler();
@@ -294,7 +297,7 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
