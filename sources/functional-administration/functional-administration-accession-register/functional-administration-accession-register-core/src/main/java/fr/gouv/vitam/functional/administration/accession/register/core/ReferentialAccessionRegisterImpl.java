@@ -77,7 +77,8 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
 
         // TODO replace with real tenant
         int tenantId = 0;
-        LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(), registerDetail.getOriginatingAgency());
+        LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
+            registerDetail.getOriginatingAgency());
         // store accession register detail
         try {
             this.mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
@@ -86,7 +87,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
         }
-        
+
         // store accession register summary
         RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
         try {
@@ -100,7 +101,8 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
                 .setObjectSize(initialValue);
 
 
-            LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(), registerDetail.getOriginatingAgency());
+            LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
+                registerDetail.getOriginatingAgency());
 
             this.mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
@@ -164,18 +166,20 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
     }
 
     /**
-     * Find documents
+     * search for an accession register's summary
      * 
-     * @param select the select query
-     * @return a list of accessionRegisterSummary
-     * @throws ReferentialException
+     * @param select the search criteria for the select operation
+     * @return A list of AccressionRegisterSummaries matching the 'select' criteria.
+     * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
      */
+
+
     public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterSummary> registers =
             (MongoCursor<AccessionRegisterSummary>) mongoAccess.select(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
-            final List<AccessionRegisterSummary> result = new ArrayList<>();
+            final List<AccessionRegisterSummary> result = new ArrayList<AccessionRegisterSummary>();
             if (registers == null || !registers.hasNext()) {
                 throw new ReferentialException("Register Summary not found");
             }
@@ -216,7 +220,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
             throw new ReferentialException(e);
         }
     }
-    
+
     /**
      * Reset MongoDB Index (import optimization?)
      */

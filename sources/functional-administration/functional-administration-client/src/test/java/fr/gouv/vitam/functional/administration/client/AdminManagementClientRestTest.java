@@ -418,4 +418,27 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
     }
 
+    /** Accession Register Summary **/
+    @Test
+    public void getAccessionRegisterSummary()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = ReferentialException.class)
+    public void getAccessionRegisterSummaryError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test
+    public void getAccessionRegisterSummaryUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("{}").build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+
+    }
+
 }

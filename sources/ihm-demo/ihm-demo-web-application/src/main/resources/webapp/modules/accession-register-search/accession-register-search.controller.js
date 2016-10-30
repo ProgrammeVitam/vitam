@@ -26,7 +26,11 @@
  */
 
 angular.module('accession.register.search')
-  .controller('accessionRegisterSearchController', function() {
+  .constant('ACCESSIONREGISTER_CONSTANTS', {
+    'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
+    'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
+  })
+  .controller('accessionRegisterSearchController', function(ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator) {
     var self = this;
 
     // ************************************Pagination  **************************** //
@@ -39,15 +43,54 @@ angular.module('accession.register.search')
      selfcurrentPage = pageNo;
     };
 
-    self.pageChanged = function() {
-     console.log('Page changed to: ' + self.currentPage);
-    };
-
     self.setItemsPerPage = function(num) {
       self.itemsPerPage = num;
       self.currentPage = 1; // reset to first page
     };
     // **************************************************************************** //
 
+    // Search criteria
+    // Default criteria
+    // Search for accession register
+    self.searchRegistersByCriteria = function(serviceProducerCriteria) {
+      self.searchCriteria = {};
+      self.searchCriteria.orderby = 'creationDate';
 
+      if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
+        || serviceProducerCriteria === ''){
+        // Return all registers
+        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
+      } else {
+        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = serviceProducerCriteria;
+      }
+
+      ihmDemoFactory.getAccessionRegisters(self.searchCriteria)
+      .then(
+        // Succeeded search request
+        function(response) {
+          var isReponseValid = responseValidator.validateReceivedResponse(response);
+          if (isReponseValid) {
+            // Get total results
+            self.totalResult = response.data.hits.total;
+            self.showResult = true;
+
+            if (self.totalResult > 0) {
+              // Display found registers
+              self.registers = response.data.result;
+            }
+          } else {
+            // Invalid response
+            self.showResult = false;
+          }
+        },
+        // Failed search request
+        function(error) {
+          self.showResult = false;
+        }
+      );
+    }
+
+    // Default Search
+    self.searchRegistersByCriteria(null);
   });
+

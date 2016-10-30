@@ -13,6 +13,19 @@ angular.module('core')
   };
 }
 ])
+.service('responseValidator', function(){
+  var self = this;
+  self.validateReceivedResponse = function (responseToValidate) {
+    if (responseToValidate.data === undefined || responseToValidate.data.hits === undefined ||
+        responseToValidate.data.hits === null || responseToValidate.data.result === undefined || responseToValidate.data.result === null) {
+      // Invalid response
+      // Display error message
+      return false;
+    }
+
+    return true;
+  };
+})
 .service('dateValidator', function(){
     // FIXME Use an external component or a js native function to do exactly the good stuff ?
     var self = this;
@@ -59,3 +72,4 @@ angular.module('core')
   }
 
 });
+
