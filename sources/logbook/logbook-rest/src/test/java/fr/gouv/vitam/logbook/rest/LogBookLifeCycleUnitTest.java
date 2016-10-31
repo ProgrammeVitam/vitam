@@ -213,7 +213,9 @@ public class LogBookLifeCycleUnitTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            application.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }

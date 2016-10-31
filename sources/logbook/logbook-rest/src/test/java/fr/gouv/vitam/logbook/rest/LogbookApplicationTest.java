@@ -68,6 +68,7 @@ public class LogbookApplicationTest {
     private static int oldPort;
     private static JunitHelper junitHelper;
     private static File logbook;
+    private static LogbookConfiguration realLogbook;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -77,12 +78,8 @@ public class LogbookApplicationTest {
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        try (FileOutputStream outputStream = new FileOutputStream(logbook)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realLogbook);
-        }
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -115,7 +112,7 @@ public class LogbookApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            new LogbookApplication(LOGBOOK_CONF);
+            new LogbookApplication(realLogbook);
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
