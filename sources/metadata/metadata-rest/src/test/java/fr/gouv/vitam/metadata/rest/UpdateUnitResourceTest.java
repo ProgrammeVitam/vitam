@@ -42,10 +42,10 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -58,7 +58,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
@@ -88,7 +90,7 @@ public class UpdateUnitResourceTest {
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST = "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -157,8 +159,8 @@ public class UpdateUnitResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -190,17 +192,17 @@ public class UpdateUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
+            .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
-    @Test
-    public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body("")
+            .body(JsonHandler.getFromString(""))
             .when()
             .put("/units/" + ID_UNIT)
             .then()
@@ -208,32 +210,44 @@ public class UpdateUnitResourceTest {
     }
 
     @Test
-    public void shouldReturn_Request_Entity_Too_Large_If_DocumentIsTooLarge() throws Exception {
+    public void given_bad_header_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .when()
+            .put("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn_Internal_Server_Error_If_DocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
     @Test
-    public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
+    public void shouldReturnInternalServerErrorIfDocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .put("/units/" + ID_UNIT).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
 
 
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
@@ -241,4 +255,5 @@ public class UpdateUnitResourceTest {
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
+
 }

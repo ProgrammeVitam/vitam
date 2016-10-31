@@ -85,7 +85,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
     // FIXME P0 JsonNode en argument pour toutes les "query"
     @Override
-    public JsonNode selectUnits(String selectQuery)
+    public JsonNode selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
@@ -115,7 +115,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitbyId(String selectQuery, String idUnit)
+    public JsonNode selectUnitbyId(JsonNode selectQuery, String idUnit)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
@@ -147,7 +147,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
@@ -179,7 +179,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
+    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
@@ -220,7 +220,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
+    public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);

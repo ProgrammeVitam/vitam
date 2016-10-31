@@ -15,9 +15,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public class AccessExternalClientMockTest {
 
     final String queryDsql =
-        "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-            " $filter : { $orderby : { '#id' } }," +
-            " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
     final String ID = "identifier1";
     final String USAGE = "usage";

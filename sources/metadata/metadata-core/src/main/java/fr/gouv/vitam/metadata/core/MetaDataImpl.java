@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -162,7 +163,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsByQuery(String selectQuery)
+    public JsonNode selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
@@ -171,7 +172,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsById(String selectQuery, String unitId)
+    public JsonNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
@@ -179,7 +180,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+    public JsonNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
@@ -189,25 +190,19 @@ public class MetaDataImpl implements MetaData {
 
     // FIXME P0 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
-    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId,
+    private JsonNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;
-        if (Strings.isNullOrEmpty(selectQuery)) {
+        if (selectQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
-        }
-        try {
-            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
-            GlobalDatasParser.sanityRequestCheck(selectQuery);
-        } catch (final InvalidParseOperationException eInvalidParseOperationException) {
-            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
         }
         try {
             // parse Select request
             final RequestParserMultiple selectRequest = new SelectParserMultiple(new MongoDbVarNameAdapter());
-            selectRequest.parse(JsonHandler.getFromString(selectQuery));
+            selectRequest.parse(selectQuery);
             // Reset $roots (add or override id on roots)
             if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
                 final RequestMultiple request = selectRequest.getRequest();
@@ -239,23 +234,23 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;
-        if (Strings.isNullOrEmpty(updateQuery)) {
+        if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
         try {
             // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
-            GlobalDatasParser.sanityRequestCheck(updateQuery);
+            SanityChecker.checkJsonAll(updateQuery);
         } catch (final InvalidParseOperationException eInvalidParseOperationException) {
             throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
         }
         try {
             // parse Update request
             final RequestParserMultiple updateRequest = new UpdateParserMultiple();
-            updateRequest.parse(JsonHandler.getFromString(updateQuery));
+            updateRequest.parse(updateQuery);
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
                 final RequestMultiple request = updateRequest.getRequest();
@@ -290,7 +285,7 @@ public class MetaDataImpl implements MetaData {
     private JsonNode getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException {
         final Select select = new Select();
-        return selectUnitsById(select.getFinalSelect().toString(), id);
+        return selectUnitsById(select.getFinalSelect(), id);
     }
 
     /**

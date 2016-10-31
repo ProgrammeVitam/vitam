@@ -29,12 +29,10 @@ package fr.gouv.vitam.metadata.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client2.DefaultClient;
@@ -94,13 +92,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        }finally {
+        } finally {
             consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public JsonNode selectUnits(String selectQuery)
+    public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
         try {
@@ -110,35 +108,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
-            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
-            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
-            }
-            return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
-            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override public JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
-        try {
-            ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidParseOperationException(e);
-        }
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, "/units/" + unitId, null, selectQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -156,8 +127,36 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId) throws
-        MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+    public JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
+        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
+        try {
+            ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/units/" + unitId, null, selectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            }
+            return response.readEntity(JsonNode.class);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetadataInvalidSelectException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL.getMessage(), selectQuery);
@@ -197,8 +196,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -222,9 +221,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/objectgroups", null, insertQuery, MediaType
-                .APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.POST, "/objectgroups", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

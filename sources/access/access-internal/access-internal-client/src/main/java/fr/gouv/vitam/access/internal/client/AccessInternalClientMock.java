@@ -50,28 +50,28 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
-    public JsonNode selectUnits(String selectQuery)
+    public JsonNode selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode selectUnitbyId(String sqlQuery, String id)
+    public JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
+    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
@@ -80,7 +80,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
+    public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);

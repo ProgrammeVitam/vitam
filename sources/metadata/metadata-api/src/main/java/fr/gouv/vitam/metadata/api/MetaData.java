@@ -70,7 +70,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode selectUnitsByQuery(String selectQuery)
+    public JsonNode selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
@@ -91,7 +91,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode selectUnitsById(String selectQuery, String unitId)
+    public JsonNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
@@ -112,7 +112,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+    JsonNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException;
 
     /**
@@ -132,7 +132,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 

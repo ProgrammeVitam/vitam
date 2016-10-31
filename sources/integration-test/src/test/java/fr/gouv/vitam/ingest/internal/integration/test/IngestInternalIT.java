@@ -334,7 +334,7 @@ public class IngestInternalIT {
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             Select select = new Select();
             select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
-            JsonNode node = metadataClient.selectUnits(select.getFinalSelect().toString());
+            JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.warn(JsonHandler.prettyPrint(node));
             JsonNode result = node.get("$result");
             assertNotNull(result);

@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -146,8 +147,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode jsonNode = null;
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-
-            jsonNode = metaDataClient.selectUnits(jsonQuery.toString());
+            SanityChecker.checkJsonAll(jsonQuery);
+            jsonNode = metaDataClient.selectUnits(jsonQuery);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("parsing error", e);

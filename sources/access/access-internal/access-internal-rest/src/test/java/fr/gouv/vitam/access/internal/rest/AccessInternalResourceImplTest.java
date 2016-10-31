@@ -43,12 +43,14 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.MarshalException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -57,6 +59,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -84,12 +87,13 @@ public class AccessInternalResourceImplTest {
     // QUERIES AND DSL
     // TODO P1
     // Create a "GET" query inspired by DSL, exemple from tech design story 76
-    private static final String QUERY_TEST = "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-        " $filter : { $orderby : { '#id' } }," +
-        " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-        " }";
+    private static final String QUERY_TEST =
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
 
-    private static final String QUERY_SIMPLE_TEST = "{ $query : [ { $eq : { 'title' : 'test' } } ] }";
+    private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
@@ -97,9 +101,13 @@ public class AccessInternalResourceImplTest {
     private static final String DATA2 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
+    private static final String DATA_HTML =
+        "{ \"_id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
+
     private static final String ID = "identifier4";
 
-    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST =
+        "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
 
     private static final String ID_UNIT = "identifier5";
     private static JunitHelper junitHelper;
@@ -162,7 +170,7 @@ public class AccessInternalResourceImplTest {
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2))
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -171,11 +179,20 @@ public class AccessInternalResourceImplTest {
      *
      * @throws Exception
      */
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2)).when()
+            .body(buildDSLWithOptions(QUERY_TEST, "test")).when()
+            .post(ACCESS_UNITS_URI).then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_BadRequest() throws Exception {
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML)).when()
             .post(ACCESS_UNITS_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -192,19 +209,21 @@ public class AccessInternalResourceImplTest {
      *
      * @param data
      * @return query DSL with Options
+     * @throws InvalidParseOperationException
      */
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
 
     /**
      *
      * @param data
      * @return query DSL with id as Roots
+     * @throws InvalidParseOperationException 
      */
-
-    private static final String buildDSLWithRoots(String data) {
-        return "{ $roots : [ " + data + " ], $query : [ '' ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithRoots(String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }");
     }
 
     /**
@@ -217,7 +236,7 @@ public class AccessInternalResourceImplTest {
         throws Exception {
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithRoots(ID))
+            .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -226,7 +245,7 @@ public class AccessInternalResourceImplTest {
      *
      * @throws Exception
      */
-    @Test
+    @Test (expected = InvalidParseOperationException.class)
     public void givenStartedServer_WhenBadRequest_ThenReturnError_SelectById_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
@@ -240,12 +259,12 @@ public class AccessInternalResourceImplTest {
         throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(buildDSLWithRoots(ID))
+            .body(buildDSLWithRoots(null))
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
-    @Test
-    public void given_SelectUnitById_WhenStringTooLong_Then_Throw_MethodNotAllowed() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_SelectUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
         GlobalDatasParser.limitRequest = 1000;
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
@@ -254,8 +273,8 @@ public class AccessInternalResourceImplTest {
 
     }
 
-    @Test
-    public void given_updateUnitById_WhenStringTooLong_Then_Throw_BadRequest() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_updateUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
         GlobalDatasParser.limitRequest = 1000;
         given()
             .contentType(ContentType.JSON).body(buildDSLWithOptions(createLongString(1001), DATA2))
@@ -316,7 +335,7 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void given_queryThatThrowException_when_updateByID() {
+    public void given_queryThatThrowException_when_updateByID() throws InvalidParseOperationException {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
@@ -353,18 +372,17 @@ public class AccessInternalResourceImplTest {
 
     @Ignore
     @Test
-    public void given_bad_header_when_updateByID_thenReturn_Not_allowed() {
+    public void given_bad_header_when_updateByID_thenReturn_Not_allowed() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .put("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
-    @Ignore
     @Test
     public void shouldReturnInternalServerError() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
@@ -421,8 +439,8 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void getObjectGroupPostMethodNotAllowed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(buildDSLWithRoots(""))
+    public void getObjectGroupPostMethodNotAllowed() throws InvalidParseOperationException {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(buildDSLWithRoots(null))
             .when().post(OBJECTS_URI + OBJECT_ID)
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
@@ -431,7 +449,7 @@ public class AccessInternalResourceImplTest {
     public void getObjectGroupBadRequest() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body("test").when()
             .get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -462,7 +480,8 @@ public class AccessInternalResourceImplTest {
         reset(mock);
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM, headers);
         AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
             mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
@@ -474,7 +493,8 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         headers.put("Content-Length", "");
-        response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM, headers);
         abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
             mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
@@ -490,7 +510,8 @@ public class AccessInternalResourceImplTest {
         reset(mock);
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, headers);
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM, headers);
         AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
             mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
@@ -526,16 +547,20 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void getObjectStreamPostMethodNotAllowed() {
+    public void getObjectStreamPostMethodNotAllowed() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").body("test").when().post(OBJECTS_URI + OBJECT_ID)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").body(JsonHandler.getFromString(QUERY_TEST)).when()
+            .post(OBJECTS_URI + OBJECT_ID)
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
+    @Ignore
     @Test
-    public void getObjectStreamBadRequest() {
+    // Data needed in body
+    public void getObjectStreamBadRequest() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).body("test").when().get(OBJECTS_URI + OBJECT_ID).then()
+            .headers(getStreamHeaders()).body(JsonHandler.getFromString(DATA)).when().get(OBJECTS_URI + OBJECT_ID)
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

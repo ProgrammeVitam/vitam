@@ -60,19 +60,17 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -114,14 +112,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @GET
     @Path("/units")
     // FIXME P0 quand une query (partout), argument au format JsonNode natif en réception
-    public Response getUnits(String queryDsl) {
+    public Response getUnits(JsonNode queryJson) {
         Status status;
         JsonNode result = null;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(JsonHandler.getFromString(queryDsl));
-            GlobalDatasParser.sanityRequestCheck(queryDsl);
-            result = client.selectUnits(queryDsl);
+            SanityChecker.checkJsonAll(queryJson);
+            result = client.selectUnits(queryJson);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(result)
@@ -160,7 +157,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnits(String queryDsl) {
+    public Response updateUnits(JsonNode queryDsl) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
@@ -168,7 +165,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query with POST method
      * 
-     * @param queryDsl
+     * @param queryJson
      * @param xhttpOverride
      * @return Response
      */
@@ -176,16 +173,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnits(String queryDsl,
+    public Response createOrSelectUnits(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
         Status status;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
-                GlobalDatasParser.sanityRequestCheck(queryDsl);
-                return getUnits(queryDsl);
+                SanityChecker.checkJsonAll(queryJson);
+                return getUnits(queryJson);
             } else {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status)
@@ -206,7 +202,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query based on identifier
      * 
-     * @param queryDsl query as String
+     * @param queryJson query as String
      * @param idUnit
      * @return Archive Unit
      */
@@ -214,15 +210,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitById(String queryDsl, @PathParam("idu") String idUnit) {
+    public Response getUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
         JsonNode result = null;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
-            GlobalDatasParser.sanityRequestCheck(queryDsl);
-            result = client.selectUnitbyId(queryDsl, idUnit);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idUnit);
+            result = client.selectUnitbyId(queryJson, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(result)
@@ -255,7 +251,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query based on identifier
      * 
-     * @param queryDsl
+     * @param queryJson
      * @param xhttpOverride
      * @param idUnit
      * @return Response
@@ -264,16 +260,16 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnitById(String queryDsl,
+    public Response createOrSelectUnitById(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @PathParam("idu") String idUnit) {
         ParametersChecker.checkParameter("unit id is required", idUnit);
         Status status;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
-                GlobalDatasParser.sanityRequestCheck(queryDsl);
-                return getUnitById(queryDsl, idUnit);
+                SanityChecker.checkJsonAll(queryJson);
+                SanityChecker.checkParameter(idUnit);
+                return getUnitById(queryJson, idUnit);
             } else {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status)
@@ -292,7 +288,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * update archive units by Id with Json query
      * 
-     * @param queryDsl DSK, null not allowed
+     * @param queryJson, null not allowed
      * @param idUnit units identifier
      * @return a archive unit result list
      */
@@ -300,14 +296,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitById(String queryDsl, @PathParam("idu") String idUnit) {
+    public Response updateUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
         JsonNode result = null;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
-            GlobalDatasParser.sanityRequestCheck(queryDsl);
-            result = client.updateUnitbyId(queryDsl, idUnit);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idUnit);
+            result = client.updateUnitbyId(queryJson, idUnit);
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(result)
@@ -354,7 +350,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get object group list by query and id
      * 
      * @param idObjectGroup
-     * @param query
+     * @param queryJson
      * @return Response
      */
 
@@ -362,15 +358,16 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroup(@PathParam("ido") String idObjectGroup, String query) {
+    public Response getObjectGroup(@PathParam("ido") String idObjectGroup, JsonNode queryJson) {
         JsonNode result;
         Status status;
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         try {
-            ParametersChecker.checkParameter("Must have a dsl query", query);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+            ParametersChecker.checkParameter("Must have a dsl query", queryJson);
+            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkParameter(idObjectGroup);
             try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-                result = client.selectObjectbyId(query, idObjectGroup);
+                result = client.selectObjectbyId(queryJson, idObjectGroup);
                 return Response.status(Status.OK)
                     .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                     .entity(result)
@@ -403,7 +400,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * @param headers
      * @param idObjectGroup
-     * @param query
+     * @param queryJson
      * @return Response
      */
     @POST
@@ -411,17 +408,30 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupPost(@Context HttpHeaders headers,
-        @PathParam("ido") String idObjectGroup, String query) {
+        @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
-        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if ((xHttpOverride == null) || !"GET".equalsIgnoreCase(xHttpOverride)) {
-            Status status = Status.PRECONDITION_FAILED;
+        Status status;
+        try {
+            SanityChecker.checkHeaders(headers);
+            final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+            if ((xHttpOverride == null) || !"GET".equalsIgnoreCase(xHttpOverride)) {
+                status = Status.PRECONDITION_FAILED;
+                return Response.status(status)
+                    .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
+                    .entity(getErrorEntity(status))
+                    .build();
+            } else {
+                SanityChecker.checkJsonAll(queryJson);
+                SanityChecker.checkParameter(idObjectGroup);
+                return getObjectGroup(idObjectGroup, queryJson);
+            }
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                 .entity(getErrorEntity(status))
                 .build();
-        } else {
-            return getObjectGroup(idObjectGroup, query);
         }
     }
 
@@ -436,7 +446,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        String query, @Suspended final AsyncResponse asyncResponse) {
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -458,7 +468,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        String query, @Suspended final AsyncResponse asyncResponse) {
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
             @Override
@@ -479,7 +489,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectsList(String queryDsl) {
+    public Response getObjectsList(JsonNode queryDsl) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
@@ -493,7 +503,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        String query) {
+        JsonNode query) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
@@ -502,14 +512,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
-    private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup, String query,
+    private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
+        JsonNode query,
         boolean post) {
         try {
             if (post) {
                 if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                     AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                            .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
                 }
                 final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
@@ -524,8 +535,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
-            } 
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+            }
         } catch (IllegalArgumentException e) {
             Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
@@ -541,10 +552,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         AsyncInputStreamHelper helper = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkHeaders(headers);
-            GlobalDatasParser.sanityRequestCheck(query);
-            final JsonNode queryJson = JsonHandler.getFromString(query);
             HttpHeaderHelper.checkVitamHeaders(headers);
-            SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             Response response =
                 client.getObject(query, idObjectGroup, xQualifier,
@@ -573,6 +582,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * findDocuments
+     * 
      * @param collection
      * @param select
      * @return Response
@@ -607,6 +617,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * findDocumentByID
+     * 
      * @param collection
      * @param documentId
      * @return Response
@@ -621,6 +632,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * findAccessionRegisterDetail
+     * 
      * @param collection
      * @param documentId
      * @return Response
