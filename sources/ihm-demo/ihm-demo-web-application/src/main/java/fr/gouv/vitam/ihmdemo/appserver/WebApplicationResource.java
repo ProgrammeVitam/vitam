@@ -92,6 +92,7 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -336,9 +337,10 @@ public class WebApplicationResource {
         String responseXml = "";
         String guid = "guid";
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-        try {
-            response = IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-            // FIXME P0 : utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            response = client.upload(stream);
+
+            // TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
             responseXml = response.readEntity(String.class);
             guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -1108,9 +1110,9 @@ public class WebApplicationResource {
 
         // Read the selected file into an InputStream
         try (
-            InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName)) {
-            final Response response =
-                IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(sipInputStream);
+            InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
+            IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            final Response response = client.upload(sipInputStream);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             return Response.status(response.getStatus()).entity(ingestOperationId).build();

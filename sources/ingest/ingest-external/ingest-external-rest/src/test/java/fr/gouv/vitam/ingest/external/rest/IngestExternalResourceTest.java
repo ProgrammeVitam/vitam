@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.external.rest;
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Matchers.anyObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -48,14 +47,11 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
@@ -70,25 +66,25 @@ public class IngestExternalResourceTest {
     private static final String UPLOAD_URI = "/upload";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
 
-    private static VitamServer vitamServer;
+    // private static VitamServer vitamServer;
     private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
+
+    private static IngestExternalApplication application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());
-            ((BasicVitamServer) vitamServer).start();
+            application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
+            application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -99,12 +95,8 @@ public class IngestExternalResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        try {
-            if (vitamServer != null) {
-                ((BasicVitamServer) vitamServer).stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
+        if (application != null) {
+            application.stop();
         }
         junitHelper.releasePort(serverPort);
     }
@@ -135,6 +127,7 @@ public class IngestExternalResourceTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
@@ -144,7 +137,7 @@ public class IngestExternalResourceTest {
         IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
         PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenThrow(VitamException.class);
-        PowerMockito.when(ingestInternalFactory.getIngestInternalClient()).thenReturn(ingestInternalClient);
+        PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 
         given().contentType(ContentType.BINARY)

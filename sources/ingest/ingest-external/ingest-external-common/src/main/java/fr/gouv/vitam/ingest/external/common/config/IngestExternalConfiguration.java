@@ -26,10 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.config;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+
 /**
  * IngestExternalConfiguration contains access informations of ingest
  */
-public class IngestExternalConfiguration {
+public class IngestExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String path;
     private String host;

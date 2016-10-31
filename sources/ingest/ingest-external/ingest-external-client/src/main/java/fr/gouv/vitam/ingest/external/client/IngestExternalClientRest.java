@@ -27,72 +27,29 @@
 package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
-import java.net.SocketException;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamRestClientBuilder;
-import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.SSLConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
 /**
  * Ingest External client
  */
-public class IngestExternalClientRest implements IngestExternalClient {
+public class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
-    private static final String RESOURCE_PATH = "/ingest-ext/v1";
     private static final String UPLOAD_URL = "/upload";
-    private static final String STATUS = "/status";
 
-    private String serviceUrl = "http";
-    private final Client client;
-
-
-    /**
-     * Constructor IngestExternalClientRest
-     *
-     * @param server
-     * @param port
-     * @throws VitamException
-     */
-    IngestExternalClientRest(String server, int port) throws VitamException {
-        this(server, port, true, new SSLConfiguration(), true);
-
-    }
-
-    /**
-     * Constructor IngestExternalClientRest
-     *
-     * @param server
-     * @param port
-     * @throws VitamException
-     */
-    IngestExternalClientRest(String server, int port, boolean secure, SSLConfiguration sslConfiguration,
-        boolean hostnameVerification) throws VitamException {
-        ParametersChecker.checkParameter("server and port are a mandatory parameter", server, port, secure,
-            sslConfiguration, hostnameVerification);
-        if (secure) {
-            serviceUrl = "https";
-        }
-        serviceUrl += "://" + server + ":" + port + RESOURCE_PATH;
-
-        final VitamRestClientBuilder restClientBuilder = new VitamRestClientBuilder();
-        client = restClientBuilder
-            .setSslConfiguration(sslConfiguration)
-            .setHostnameVerification(hostnameVerification)
-            .build();
-
-
+    IngestExternalClientRest(IngestExternalClientFactory factory) {
+        super(factory);
     }
 
     @Override
@@ -100,10 +57,8 @@ public class IngestExternalClientRest implements IngestExternalClient {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
-            response = client.target(serviceUrl).path(UPLOAD_URL)
-                .request(MediaType.APPLICATION_OCTET_STREAM)
-                .accept(MediaType.APPLICATION_XML)
-                .post(Entity.entity(stream, MediaType.APPLICATION_OCTET_STREAM), Response.class);
+            response = performRequest(HttpMethod.POST, UPLOAD_URL, null,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -115,28 +70,15 @@ public class IngestExternalClientRest implements IngestExternalClient {
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-        } catch (final ProcessingException e) {
-            if (e.getCause().getClass().equals(SocketException.class)) {
-                throw new IngestExternalException("Exception can linked to SSL", e);
-            } else {
-                throw new IngestExternalException(e.getMessage(), e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Ingest Extrenal Internal Server Error", e);
+            throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
             }
         }
+
         return response;
-    }
-
-    @Override
-    public Status status() throws IngestExternalException {
-        try {
-            final Response response = client.target(serviceUrl).path(STATUS).request().get();
-            return Status.fromStatusCode(response.getStatus());
-
-        } catch (final ProcessingException e) {
-            if (e.getCause().getClass().equals(SocketException.class)) {
-                throw new IngestExternalException("Exception can linked to SSL", e);
-            } else {
-                throw new IngestExternalException(e.getMessage(), e);
-            }
-        }
     }
 }

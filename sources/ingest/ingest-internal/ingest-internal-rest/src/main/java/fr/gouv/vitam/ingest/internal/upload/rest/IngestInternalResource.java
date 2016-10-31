@@ -56,8 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
 import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -123,7 +122,6 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      *
      */
     public IngestInternalResource(IngestInternalConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         workspaceClientMock = null;
@@ -140,7 +138,6 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      */
     IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient,
         ProcessingManagementClient processingClient) {
-        super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
         this.workspaceClientMock = workspaceClient;
         this.processingClient = processingClient;

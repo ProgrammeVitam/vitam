@@ -26,11 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -47,7 +49,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory.IngestInternalClientType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -55,36 +56,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 public class IngestInternalClientMockTest {
 
-
-    private InputStream inputStream;
-
-    @Test
-    public void givenMockConfExistWhenCreateMockedClientThenReturnOK() {
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
-
-        final IngestInternalClient client =
-            IngestInternalClientFactory.getInstance().getIngestInternalClient();
-        assertNotNull(client);
-    }
-
-    @Test
-    public void givenMockExistsWhenGetStatusThenReturnOK() {
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
-
-        final IngestInternalClient client =
-            IngestInternalClientFactory.getInstance().getIngestInternalClient();
-
-        assertThat(client.status()).isEqualTo(200);
-    }
-
     @Test
     public void givenMockExistsWhenPostSipThenReturnOK()
         throws VitamException, XMLStreamException, FileNotFoundException {
-
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
+        IngestInternalClientFactory.changeMode(null);
 
         final IngestInternalClient client =
-            IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getClient();
 
         final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
 
@@ -102,7 +80,6 @@ public class IngestInternalClientMockTest {
                 conatinerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
@@ -114,11 +91,19 @@ public class IngestInternalClientMockTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        inputStream =
+        InputStream inputstreamMockATR =
+            IOUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
+        InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+
         final Response response = client.upload(conatinerGuid, operationList, inputStream, CommonMediaType.ZIP);
         assertEquals(response.getStatus(), Status.OK.getStatusCode());
 
+        try {
+            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response.readEntity(InputStream.class)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
-
 }

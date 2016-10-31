@@ -26,25 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -56,9 +59,11 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTech
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({FormatIdentifierFactory.class})
 public class IngestExternalImplTest {
     private static final String PATH = "/tmp";
@@ -188,8 +193,16 @@ public class IngestExternalImplTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final Response xmlResponse = ingestExternalImpl.upload(stream);
-        final InputStream inputstream = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        assertEquals(xmlResponse.getEntity(), FileUtil.readInputStream(inputstream));
+
+        final InputStream inputstreamMockATR =
+            IOUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
+
+        try {
+            assertTrue(IOUtils.contentEquals(inputstreamMockATR, xmlResponse.readEntity(InputStream.class)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierTarResponse() {

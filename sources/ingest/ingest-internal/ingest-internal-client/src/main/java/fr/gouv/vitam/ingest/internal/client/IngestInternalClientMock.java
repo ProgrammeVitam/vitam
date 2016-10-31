@@ -26,17 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.FileUtil;
+import org.apache.commons.io.IOUtils;
+
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -47,32 +48,24 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Mock client implementation for Ingest Internal
  */
-public class IngestInternalClientMock implements IngestInternalClient {
+public class IngestInternalClientMock extends AbstractMockClient implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
-
-
-    @Override
-    public int status() {
-        LOGGER.debug("Get Status");
-        return Status.OK.getStatusCode();
-    }
+    public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
 
     @Override
     public Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
         String archiveType)
         throws VitamException, XMLStreamException {
+
         // Do not check inputStream since it can be null
         ParametersChecker.checkParameter("Params cannot be null", logbookParametersList);
         StreamUtils.closeSilently(inputStream);
-        LOGGER.debug("Post SIP");
-        String result = "";
-        try (InputStream inputstreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
-            result = FileUtil.readInputStream(inputstreamATR);
-        } catch (final IOException e) {
-            LOGGER.debug("Read mock result error", e);
-        }
-        return Response.status(Status.OK).entity(result).build();
-    }
 
+        LOGGER.debug("Post SIP");
+
+        return new AbstractMockClient.FakeInboundResponse(Status.OK,
+            IOUtils.toInputStream(MOCK_INGEST_INTERNAL_RESPONSE_STREAM),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
 }
