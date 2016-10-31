@@ -10,6 +10,20 @@ db.createCollection("AccessionRegisterSummary")
 db.createCollection("FileFormat")
 db.createCollection("FileRules")
 
+// Create unique indexes
+db.FileFormat.createIndex(
+    { "PUID" : 1 },
+    { unique: true }
+)
+db.AccessionRegisterSummary.createIndex(
+    { "OriginatingAgency" : 1 },
+    { unique: true }
+)
+db.FileRules.createIndex(
+    { "_tenant" : 1 , "RuleId" : 1 },
+    { unique: true }
+)
+
 // Create metadata user
 db.createUser(
     {
