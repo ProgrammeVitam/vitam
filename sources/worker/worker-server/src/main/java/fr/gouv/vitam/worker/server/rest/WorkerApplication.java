@@ -107,6 +107,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
             resourceConfig.register(new WorkerResource(getConfiguration(), mock));
         } else {
             resourceConfig.register(new WorkerResource(getConfiguration()));
+            WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
             // Logbook dependency
             serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
                 // Workspace dependency

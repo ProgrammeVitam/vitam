@@ -99,7 +99,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     public Response executeVitamProcess(ProcessingEntry process) {
         Status status;
         final WorkerParameters workParam = WorkerParametersFactory.newWorkerParameters().setContainerName(process
-            .getContainer()).setUrlMetadata(config.getUrlMetada()).setUrlWorkspace(config.getUrlWorkspace());
+            .getContainer()).setUrlMetadata(config.getUrlMetadata()).setUrlWorkspace(config.getUrlWorkspace());
         ItemStatus resp;
 
         try {

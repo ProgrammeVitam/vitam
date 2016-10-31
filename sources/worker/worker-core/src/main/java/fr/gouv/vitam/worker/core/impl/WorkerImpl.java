@@ -167,7 +167,6 @@ public class WorkerImpl implements Worker {
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
-        WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             for (final Action action : step.getActions()) {
                 final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());

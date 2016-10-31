@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImp
 public final class WorkerConfiguration extends DbConfigurationImpl {
 
     private String processingUrl;
-    private String urlMetada;
+    private String urlMetadata;
     private String urlWorkspace;
     private String registerServerHost;
     private int registerServerPort;
@@ -70,22 +70,22 @@ public final class WorkerConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * Get the urlMetada
+     * Get the urlMetadata
      *
-     * @return urlMetada
+     * @return urlMetadata
      */
-    public String getUrlMetada() {
-        return urlMetada;
+    public String getUrlMetadata() {
+        return urlMetadata;
     }
 
     /**
-     * The urlMetada setter
+     * The urlMetadata setter
      *
-     * @param urlMetada the urlMetada
+     * @param urlMetadata the urlMetadata
      * @return the updated WorkerConfiguration object
      */
-    public WorkerConfiguration setUrlMetada(String urlMetada) {
-        this.urlMetada = urlMetada;
+    public WorkerConfiguration setUrlMetadata(String urlMetadata) {
+        this.urlMetadata = urlMetadata;
         return this;
     }
 

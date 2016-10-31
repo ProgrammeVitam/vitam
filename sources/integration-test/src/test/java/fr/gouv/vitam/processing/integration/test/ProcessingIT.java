@@ -227,6 +227,21 @@ public class ProcessingIT {
             Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure(CONFIG_METADATA_PATH);
 
+        // launch workspace
+        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_WORKSPACE));
+        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
+        workspaceApplication .start();
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+
+        // launch logbook
+        SystemPropertyUtil
+            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
+        lgbapplication.start();
+
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+
         // launch processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
@@ -237,23 +252,7 @@ public class ProcessingIT {
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
 
-        // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication .start();
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
-
-        // launch logbook
-        SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
-        lgbapplication.start();
-
-        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-
 
         // launch functional Admin server
         AdminManagementApplication adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
