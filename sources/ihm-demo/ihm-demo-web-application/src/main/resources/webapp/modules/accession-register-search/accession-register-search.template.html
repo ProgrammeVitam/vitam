@@ -14,7 +14,9 @@
           <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
           <div class="input-group">
             <input ng-model="serviceProducerCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" onfocus="this.placeholder = ''"/>
-            <div class="input-group-addon"><button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i></button></div>
+            <div class="input-group-addon" style="position:relative">
+            <span id="iconSpan"><i class="material-icons pull-left" ng-click="serviceProducerCriteria=''">clear</i></span>
+            <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i></button></div>
           </div>
         </div>
           <div class="clearfix"></div>

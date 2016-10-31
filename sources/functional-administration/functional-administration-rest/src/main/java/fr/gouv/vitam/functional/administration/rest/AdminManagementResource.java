@@ -512,7 +512,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(new RequestResponseOK()
+                    .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
+                    .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                .build();
         } catch (Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;

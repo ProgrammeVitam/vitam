@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -96,7 +97,8 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
                 .setTotalObjects(initialValue)
                 .setTotalObjectGroups(initialValue)
                 .setTotalUnits(initialValue)
-                .setObjectSize(initialValue);
+                .setObjectSize(initialValue)
+                .setCreationDate(LocalDateUtil.now().toString());
 
 
             LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
