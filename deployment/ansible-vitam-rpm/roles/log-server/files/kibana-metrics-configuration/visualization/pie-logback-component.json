@@ -1,6 +1,6 @@
 {
   "title": "pie-logback-component",
-  "visState": "{\"title\":\"pie-logback-component\",\"type\":\"pie\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"isDonut\":false},\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"prog_name\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Vitam Component\"}}],\"listeners\":{}}",
+  "visState": "{\"title\":\"pie-logback-component\",\"type\":\"pie\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"isDonut\":false},\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"program\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Vitam Component\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",
   "savedSearchId": "vitam-type-logback",

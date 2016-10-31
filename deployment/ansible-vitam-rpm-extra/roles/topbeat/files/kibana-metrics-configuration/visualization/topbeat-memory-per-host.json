@@ -1,0 +1,11 @@
+{
+  "title": "topbeat-memory-per-host",
+  "visState": "{\"title\":\"topbeat-memory-per-host\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":false,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"overlap\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"mem.actual_used\",\"customLabel\":\"Used memory\"}},{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"mem.total\",\"customLabel\":\"Free memory\"}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"4\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.hostname\",\"size\":100,\"order\":\"desc\",\"orderBy\":\"1\",\"row\":true}}],\"listeners\":{}}",
+  "uiStateJSON": "{\"vis\":{\"colors\":{\"Percentage of Max mem.used\":\"#629E51\",\"Percentage of Max mem.total\":\"#1F78C1\",\"Max mem.actual_used\":\"#3F2B5B\",\"Max mem.total\":\"#447EBC\"}}}",
+  "description": "",
+  "savedSearchId": "topbeat-system",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"filter\":[]}"
+  }
+}
