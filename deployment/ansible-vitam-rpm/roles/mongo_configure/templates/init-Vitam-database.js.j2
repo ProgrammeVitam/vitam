@@ -16,7 +16,7 @@ db.FileFormat.createIndex(
     { unique: true }
 )
 db.AccessionRegisterSummary.createIndex(
-    { "OriginatingAgency" : 1 },
+    { "_tenant" : 1 , "OriginatingAgency" : 1 },
     { unique: true }
 )
 db.FileRules.createIndex(
