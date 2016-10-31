@@ -37,6 +37,8 @@ echo "Creating local yum repository..."
 createrepo -x '.git/*' .
 echo "Cleaning up yum cache..."
 yum clean all
+echo "Creating cache"
+yum --disablerepo="*" --enablerepo="local" makecache
 echo "Done ! Available rpm packages in local vitam-product repository :"
 yum --disablerepo="*" --enablerepo="local" list available
 echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"

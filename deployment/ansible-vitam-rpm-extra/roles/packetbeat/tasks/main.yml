@@ -51,7 +51,7 @@
     name: kibana
     state: restarted
     enabled: true
-  delegate_to: '{{ vitam_kibana_host }}'
+  delegate_to: "{{groups['hosts-log-server'][0]}}"
   run_once: true
 
 - name: add Packetbeat autostart at boot
