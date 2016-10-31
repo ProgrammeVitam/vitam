@@ -1,4 +1,4 @@
-{% if environment == 'fulllocal' %}
+{% if (groups['hosts-log-server'] | length) > 0  %}
 metrics:
    - type: JERSEY
      reporter_type: ELASTICSEARCH
