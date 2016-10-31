@@ -110,7 +110,7 @@ public class IngestExternalImpl implements IngestExternal {
         final GUID ingestGuid = guid;
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
-        
+
         try {
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
@@ -129,7 +129,7 @@ public class IngestExternalImpl implements IngestExternal {
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
             Response responseResult = null;
-            
+
             try {
                 workspaceFileSystem.createContainer(containerName.toString());
             } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -315,9 +315,6 @@ public class IngestExternalImpl implements IngestExternal {
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
 
-                // TODO Response async
-                responseResult = ingestClient.upload(ingestGuid, helper.removeCreateDelegate(containerName.getId()),
-                    inputStream, mimeType);
                 // FIXME P0 Status could be >= 400 but still getting an ATR KO!
                 // One should try to forward the ATR (whatever OK or KO) using async mode
                 // Moreover one should finalize the Logbook Operation with new entries like
@@ -326,9 +323,10 @@ public class IngestExternalImpl implements IngestExternal {
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                if (responseResult.getStatus() >= 400) {
-                    throw new IngestExternalException("Ingest Internal Exception");
-                }
+                // TODO Response async
+                responseResult = ingestClient.upload(ingestGuid, helper.removeCreateDelegate(containerName.getId()),
+                    inputStream, mimeType);
+
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }

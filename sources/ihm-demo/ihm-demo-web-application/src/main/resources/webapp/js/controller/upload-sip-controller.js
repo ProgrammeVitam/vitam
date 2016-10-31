@@ -138,6 +138,13 @@ angular.module('ihm.demo')
     };
     uploader.onErrorItem = function(fileItem, response, status, headers) {
       console.info('onErrorItem', fileItem, response, status, headers);
+      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
+          $location.path('/login');
+          $cookies.remove('userCredentials');
+          $cookies.remove('role');
+        } else {
+          downloadATR(response, headers);
+        }
     };
     uploader.onCancelItem = function(fileItem, response, status, headers) {
       console.info('onCancelItem', fileItem, response, status, headers);

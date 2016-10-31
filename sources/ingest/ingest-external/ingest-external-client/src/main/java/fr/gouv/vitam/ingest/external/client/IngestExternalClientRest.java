@@ -64,9 +64,9 @@ public class IngestExternalClientRest extends DefaultClient implements IngestExt
                 case OK:
                     LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
                     break;
-                case INTERNAL_SERVER_ERROR:
+                case BAD_REQUEST:
                     LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                    throw new IngestExternalException("Upload file error");
+                    break;
                 default:
                     throw new IngestExternalException("Unknown error");
             }
@@ -74,7 +74,8 @@ public class IngestExternalClientRest extends DefaultClient implements IngestExt
             LOGGER.error("Ingest Extrenal Internal Server Error", e);
             throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode() &&
+                response.getStatus() != Status.BAD_REQUEST.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
             }
         }

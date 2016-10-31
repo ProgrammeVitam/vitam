@@ -348,9 +348,8 @@ public class WebApplicationResource {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
-        }
-
-        return Response.status(Status.OK).entity(responseXml)
+        }        
+        return Response.status(Status.fromStatusCode(response.getStatus())).entity(responseXml)
             .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
             .header(GlobalDataRest.X_REQUEST_ID, guid)
             .build();

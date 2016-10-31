@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -48,6 +49,7 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -159,11 +161,28 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         }
     }
 
-    @Test(expected = IngestExternalException.class)
-    public void givenOperationNotYetCreatedWhenUpdateThenReturnNotFoundException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+    @Test
+    public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
+        InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        final InputStream stream = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        client.upload(stream);
+        Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+            mockResponseInputStream,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+        when(mock.post()).thenReturn(fakeResponse);
+
+
+        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
+        InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
+        try {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 }

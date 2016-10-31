@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
 import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -275,7 +276,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
                 // processing
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                final boolean processingOk =
+                final ItemStatus processingOk =
                     callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
                 try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                     final InputStream stream =
@@ -283,18 +284,14 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                             StorageCollectionType.REPORTS);
                     // FIXME P0 when storage in Async mode use response instead
                     AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
-                    if (processingOk) {
-                        helper.writeResponse(Response.status(Status.OK)
-                            .entity(getAtrFromStorage(containerGUID.getId()))
-                            .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
-                    } else {
-                        // FIXME P0 Should set the status according to the rignt one: NOT INTERNAL_SERVER_ERROR!
-                        // INTERNAL_SERVER_ERROR should be limited to the case where there is such an internal server
-                        // error
-                        helper.writeResponse(Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getAtrFromStorage(containerGUID.getId()))
-                            .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
+                    Status finalStatus = Status.OK;
+                    if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
+                        finalStatus = Status.BAD_REQUEST;
                     }
+
+                    helper.writeResponse(Response.status(finalStatus)
+                        .entity(getAtrFromStorage(containerGUID.getId()))
+                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
                 }
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 if (parameters != null) {
@@ -324,7 +321,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 // FIXME P0 in particular Processing Exception could it be a "normal error" ?
-            } catch (final InvalidParseOperationException | ProcessingException |
+            } catch (final IngestInternalException | ProcessingException |
                 LogbookClientException | StorageClientException | StorageNotFoundException | IOException |
                 InvalidGuidOperationException e) {
                 if (parameters != null) {
@@ -433,19 +430,18 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
                     // processing
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                    final boolean processingOk =
+                    final ItemStatus processingOk =
                         callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
-                    if (processingOk) {
-                        response = Response.status(Status.OK)
-                            .entity(getAtrFromStorage(containerGUID.getId()))
-                            .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                            .build();
-                    } else {
-                        response = Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getAtrFromStorage(containerGUID.getId()))
-                            .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                            .build();
+                    Status finalStatus = Status.OK;
+                    if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
+                        finalStatus = Status.BAD_REQUEST;
                     }
+
+                    response = Response.status(finalStatus)
+                        .entity(getAtrFromStorage(containerGUID.getId()))
+                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
+                        .build();
+
                 } else {
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
                         OutcomeMessage.WORKFLOW_INGEST_KO.value());
@@ -485,7 +481,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
-            } catch (final InvalidParseOperationException | ProcessingException |
+            } catch (final IngestInternalException | ProcessingException |
                 LogbookClientException | StorageClientException | StorageNotFoundException | IOException |
                 InvalidGuidOperationException e) {
 
@@ -597,32 +593,29 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
     }
 
-    private boolean callProcessingEngine(final LogbookOperationParameters parameters,
+    private ItemStatus callProcessingEngine(final LogbookOperationParameters parameters,
         final LogbookOperationsClient client,
-        final String containerName) throws InvalidParseOperationException,
-        ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
-        LogbookClientServerException {
+        final String containerName) throws IngestInternalException, ProcessingException,
+        LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to call processing...");
-
         final String workflowId = "DefaultIngestWorkflow";
-
         try {
-            // FIXME P0 should return ItemStatus instead of true or false in order to be able to check the "real" status
             ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
-            callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
-                OutcomeMessage.WORKFLOW_INGEST_OK.value());
-        } catch (WorkflowNotFoundException | ProcessingInternalServerException exc) {
+            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
+                callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                    OutcomeMessage.WORKFLOW_INGEST_OK.value());
+            } else {
+                callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                    OutcomeMessage.WORKFLOW_INGEST_KO.value());
+            }
+            return itemStatus;
+        } catch (WorkflowNotFoundException | ProcessingInternalServerException | IllegalArgumentException |
+            ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
             LOGGER.error(exc);
             callLogbookUpdate(client, parameters, StatusCode.FATAL, OutcomeMessage.WORKFLOW_INGEST_KO.value());
-            return false;
-        } catch (IllegalArgumentException | ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
-            LOGGER.error(exc);
-            // FIXME P0 etes vous sûr que c'est un KO ici et pas un FATAL comme au-dessus!
-            callLogbookUpdate(client, parameters, StatusCode.KO, OutcomeMessage.WORKFLOW_INGEST_KO.value());
-            return false;
+            throw new IngestInternalException(exc);
         }
 
-        return true;
     }
 
     private String getAtrFromStorage(String guid)
