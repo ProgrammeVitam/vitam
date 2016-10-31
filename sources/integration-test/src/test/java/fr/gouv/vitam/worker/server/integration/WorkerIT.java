@@ -184,17 +184,6 @@ public class WorkerIT {
             .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure(CONFIG_METADATA_PATH);
 
-        // launch processing
-        SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
-        ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
-
-        // launch worker
-        SystemPropertyUtil
-            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
-        wkrapplication.start();
-
         // launch logbook
         SystemPropertyUtil
             .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
@@ -208,6 +197,16 @@ public class WorkerIT {
         workspaceApplication.start();
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
+        // launch processing
+        SystemPropertyUtil
+            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+        ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
+
+        // launch worker
+        SystemPropertyUtil
+            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication.start();
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
     }
 

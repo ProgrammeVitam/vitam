@@ -97,7 +97,8 @@ public class WorkerResourceTest {
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(workerFile, WorkerConfiguration.class);
         // -1 to ignore register
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(-1).setProcessingUrl("http://localhost:8888");
+            .setRegisterDelay(1).setRegisterRetry(-1).setProcessingUrl("http://localhost:8888")
+            .setUrlMetadata("http://localhost:8888").setUrlWorkspace("http://localhost:8888");
 
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);

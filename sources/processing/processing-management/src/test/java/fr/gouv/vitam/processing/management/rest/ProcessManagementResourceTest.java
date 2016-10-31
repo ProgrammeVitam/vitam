@@ -71,7 +71,7 @@ public class ProcessManagementResourceTest {
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         final ServerConfiguration configuration = new ServerConfiguration();
-        configuration.setUrlMetada(URL_METADATA);
+        configuration.setUrlMetadata(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         configuration.setJettyConfig(JETTY_CONFIG);
         ProcessManagementApplication.run(configuration);

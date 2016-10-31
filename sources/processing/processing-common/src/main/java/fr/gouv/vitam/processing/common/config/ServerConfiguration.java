@@ -34,27 +34,27 @@ import fr.gouv.vitam.common.ParametersChecker;
  */
 public class ServerConfiguration {
 
-    private String urlMetada;
+    private String urlMetadata;
     private String urlWorkspace;
     private String jettyConfig;
 
     /**
-     * @return the urlMetada
+     * @return the urlMetadata
      */
-    public String getUrlMetada() {
-        if (urlMetada == null) {
+    public String getUrlMetadata() {
+        if (urlMetadata == null) {
             return "";
         }
-        return urlMetada;
+        return urlMetadata;
     }
 
     /**
-     * @param urlMetada the urlMetada to set
+     * @param urlMetadata the urlMetadata to set
      * @return the update ServerConfiguration object
      */
-    public ServerConfiguration setUrlMetada(String urlMetada) {
-        ParametersChecker.checkParameter("urlMetada is a mandatory parameter", urlMetada);
-        this.urlMetada = urlMetada;
+    public ServerConfiguration setUrlMetadata(String urlMetadata) {
+        ParametersChecker.checkParameter("urlMetadata is a mandatory parameter", urlMetadata);
+        this.urlMetadata = urlMetadata;
         return this;
     }
 

@@ -103,7 +103,7 @@ public class ProcessManagementResourceMockedTest {
 
         final ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlWorkspace("http://localhost:8083");
-        serverConfiguration.setUrlMetada("http://localhost:8083");
+        serverConfiguration.setUrlMetadata("http://localhost:8083");
         resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);

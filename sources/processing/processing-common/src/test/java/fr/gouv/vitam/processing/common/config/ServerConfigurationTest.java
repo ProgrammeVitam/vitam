@@ -36,9 +36,9 @@ public class ServerConfigurationTest {
 
     @Test
     public void testConstructor() {
-        assertEquals("", new ServerConfiguration().getUrlMetada());
+        assertEquals("", new ServerConfiguration().getUrlMetadata());
         assertEquals("", new ServerConfiguration().getUrlWorkspace());
-        assertEquals(Test, new ServerConfiguration().setUrlMetada(Test).getUrlMetada());
+        assertEquals(Test, new ServerConfiguration().setUrlMetadata(Test).getUrlMetadata());
         assertEquals(Test, new ServerConfiguration().setUrlWorkspace(Test).getUrlWorkspace());
     }
 
@@ -49,7 +49,7 @@ public class ServerConfigurationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetUrlMetadataNull() {
-        new ServerConfiguration().setUrlMetada(null);
+        new ServerConfiguration().setUrlMetadata(null);
     }
 
 }

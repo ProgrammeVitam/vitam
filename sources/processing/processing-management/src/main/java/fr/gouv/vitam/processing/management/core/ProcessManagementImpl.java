@@ -90,7 +90,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     @Override
     public ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
         ItemStatus response;
-        workParams.setUrlMetadata(serverConfig.getUrlMetada());
+        workParams.setUrlMetadata(serverConfig.getUrlMetadata());
         workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
         WorkspaceClientFactory.changeMode(serverConfig.getUrlWorkspace());
         try {
