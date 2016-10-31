@@ -5,4 +5,7 @@ sslConfiguration :
  keystore :
   - keyPath : {{vitam_folder_conf}}/keystore_{{ vitam_component }}.p12
     keyPassword : {{p12_ihm_demo_password}}
+ truststore :
+  - keyPath : {{vitam_folder_conf}}/truststore_{{ vitam_component }}.jks
+    keyPassword : {{TrustStore_ihm_demo_password}}
 hostnameVerification: false

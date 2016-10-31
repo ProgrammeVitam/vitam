@@ -24,6 +24,10 @@ done
 echo "	Recopie pour ihm-demo..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/ihm-demo
 cp ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-demo/keystore_ihm-demo.p12
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo --ask-vault-pass| sed "1 d"); do
+	# FIXME : be more restrictive on jks files
+	cp ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-demo/
+done
 echo "	Fichiers recopiés"
 echo "------------------------"
 
