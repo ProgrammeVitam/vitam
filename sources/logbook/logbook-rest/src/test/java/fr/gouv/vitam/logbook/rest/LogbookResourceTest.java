@@ -86,7 +86,6 @@ public class LogbookResourceTest {
 
     private static int databasePort;
     private static int serverPort;
-    private static File newLogbookConf;
     private static LogbookApplication application;
 
     private static LogbookOperationParameters logbookParametersStart;
@@ -100,7 +99,7 @@ public class LogbookResourceTest {
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
-
+    private static LogbookConfiguration realLogbook; 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -110,10 +109,8 @@ public class LogbookResourceTest {
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -133,7 +130,7 @@ public class LogbookResourceTest {
         RestAssured.basePath = REST_URI;
 
         try {
-            application = new LogbookApplication(newLogbookConf.getAbsolutePath());
+            application = new LogbookApplication(realLogbook);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
@@ -173,7 +170,9 @@ public class LogbookResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            application.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -181,7 +180,6 @@ public class LogbookResourceTest {
         junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
-        newLogbookConf.delete();
         junitHelper.releasePort(databasePort);
     }
 
