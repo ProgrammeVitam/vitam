@@ -216,7 +216,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
                 entry.getValue().start();
             }
         } catch (final IOException e) {
-            LOGGER.error(e);
+            LOGGER.warn(e);
         }
 
         return metrics;
