@@ -27,19 +27,15 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -63,6 +59,7 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -106,12 +103,10 @@ public class ProcessingIT {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private static File elasticsearchHome;
     private final static String CLUSTER_NAME = "vitam-cluster";
     static JunitHelper junitHelper;
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
-    private static Node node;
 
     private static final int PORT_SERVICE_WORKER = 8098;
     private static final int PORT_SERVICE_WORKSPACE = 8094;
@@ -163,26 +158,10 @@ public class ProcessingIT {
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-processing/SIP_Conformity_KO.zip";
     private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongod.stop();
-        mongodExecutable.stop();
-        node.close();
-        try {
-            workspaceApplication.stop();
-            wkrapplication.stop();
-            lgbapplication.stop();
-            ProcessManagementApplication.stop();
-            medtadataApplication.stop();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-        }
-    }
+    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        elasticsearchHome = tempFolder.newFolder();
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-processing/workspace.conf").toString();
@@ -199,19 +178,9 @@ public class ProcessingIT {
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
-        Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-        node.start();
+        // ES
+        config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -277,6 +246,25 @@ public class ProcessingIT {
 
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
 
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        if (config == null) {
+            return;
+        }
+        JunitHelper.stopElasticsearchForTest(config);
+        mongod.stop();
+        mongodExecutable.stop();
+        try {
+            workspaceApplication.stop();
+            wkrapplication.stop();
+            lgbapplication.stop();
+            ProcessManagementApplication.stop();
+            medtadataApplication.stop();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+        }
     }
 
 

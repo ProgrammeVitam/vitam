@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
  */
 public class ElasticsearchAccess implements DatabaseConnection {
 
+    private static final int TOSECOND = 1000;
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
 
     protected final TransportClient client;
@@ -95,7 +97,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("transport.tcp.connect_timeout", "1s")
             .put("transport.profiles.client.connect_timeout", "1s")
             .put("transport.profiles.tcp.connect_timeout", "1s")
-            .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / 1000) + "s")
+            .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / TOSECOND) + "s")
             .build();
     }
 

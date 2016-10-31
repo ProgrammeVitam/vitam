@@ -45,6 +45,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -227,6 +228,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         // update workflow Status
         workflowStatus.increment(stepResponse.getGlobalStatus());
 
+        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         for (ItemStatus actionStatus : stepResponse.getItemsStatus().values()) {
             final LogbookOperationParameters actionParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
@@ -238,8 +240,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     VitamLogbookMessages.getCodeOp(actionStatus.getItemId(),
                         actionStatus.getGlobalStatus()) + " Detail= " + actionStatus.computeStatusMeterMessage(),
                     GUIDReader.getGUID(workParams.getContainerName()));
-            client.update(actionParameters);
-
+            helper.updateDelegate(actionParameters);
         }
 
         if (messageIdentifier == null) {
@@ -256,8 +257,8 @@ public class ProcessEngineImpl implements ProcessEngine {
         parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
-        // FIXME P0 use Bulk operation
-        client.update(parameters);
+        helper.updateDelegate(parameters);
+        client.bulkUpdate(workParams.getContainerName(), helper.removeUpdateDelegate(workParams.getContainerName()));
 
         // update the process monitoring with the final status
         ProcessMonitoringImpl.getInstance().updateStepStatus(

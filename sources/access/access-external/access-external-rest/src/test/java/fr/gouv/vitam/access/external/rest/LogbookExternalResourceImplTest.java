@@ -184,6 +184,7 @@ public class LogbookExternalResourceImplTest {
         }
     }
 
+    // FIXME P0 this test is erratic: very often it failed on line 224
     @Test
     public void testErrorSelect() {
 

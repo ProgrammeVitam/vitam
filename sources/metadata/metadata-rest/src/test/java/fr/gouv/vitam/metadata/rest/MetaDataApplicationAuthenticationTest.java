@@ -1,13 +1,10 @@
 package fr.gouv.vitam.metadata.rest;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
+import java.io.IOException;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.node.Node;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -16,7 +13,9 @@ import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import ru.yandex.qatools.embed.service.MongoEmbeddedService;
@@ -36,17 +35,18 @@ public class MetaDataApplicationAuthenticationTest {
     
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
+    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
-
+    public static void setup() throws IOException {
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
@@ -58,40 +58,7 @@ public class MetaDataApplicationAuthenticationTest {
         metadata = PropertiesUtils.findFile(METADATA_CONF);
         metadataConfig = PropertiesUtils.readYaml(metadata, MetaDataConfiguration.class);
         metadataConfig.setDbPort(port);
-
-        // ES
-        elasticsearchHome = tempFolder.newFolder();
-        for (int i = 0; i < 3; i++) {
-            TCP_PORT = junitHelper.findAvailablePort();
-            HTTP_PORT = junitHelper.findAvailablePort();
-
-            try {
-                final Settings settings = Settings.settingsBuilder()
-                    .put("http.enabled", true)
-                    .put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", TCP_PORT)
-                    .put("http.port", HTTP_PORT)
-                    .put("path.home", elasticsearchHome.getCanonicalPath())
-                    .build();
-
-                node = nodeBuilder()
-                    .settings(settings)
-                    .client(false)
-                    .clusterName(CLUSTER_NAME)
-                    .node();
-
-                node.start();
-            } catch (BindHttpException e) {
-                junitHelper.releasePort(TCP_PORT);
-                junitHelper.releasePort(HTTP_PORT);
-                node = null;
-                continue;
-            }
-        }        
-        if (node == null) {
-            return;
-        }
-        metadataConfig.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
+        metadataConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
         
         final int metadataPort = junitHelper.findAvailablePort();
         SystemPropertyUtil.set("jetty.port", metadataPort);
@@ -100,15 +67,12 @@ public class MetaDataApplicationAuthenticationTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        if (config == null) {
+            return;
+        }
         mongo.stop();
         junitHelper.releasePort(port);
-        
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
+        JunitHelper.stopElasticsearchForTest(config);
     }
 
 

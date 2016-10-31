@@ -29,11 +29,16 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 
@@ -46,8 +51,11 @@ public class IngestInternalApplication
     private static final String INGEST_INTERNAL_CONF_FILE_NAME = "ingest-internal.conf";
     private static final String MODULE_NAME = "ingest-internal";
 
+    static VitamServiceRegistry serviceRegistry = null;
+
     /**
      * Ingest Internal constructor
+     * @param configuration 
      */
     public IngestInternalApplication(String configuration) {
         super(IngestInternalConfiguration.class, configuration);
@@ -68,6 +76,12 @@ public class IngestInternalApplication
                     INGEST_INTERNAL_CONF_FILE_NAME));
             }
             final IngestInternalApplication application = new IngestInternalApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -75,11 +89,25 @@ public class IngestInternalApplication
         }
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
         // Start by registering Multipart
         resourceConfig.register(MultiPartFeature.class);
-        resourceConfig.register(new IngestInternalResource(getConfiguration()))
-            .register(new AdminStatusResource());
+        IngestInternalResource resource = new IngestInternalResource(getConfiguration());
+        // Register Workspace
+        serviceRegistry.register(WorkspaceClientFactory.getInstance())
+            // Register Logbook for Operation
+            .register(LogbookOperationsClientFactory.getInstance())
+            // Register Storage (ATR access)
+            .register(StorageClientFactory.getInstance());
+        // Will register Processing once in V2 FIXME P0
+        // .register(ProcessingManagementClientFactory.getInstance());
+        resourceConfig.register(resource)
+            .register(new AdminStatusResource(serviceRegistry));
     }
 }

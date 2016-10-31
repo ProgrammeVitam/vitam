@@ -24,7 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
+package fr.gouv.vitam.logbook.common.parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+
 /**
- * Package for logbook parameters object helpers
+ * Test class for LogbooParameterName Enum
  */
-package fr.gouv.vitam.logbook.common.parameters.helper;
+public class LogbookParameterNameTest {
+
+    @Test
+    public void parameterName() {
+        String value = LogbookParameterName.valueOf(LogbookParameterName.eventType.name()).name();
+        assertNotNull(value);
+        assertEquals(LogbookParameterName.eventType.name(), value);
+
+        value = LogbookParameterName.valueOf("eventIdentifier").name();
+        assertNotNull(value);
+        assertEquals(LogbookParameterName.eventIdentifier.name(), value);
+    }
+}

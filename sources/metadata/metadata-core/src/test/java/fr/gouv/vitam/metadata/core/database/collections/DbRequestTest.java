@@ -50,14 +50,13 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -66,8 +65,6 @@ import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -107,10 +104,12 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -123,13 +122,10 @@ public class DbRequestTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
+    private static ElasticsearchTestConfiguration config = null;
 
     private static ElasticsearchAccessMetadata esClient;
 
@@ -199,29 +195,14 @@ public class DbRequestTest {
     public static void setUp() throws Exception {
 
         junitHelper = JunitHelper.getInstance();
-        // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
-        elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-
-        node.start();
-
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+        
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
@@ -249,6 +230,9 @@ public class DbRequestTest {
      */
     @AfterClass
     public static void tearDown() throws Exception {
+        if (config == null) {
+            return;
+        }
         if (DROP) {
             for (final MetadataCollections col : MetadataCollections.values()) {
                 if (col.getCollection() != null) {
@@ -261,12 +245,8 @@ public class DbRequestTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
 
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
+        JunitHelper.stopElasticsearchForTest(config);
+        esClient.close();
     }
 
 

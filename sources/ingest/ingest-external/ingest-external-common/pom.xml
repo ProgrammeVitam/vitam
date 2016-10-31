@@ -47,7 +47,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations-client</artifactId>
+			<artifactId>logbook-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

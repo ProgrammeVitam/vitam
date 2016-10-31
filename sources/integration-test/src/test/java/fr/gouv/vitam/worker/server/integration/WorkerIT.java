@@ -27,12 +27,10 @@
 package fr.gouv.vitam.worker.server.integration;
 
 import static com.jayway.restassured.RestAssured.get;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,8 +41,6 @@ import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.apache.commons.io.IOUtils;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -68,6 +64,8 @@ import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
@@ -105,11 +103,9 @@ public class WorkerIT {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
-    private static Node node;
 
     private static final int PORT_SERVICE_WORKER = 8098;
     private static final int PORT_SERVICE_WORKSPACE = 8094;
@@ -138,6 +134,7 @@ public class WorkerIT {
     private static LogbookApplication lgbapplication;
     private WorkerClient workerClient;
     private ProcessingManagementClient processingClient;
+    private static ElasticsearchTestConfiguration config = null;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
@@ -157,20 +154,8 @@ public class WorkerIT {
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-worker/processing.conf").toString();
         CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration-worker/logbook.conf").toString();
 
-        elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-        node.start();
+        // ES
+        config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
@@ -215,9 +200,12 @@ public class WorkerIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        if (config == null) {
+            return;
+        }
+        JunitHelper.stopElasticsearchForTest(config);
         mongod.stop();
         mongodExecutable.stop();
-        node.close();
         try {
             workspaceApplication.stop();
             wkrapplication.stop();

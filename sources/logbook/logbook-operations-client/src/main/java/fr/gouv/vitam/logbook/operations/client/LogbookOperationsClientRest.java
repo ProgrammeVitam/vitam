@@ -27,10 +27,7 @@
 
 package fr.gouv.vitam.logbook.operations.client;
 
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -54,6 +51,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
@@ -62,8 +60,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 public class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
-    private final Map<String, Queue<LogbookOperationParameters>> delegatedCreations = new ConcurrentHashMap<>();
-    private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();
+
+    private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
     LogbookOperationsClientRest(LogbookOperationsClientFactory factory) {
         super(factory);
@@ -190,41 +188,23 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
 
     @Override
     public void createDelegate(LogbookOperationParameters parameters) throws LogbookClientAlreadyExistsException {
-        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
-        if (delegatedCreations.containsKey(key)) {
-            throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
-        }
-        Queue<LogbookOperationParameters> list = new ConcurrentLinkedQueue<>();
-        delegatedCreations.put(key, list);
-        list.add(LogbookOperationsClientHelper.copy(parameters));
+        helper.createDelegate(parameters);
     }
 
     @Override
     public void updateDelegate(LogbookOperationParameters parameters) throws LogbookClientNotFoundException {
-        String key = LogbookOperationsClientHelper.checkLogbookParameters(parameters);
-        Queue<LogbookOperationParameters> list = delegatedCreations.get(key);
-        if (list == null) {
-            // Switch to update part
-            list = delegatedUpdates.get(key);
-            if (list == null) {
-                // New Update part
-                list = new ConcurrentLinkedQueue<>();
-                delegatedUpdates.put(key, list);
-            }
-        }
-        list.add(LogbookOperationsClientHelper.copy(parameters));
+        helper.updateDelegate(parameters);
     }
 
     @Override
-    public void commitCreateDelegate(String eventIdProc)
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientAlreadyExistsException,
+    public void bulkCreate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException {
-        Queue<LogbookOperationParameters> list = delegatedCreations.remove(eventIdProc);
-        if (list != null) {
+        if (queue != null) {
             Response response = null;
             try {
                 response = performRequest(HttpMethod.POST, OPERATIONS_URL, null,
-                list, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    queue, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
                 final Status status = Status.fromStatusCode(response.getStatus());
                 switch (status) {
                     case CREATED:
@@ -255,14 +235,21 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
     }
 
     @Override
-    public void commitUpdateDelegate(String eventIdProc)
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        Queue<LogbookOperationParameters> list = delegatedUpdates.remove(eventIdProc);
-        if (list != null) {
+    public void commitCreateDelegate(String eventIdProc)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
+        bulkCreate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        if (queue != null) {
             Response response = null;
             try {
                 response = performRequest(HttpMethod.PUT, OPERATIONS_URL, null,
-                    list, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    queue, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
                 final Status status = Status.fromStatusCode(response.getStatus());
                 switch (status) {
                     case OK:
@@ -290,6 +277,19 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
             throw new LogbookClientBadRequestException(
                 ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
+    }
+
+    @Override
+    public void commitUpdateDelegate(String eventIdProc)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
+        bulkUpdate(eventIdProc, queue);
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        helper.clear();
     }
 
 }

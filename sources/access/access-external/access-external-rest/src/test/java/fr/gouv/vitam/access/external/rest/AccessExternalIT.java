@@ -95,7 +95,6 @@ public class AccessExternalIT {
             client.checkStatus();
             fail();
         } catch (final VitamException e) {
-            e.printStackTrace();
         }
     }
 }

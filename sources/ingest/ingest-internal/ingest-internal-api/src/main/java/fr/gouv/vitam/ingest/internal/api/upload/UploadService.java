@@ -29,11 +29,8 @@ package fr.gouv.vitam.ingest.internal.api.upload;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-
-import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * Upload service a received SIP from a SIA
@@ -48,11 +45,8 @@ public interface UploadService {
      * @param partList
      * @param xRequestId
      * @return Response {@link Response}
-     * @throws VitamException if inputstream is null
-     * @throws XMLStreamException
      */
-    public Response uploadSipAsStream(String xRequestId, List<FormDataBodyPart> partList)
-        throws VitamException, XMLStreamException;
+    public Response uploadSipAsStream(String xRequestId, List<FormDataBodyPart> partList);
 
 
     /**

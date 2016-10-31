@@ -387,7 +387,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /***** LIFE CYCLES UNIT - START *****/
 
     /**
-     * GET multiple Unit Life Cycles
+     * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side
@@ -682,7 +682,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /***** LIFE CYCLES OBJECT GROUP - START *****/
     /**
-     * GET multiple Unit Life Cycles
+     * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side

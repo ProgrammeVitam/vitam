@@ -84,9 +84,9 @@ public class UnitTest {
     @Test
     public void testloadDocument() {
         final Unit unit = new Unit(s1);
-        unit.load("{\"_dom\":\"dom1\"}");
+        unit.load("{\"_tenant\":\"dom1\"}");
         final String s = unit.toString();
-        assertEquals("Unit: Document{{_id=id1, title=title1, _dom=dom1}}", s);
+        assertEquals("Unit: Document{{_id=id1, title=title1, _tenant=dom1}}", s);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class UnitTest {
     @Test
     public void testDomaineId() {
         final Unit unit = new Unit(s1);
-        unit.put("_dom", 8888);
+        unit.put("_tenant", 8888);
         assertEquals(8888, unit.getDomainId());
         final MetadataDocument<Unit> document = unit.checkId();
         assertEquals(8888, document.getDomainId());

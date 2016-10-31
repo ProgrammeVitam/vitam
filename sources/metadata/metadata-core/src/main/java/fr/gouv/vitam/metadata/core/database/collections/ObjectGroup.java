@@ -47,8 +47,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 /**
  * ObjectGroup:<br>
  *
- * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _dom : domainId (tenant), _type:
- *                audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nb : nb objects, _uses : [
+ * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _tenant : tenant, _type:
+ *                audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nbc : nb objects, _uses : [
  *                { strategy : conservationId, versions : [ { // Object _version : rank, _creadate : date, _id:
  *                UUIDObject, digest : { val : val, typ : type }, size: size, fmt: fmt, MD techniques, _copies : [ { sid
  *                : id, storageDigest: val }, { sid, ...}, ... ] }, { _version : N, ...}, ... ] }, { strategy :
@@ -67,29 +67,26 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Usages
      */
-    public static final String USAGES = "_uses";
+    public static final String USAGES = "_qualifiers";
     /**
      * Unit Id, Vitam fields Only projection (no usage)
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
         new BasicDBObject(NB_COPY, 1).append(TYPE, 1)
-            .append(DOMID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
-    /**
-     * Strategy
-     */
-    public static final String STRATEGY = USAGES + "." + "strategy";
+            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
      */
-    public static final String VERSIONS = USAGES + "." + "versions";
+    // FIXME P2 WRONG
+    public static final String VERSIONS = USAGES + ".*." + "versions";
+    /**
+     * DataObjectVersion
+     */
+    public static final String DATAOBJECTVERSION = VERSIONS + "." + "DataObjectVersion";
     /**
      * Version
      */
     public static final String VERSION = VERSIONS + "." + "_version";
-    /**
-     * Creation date
-     */
-    public static final String CREATED_DATE = VERSIONS + "." + "_creadate";
     /**
      * Object UUID
      */
@@ -97,23 +94,23 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Object size
      */
-    public static final String OBJECTSIZE = VERSIONS + "." + "size";
+    public static final String OBJECTSIZE = VERSIONS + "." + "Size";
     /**
      * Object format
      */
-    public static final String OBJECTFORMAT = VERSIONS + "." + "fmt";
+    public static final String OBJECTFORMAT = VERSIONS + "." + "FormatIdentification.FormatId";
     /**
      * Digest
      */
-    public static final String OBJECTDIGEST = VERSIONS + "." + "digest";
+    public static final String OBJECTDIGEST = VERSIONS;
     /**
      * Digest Value
      */
-    public static final String OBJECTDIGEST_VALUE = OBJECTDIGEST + "." + "val";
+    public static final String OBJECTDIGEST_VALUE = OBJECTDIGEST + "." + "MessageDigest";
     /**
      * Digest Type
      */
-    public static final String OBJECTDIGEST_TYPE = OBJECTDIGEST + "." + "typ";
+    public static final String OBJECTDIGEST_TYPE = OBJECTDIGEST + "." + "Algorithm";
     /**
      * Copies
      */
@@ -122,15 +119,10 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Storage Id
      */
     public static final String STORAGE = COPIES + "." + "sid";
-    /**
-     * Digest
-     */
-    public static final String STORAGEDIGEST = COPIES + "." + "digest";
 
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
-        new BasicDBObject(DOMID, 1),
-        new BasicDBObject(STRATEGY, 1),
+        new BasicDBObject(TENANT_ID, 1),
         new BasicDBObject(VERSION, 1),
         new BasicDBObject(OPS, 1),
         new BasicDBObject(OBJECTID, 1),
@@ -138,7 +130,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         new BasicDBObject(OBJECTFORMAT, 1),
         new BasicDBObject(OBJECTDIGEST_VALUE, 1).append(OBJECTDIGEST_TYPE, 1),
         new BasicDBObject(STORAGE, 1),
-        new BasicDBObject(STRATEGY, 1).append(VERSION, 1)};
+        new BasicDBObject(DATAOBJECTVERSION, 1).append(VERSION, 1)};
 
     /**
      * Total number of copies

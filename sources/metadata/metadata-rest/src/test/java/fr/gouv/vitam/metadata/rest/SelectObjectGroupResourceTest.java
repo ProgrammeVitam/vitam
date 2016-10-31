@@ -28,18 +28,14 @@ package fr.gouv.vitam.metadata.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.node.Node;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,11 +57,12 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -93,13 +90,9 @@ public class SelectObjectGroupResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
 
     private static MetaDataApplication application;
 
@@ -113,62 +106,22 @@ public class SelectObjectGroupResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
-
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
-    }
-
-
-    private static String createJsonStringWithDepth(int depth) {
-        final StringBuilder obj = new StringBuilder();
-        if (depth == 0) {
-            return " \"b\" ";
-        }
-        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
-        return obj.toString();
-    }
+    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
         junitHelper = JunitHelper.getInstance();
-
         // ES
-        elasticsearchHome = tempFolder.newFolder();
-        for (int i = 0; i < 3; i++) {
-            TCP_PORT = junitHelper.findAvailablePort();
-            HTTP_PORT = junitHelper.findAvailablePort();
-
-            try {
-                final Settings settings = Settings.settingsBuilder()
-                    .put("http.enabled", true)
-                    .put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", TCP_PORT)
-                    .put("http.port", HTTP_PORT)
-                    .put("path.home", elasticsearchHome.getCanonicalPath())
-                    .build();
-
-                node = nodeBuilder()
-                    .settings(settings)
-                    .client(false)
-                    .clusterName(CLUSTER_NAME)
-                    .node();
-
-                node.start();
-            } catch (BindHttpException e) {
-                junitHelper.releasePort(TCP_PORT);
-                junitHelper.releasePort(HTTP_PORT);
-                node = null;
-                continue;
-            }
-        }
-        if (node == null) {
-            return;
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
         }
 
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         dataBasePort = junitHelper.findAvailablePort();
 
@@ -194,30 +147,39 @@ public class SelectObjectGroupResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (node == null) {
+        if (config == null) {
             return;
         }
+        JunitHelper.stopElasticsearchForTest(config);
+
         application.stop();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
-
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
     }
     @Before
     public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", node != null);
+        Assume.assumeTrue("Elasticsearch not started but should", config != null);
     }
 
     @After
     public void tearDown() {
         MetadataCollections.C_UNIT.getCollection().drop();
+    }
+
+    private static final String buildDSLWithOptions(String query, String data) {
+        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    }
+
+
+    private static String createJsonStringWithDepth(int depth) {
+        final StringBuilder obj = new StringBuilder();
+        if (depth == 0) {
+            return " \"b\" ";
+        }
+        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
+        return obj.toString();
     }
 
     @Test

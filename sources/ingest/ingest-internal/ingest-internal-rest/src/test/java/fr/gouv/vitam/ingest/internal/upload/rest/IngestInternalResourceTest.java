@@ -54,11 +54,13 @@ import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -85,6 +87,9 @@ public class IngestInternalResourceTest {
     private static final String REST_URI = "/ingest/v1";
     private static final String STATUS_URI = "/status";
     private static final String UPLOAD_URI = "/upload";
+    private static final String LOGBOOK_URL = "/logbooks";
+    private static final String INGEST_URL = "/ingests";
+
     private GUID ingestGuid;
     private static VitamServer vitamServer;
     private static int port;
@@ -94,6 +99,7 @@ public class IngestInternalResourceTest {
     private static ProcessingManagementClient processingClient;
 
     private List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+    private List<LogbookParameters> operationList2 = new ArrayList<LogbookParameters>();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -132,30 +138,71 @@ public class IngestInternalResourceTest {
     public void setUp() throws Exception {
 
         ingestGuid = GUIDFactory.newManifestGUID(0);
-        final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
+                GUIDFactory.newEventGUID(0),
                 "Ingest external",
-                conatinerGuid,
+                ingestGuid,
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                conatinerGuid);
+                ingestGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
+                GUIDFactory.newEventGUID(0),
                 "Ingest external",
-                conatinerGuid,
+                ingestGuid,
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                conatinerGuid);
+                ingestGuid);
+
+        final LogbookOperationParameters externalOperationParameters3 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0),
+                "Ingest Launch internal",
+                ingestGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "Start Ingest internal",
+                ingestGuid);
         operationList = new ArrayList<LogbookParameters>();
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
+        operationList.add(externalOperationParameters3);
 
+        final LogbookOperationParameters externalOperationParameters4 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0),
+                "Ingest external ATR",
+                ingestGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "End Ingest ATR",
+                ingestGuid);
+        final LogbookOperationParameters externalOperationParameters5 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0),
+                "Ingest external ATR",
+                ingestGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.OK,
+                "End Ingest ATR",
+                ingestGuid);
+        final LogbookOperationParameters externalOperationParameters6 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0),
+                "Ingest Launch internal",
+                ingestGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.OK,
+                "End Ingest internal",
+                ingestGuid);
+        operationList2 = new ArrayList<LogbookParameters>();
+        operationList2.add(externalOperationParameters4);
+        operationList2.add(externalOperationParameters5);
+        operationList2.add(externalOperationParameters6);
     }
 
 
@@ -191,6 +238,7 @@ public class IngestInternalResourceTest {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
+    // FIXME P0 to be removed
     @Test
     public void givenAllServicesAvailableAndNoVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
@@ -218,6 +266,42 @@ public class IngestInternalResourceTest {
 
         inputStream.close();
     }
+
+    @Test
+    public void givenAllServicesAvailableAndVirusWhenUploadSipAsAsyncStreamThenReturnOK() throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
+            Mockito.anyObject(),
+            Mockito.anyObject());
+
+        final GUID processId = GUIDFactory.newGUID();
+
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(JsonHandler.unprettyPrint(operationList)).contentType(MediaType.APPLICATION_JSON)
+            .then().statusCode(Status.CREATED.getStatusCode())
+            .when().post(LOGBOOK_URL);
+
+        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
+        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject());
+
+        final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .then().statusCode(Status.OK.getStatusCode())
+            .when().post(INGEST_URL);
+
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(JsonHandler.unprettyPrint(operationList2)).contentType(MediaType.APPLICATION_JSON)
+            .then().statusCode(Status.OK.getStatusCode())
+            .when().put(LOGBOOK_URL);
+    }
+
 
     @Test
     public void givenNoZipWhenUploadSipAsStreamThenReturnKO()
@@ -346,32 +430,6 @@ public class IngestInternalResourceTest {
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when().post(UPLOAD_URI);
-    }
-
-
-    @Test
-    public void givenAllServicesAvailableAndVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.anyObject(),
-            Mockito.anyObject());
-
-        final GUID processId = GUIDFactory.newGUID();
-        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
-        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject());
-
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
             .when().post(UPLOAD_URI);
     }
 

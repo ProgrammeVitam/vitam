@@ -67,10 +67,10 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 /**
  * Unit class:<br>
  *
- * @formatter:off { MD content, _id: UUID, _dom: DomainId (tenant), _type: documentType,, _min: depthmin, _max:
+ * @formatter:off { MD content, _id: UUID, _tenant: tenant, _type: documentType,, _min: depthmin, _max:
  *                depthmax, _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed
  *                and not to be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1,
- *                UUID2, ... ], // limited to immediate parent _og: UUID, _nb : immediateChildNb }
+ *                UUID2, ... ], // limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
 public class Unit extends MetadataDocument<Unit> {
@@ -135,7 +135,7 @@ public class Unit extends MetadataDocument<Unit> {
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
-        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(DOMID, 1);
+        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
 
     /**
      * Es projection (no UPS)
@@ -149,7 +149,7 @@ public class Unit extends MetadataDocument<Unit> {
     public static final BasicDBObject UNIT_VITAM_PROJECTION =
         new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
             .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-            .append(DOMID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
+            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Unit Id, Vitam and Management fields Only projection (no content)
      */
@@ -159,36 +159,36 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Storage Rule
      */
-    public static final String STORAGERULE = MANAGEMENT + ".storageRule";
+    public static final String STORAGERULE = MANAGEMENT + ".StorageRule";
     /**
      * Appraisal Rule
      */
-    public static final String APPRAISALRULE = MANAGEMENT + ".appraisalRule";
+    public static final String APPRAISALRULE = MANAGEMENT + ".AppraisalRule";
     /**
      * Access Rule
      */
-    public static final String ACCESSRULE = MANAGEMENT + ".accessRule";
+    public static final String ACCESSRULE = MANAGEMENT + ".AccessRule";
     /**
      * Dissemination Rule
      */
-    public static final String DISSEMINATIONRULE = MANAGEMENT + ".disseminationRule";
+    public static final String DISSEMINATIONRULE = MANAGEMENT + ".DisseminationRule";
     /**
      * Reuse Rule
      */
-    public static final String REUSERULE = MANAGEMENT + ".reuseRule";
+    public static final String REUSERULE = MANAGEMENT + ".ReuseRule";
     /**
      * Classification Rule
      */
-    public static final String CLASSIFICATIONRULE = MANAGEMENT + ".classificationRule";
+    public static final String CLASSIFICATIONRULE = MANAGEMENT + ".ClassificationRule";
 
     /**
      * Rule
      */
-    public static final String RULE = ".rules.rule";
+    public static final String RULE = ".Rules.Rule";
     /**
      * Rule end date (computed)
      */
-    public static final String END = ".rules._end";
+    public static final String END = ".Rules._end";
 
     @SuppressWarnings("javadoc")
     public static final String STORAGERULES = STORAGERULE + RULE;
@@ -218,7 +218,7 @@ public class Unit extends MetadataDocument<Unit> {
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
-        new BasicDBObject(DOMID, 1),
+        new BasicDBObject(TENANT_ID, 1),
         new BasicDBObject(UNITUPS, 1),
         new BasicDBObject(MINDEPTH, 1),
         new BasicDBObject(MAXDEPTH, 1),

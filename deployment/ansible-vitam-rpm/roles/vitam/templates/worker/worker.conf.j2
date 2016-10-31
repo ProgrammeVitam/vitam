@@ -1,13 +1,17 @@
-# Configuration MongoDB
+# Configuration MongoDB TEMPORARY
 dbHost: {{vitam_mongodb_host}}
 dbPort: {{vitam_mongodb_port}}
 dbName: Vitam
+dbAuthentication: {{mongo_authentication}}
+dbUserName: {{mongoLogbookUser}}
+dbPassword: {{mongoLogbookPassword}}
 # Configuration processing 
+# HERE MUST BE PROCESSING SERVER AND PORT
 registerServerHost: {{inventory_hostname}}
 registerServerPort: {{vitam_worker_port}}
 # Configuration handler
 processingUrl: {{vitam_processing_baseurl}}
-urlMetadata : {{vitam_metadata_baseurl}}
-urlWorkspace : {{vitam_workspace_baseurl}}
+urlMetadata: {{vitam_metadata_baseurl}}
+urlWorkspace: {{vitam_workspace_baseurl}}
 # Configuration jetty
 jettyConfig: jetty-config.xml

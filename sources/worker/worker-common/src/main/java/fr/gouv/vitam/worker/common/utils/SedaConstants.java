@@ -51,7 +51,7 @@ public class SedaConstants {
     /**
      * Tag of nb
      */
-    public static final String TAG_NB = "nb";
+    public static final String TAG_NB = "_nbc";
 
     /**
      * Tag of size
@@ -141,12 +141,12 @@ public class SedaConstants {
     /**
      * Prefix of tenantID
      */
-    public static final String PREFIX_TENANT_ID = "_tenantId";
+    public static final String PREFIX_TENANT_ID = "_tenant";
 
     /**
      * Prefix of nb
      */
-    public static final String PREFIX_NB = "_nb";
+    public static final String PREFIX_NB = "_nbc";
     /**
      * Prefix of ops
      */

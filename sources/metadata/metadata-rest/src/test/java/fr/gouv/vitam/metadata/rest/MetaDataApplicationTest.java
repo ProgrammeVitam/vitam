@@ -26,29 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.node.Node;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -57,15 +48,11 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
@@ -78,56 +65,26 @@ public class MetaDataApplicationTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
 
     private static MetaDataConfiguration config;
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
+    private static ElasticsearchTestConfiguration configEs = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-
         // ES
-        elasticsearchHome = tempFolder.newFolder();
-        for (int i = 0; i < 3; i++) {
-            TCP_PORT = junitHelper.findAvailablePort();
-            HTTP_PORT = junitHelper.findAvailablePort();
-
-            try {
-                final Settings settings = Settings.settingsBuilder()
-                    .put("http.enabled", true)
-                    .put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", TCP_PORT)
-                    .put("http.port", HTTP_PORT)
-                    .put("path.home", elasticsearchHome.getCanonicalPath())
-                    .build();
-
-                node = nodeBuilder()
-                    .settings(settings)
-                    .client(false)
-                    .clusterName(CLUSTER_NAME)
-                    .node();
-
-                node.start();
-            } catch (BindHttpException e) {
-                junitHelper.releasePort(TCP_PORT);
-                junitHelper.releasePort(HTTP_PORT);
-                node = null;
-                continue;
-            }
-        }
-        if (node == null) {
-            return;
+        try {
+            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
         }
 
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode("localhost", TCP_PORT));
+        nodes.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
@@ -143,23 +100,17 @@ public class MetaDataApplicationTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (node == null) {
+        if (configEs == null) {
             return;
         }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
+        JunitHelper.stopElasticsearchForTest(configEs);
     }
     @Before
     public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", node != null);
+        Assume.assumeTrue("Elasticsearch not started but should", configEs != null);
     }
 
     @Test

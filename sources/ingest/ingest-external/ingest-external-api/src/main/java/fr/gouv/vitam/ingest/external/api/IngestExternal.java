@@ -37,13 +37,12 @@ import javax.xml.stream.XMLStreamException;
 public interface IngestExternal {
 
     /**
-     * upload the file -- store in local and then scan the virus <br>
+     * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
      *
      * @param input the file
-     * @return Response
-     * @throws IngestExternalException thrown if an error occured in worklofw
-     * @throws XMLStreamException
+     * @return Response containing as InputStream the ArchiveTransferReply in XML format
+     * @throws IngestExternalException thrown if an error occurred in workflow
      */
 	//TODO P0 add the file name as param from a header
-    Response upload(InputStream input) throws IngestExternalException, XMLStreamException;
+    Response upload(InputStream input) throws IngestExternalException;
 }

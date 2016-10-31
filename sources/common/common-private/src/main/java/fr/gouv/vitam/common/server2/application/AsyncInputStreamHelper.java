@@ -115,7 +115,6 @@ public class AsyncInputStreamHelper implements StreamingOutput {
      * @param asyncResponse the AsyncReponse from the Resource API
      * @param inputStream the native InputStream to send (not from a Client response)
      * @param size the native size, could be null (no size will be set into the header but recommended)
-     * @param receivedResponse Received Response containing the InputStream to forward as is
      */
     public AsyncInputStreamHelper(AsyncResponse asyncResponse, InputStream inputStream, Long size) {
         ParametersChecker.checkParameter("Parameters should not be null", asyncResponse, inputStream);

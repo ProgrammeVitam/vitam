@@ -1,6 +1,6 @@
 {
   "_id": "aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba",
-  "_tenantId": 0,
+  "_tenant": 0,
   "_type": "Text",
   "FileInfo": {
     "Filename": "Filename0",
@@ -48,7 +48,5 @@
     "aeaaaaaaaaaam7mxaaaamakwkuhqtgaaaabq",
     "aeaaaaaaaaaam7mxaaaamakwkuhqt5iaaacq"
   ],
-  "_nb": 1,
-  "_dom": 0,
-  "_nbc": 0
+  "_nbc": 1
 }

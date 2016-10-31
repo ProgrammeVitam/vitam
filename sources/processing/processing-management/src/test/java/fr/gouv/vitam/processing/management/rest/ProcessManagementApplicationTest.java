@@ -64,7 +64,6 @@ public class ProcessManagementApplicationTest {
         try {
             ProcessManagementApplication.stop();
         } catch (final Exception e) {
-            e.printStackTrace();
         }
     }
 
