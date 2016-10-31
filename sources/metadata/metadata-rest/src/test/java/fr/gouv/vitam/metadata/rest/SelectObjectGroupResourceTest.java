@@ -61,6 +61,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -99,6 +100,8 @@ public class SelectObjectGroupResourceTest {
     private static int TCP_PORT = 9300;
     private static int HTTP_PORT = 9200;
     private static Node node;
+
+    private static MetaDataApplication application;
 
     private static final String BAD_QUERY_TEST =
         "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$badRquest : 'mavar3'}, " +
@@ -180,7 +183,11 @@ public class SelectObjectGroupResourceTest {
             new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        MetaDataApplication.run(configuration);
+
+        application = new MetaDataApplication(configuration);
+        application.start();
+        JunitHelper.unsetJettyPortSystemProperty();
+
         RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
     }
@@ -190,7 +197,7 @@ public class SelectObjectGroupResourceTest {
         if (node == null) {
             return;
         }
-        MetaDataApplication.stop();
+        application.stop();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);

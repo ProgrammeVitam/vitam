@@ -61,7 +61,7 @@ public final class LogbookMongoDbAccessFactory {
     public static final LogbookMongoDbAccessImpl create(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration) {
         ParametersChecker.checkParameter("configuration", configuration);
         MongoClient mongoClient =
-            MongoDbAccess.createMongoClient2(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
+            MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);
     }
 }

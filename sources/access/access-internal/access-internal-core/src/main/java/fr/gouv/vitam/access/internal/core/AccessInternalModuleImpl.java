@@ -70,6 +70,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -97,7 +98,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private final AccessInternalConfiguration accessConfiguration;
 
-    private MetaDataClient metaDataClient;
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
@@ -123,7 +123,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * For testing purpose only
      *
-     * @param metaDataClientFactory {@link MetaDataClientFactory} the metadata client factory
      * @param configuration {@link AccessInternalConfiguration} access configuration
      * @param storageClient a StorageClient instance
      */
@@ -139,7 +138,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param metaDataClientFactory {@link MetaDataClientFactory} the metadata client factory
      * @param configuration {@link AccessInternalConfiguration} access configuration
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
@@ -167,8 +165,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         JsonNode jsonNode = null;
 
-        try {
-            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             jsonNode = metaDataClient.selectUnits(jsonQuery.toString());
 
@@ -207,9 +204,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
-        try {
-            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
-
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
                 case UNIT:
                     jsonNode = metaDataClient.selectUnitbyId(jsonQuery.toString(), idDocument);
@@ -223,7 +218,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
             // TODO P1 : ProcessingException should probably be handled by clients ?
         } catch (MetadataInvalidSelectException | MetaDataDocumentSizeException | MetaDataExecutionException |
-            ProcessingException e) {
+            ProcessingException | MetaDataClientServerException e) {
             throw new AccessInternalExecutionException(e);
         }
         return jsonNode;
@@ -328,9 +323,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
-        try {
-
-            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             if (!mock) {
                 logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -396,6 +389,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException(lcbre);
         } catch (final LogbookClientAlreadyExistsException e) {
             LOGGER.error("logbook operation already exists", e);
+            throw new AccessInternalExecutionException(e);
+        } catch (MetaDataClientServerException e) {
+            LOGGER.error("Metadata internal server error", e);
             throw new AccessInternalExecutionException(e);
         } finally {
             if (!mock) {

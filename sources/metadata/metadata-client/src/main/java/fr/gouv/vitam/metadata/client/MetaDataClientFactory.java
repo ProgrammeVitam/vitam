@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,22 +23,81 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ **/
+
 package fr.gouv.vitam.metadata.client;
 
-import fr.gouv.vitam.common.ParametersChecker;
+import java.io.IOException;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * MetaData client factory to create metadata client
+ * Metadata client factory
  */
-public class MetaDataClientFactory {
+public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientFactory.class);
+    private static final String CONFIGURATION_FILENAME = "metadata-client.conf";
+    private static final String RESOURCE_PATH = "/metadata/v1";
+
+    private static final MetaDataClientFactory META_DATA_CLIENT_FACTORY = new MetaDataClientFactory();
+
+    private MetaDataClientFactory() {
+        // All requests from client are SMALL, but responses from server could be Huge
+        // So Chunked mode inactive on client side
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
+    }
+
     /**
-     * @param url server url
-     * @return new MetaDataClient
+     * Change client configuration from a Yaml files
+     *
+     * @param configurationPath the path to the configuration file
+     * @return ClientConfiguration
      */
-    // FIXME P0 REVIEW refactor like logbookClient
-    public static MetaDataClient create(String url) {
-        ParametersChecker.checkParameter("Server Url can not be null", url);
-        return new MetaDataClient(url);
+    static ClientConfiguration changeConfigurationFile(String configurationPath) {
+        ClientConfiguration configuration = null;
+        try {
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class);
+        } catch (final IOException fnf) {
+            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                configurationPath,
+                fnf);
+        }
+        if (configuration == null) {
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath);
+        }
+        return configuration;
+    }
+
+    /**
+     *
+     * @param configuration null for MOCK
+     */
+    public static void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    /**
+     * Get factory instance
+     *
+     * @return the factory instance
+     */
+    public static MetaDataClientFactory getInstance() {
+        return META_DATA_CLIENT_FACTORY;
+    }
+
+    @Override
+    public MetaDataClient getClient() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Actually only one client implementation exists, so ignore client type value");
+        }
+        return new MetaDataClientRest(this);
     }
 }

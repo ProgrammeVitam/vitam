@@ -60,7 +60,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -79,7 +78,6 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private static final String SIP_ARCHIVE_BEFORE_BDO = "SIP_Archive_Before_BDO.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
-    private final MetaDataClientFactory metadataFactory = new MetaDataClientFactory();
     private final InputStream seda;
     private final InputStream seda_2;
     private final SedaUtils utils = SedaUtilsFactory.create();

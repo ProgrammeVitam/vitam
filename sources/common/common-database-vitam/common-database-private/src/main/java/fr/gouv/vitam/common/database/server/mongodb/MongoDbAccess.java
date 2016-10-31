@@ -169,7 +169,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
      * @param options
      * @return the MongoClient
      */
-    public static MongoClient createMongoClient2(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration, MongoClientOptions options) {
+    public static MongoClient createMongoClient(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration, MongoClientOptions options) {
         if (configuration.isDbAuthentication()) {
 
             // create user with username, password and specify the database name

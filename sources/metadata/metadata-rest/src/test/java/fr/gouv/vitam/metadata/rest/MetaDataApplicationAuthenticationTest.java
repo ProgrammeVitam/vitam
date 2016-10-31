@@ -116,10 +116,9 @@ public class MetaDataApplicationAuthenticationTest {
     public void testLauchApplication() throws Exception {
         final File newConf = File.createTempFile("test", METADATA_CONF, metadata.getParentFile());
         PropertiesUtils.writeYaml(newConf, metadataConfig);
-        MetaDataApplication application = new MetaDataApplication();
-        application.configure(newConf.getAbsolutePath());
+        MetaDataApplication application = new MetaDataApplication(newConf.getAbsolutePath());
         newConf.delete();
-        MetaDataApplication.stop();
+        application.stop();
     }
 
 }

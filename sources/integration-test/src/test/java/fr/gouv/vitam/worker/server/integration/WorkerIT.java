@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -179,10 +181,11 @@ public class WorkerIT {
         mongod = mongodExecutable.start();
 
         // launch metadata
-        medtadataApplication = new MetaDataApplication();
-        SystemPropertyUtil
-            .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication.configure(CONFIG_METADATA_PATH);
+        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        medtadataApplication.start();
+        SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
+        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch logbook
         SystemPropertyUtil
@@ -220,7 +223,7 @@ public class WorkerIT {
             wkrapplication.stop();
             lgbapplication.stop();
             ProcessManagementApplication.stop();
-            MetaDataApplication.stop();
+            medtadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
         }

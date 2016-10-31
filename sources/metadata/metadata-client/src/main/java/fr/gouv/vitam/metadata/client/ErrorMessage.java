@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,46 +23,39 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common.server;
+ **/
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.mongodb.MongoClient;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
+package fr.gouv.vitam.metadata.client;
 
 /**
- * Factory to get MongoDbAccess for Admin
+ * Error Message for Metadata
  */
-public final class MongoDbAccessAdminFactory {
+// TODO: move it to a common (when it is)
+public enum ErrorMessage {
 
-    private MongoDbAccessAdminFactory() {
-        // Empty
+    SELECT_UNITS_QUERY_NULL("Select units query is null"),
+    SELECT_OBJECT_GROUP_QUERY_NULL("Select object group query is null"),
+    UPDATE_UNITS_QUERY_NULL("Update units query is null"),
+    INSERT_UNITS_QUERY_NULL("Insert units query is null"),
+    BLANK_PARAM("Unit id parameter is blank"),
+    INTERNAL_SERVER_ERROR("Internal Server Error"),
+    SIZE_TOO_LARGE("Document Size is Too Large"),
+    INVALID_PARSE_OPERATION("Invalid Parse Operation"),
+    MISSING_SELECT_QUERY("Missing Select Query"),
+    DATA_ALREADY_EXISTS("Data Already Exists"),
+    NOT_FOUND("Not Found Exception");
+
+    private final String message;
+
+    private ErrorMessage(String message) {
+        this.message = message;
     }
-    
+
     /**
-     * Creation of one MongoDbAccess
      *
-     * @param configuration config of MongoDbAcess
-     * @return the MongoDbAccess
-     * @throws IllegalArgumentException if argument is null
+     * @return the associated message
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        final List<Class<?>> classList = new ArrayList<>();
-        for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
-            classList.add(e.getClasz());
-        }
-        FunctionalAdminCollections.class.getEnumConstants();
-
-        MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
+    public String getMessage() {
+        return message;
     }
-
 }
