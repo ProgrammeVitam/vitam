@@ -31,17 +31,18 @@ How to produce .json files
 4. Select objects you want to export
 5. Click on "**Export**" to export selected objects or click on "**Export everything**". The browser should download an *export.json* file.
 6. Open the *export.json* file. You'll notice an array of resources
-    ```javascript
-    [
-     {
-       "_id": "myAwesomeVisualization",
-       "_type": "visualization",
-       "_source": { ... }
-     },
-     { ... },
-     { ... }
-    ]
-    ```
+
+```javascript
+[
+{
+"_id": "myAwesomeVisualization",
+"_type": "visualization",
+"_source": { ... }
+},
+{ ... },
+{ ... }
+]
+```
 7. For each resources, `touch` an **_id**.json file, e.g. **myAwesomeVisualization.json**, in the corresponding **_type** directory, here **visualization**. The result should be: `/visualization/myAwesomeVisualization.json`. Copy the **_source** content in the new file.
 
 > Since the index-patterns are not exportable from the Kibana web interface, you can get them with a **GET** request at the following address: ``http://{{elasticsearch_host}}/.kibana/index-pattern/{{index_pattern_name}}`` then proceed as if you were at step 6.

@@ -250,3 +250,19 @@
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'
+
+- name: load dashboards into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
