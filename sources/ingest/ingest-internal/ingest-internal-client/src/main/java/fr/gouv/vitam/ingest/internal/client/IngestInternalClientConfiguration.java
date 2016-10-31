@@ -24,39 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.rest;
+package fr.gouv.vitam.ingest.internal.client;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+/**
+ * IngestInternalConfiguration contains access informations of ingest
+ */
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-
-public class IngestExternalSslApplcationTest {
-
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
-
-    private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl1-test.conf";
-    private static File config;
-
-    @Test
-    public final void testFictiveLaunch() throws FileNotFoundException {
-        config = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
-        try {
-            ((BasicVitamServer) IngestExternalApplication.startApplication(config.getAbsolutePath())).stop();
-        } catch (final VitamException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+public class IngestInternalClientConfiguration extends ClientConfigurationImpl {
+    
+    /**
+     * Empty constructor used by YAMLFactory to instanciate the object
+     */
+    public IngestInternalClientConfiguration() {
+        // Emtpy constructor
     }
 
-    @Test
-    public final void givenCorrrectConfigFileWhenStartApplicationThenStartOnDefaultPort() throws VitamException {
-        ((BasicVitamServer) IngestExternalApplication.startApplication(INGEST_EXTERNAL_CONF)).stop();
+    /**
+     * Construct a configuration with all parameters at once
+     *
+     * @param serverHost the server hostname
+     * @param serverPort the server port
+     */
+    public IngestInternalClientConfiguration(String serverHost, int serverPort) {
+        super(serverHost, serverPort);
     }
 
 }

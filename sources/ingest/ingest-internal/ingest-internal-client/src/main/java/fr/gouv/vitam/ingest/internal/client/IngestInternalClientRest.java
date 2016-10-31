@@ -30,24 +30,19 @@ package fr.gouv.vitam.ingest.internal.client;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -58,36 +53,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Rest client implementation for Ingest Internal
  */
-public class IngestInternalClientRest implements IngestInternalClient {
+public class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
-    private static final String RESOURCE_PATH = "/ingest/v1";
     private static final String UPLOAD_URL = "/upload";
-    private static final String STATUS_URL = "/status";
 
-    private final String serviceUrl;
-    private final Client client;
-
-    IngestInternalClientRest(String server, int port) {
-        ParametersChecker.checkParameter("server and port are a mandatory parameter", server, port);
-        serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        config.register(MultiPartFeature.class);
-        client = ClientBuilder.newClient(config);
-    }
-
-
-    @Override
-    public int status() {
-        return client.target(serviceUrl).path(STATUS_URL).request().get().getStatus();
+    IngestInternalClientRest(IngestInternalClientFactory factory) {
+        super(factory);
     }
 
     @Override
     public Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
-        String archiveMimeType)
-        throws VitamException {
+        String archiveMimeType) throws VitamException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         final FormDataMultiPart multiPart = new FormDataMultiPart();
         multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
@@ -96,9 +73,9 @@ public class IngestInternalClientRest implements IngestInternalClient {
                 new StreamDataBodyPart("part", inputStream, "SIP", CommonMediaType.valueOf(archiveMimeType)));
         }
 
-        final Response response =
-            client.target(serviceUrl).path(UPLOAD_URL).request().header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+        Response response =
+            performRequest(HttpMethod.POST, UPLOAD_URL, getDefaultHeaders(guid.getId()),
+                multiPart, MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
@@ -108,6 +85,18 @@ public class IngestInternalClientRest implements IngestInternalClient {
         }
 
         return response;
+    }
+
+    /**
+     * Generate the default header map
+     *
+     * @param requestId the x-request-id == operation guid
+     * @return header map
+     */
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+        return headers;
     }
 
 }

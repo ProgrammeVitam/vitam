@@ -415,7 +415,7 @@ public class WebApplicationResourceTest {
         Response mockResponse = Mockito.mock(Response.class);
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-        PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
         final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
@@ -490,7 +490,7 @@ public class WebApplicationResourceTest {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         doThrow(new IngestExternalException("")).when(ingestClient).upload(anyObject());
-        PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
@@ -1098,7 +1098,7 @@ public class WebApplicationResourceTest {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
 
-        PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
             .build()).when(ingestClient).upload(anyObject());
@@ -1113,7 +1113,7 @@ public class WebApplicationResourceTest {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
 
-        PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
             .build()).when(ingestClient).upload(anyObject());
@@ -1129,7 +1129,7 @@ public class WebApplicationResourceTest {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
 
-        PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject());
 

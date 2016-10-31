@@ -26,31 +26,54 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
 import java.io.InputStream;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 public class IngestExternalClientMockTest {
-    IngestExternalClientMock client = new IngestExternalClientMock();
-    InputStream stream;
 
-    @Test
-    public void givenClientMockWhenStatusThenReturnOK() {
-        client.status();
+    private static final String MOCK_INPUT_STREAM = "VITAM-Ingest External Client Mock InputStream";
+
+    @Test(expected = IngestExternalException.class)
+    public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
+        IngestExternalClientFactory.changeMode(null);
+
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertTrue(client instanceof IngestExternalClientMock);
+        client.upload(null);
     }
 
-    @Test
-    public void givenClientMockWhenNoVirusFileThenReturnOK() throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        client.upload(stream);
-    }
 
     @Test
-    public void givenClientMockWhenUnfixedFileThenReturnRetrunAccepted() throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        client.upload(stream);
-    }
+    public void givenNonEmptyStreamThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
+        IngestExternalClientFactory.changeMode(null);
 
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
+        final InputStream responseStream = client.upload(firstStream).readEntity(InputStream.class);
+
+        InputStream inputstreamMockATR =
+            IOUtils.toInputStream(IngestExternalClientMock.MOCK_INGEST_EXTERNAL_RESPONSE_STREAM);
+        assertNotNull(responseStream);
+        try {
+            assertTrue(IOUtils.contentEquals(responseStream, inputstreamMockATR));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
 }

@@ -26,79 +26,93 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.SSLConfiguration;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
-public class IngestExternalClientRestTest extends JerseyTest {
-    private static final String ATR_EXAMPLE_XML = "ATR_example.xml";
+@SuppressWarnings("rawtypes")
+public class IngestExternalClientRestTest extends VitamJerseyTest {
+
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/ingest-ext/v1";
-    protected final IngestExternalClientRest client;
-    private static JunitHelper junitHelper;
-    private static int port;
+    protected IngestExternalClientRest client;
+    private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
+    private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
+    private static final String MOCK_RESPONSE_STREAM = "VITAM-Ingest External Client Rest Mock Response";
 
-    protected ExpectedResults mock;
 
-    interface ExpectedResults {
-        Response post();
-
-        Response get();
-    }
-
-    public IngestExternalClientRestTest() throws VitamException {
-        client = new IngestExternalClientRest(HOSTNAME, port, false, new SSLConfiguration(), false);
-    }
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        junitHelper.releasePort(port);
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    @SuppressWarnings("unchecked")
+    public IngestExternalClientRestTest() {
+        super(IngestExternalClientFactory.getInstance());
     }
 
     @Override
-    protected Application configure() {
-        // enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() {
+        client = (IngestExternalClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse startVitamApplication(int reservedPort) throws IllegalStateException {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     @Path("/ingest-ext/v1")
@@ -116,39 +130,40 @@ public class IngestExternalClientRestTest extends JerseyTest {
         public Response upload(InputStream stream) {
             return expectedResponse.post();
         }
-
-        @GET
-        @Path("status")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response getStatus() {
-            return expectedResponse.get();
-        }
-
-    }
-
-    @Test
-    public void givenStatusOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        client.status();
     }
 
     @Test
     public void givenInputstreamWhenUploadThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
-        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream(ATR_EXAMPLE_XML);
-        final String xmlString = FileUtil.readInputStream(inputStreamATR);
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(xmlString).build());
-        final InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        inputStreamATR = PropertiesUtils.getResourceAsStream(ATR_EXAMPLE_XML);
-        final Response res = client.upload(stream);
-        assertEquals(xmlString, res.readEntity(String.class));
+
+        InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+        Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.OK,
+            mockResponseInputStream,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+        when(mock.post()).thenReturn(fakeResponse);
+
+
+        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
+        InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
+        try {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     @Test(expected = IngestExternalException.class)
     public void givenOperationNotYetCreatedWhenUpdateThenReturnNotFoundException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        final InputStream stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        final InputStream stream = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
         client.upload(stream);
     }
-
 }

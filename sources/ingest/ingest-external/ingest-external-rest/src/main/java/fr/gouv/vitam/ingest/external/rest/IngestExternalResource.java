@@ -40,8 +40,7 @@ import javax.xml.stream.XMLStreamException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
@@ -54,7 +53,7 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
-    private final IngestExternalImpl ingestExtern;
+    private IngestExternalConfiguration ingestExternalConfiguration;
 
     /**
      * Constructor IngestExternalResource
@@ -63,8 +62,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * 
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
-        super(new BasicVitamStatusServiceImpl());
-        ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+        this.ingestExternalConfiguration = ingestExternalConfiguration;
         LOGGER.info("init Ingest External Resource server");
     }
 
@@ -84,6 +82,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     public Response upload(InputStream stream) throws XMLStreamException {
         Response response;
         try {
+            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             response = ingestExtern.upload(stream);
         } catch (final IngestExternalException e) {
             LOGGER.error(e.getMessage());

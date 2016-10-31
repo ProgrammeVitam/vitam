@@ -33,6 +33,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -41,15 +42,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
  * Ingest Internal client interface
  */
 
-public interface IngestInternalClient {
-
-
-    /**
-     * Get the status from the service
-     *
-     * @return http code
-     */
-    int status();
+public interface IngestInternalClient extends MockOrRestClient {
 
     /**
      * 

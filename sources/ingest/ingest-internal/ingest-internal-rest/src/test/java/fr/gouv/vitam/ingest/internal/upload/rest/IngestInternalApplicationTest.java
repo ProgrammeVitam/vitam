@@ -26,129 +26,53 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import static org.junit.Assert.fail;
-
-import java.io.FileNotFoundException;
-
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
 
 public class IngestInternalApplicationTest {
-
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raise an exception";
-
-    private static final String INGEST_INTERNAL_CONF = "ingest-internal.conf";
-
     private static int serverPort;
-    private static JunitHelper junitHelper;
+    private static final JunitHelper junitHelper = JunitHelper.getInstance();
+    private static IngestInternalApplication application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        VitamServerFactory.setDefaultPort(serverPort);
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        if (application != null) {
+            application.stop();
+    }
         junitHelper.releasePort(serverPort);
     }
 
-    @Test
-    public final void givenNegativeNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1"
-            })).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-    }
-
-    @Test
-    public final void givenIncorrectPortNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1xx"
-            })).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-    }
-
-    @Test
-    public final void givenFileNotFoundWhenStartApplicationThenStartOnDefaultPort() throws FileNotFoundException {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                "src/test/resources/notFound.conf"})).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-    }
-
-    @Test
-    public final void givenCorrrectConfigFileWhenStartApplicationThenStartOnDefaultPort() throws FileNotFoundException {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                "src/test/resources/ingest-internal.conf"})).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-    }
-
-
     @Test(expected = IllegalStateException.class)
-    public final void givenInCorrrectConfigFileWhenStartApplicationThenStartOnDefaultPort() {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                "ingest-internal-err1.conf"})).stop();
-        } catch (final VitamApplicationServerException e) {
-            fail("Exception");
-        }
+    public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
+        application = new IngestInternalApplication((String) null);
     }
 
     @Test(expected = IllegalStateException.class)
-    public final void givenNotConfigFileWhenStartApplicationThenStartOnDefaultPort() {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                "ingest-internal-err2.conf"})).stop();
-        } catch (final VitamApplicationServerException e) {
-            fail("Exception");
-        }
+    public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
+        application = new IngestInternalApplication("notFound.conf");
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void shouldRaiseAnExceptionWhenConfigureApplicationWithWrongConfigurationFile() throws Exception {
+        application = new IngestInternalApplication("ingest-internal-err1.conf");
+    }
 
     @Test
-    public final void givenCorrectPortNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
-        try {
-            ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), Integer.toString(serverPort)
-            })).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public final void givenNullParamWhenStartApplicationThenRaiseException() throws VitamApplicationServerException {
-        ((BasicVitamServer) IngestInternalApplication.startApplication(new String[0])).stop();
+    public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
+        application = new IngestInternalApplication("ingest-internal.conf");
+        Assert.assertFalse(application.getVitamServer().isStarted());
+        application.start();
+        Assert.assertTrue(application.getVitamServer().isStarted());
+        application.stop();
+        Assert.assertFalse(application.getVitamServer().isStarted());
     }
 }

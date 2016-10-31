@@ -26,48 +26,51 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.FileUtil;
+import org.apache.commons.io.IOUtils;
+
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 /**
  * Mock client implementation for IngestExternal
  */
-public class IngestExternalClientMock implements IngestExternalClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
+public class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
+    public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
 
     @Override
-    public Response upload(InputStream stream) throws IngestExternalException, XMLStreamException {
+    public Response upload(InputStream stream)
+        throws IngestExternalException, XMLStreamException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }
         StreamUtils.closeSilently(stream);
-        String result = "";
-        try (InputStream inputstreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
-            result = FileUtil.readInputStream(inputstreamATR);
-        } catch (final IOException e) {
-            LOGGER.debug("Get Mock result error");
-        }
-        LOGGER.debug("Running mock upload");
-        return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).entity(result).build();
+
+        return new AbstractMockClient.FakeInboundResponse(Status.OK,
+            IOUtils.toInputStream(MOCK_INGEST_EXTERNAL_RESPONSE_STREAM),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, getDefaultHeaders(FAKE_X_REQUEST_ID));
     }
 
-    @Override
-    public Status status() {
-        return Status.OK;
+    /**
+     * Generate the default header map
+     *
+     * @param requestId fake x-request-id
+     * @return header map
+     */
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+        return headers;
     }
-
 }

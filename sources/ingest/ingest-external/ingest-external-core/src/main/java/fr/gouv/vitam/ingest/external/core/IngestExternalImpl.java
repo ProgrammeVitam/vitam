@@ -305,11 +305,11 @@ public class IngestExternalImpl implements IngestExternal {
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 logbookParametersList.add(endParameters);
             }
-            final IngestInternalClient ingestClient =
-                IngestInternalClientFactory.getInstance().getIngestInternalClient();
 
-            try {
-                // FIXME P0 Response async
+            try (IngestInternalClient ingestClient =
+                IngestInternalClientFactory.getInstance().getClient()) {
+
+                // TODO Response async
                 responseResult = ingestClient.upload(ingestGuid, logbookParametersList, inputStream, mimeType);
                 // FIXME P0 Status could be >= 400 but still getting an ATR KO!
                 if (responseResult.getStatus() >= 400) {

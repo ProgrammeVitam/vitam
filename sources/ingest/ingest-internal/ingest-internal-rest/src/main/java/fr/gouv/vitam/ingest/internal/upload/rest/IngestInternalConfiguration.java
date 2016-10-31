@@ -27,11 +27,12 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Ingest Internal Configuration
  */
-public class IngestInternalConfiguration {
+public class IngestInternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
 
