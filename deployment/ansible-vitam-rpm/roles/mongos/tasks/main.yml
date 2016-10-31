@@ -22,7 +22,7 @@
     - script
     - tmp
 
-- name: Create the mongod configuration server file
+- name: Create the mongos configuration server file
   template: src=mongos.conf.j2 dest={{mongo_config_path}}/mongos.conf
 
 - name: restart mongos
@@ -31,26 +31,17 @@
     enabled: true
     state: restarted
 
-# Now lest's enable sharding for the databases
-# Do this only on the last node of the mongos servers
+# Enable mongo passphrase
 
-- name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout=10
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+- name: Copy the passphrase
+  template:
+    src: "keyfile.j2"
+    dest: "{{ mongo_config_path }}/keyfile"
+    owner: "{{ mongo_user}}"
+    mode: 0600
 
-- name: Copy the script which initiate the replica set
-  template: src=enable-sharding.js.j2 dest=/tmp/enable-sharding.js
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+# Consul
 
-- name: Initiate the replica set
-  command: mongo --port {{mongos_port}} /tmp/enable-sharding.js
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
-
-# - name: Delete the enable-sharding.js file
-#   file:
-#     dest: "/tmp/enable-sharding.js"
-#     state: "absent"
-#   when: inventory_hostname == "{{ groups['mongos']|last }}"
 - name: Ensure consul config dir is OK
   file:
     path: "{{vitam_folder_root}}/conf/consul"

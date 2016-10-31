@@ -30,7 +30,7 @@
     state: directory
     mode: "{{vitam_folder_permission}}"
 
-- name: Create the mongo configuration server file
+- name: Create the mongoc configuration server file
   template:
     src: "mongoc.conf.j2"
     dest: "{{mongo_config_path}}/mongoc.conf"
@@ -42,6 +42,15 @@
     name: vitam-mongoc
     enabled: true
     state: restarted
+
+# Enable mongo passphrase
+
+- name: Copy the passphrase
+  template:
+    src: "keyfile.j2"
+    dest: "{{ mongo_config_path }}/keyfile"
+    owner: "{{ mongo_user}}"
+    mode: 0600
 
 # Now lest's initiate the replica set (do this only on the last node)
 
@@ -61,11 +70,13 @@
   command: mongo --port {{mongoc_port}} /tmp/init-replica-config.js
   when: inventory_hostname == "{{ groups['mongoc']|last }}"
 
-# - name: Delete the init-replica.js file
-#   file:
-#     dest: "/tmp/init-replica.js"
-#     state: "absent"
-#   when: inventory_hostname == "{{ groups['mongoc']|last }}"
+- name: Delete the init-replica.js file
+  file:
+    dest: "/tmp/init-replica.js"
+    state: "absent"
+  when: inventory_hostname == "{{ groups['mongoc']|last }}"
+
+# Consul
 
 - name: Ensure consul config dir is OK
   file:
