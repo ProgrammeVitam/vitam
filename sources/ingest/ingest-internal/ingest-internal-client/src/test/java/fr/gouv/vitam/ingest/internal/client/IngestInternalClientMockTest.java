@@ -64,7 +64,7 @@ public class IngestInternalClientMockTest {
         final IngestInternalClient client =
             IngestInternalClientFactory.getInstance().getClient();
 
-        final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();

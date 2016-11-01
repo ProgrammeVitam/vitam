@@ -51,6 +51,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public static final String DELETED = "Deleted";
     public static final String REMAINED = "Remained";
     public static final String CREATION_DATE = "creationDate";
+    private static final String TENANT = "_tenant";
 
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(ORIGINATING_AGENCY, 1)
@@ -61,6 +62,8 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public AccessionRegisterSummary() {
         // Empty
+        // FIXME P1
+        append(TENANT, 0);
     }
 
 
@@ -71,6 +74,8 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public AccessionRegisterSummary(Document document) {
         super(document);
+        // FIXME P1
+        append(TENANT, 0);
     }
 
     /**
@@ -164,7 +169,8 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
             if (index.containsField(ORIGINATING_AGENCY)) {
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(
+                    ((BasicDBObject) index.copy()).append(TENANT, 1),
                     new IndexOptions().unique(true));
             } else {
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(index);

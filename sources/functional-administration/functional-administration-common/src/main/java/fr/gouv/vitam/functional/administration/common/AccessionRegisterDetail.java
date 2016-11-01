@@ -48,12 +48,15 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String TOTAL_OBJECTS = "TotalObjects";
     private static final String OBJECT_SIZE = "ObjectSize";
     private static final String STATUS = "Status";
+    private static final String TENANT = "_tenant";
 
     /**
      * Empty Constructor
      */
     public AccessionRegisterDetail() {
         // Empty
+        // FIXME P1
+        append(TENANT, 0);
     }
 
 
@@ -64,6 +67,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
+        // FIXME P1
+        append(TENANT, 0);
 
     }
 

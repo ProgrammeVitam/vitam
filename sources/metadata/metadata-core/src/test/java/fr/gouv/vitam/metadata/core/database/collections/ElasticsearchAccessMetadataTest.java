@@ -26,16 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -43,8 +40,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -56,14 +55,9 @@ public class ElasticsearchAccessMetadataTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
-    private static JunitHelper junitHelper;
     private static ElasticsearchAccessMetadata esClient;
 
     private static final int TENANT_ID = 0;
@@ -76,50 +70,30 @@ public class ElasticsearchAccessMetadataTest {
     private static final String S5 =
         "{$bool : {$must : {$match : {\"title\" : {$query : \"Archive3\",$type : \"boolean\"}}},$filter : {$terms : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
 
+    private static ElasticsearchTestConfiguration config = null;
+
     @BeforeClass
-    public static void setUp() throws Exception {
-
-        junitHelper = JunitHelper.getInstance();
+    public static void setUpBeforeClass() throws Exception {
         // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
-        elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-
-        node.start();
-
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-
-        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
-
-
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @AfterClass
-    public static void tearDown() throws Exception {
-        if (node != null) {
-            node.close();
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
         }
 
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+
+        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        if (config == null) {
+            return;
+        }
+        JunitHelper.stopElasticsearchForTest(config);
+        esClient.close();
     }
 
 

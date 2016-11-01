@@ -83,8 +83,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final int MAX_RESULTS = 51000;
 
-    private static final String MIMETYPE_NOT_FILLED = "MimeType must be filled";
-
 
     /**
      * creates a new ContentAddressableStorageImpl with a storage configuration param
@@ -426,7 +424,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         createFolder(containerName, folderName);
 
-        extractArchiveInputStreamOnContainer(containerName, folderName, getExtensionArchive(archiveMimeType),
+        extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
             inputStreamObject);
 
     }
@@ -525,19 +523,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             context.close();
         }
         return jsonNodeObjectInformation;
-    }
-
-    private MediaType getExtensionArchive(String mimeType) throws ContentAddressableStorageCompressedFileException {
-        if (mimeType == null) {
-            throw new IllegalArgumentException(MIMETYPE_NOT_FILLED);
-        }
-        final String[] tab = mimeType.split(";");
-        // problem mimetype with encoding code ;charset=ISO-8859-1
-        String newMimeType = mimeType;
-        if (tab != null && tab.length > 1) {
-            newMimeType = tab[0];
-        }
-        return CommonMediaType.valueOf(newMimeType);
     }
 
     /**

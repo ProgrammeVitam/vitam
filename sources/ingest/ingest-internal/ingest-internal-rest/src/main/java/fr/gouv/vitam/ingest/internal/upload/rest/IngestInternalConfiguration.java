@@ -38,7 +38,6 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
 
     private String workspaceUrl;
     private String processingUrl;
-    private String jettyConfig;
 
 
     /**
@@ -89,27 +88,6 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
         ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER,
             processingUrl);
         this.processingUrl = processingUrl;
-        return this;
-    }
-
-    /**
-     * getter jettyConfig
-     * 
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     * 
-     * @param jettyConfig the jetty config
-     */
-    public IngestInternalConfiguration setJettyConfig(String jettyConfig) {
-        ParametersChecker.checkParameter("jettyConfig" + IS_A_MANDATORY_PARAMETER,
-            jettyConfig);
-        this.jettyConfig = jettyConfig;
         return this;
     }
 }

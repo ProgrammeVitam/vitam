@@ -28,15 +28,13 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
-import java.util.List;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * Ingest Internal client interface
@@ -52,15 +50,11 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
      * @param logbookParametersList list of log book parameters {@link LogbookParameters}
-     * @throws XMLStreamException
      * @throws VitamException if stream is null
      * @return Response {@link Response}
      * 
      */
-    Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
-        String archiveType)
-        throws VitamException, XMLStreamException;
-
-
+    Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList, InputStream inputStream,
+        String archiveType) throws VitamException;
 
 }

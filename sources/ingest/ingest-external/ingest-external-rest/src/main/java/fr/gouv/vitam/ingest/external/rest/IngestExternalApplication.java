@@ -38,13 +38,16 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
 /**
  * Ingest External web application
@@ -56,9 +59,12 @@ public final class IngestExternalApplication
     private static final String SHIRO_FILE = "shiro.ini";
     private static final String MODULE_NAME = "ingest-external";
 
+    static VitamServiceRegistry serviceRegistry = null;
+
 
     /**
      * Ingest External constructor
+     * @param configuration 
      */
     public IngestExternalApplication(String configuration) {
         super(IngestExternalConfiguration.class, configuration);
@@ -79,6 +85,12 @@ public final class IngestExternalApplication
                     CONF_FILE_NAME));
             }
             final IngestExternalApplication application = new IngestExternalApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -105,10 +117,17 @@ public final class IngestExternalApplication
         }
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(new IngestExternalResource(getConfiguration()))
-            .register(new AdminStatusResource());
+        setServiceRegistry(new VitamServiceRegistry());
+        IngestExternalResource resource = new IngestExternalResource(getConfiguration());
+        serviceRegistry.register(IngestInternalClientFactory.getInstance());
+        resourceConfig.register(resource)
+            .register(new AdminStatusResource(serviceRegistry));
     }
 
 }

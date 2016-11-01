@@ -66,9 +66,9 @@ public abstract class MetadataDocument<E> extends Document {
      */
     public static final String TYPE = "_type";
     /**
-     * DomainId
+     * TenantId
      */
-    public static final String DOMID = "_dom";
+    public static final String TENANT_ID = "_tenant";
     /**
      * Parents link (Units or ObjectGroup to parent Units)
      */
@@ -140,7 +140,7 @@ public abstract class MetadataDocument<E> extends Document {
         if (id != null) {
             try {
                 final int domainId = GUIDReader.getGUID(id).getTenantId();
-                append(DOMID, domainId);
+                append(TENANT_ID, domainId);
             } catch (final InvalidGuidOperationException e) {
                 LOGGER.warn(e);
             }
@@ -149,7 +149,7 @@ public abstract class MetadataDocument<E> extends Document {
     }
 
     MetadataDocument<E> testAndCheckId() {
-        if (!containsKey(DOMID)) {
+        if (!containsKey(TENANT_ID)) {
             return checkId();
         }
         return this;
@@ -168,7 +168,7 @@ public abstract class MetadataDocument<E> extends Document {
      * @return the domainId
      */
     public final int getDomainId() {
-        return this.getInteger(DOMID);
+        return this.getInteger(TENANT_ID);
     }
 
     /**

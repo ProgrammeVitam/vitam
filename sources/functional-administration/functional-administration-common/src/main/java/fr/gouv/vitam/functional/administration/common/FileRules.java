@@ -47,6 +47,7 @@ public class FileRules extends VitamDocument<FileRules> {
     private static final String RULEMEASUREMENT = "RuleMeasurement";
     private static final String CREATIONDATE = "CreationDate";
     private static final String UPDATEDATE = "UpdateDate";
+    private static final String TENANT = "_tenant";
 
     /**
      * Constructor
@@ -54,6 +55,8 @@ public class FileRules extends VitamDocument<FileRules> {
 
     public FileRules() {
         // Empty
+        // FIXME P1
+        append(TENANT, 0);
     }
 
     /**
@@ -63,7 +66,8 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(Document document) {
         super(document);
-
+        // FIXME P1
+        append(TENANT, 0);
     }
 
     /**

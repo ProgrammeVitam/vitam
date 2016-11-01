@@ -27,23 +27,20 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * Mock client implementation for Ingest Internal
@@ -54,9 +51,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
 
     @Override
-    public Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
-        String archiveType)
-        throws VitamException, XMLStreamException {
+    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList, InputStream inputStream,
+        String archiveType) {
 
         // Do not check inputStream since it can be null
         ParametersChecker.checkParameter("Params cannot be null", logbookParametersList);

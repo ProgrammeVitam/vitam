@@ -79,8 +79,17 @@ public class CommonMediaType extends MediaType {
      * @throws IllegalArgumentException if the supplied string cannot be supported or is {@code null}.
      */
     public static MediaType valueOf(String archivetype) {
+        if (archivetype == null) {
+            throw new IllegalArgumentException("MimeType not filled");
+        }
+        final String[] tab = archivetype.split(";");
+        // problem mimetype with encoding code ;charset=ISO-8859-1
+        String newMimeType = archivetype;
+        if (tab != null && tab.length > 1) {
+            newMimeType = tab[0];
+        }
 
-        switch (archivetype) {
+        switch (newMimeType) {
             case ZIP:
                 return ZIP_TYPE;
 

@@ -112,19 +112,49 @@ public interface LogbookOperationsClient extends BasicClient {
     void updateDelegate(LogbookOperationParameters parameters) throws LogbookClientNotFoundException;
 
     /**
+     * Bulk Create<br>
+     * <br>
+     * To be used ONLY once at top level of process startup (where eventIdentifierProcess is set for the first time).
+     *
+     * @param eventIdProc event Process Identifier
+     * @param queue queue of LogbookOperationParameters to create
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientAlreadyExistsException if the element already exists
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkCreate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException;
+
+    /**
+     * Bulk Update<br>
+     * <br>
+     * To be used everywhere except very first time (when eventIdentifierProcess already used once)
+     *
+     * @param eventIdProc event Process Identifier
+     * @param queue queue of LogbookOperationParameters to update
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
      * Finalize logbook entry using delegation<br>
      * <br>
      * To be used ONLY once at top level of process startup (where eventIdentifierProcess is set for the first time).
      *
      * @param eventIdProc event Process Identifier
      * @throws LogbookClientBadRequestException if the argument is incorrect
-     * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientAlreadyExistsException if the element already exists
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
     void commitCreateDelegate(String eventIdProc) 
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientAlreadyExistsException, LogbookClientServerException;
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
      * Finalize logbook entry using delegation<br>

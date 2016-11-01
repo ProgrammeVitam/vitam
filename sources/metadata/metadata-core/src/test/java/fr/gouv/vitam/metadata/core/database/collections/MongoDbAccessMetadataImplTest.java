@@ -26,15 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -54,7 +52,10 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 
@@ -71,13 +72,9 @@ public class MongoDbAccessMetadataImplTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
 
     private static ElasticsearchAccessMetadata esClient;
 
@@ -91,33 +88,19 @@ public class MongoDbAccessMetadataImplTest {
     static int port;
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongoDbAccessMetadataFactory mongoDbAccessFactory;
+    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setup() throws IOException, VitamException {
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
         junitHelper = JunitHelper.getInstance();
-        // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
-        elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-
-        node.start();
 
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
@@ -140,17 +123,14 @@ public class MongoDbAccessMetadataImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        if (config == null) {
+            return;
+        }
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
+        JunitHelper.stopElasticsearchForTest(config);
     }
 
     @After

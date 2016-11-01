@@ -84,7 +84,6 @@ public class ProcessManagementResourceTest {
         try {
             ProcessManagementApplication.stop();
         } catch (final Exception e) {
-            e.printStackTrace();
         }
         junitHelper.releasePort(port);
     }

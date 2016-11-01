@@ -44,7 +44,7 @@ Collection Unit
 ---------------
 
 Les champs suivants sont indexés nativement dans MongoDB:
-- \_dom (devrait être nommé \_tenant)  qui stocke l'identifiant du tenant concerné
+- \_tenant qui stocke l'identifiant du tenant concerné
 - ArchiveUnitProfile (devrait être nommé \_type) qui stocke le type d'archive
 - \_up qui stocke les parents immédiats de l'archive
 - \_og qui stocke l'object group lié s'il existe
@@ -78,31 +78,31 @@ Collection FileRules
 --------------------
 
 La collection contient les règles de gestion instanciées par tenant et les champs suivants sont indexés nativement dans MongoDB:
-- \_tenant (non existant à ce jour) qui stocke l'identifiant du tenant concerné
+- \_tenant qui stocke l'identifiant du tenant concerné
 - RuleId qui contient l'identifiant de la règle de gestion
 - RuleType qui contient le type de règle de gestion concerné (parmi Storage, Appraisal, Access, Dissemination, Classification, Reuse)
-- le couple (\_tenant + RuleId) couple unique (quand \_tenant existera)
+- le couple (\_tenant + RuleId) (**clef unique**)
 
 
 Collection FileFormat
 ---------------------
 
 La collection contient le référentiel des formats Pronom et les champs suivants sont indexés nativement dans MongoDB:
-- PUID (clef unique) contenant l'identifiant PRONOM unique
+- PUID (**clef unique**) contenant l'identifiant PRONOM unique
 
 
 Collection AccessRegisterSummary
 --------------------------------
 
 La collection contient le registre des fonds dans sa version sommaire instanciées par tenant et les champs suivants sont indexés nativement dans MongoDB:
-- \_tenant (non existant à ce jour) qui stocke l'identifiant du tenant concerné
-- OriginatingAgency (clef unique) qui contient le service producteur associé à un ensemble d'archives versées
+- \_tenant qui stocke l'identifiant du tenant concerné
+- le couple (\_tenant et OriginatingAgency) (**clef unique**) qui contient le service producteur associé à un ensemble d'archives versées et son tenant associé
 
 Colection AccessRegisterDetail
 ------------------------------
 
 La collection contient le registre des fonds dans sa version détaillée instanciées par tenant et les champs suivants sont indexés nativement dans MongoDB:
-- \_tenant (non existant à ce jour) qui stocke l'identifiant du tenant concerné
+- \_tenant qui stocke l'identifiant du tenant concerné
 - OriginatingAgency qui contient le service producteur associé à un ensemble d'archives versées
 - SubmissionAgency qui contient le service versant associé à un ensemble d'archives versées
 

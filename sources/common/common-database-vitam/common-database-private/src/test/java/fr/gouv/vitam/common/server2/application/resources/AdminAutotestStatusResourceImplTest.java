@@ -26,18 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server2.application.resources;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -66,6 +62,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -92,13 +89,9 @@ public class AdminAutotestStatusResourceImplTest {
      */
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster-autotest";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
     private static int dataBasePort;
     private static JunitHelper junitHelper;
 
@@ -106,46 +99,20 @@ public class AdminAutotestStatusResourceImplTest {
     private static TestApplication application;
     private static BasicClient client;
     private static TestVitamAdminClientFactory factory;
+    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         VitamConfiguration.setConnectTimeout(100);
-
         // ES
-        elasticsearchHome = tempFolder.newFolder();
-        for (int i = 0; i < 3; i++) {
-            TCP_PORT = junitHelper.findAvailablePort();
-            HTTP_PORT = junitHelper.findAvailablePort();
-
-            try {
-                final Settings settings = Settings.settingsBuilder()
-                    .put("http.enabled", true)
-                    .put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", TCP_PORT)
-                    .put("http.port", HTTP_PORT)
-                    .put("path.home", elasticsearchHome.getCanonicalPath())
-                    .build();
-
-                node = nodeBuilder()
-                    .settings(settings)
-                    .client(false)
-                    .clusterName(CLUSTER_NAME)
-                    .node();
-
-                node.start();
-            } catch (BindHttpException e) {
-                junitHelper.releasePort(TCP_PORT);
-                junitHelper.releasePort(HTTP_PORT);
-                node = null;
-                continue;
-            }
-        }
-        if (node == null) {
-            return;
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
         }
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
         ElasticsearchAccess databaseEs = new ElasticsearchAccess(CLUSTER_NAME, nodes);
         
         dataBasePort = junitHelper.findAvailablePort();
@@ -186,6 +153,9 @@ public class AdminAutotestStatusResourceImplTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.setConnectTimeout(1000);
+        if (config == null) {
+            return;
+        }
         LOGGER.debug("Ending tests");
         try {
             if (application != null) {
@@ -196,20 +166,14 @@ public class AdminAutotestStatusResourceImplTest {
         }
         JunitHelper.getInstance().releasePort(serverPort);
         client.close();
-        if (node == null) {
+        if (config == null) {
             return;
         }
+        JunitHelper.stopElasticsearchForTest(config);
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
-
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
     }
 
     private static class MyMongoDbAccess extends MongoDbAccess {
@@ -314,8 +278,8 @@ public class AdminAutotestStatusResourceImplTest {
 
         // ES
         LOGGER.warn("TEST ELASTICSEARCH KO");
-        if (node != null) {
-            node.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
         }
         realKO++;
         realOK--;

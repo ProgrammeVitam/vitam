@@ -762,7 +762,7 @@ public class StorageResource extends ApplicationStatusResource {
     }
 
     /**
-     * Get an report data Note
+     * Get a report
      *
      * @param headers http header
      * @param objectId the id of the object

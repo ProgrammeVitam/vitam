@@ -141,7 +141,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
 
-        final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
@@ -182,7 +182,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = VitamException.class)
     public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
 
-        final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
@@ -218,7 +218,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = VitamException.class)
     public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
 
-        final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
@@ -253,7 +253,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = VitamException.class)
     public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
 
-        final List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();

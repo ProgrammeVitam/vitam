@@ -34,51 +34,15 @@ import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplic
 public class IngestExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String path;
-    private String host;
-    private int port;
-    private String jettyConfig;
     private boolean authentication = true;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
-    private String siegfriedConfig;
 
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
      */
     public IngestExternalConfiguration() {
         // Empty constructor
-    }
-
-    /**
-     * @return host
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @param host
-     * @return IngestExtConfiguration
-     */
-    public IngestExternalConfiguration setHost(String host) {
-        this.host = host;
-        return this;
-    }
-
-    /**
-     * @return port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setPort(int port) {
-        this.port = port;
-        return this;
     }
 
     /**
@@ -94,24 +58,6 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
      */
     public IngestExternalConfiguration setPath(String path) {
         this.path = path;
-        return this;
-    }
-
-    /**
-     *
-     * @return jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     *
-     * @param jettyConfig
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
         return this;
     }
 
@@ -163,23 +109,5 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
         this.timeoutScanDelay = timeoutScanDelay;
         return this;
     }
-
-    /**
-     * @return the siegfriedConfig
-     */
-    public String getSiegfriedConfig() {
-        return siegfriedConfig;
-    }
-
-    /**
-     * @param siegfriedConfig the siegfriedConfig to set
-     *
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setSiegfriedConfig(String siegfriedConfig) {
-        this.siegfriedConfig = siegfriedConfig;
-        return this;
-    }
-
 
 }

@@ -82,12 +82,12 @@ public class UserInterfaceTransactionManagerTest {
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String ALL_PARENTS =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_dom:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_dom:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
+            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
 
     private static String ID_OBJECT_GROUP = "idOG1";
     private static JsonNode unitDetails;
