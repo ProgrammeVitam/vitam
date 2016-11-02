@@ -107,7 +107,10 @@ db.createUser(
     {
         user: "{{mongoAdminUser}}",
         pwd: "{{mongoAdminPassword}}",
-        roles: [ { role: "dbAdmin", db: "Vitam" } ]
+        roles: [
+            { role: "readWrite", db: "Vitam" },
+            { role: "dbAdmin", db: "Vitam" }
+        ]
     }
 )
 

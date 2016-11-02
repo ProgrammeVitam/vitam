@@ -107,12 +107,13 @@
     ports:
       - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
     env:
-      ME_CONFIG_MONGODB_SERVER: "{{ vitam_mongodb_host }}"
+      ME_CONFIG_MONGODB_SERVER: "{{ groups['mongos'][0] }}"
       ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
-      ME_CONFIG_SITE_BASEURL: /mongo-express/
-      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
-      ME_CONFIG_MONGODB_AUTH_USERNAME: {{mongoAdminUser}}
-      ME_CONFIG_MONGODB_AUTH_PASSWORD: {{mongoAdminPassword}}
+      ME_CONFIG_SITE_BASEURL: "/mongo-express/"
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "false"
+      ME_CONFIG_MONGODB_AUTH_DATABASE: "Vitam"
+      ME_CONFIG_MONGODB_AUTH_USERNAME: "{{mongoAdminUser}}"
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: "{{mongoAdminPassword}}"
 
 #OMA : commented as useless in this case
 #- name: put cfg file for Nagios
