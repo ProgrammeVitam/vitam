@@ -26,13 +26,18 @@
  */
 package fr.gouv.vitam.common.i18n;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
@@ -78,6 +83,15 @@ public class Messages {
     private final ResourceBundle init() {
         if (locale == null) {
             locale = Locale.FRENCH;
+        }
+        // First check if this file is in config directory
+        File bundleFile = PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
+        if (bundleFile.canRead()) {
+            try (FileInputStream inputStream = new FileInputStream(bundleFile)) {
+                return new PropertyResourceBundle(inputStream);
+            } catch (IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
         // If necessary update Static enum of VitamCode
         return ResourceBundle.getBundle(bundleName, locale);
