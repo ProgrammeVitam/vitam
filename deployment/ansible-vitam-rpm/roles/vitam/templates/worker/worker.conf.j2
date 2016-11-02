@@ -3,10 +3,10 @@ dbHost: {{vitam_mongodb_host}}
 dbPort: {{vitam_mongodb_port}}
 dbName: Vitam
 dbAuthentication: {{mongo_authentication}}
-dbUserName: {{mongoLogbookUser}}
-dbPassword: {{mongoLogbookPassword}}
-# Configuration processing 
-# HERE MUST BE PROCESSING SERVER AND PORT
+dbUserName: {{mongoWorkerUser}}
+dbPassword: {{mongoWorkerPassword}}
+# Configuration processing
+# HERE MUST BE MY (WORKER) current configuration
 registerServerHost: {{inventory_hostname}}
 registerServerPort: {{vitam_worker_port}}
 # Configuration handler

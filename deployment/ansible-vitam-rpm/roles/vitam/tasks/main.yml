@@ -79,6 +79,7 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
+    - "vitam-logbook-messages_fr.properties"
 
 - name: Ensure that the sysconfig sub-directory exists
   file:

@@ -61,8 +61,8 @@
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 
 - name: Copy the script which initiate the replica set
-  template: 
-    src=init-replica.js.j2 
+  template:
+    src=init-replica.js.j2
     dest=/tmp/init-replica.js
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 

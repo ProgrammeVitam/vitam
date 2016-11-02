@@ -3,6 +3,12 @@ Objectif du document
 
 Ce document a pour but de décrire les index spécifiés pour les modèles de données utilisés dans MongoDB.
 
+Creation des index
+==================
+
+Les différents index sont créés par ansible.
+Les fichiers à renseigner pour rajouter un nouvel index sont dans deployment/ansible-vitam-rpm/roles/mongo_configure/templates/init-{nom-base}-database.js.j2
+
 Base Logbooks
 =============
 
@@ -35,7 +41,7 @@ Les champs suivants sont indexés nativement dans MongoDB:
 - events.evType qui stocke le type d'événement d'un sous-event
 - events.outcome qui stocke le statut de l'événement d'un sous-event
 - events.evIdProc qui stocke l'identifiant du processus associé à ce sous-événement
- 
+
 
 Base Metadata
 =============
@@ -113,4 +119,3 @@ La collection contient le registre des fonds dans sa version détaillée instanc
 - \_tenant qui stocke l'identifiant du tenant concerné
 - OriginatingAgency qui contient le service producteur associé à un ensemble d'archives versées
 - SubmissionAgency qui contient le service versant associé à un ensemble d'archives versées
-
