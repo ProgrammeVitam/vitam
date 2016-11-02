@@ -46,6 +46,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
+
 /**
  * Authorization Filter
  */
@@ -63,6 +65,7 @@ public class AuthorizationFilter  implements Filter{
             if (!(authorizationWrapper.checkAutorizationHeaders())){
                 HttpServletResponse newResponse = (HttpServletResponse) response;
                 newResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
+                StreamUtils.closeSilently(request.getInputStream());
             } else {
                 chain.doFilter(request, response);
             }
