@@ -27,7 +27,7 @@
 
 // Define resources in order to call WebApp http endpoints for accession-register
 angular.module('core')
-  .factory('MessagesResource', function($q, $http, IHM_URLS) {
+  .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService) {
 
     var MESSAGES_ROOT = '/messages/';
     var MESSAGES_LOGBOOK = 'logbook/';
@@ -50,15 +50,21 @@ angular.module('core')
 
       var combinedPromise = [];
 
+
+      var status = authVitamService.isConnect('userCredentials');
+      if (status === 'logged') {
+        combinedPromise.push($http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK));
+      }
+
       // Specific to disabled translation and force show keys
-      combinedPromise.push($http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK));
       combinedPromise.push($http.get('static/languages_' + options.key + '.json'));
 
       $q.all(combinedPromise).then(
         function onSuccess(combinedResponses) {
           var allData = {};
-          angular.merge(allData, combinedResponses[0].data);
-          angular.merge(allData, combinedResponses[1].data);
+          for (var i = 0, len = combinedResponses.length; i<len; i++) {
+            angular.merge(allData, combinedResponses[i].data);
+          }
           deferred.resolve(allData);
         }, function onError(error) {
           logger.log('Error when resolving MessagesResource: ', error);
