@@ -200,11 +200,12 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                 }
             } finally {
                 eventReader.close();
-                StreamUtils.closeSilently(xmlPronom);
             }
         } catch (final XMLStreamException e) {
             LOGGER.error(e);
             throw new ReferentialException("Invalid Format", e);
+        } finally {
+            StreamUtils.closeSilently(xmlPronom);
         }
     }
 
