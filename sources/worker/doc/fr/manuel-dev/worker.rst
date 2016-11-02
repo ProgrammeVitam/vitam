@@ -188,7 +188,45 @@ Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le n
 
 4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-TODO
+Ce handler permet de contrôler la cohérence entre l'object/object group et l'ArchiveUnit. 
+Pour ce but, on détecte les groupes d'object qui ne sont pas référé par au moins d'un ArchiveUnit.
+Ce tache prend deux maps de données qui ont été crée dans l'étape précédente de workflow comme input : 
+objectGroupIdToUnitId 
+objectGroupIdToGuid
+Le ouput de cette contrôle est une liste de groupe d'objects invalide. Si on trouve les groupe d'objects 
+invalide, le logbook lifecycles de group d'object sera mis à jour.
+
+L'exécution de l'algorithme est présenté dans le code suivant :*
+.. code-block:: java ..................................................................
+        while (it.hasNext()) {
+            final Map.Entry<String, Object> objectGroup = it.next();
+            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+
+                // Update logbook OG lifecycle
+                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
+                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                        GUIDReader.getGUID(params.getContainerName()),
+                        HANDLER_ID,
+                        GUIDFactory.newEventGUID(TENANT),
+                        LogbookTypeProcess.CHECK,
+                        StatusCode.WARNING,
+                        StatusCode.WARNING.toString(),
+                        // TODO P0 WORKFLOW
+                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
+                        GUIDReader.getGUID(objectGroup.getValue().toString()));
+                try {
+                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException e) {
+                    LOGGER.error("Can not update logbook lifcycle", e);
+                }
+                ogList.add(objectGroup.getKey());
+            }
+
+        }
+
+........................................................................................
+
 
 4.4 Détail du handler : CheckSedaActionHandler
 ''''''''''''''''''''''''''''''''''''''''''''''
