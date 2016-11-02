@@ -159,7 +159,6 @@ public class ParserTokens extends BuilderToken {
                         case QUALIFIERS:
                         case SIZE:
                         case OBJECT:
-                        case OPERATIONS:
                         case UNITUPS:
                             return true;
                         default:
