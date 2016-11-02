@@ -84,7 +84,6 @@ public class IngestInternalClientRest extends DefaultClient implements IngestInt
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
         } else {
             LOGGER.error("SIP Upload Error");
-            throw new VitamException("SIP Upload");
         }
 
         return response;

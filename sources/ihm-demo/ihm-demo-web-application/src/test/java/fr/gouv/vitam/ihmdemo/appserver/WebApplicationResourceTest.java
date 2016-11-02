@@ -421,6 +421,7 @@ public class WebApplicationResourceTest {
         final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         final String xmlString = FileUtil.readInputStream(inputStreamATR);
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn(200).when(mockResponse).getStatus();
         Mockito.doReturn(xmlString).when(mockResponse).readEntity(String.class);
         Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject());
 

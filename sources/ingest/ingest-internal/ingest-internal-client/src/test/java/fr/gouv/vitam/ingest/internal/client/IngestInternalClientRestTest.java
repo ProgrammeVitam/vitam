@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -179,7 +180,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
@@ -208,14 +209,17 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        client.upload(ingestGuid, operationList, null, CommonMediaType.ZIP);
+        final Response response = client.upload(ingestGuid, operationList, null, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
 
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
@@ -247,10 +251,12 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.readEntity(String.class));
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
@@ -281,6 +287,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.readEntity(String.class));
     }
 }
