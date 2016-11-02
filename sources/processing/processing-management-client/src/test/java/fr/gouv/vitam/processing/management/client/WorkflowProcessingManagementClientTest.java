@@ -51,6 +51,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
@@ -123,10 +124,13 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
         client.executeVitamProcess(CONTAINER, WORKFLOWID);
     }
 
-    @Test(expected = ProcessingBadRequestException.class)
+    @Test
     public void givenBadRequestWhenProcessingThenReturnBadRequest() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.executeVitamProcess(CONTAINER, WORKFLOWID);
+        final ItemStatus desired = new ItemStatus("ID");
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
+        final ItemStatus ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
+        assertNotNull(ret);
+        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
     @Test(expected = ProcessingInternalServerException.class)

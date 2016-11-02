@@ -440,7 +440,7 @@ public class ProcessingIT {
         }
     }
 
-    @Test(expected = ProcessingBadRequestException.class)
+    @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
@@ -461,7 +461,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        // format file warning state
+        assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
     @Test
@@ -563,7 +566,7 @@ public class ProcessingIT {
 
 
 
-    @Test(expected = ProcessingBadRequestException.class)
+    @Test
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
@@ -585,10 +588,13 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
         // An action returns KO => the step is in KO => the workflow is OK
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        // format file warning state
+        assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
-    @Test(expected = ProcessingBadRequestException.class)
+    @Test
     public void testWorkflowWithOrphelins() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
@@ -609,7 +615,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        // format file warning state
+        assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
 
