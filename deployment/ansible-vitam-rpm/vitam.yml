@@ -75,20 +75,20 @@
 ## VITAM ###################################################################################""
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", secret_platform: "false" }
 
 - hosts: hosts-metadata
   roles:
-    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf, port_http: "{{vitam_metadata_port}}", cluster_name: elasticsearch-data, secret_platform: "true" }
+    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf, port_http: "{{vitam_metadata_port}}", cluster_name: elasticsearch-data, secret_platform: "false" }
 
 - hosts: hosts-workspace
   roles:
-    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf, port_http: "{{vitam_workspace_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf, port_http: "{{vitam_workspace_port}}", secret_platform: "false" }
 
 
 - hosts: hosts-ingest-internal
   roles:
-    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingestinternal_port}}", secret_platform: "true" } 
+    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingestinternal_port}}", secret_platform: "false" } 
 
 - hosts: hosts-ingest-external
   roles:
@@ -98,16 +98,16 @@
 
 - hosts: hosts-processing
   roles:
-    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}", secret_platform: "false" }
 
 - hosts: hosts-worker
   roles:
     - siegfried
-    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}", secret_platform: "false" }
 
 - hosts: hosts-access-internal
   roles:
-    - {role: vitam, vitam_component: access-internal, java_args: /vitam/conf/access-internal/access-internal.conf, port_http: "{{vitam_accessinternal_port}}", secret_platform: "true" } 
+    - {role: vitam, vitam_component: access-internal, java_args: /vitam/conf/access-internal/access-internal.conf, port_http: "{{vitam_accessinternal_port}}", secret_platform: "false" } 
 
 - hosts: hosts-access-external
   roles:
@@ -119,12 +119,12 @@
 
 - hosts: hosts-storage-engine
   roles:
-    - {role: vitam, vitam_component: storage, java_args: /vitam/conf/storage/storage-engine.conf, port_http: "{{vitam_storageengine_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: storage, java_args: /vitam/conf/storage/storage-engine.conf, port_http: "{{vitam_storageengine_port}}", secret_platform: "false" }
     - storage
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", secret_platform: "false" }
 
 - hosts: hosts-functional-administration
   roles:
