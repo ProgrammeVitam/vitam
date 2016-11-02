@@ -1,4 +1,5 @@
 package fr.gouv.vitam.worker.server.rest;
+
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -78,7 +79,16 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     public WorkerResource(WorkerConfiguration configuration) {
         LOGGER.info("init Worker Resource server");
-        DbConfigurationImpl databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+        DbConfigurationImpl databaseConfiguration;
+        if (configuration.isDbAuthentication()) {
+            databaseConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                    configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
+        } else {
+            databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                configuration.getDbName());
+        }
         this.worker =
             WorkerImplFactory.create(LogbookMongoDbAccessFactory.create(databaseConfiguration));
     }
