@@ -143,7 +143,7 @@ public class DefaultOfferResourceTest {
     public void deleteExistingFiles() throws Exception {
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
+        File container = new File(conf.getStoragePath() + "/1" + this);
         File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
         final File object = new File(folder.getAbsolutePath(), "id1");
         final File object2 = new File(container.getAbsolutePath(), "id1");
@@ -151,7 +151,7 @@ public class DefaultOfferResourceTest {
         Files.deleteIfExists(object2.toPath());
         Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
-        container = new File(conf.getStoragePath() + "/0");
+        container = new File(conf.getStoragePath() + "/0" + this);
         folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
         Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
@@ -167,11 +167,11 @@ public class DefaultOfferResourceTest {
         // create tenant
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
-        given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        given().header(GlobalDataRest.X_TENANT_ID, "0" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
         // test
-        given().header(GlobalDataRest.X_TENANT_ID, "0").when().get(OBJECTS_URI).then().statusCode(200);
+        given().header(GlobalDataRest.X_TENANT_ID, "0" + this).when().get(OBJECTS_URI).then().statusCode(200);
     }
 
     @Test
@@ -194,7 +194,7 @@ public class DefaultOfferResourceTest {
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
-        with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        with().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1");
 
@@ -212,7 +212,7 @@ public class DefaultOfferResourceTest {
                     bb.get(bytes, 0, read);
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
-                        with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND,
+                        with().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND,
                             StorageConstants.COMMAND_END)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
@@ -221,7 +221,7 @@ public class DefaultOfferResourceTest {
                     bytes = bb.array();
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
-                        with().header(GlobalDataRest.X_TENANT_ID, "1")
+                        with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
                             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
@@ -233,7 +233,7 @@ public class DefaultOfferResourceTest {
         }
 
         // found
-        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.OK.getStatusCode()).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, DataCategory.OBJECT.getFolder() + "/id1");
     }
@@ -245,31 +245,31 @@ public class DefaultOfferResourceTest {
         given().contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
         // no command
-        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).when()
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).contentType(MediaType.APPLICATION_JSON).when()
             .post(OBJECTS_URI + "/" +
                 guid)
             .then().statusCode(400);
 
         // no ObjectInit, command != INIT
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
             .contentType(MediaType.APPLICATION_JSON).when()
             .post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
         // no ObjectInit
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
         assertNotNull(objectInit);
 
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + guid).then().statusCode(201);
 
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1" + this);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
         final File folder = new File(container.getAbsolutePath() + "/" + DataCategory.OBJECT.getFolder());
@@ -284,13 +284,13 @@ public class DefaultOfferResourceTest {
             .statusCode(400);
 
         // No command
-        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_OCTET_STREAM).when()
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).contentType(MediaType.APPLICATION_OCTET_STREAM).when()
             .put(OBJECTS_URI +
                 OBJECT_ID_URI, "id1")
             .then().statusCode(400);
 
         // Bad command
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_OCTET_STREAM).when().put(OBJECTS_URI + OBJECT_ID_URI, "id1").then()
             .statusCode(400);
 
@@ -302,7 +302,7 @@ public class DefaultOfferResourceTest {
             in.read(bytes);
             try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                 assertNotNull(inChunk);
-                given().header(GlobalDataRest.X_TENANT_ID, "1")
+                given().header(GlobalDataRest.X_TENANT_ID, "1" + this)
                     .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                     .put(OBJECTS_URI + OBJECT_ID_URI, "id1").then()
@@ -312,7 +312,7 @@ public class DefaultOfferResourceTest {
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
-        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
@@ -329,7 +329,7 @@ public class DefaultOfferResourceTest {
                     bb.get(bytes, 0, read);
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
-                        given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND,
+                        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND,
                             StorageConstants.COMMAND_END)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1").then()
@@ -339,7 +339,7 @@ public class DefaultOfferResourceTest {
                     bytes = bb.array();
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
-                        given().header(GlobalDataRest.X_TENANT_ID, "1")
+                        given().header(GlobalDataRest.X_TENANT_ID, "1" + this)
                             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1").then()
@@ -353,7 +353,7 @@ public class DefaultOfferResourceTest {
         // check
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1" + this);
         assertNotNull(container);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -375,16 +375,16 @@ public class DefaultOfferResourceTest {
         given().head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(400);
 
         // no object
-        given().header(GlobalDataRest.X_TENANT_ID, "1").head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(404);
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(404);
 
         // object
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1" + this);
         container.mkdir();
         final File object = new File(container.getAbsolutePath(), "id1");
         object.createNewFile();
-        given().header(GlobalDataRest.X_TENANT_ID, "1").head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(204);
+        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(204);
     }
 
     @Test

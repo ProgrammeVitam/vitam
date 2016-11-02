@@ -81,17 +81,18 @@ public class FakeDriverImplTest {
 
         }
 
-        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0", "guid", "folder"));
+        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0" + this, "guid", "folder"));
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getObject());
         final PutObjectRequest putObjectRequest =
-            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam test"),
+            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam" +
+                " test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
             final PutObjectRequest putObjectRequest2 =
-                new PutObjectRequest("tenantId", "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
+                new PutObjectRequest("tenantId" + this, "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
                     "type");
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
@@ -100,13 +101,13 @@ public class FakeDriverImplTest {
         }
 
         final PutObjectRequest putObjectRequest3 =
-            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "digest_bad_test",
+            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "digest_bad_test",
                 IOUtils.toInputStream("Vitam test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest3));
 
         assertNotNull(connect.removeObject(new RemoveObjectRequest()));
-        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0", "already_in_offer", "folder")));
+        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0" + this, "already_in_offer", "folder")));
 
         connect.close();
     }

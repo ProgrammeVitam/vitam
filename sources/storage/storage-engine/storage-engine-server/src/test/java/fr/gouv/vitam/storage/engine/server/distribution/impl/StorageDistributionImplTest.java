@@ -110,22 +110,22 @@ public class StorageDistributionImplTest {
         final String objectId = "id1";
         StoredInfoResult storedInfoResult = null;
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceContainerGUID("container1");
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
             // Store object
             storedInfoResult = customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
         assertNotNull(storedInfoResult);
         assertEquals(objectId, storedInfoResult.getId());
         assertNull(storedInfoResult.getObjectGroupId());
@@ -141,9 +141,9 @@ public class StorageDistributionImplTest {
         // Store Unit
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
                 DataCategory.UNIT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -157,9 +157,9 @@ public class StorageDistributionImplTest {
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
                 DataCategory.LOGBOOK, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -173,9 +173,9 @@ public class StorageDistributionImplTest {
         // Store object group
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
                 DataCategory.OBJECT_GROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -191,15 +191,15 @@ public class StorageDistributionImplTest {
     public void testStoreData_DigestKO() throws Exception {
         final String objectId = "digest_bad_test";
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceContainerGUID("container1");
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -210,47 +210,47 @@ public class StorageDistributionImplTest {
         final String objectId = "already_in_offer";
         StoredInfoResult storedInfoResult = null;
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceContainerGUID("container1");
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
             // Store object
             storedInfoResult = customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
+        when(client.getObject("container1"+ this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
     }
 
     @Test
     public void testStoreData_NotFoundAndWorspaceErrorToTechnicalError() throws Exception {
         final String objectId = "id1";
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceContainerGUID("container1");
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf"))
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
         }
 
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf"))
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -259,10 +259,10 @@ public class StorageDistributionImplTest {
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         IOUtils.closeQuietly(stream);
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,"testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,"testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -282,7 +282,7 @@ public class StorageDistributionImplTest {
 
     @Test
     public void getContainerInformationOK() throws Exception {
-        final JsonNode jsonNode = simpleDistribution.getContainerInformation(TENANT_ID, STRATEGY_ID);
+        final JsonNode jsonNode = simpleDistribution.getContainerInformation(TENANT_ID + this, STRATEGY_ID);
         assertNotNull(jsonNode);
     }
 
@@ -300,13 +300,13 @@ public class StorageDistributionImplTest {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(TENANT_ID, null, null, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID + this, null, null, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(TENANT_ID, STRATEGY_ID, null, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, null, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -315,7 +315,7 @@ public class StorageDistributionImplTest {
 
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
-        simpleDistribution.getContainerByCategory(TENANT_ID, STRATEGY_ID, "0", DataCategory.OBJECT);
+        simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, "0", DataCategory.OBJECT);
     }
 
     @Test(expected = UnsupportedOperationException.class)

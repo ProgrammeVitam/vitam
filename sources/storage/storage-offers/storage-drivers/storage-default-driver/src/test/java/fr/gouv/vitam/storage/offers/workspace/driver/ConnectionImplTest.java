@@ -241,7 +241,7 @@ public class ConnectionImplTest extends JerseyTest {
     // chunk size (1024) factor size case
     @Test
     public void putBigObjectWithRequestOk() throws Exception {
-        final PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+        final PutObjectRequest request = new PutObjectRequest("0" + this, DigestType.MD5.getName(), "GUID",
             new FakeInputStream(2097152, true), DataCategory.OBJECT.name());
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
@@ -260,7 +260,7 @@ public class ConnectionImplTest extends JerseyTest {
     // No chunk size (1024) factor case
     @Test
     public void putBigObject2WithRequestOk() throws Exception {
-        final PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+        final PutObjectRequest request = new PutObjectRequest("0" + this, DigestType.MD5.getName(), "GUID",
             new FakeInputStream(2201507, true), DataCategory.OBJECT.name());
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
@@ -279,7 +279,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Ignore // chunk management
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithRequestInternalError() throws Exception {
-        final PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+        final PutObjectRequest request = new PutObjectRequest("0" + this, DigestType.MD5.getName(), "GUID",
             new FakeInputStream(2097152, true), DataCategory.OBJECT.name());
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
@@ -359,7 +359,7 @@ public class ConnectionImplTest extends JerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(getStorageCapacityResult()).build());
         final StorageCapacityResult result = connection.getStorageCapacity("0");
         assertNotNull(result);
-        assertEquals("0", result.getTenantId());
+        assertEquals("0" + this, result.getTenantId());
         assertNotNull(result.getUsableSpace());
         assertNotNull(result.getUsedSpace());
     }
@@ -372,7 +372,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void getGetObjectGUIDIllegalArgumentException() throws Exception {
-        final GetObjectRequest request = new GetObjectRequest("0", null, DataCategory.OBJECT.getFolder());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, null, DataCategory.OBJECT.getFolder());
         connection.getObject(request);
     }
 
@@ -385,7 +385,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getObjectNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -397,7 +397,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getObjectInternalError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -409,7 +409,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getObjectPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        final GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -422,7 +422,7 @@ public class ConnectionImplTest extends JerseyTest {
     public void getObjectOK() throws Exception {
         final InputStream stream = new ByteArrayInputStream("Test".getBytes());
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(stream).build());
-        final GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         final GetObjectResult result = connection.getObject(request);
         assertNotNull(result);
     }
@@ -471,7 +471,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     private JsonNode getStorageCapacityResult() throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
-        final JsonNode result = mapper.readTree("{\"tenantId\":\"0\",\"usableSpace\":\"100000\"," +
+        final JsonNode result = mapper.readTree("{\"tenantId\":\"0" + this +"\",\"usableSpace\":\"100000\"," +
             "\"usedSpace\":\"100000\"}");
         return result;
     }
