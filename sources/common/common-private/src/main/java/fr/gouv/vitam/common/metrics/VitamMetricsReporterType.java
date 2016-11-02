@@ -25,76 +25,60 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server2.application.configuration;
+package fr.gouv.vitam.common.metrics;
 
-import java.util.concurrent.TimeUnit;
-
-import fr.gouv.vitam.common.server2.application.VitamMetricsReporterType;
-import fr.gouv.vitam.common.server2.application.VitamMetricsType;
+import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Defines minimal common configurations for metrics configuration properties.
- *
- * <br>
- * <br>
- * Your configuration class must implement it.
+ * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
  *
  */
-public interface VitamMetricConfiguration {
+public enum VitamMetricsReporterType {
 
-    /**
-     * Must return the value of a 'elasticsearchHost' attribute
-     *
-     * @return the elasticsearch host value
-     */
-    String getElasticsearchHost();
+    ELASTICSEARCH("elasticsearch"),
 
-    /**
-     * Must return the value of a 'elasticsearchPort' attribute
-     *
-     * @return the elasticsearch port value
-     */
-    int getElasticSearchPort();
+    CONSOLE("console"),
+
+    LOGBACK("logback"),
+
+    NONE("none");
     
-    /**
-     * Must return the value of a 'elasticsearchIndex' attribute
-     *
-     * @return the elasticsearch index value
-     */
-    String getElasticsearchIndex();
+    private final String name;
 
     /**
-     * Must return the value of a 'elasticsearchIndexDateFormat' attribute
+     * Constructor
      *
-     * @return the elasticsearch index date format value
+     * @param String name
      */
-    String getElasticsearchIndexDateFormat();
+    VitamMetricsReporterType(final String name) {
+        this.name = name;
+    }
 
     /**
-     * Must return the value of a 'type' attribute
+     * Return the name of the enum as a String
      *
-     * @return the type value
+     * @return String
      */
-    VitamMetricsType getType();
+    public String getName() {
+        return name;
+    }
 
     /**
-     * Must return the value of a 'reporterType' attribute
+     * Retrieve an {@link VitamMetricsReporterType} given a name. Throws an {@code IllegalArgumentException} if the name
+     * doesn't exists.
      *
-     * @return the reporter type value
+     * @param metricReporterTypeName
+     * @return VitamMetricsReporterType
+     * @throws IllegalArgumentException
      */
-    VitamMetricsReporterType getReporterType();
+    public static VitamMetricsReporterType get(String metricReporterTypeName) throws IllegalArgumentException {
+        ParametersChecker.checkParameterNullOnly("VitamMetricsReporterType name", metricReporterTypeName);
 
-    /**
-     * Must return the value of a 'interval' attribute
-     *
-     * @return the interval value
-     */
-    int getInterval();
-
-    /**
-     * Must return the value of a 'intervalUnit' attribute
-     *
-     * @return the interval unit value
-     */
-    TimeUnit getIntervalUnit();
+        for (final VitamMetricsReporterType v : values()) {
+            if (v.getName().equals(metricReporterTypeName)) {
+                return v;
+            }
+        }
+        throw new IllegalArgumentException("Invalid VitamMetricsReporterType name");
+    }
 }

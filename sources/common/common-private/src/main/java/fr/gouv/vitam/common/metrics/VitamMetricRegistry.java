@@ -25,66 +25,44 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server2.application;
+package fr.gouv.vitam.common.metrics;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
+import fr.gouv.vitam.common.ParametersChecker;
 
-@Path("/home2")
-public class AdvancedJerseyMetricsResource {
+/**
+ * A class extending the MetricRegistry to expose safe functions to register metrics.
+ */
+public final class VitamMetricRegistry extends MetricRegistry {
+    private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
 
-    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home2/users:GET:*:*",
-        "/home2/users/{id}:PUT:*:*",
-        "/home2/users/{id}:POST:*:*",
-        "/home2/users/{id}:DELETE:*:*",
-        "/home2/head:HEAD:*:*",
-        "/home2/options:OPTIONS:*:*"));
-
-    @GET
-    @Path("/users")
-    public Response advancedGet() {
-        throw new UnsupportedOperationException("Not implemented");
+    /**
+     * VitamMetricRegistry constructor
+     */
+    public VitamMetricRegistry() {
+        // empty
     }
 
-    @PUT
-    @Path("/users/{id}")
-    public Response advancedPut(@PathParam("id_op") String operationId) {
-        throw new UnsupportedOperationException("Not implemented");
+    /**
+     * Return the {@link Metric} registered under this name; or create and register a new {@code metric} if none is
+     * registered.
+     *
+     * @param name the name of the metric
+     * @return a new or pre-existing {@code metric}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Metric> T register(String name, T metric) {
+        ParametersChecker.checkParameter(VITAM_METRIC_REGISTRY_PARAMS, name, metric);
+
+        if (!super.getMetrics().containsKey(name)) {
+            super.register(name, metric);
+        }
+
+        return (T) super.getMetrics().get(name);
     }
 
-    @POST
-    @Path("/users/{id}")
-    public Response advancedPost(@PathParam("id_op") String operationId) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
 
-    @DELETE
-    @Path("/users/{id}")
-    public Response advancedDelete(@PathParam("id_op") String operationId) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @HEAD
-    @Path("/head")
-    public Response advancedHead() {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @OPTIONS
-    @Path("/options")
-    public Response advancdeOptions() {
-        throw new UnsupportedOperationException("Not implemented");
-    }
 }

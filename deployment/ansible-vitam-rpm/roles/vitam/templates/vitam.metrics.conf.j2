@@ -1,27 +1,12 @@
 {% if (groups['hosts-log-server'] | length) > 0  %}
-metrics:
-   - type: JERSEY
-     reporter_type: ELASTICSEARCH
-     elasticsearch_host: {{ elasticsearch_log_host }}
-     elasticsearch_port: {{ elasticsearch_log_http_port }}
-     elasticsearch_index: "metrics-vitam-jersey"
-     elasticsearch_index_date_format: "YYYY.MM.dd"
-     interval: 30
-     interval_unit: SECONDS
-   - type: JVM
-     reporter_type: ELASTICSEARCH
-     elasticsearch_host: {{ elasticsearch_log_host }}
-     elasticsearch_port: {{ elasticsearch_log_http_port }}
-     elasticsearch_index: "metrics-vitam-jvm"
-     elasticsearch_index_date_format: "YYYY.MM.dd"
-     interval: 1
-     interval_unit: MINUTES
-   - type: BUSINESS
-     reporter_type: ELASTICSEARCH
-     elasticsearch_host: {{ elasticsearch_log_host }}
-     elasticsearch_port: {{ elasticsearch_log_http_port }}
-     elasticsearch_index: "metrics-vitam-business"
-     elasticsearch_index_date_format: "YYYY.MM.dd"
-     interval: 1
-     interval_unit: MINUTES
+# Metrics on/off
+metricsJersey: true
+metricsJVM: true
+
+# Metrics reporting, possible reporters: "console" or "elasticsearch"
+metricReporter: ELASTICSEARCH
+metricReporterHost: {{ elasticsearch_log_host }}
+metricReporterPort: {{ elasticsearch_log_http_port }}
+metricReporterInterval: 1
+metricReporterIntervalUnit: MINUTES
 {% endif %}
