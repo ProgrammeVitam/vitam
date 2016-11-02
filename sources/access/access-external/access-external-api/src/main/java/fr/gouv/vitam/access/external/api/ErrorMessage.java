@@ -30,6 +30,7 @@ package fr.gouv.vitam.access.external.api;
  * Error Message for Logbook
  */
 public enum ErrorMessage {
+    // FIXME P1 déplacer dans VitamCode (Common public)
     /**
      * Logbook (operation or lifecycle) already exists so cannot be created
      */

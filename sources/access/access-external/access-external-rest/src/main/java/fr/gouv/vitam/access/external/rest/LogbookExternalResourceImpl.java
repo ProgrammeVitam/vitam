@@ -146,6 +146,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 JsonNode en argument pour toutes les "query"
     public Response selectOperation(String query)
         throws InvalidParseOperationException {
         Status status;

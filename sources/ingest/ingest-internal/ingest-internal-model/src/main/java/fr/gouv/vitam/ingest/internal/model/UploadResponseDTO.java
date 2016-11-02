@@ -36,6 +36,7 @@ import fr.gouv.vitam.ingest.internal.common.util.CustomToStringStyle;
 /**
  * Configuration Upload Response for type DTO
  */
+// FIXME P0 non utilisé ?
 @XmlRootElement
 public class UploadResponseDTO {
 

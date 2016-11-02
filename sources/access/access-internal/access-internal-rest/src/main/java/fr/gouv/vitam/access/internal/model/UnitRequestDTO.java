@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * Unit Request DTO class
  */
 @XmlRootElement
+// FIXME P0 Should be removed
 public class UnitRequestDTO implements Serializable {
 
 

@@ -59,6 +59,7 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
         super(factory);
     }
 
+    // FIXME P0 remplacer partout les String query par JsonNode query OU proposer les 2 options
     @Override
     public JsonNode selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
