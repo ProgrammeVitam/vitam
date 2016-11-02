@@ -73,6 +73,6 @@ angular.module('core')
         customFields: '=',
         selectedObjects: '='
       },
-      templateUrl: 'js/directive/dynamic-table.directive.html'
+      templateUrl: 'core/directives/dynamic-table.directive.html'
     };
   });
