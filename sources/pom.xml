@@ -180,6 +180,7 @@
 		<httpclient.version>4.5.2</httpclient.version>
 		<netty.version>4.1.5.Final</netty.version>
 		<commons-compress.version>1.12</commons-compress.version>
+		<easystream.version>1.2.15</easystream.version>
 		<skipITs>false</skipITs>
 	</properties>
 
@@ -714,6 +715,11 @@
 				<artifactId>commons-lang</artifactId>
 				<version>${commons-lang.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>net.sf.jsignature.io-tools</groupId>
+				<artifactId>easystream</artifactId>
+				<version>${easystream.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>de.odysseus.staxon</groupId>
@@ -1083,11 +1089,11 @@
 					</exclusion>
 					<exclusion>
 						<groupId>org.mongodb</groupId>
-						<artifactId>mongo-java-driver</artifactId>						
+						<artifactId>mongo-java-driver</artifactId>
 					</exclusion>
 					<exclusion>
 						<groupId>de.flapdoodle.embed</groupId>
-						<artifactId>de.flapdoodle.embed.mongo</artifactId>					
+						<artifactId>de.flapdoodle.embed.mongo</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -1133,9 +1139,9 @@
 				<version>${commons-compress.version}</version>
 			</dependency>
 			<dependency>
-			        <groupId>org.simpleframework</groupId>
-			        <artifactId>simple</artifactId>
-			        <version>${org.simpleframework}</version>
+				<groupId>org.simpleframework</groupId>
+				<artifactId>simple</artifactId>
+				<version>${org.simpleframework}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
