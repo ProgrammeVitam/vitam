@@ -20,6 +20,7 @@ Sommaire
    :maxdepth: 2
 
    include/_toc.rst
+   parallisation_tests.rst
 
 
 ####################################################
