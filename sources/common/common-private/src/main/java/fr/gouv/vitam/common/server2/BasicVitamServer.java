@@ -48,7 +48,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
  * Basic implementation of a vitam server using embedded jetty as underlying app server
  *
  */
-public class BasicVitamServer implements VitamServer {
+class BasicVitamServer implements VitamServer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
         "A problem occurred while attempting to start the server";

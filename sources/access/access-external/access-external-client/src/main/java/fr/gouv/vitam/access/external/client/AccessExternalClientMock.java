@@ -16,7 +16,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 /**
  * Mock client implementation for Access External
  */
-public class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
+class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
 
     private static final String RESULT =
         "{\"query\":{}," +

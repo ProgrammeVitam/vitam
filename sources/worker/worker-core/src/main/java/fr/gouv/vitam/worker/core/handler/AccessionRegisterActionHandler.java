@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -61,7 +62,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 /**
  * Accession Register Handler
  */
-public class AccessionRegisterActionHandler extends ActionHandler implements AutoCloseable {
+public class AccessionRegisterActionHandler extends ActionHandler implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
@@ -205,5 +206,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
     }
 
     @Override
-    public void close() throws Exception {}
+    public void close() {
+        // Empty
+    }
 }

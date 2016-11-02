@@ -48,11 +48,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * Utility to help with Http based Cursor that implements real Database Cursor on server side
  */
-public class VitamRequestIterator implements AutoCloseable, Iterator<JsonNode> {
+public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNode> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIterator.class);
 
     private final MockOrRestClient client;

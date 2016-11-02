@@ -129,6 +129,7 @@ public class WorkerIT {
     private static MetaDataApplication medtadataApplication;
     private static WorkerApplication wkrapplication;
     private static WorkspaceApplication workspaceApplication;
+    private static ProcessManagementApplication processManagementApplication;
 
     private WorkspaceClient workspaceClient;
     private static LogbookApplication lgbapplication;
@@ -188,8 +189,10 @@ public class WorkerIT {
         // launch processing
         SystemPropertyUtil
             .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
-        ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
-
+        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication.start();
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+        
         // launch worker
         SystemPropertyUtil
             .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
@@ -204,13 +207,16 @@ public class WorkerIT {
             return;
         }
         JunitHelper.stopElasticsearchForTest(config);
+        if (mongod == null) {
+            return;
+        }
         mongod.stop();
         mongodExecutable.stop();
         try {
             workspaceApplication.stop();
             wkrapplication.stop();
             lgbapplication.stop();
-            ProcessManagementApplication.stop();
+            processManagementApplication.stop();
             medtadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -460,7 +466,7 @@ public class WorkerIT {
                 new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
             final WorkerBean workerBean =
                 new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
-            processingClient = ProcessingManagementClientFactory.create(PROCESSING_URL);
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
                 processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
                 fail("Should have raized an exception");

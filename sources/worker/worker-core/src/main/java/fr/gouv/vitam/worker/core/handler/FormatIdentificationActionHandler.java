@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -100,7 +101,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // TODO P0: review Logbook messages (operation / lifecycle)
 // TODO P0: fully use VitamCode
 
-public class FormatIdentificationActionHandler extends ActionHandler implements AutoCloseable {
+public class FormatIdentificationActionHandler extends ActionHandler implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
 
@@ -609,7 +610,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (logbookClient != null) {
             logbookClient.close();
         }

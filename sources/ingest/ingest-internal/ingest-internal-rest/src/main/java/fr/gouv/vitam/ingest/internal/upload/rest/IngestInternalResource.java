@@ -133,7 +133,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         this.configuration = configuration;
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         workspaceClientMock = null;
-        processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
     }
 
     /**

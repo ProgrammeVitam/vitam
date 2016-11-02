@@ -57,7 +57,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 /**
  * Logbook operation REST client
  */
-public class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
+class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
 

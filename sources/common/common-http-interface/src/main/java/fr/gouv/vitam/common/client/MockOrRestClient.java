@@ -29,11 +29,12 @@ package fr.gouv.vitam.common.client;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * Basic client api for vitam client either in Mock or Rest mode
  */
-public interface MockOrRestClient extends AutoCloseable {
+public interface MockOrRestClient extends VitamAutoCloseable {
 
     /**
      * Get the resource path of the server.

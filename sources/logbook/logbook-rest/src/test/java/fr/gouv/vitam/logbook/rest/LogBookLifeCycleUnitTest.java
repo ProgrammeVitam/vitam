@@ -295,7 +295,15 @@ public class LogBookLifeCycleUnitTest {
                 "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
+        // Test direct access
+        given()
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/unitlifecycles/" +
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         // Test Iterator
         given()

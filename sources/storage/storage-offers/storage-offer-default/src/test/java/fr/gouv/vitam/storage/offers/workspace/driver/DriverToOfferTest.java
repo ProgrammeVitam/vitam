@@ -103,7 +103,7 @@ public class DriverToOfferTest {
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final DefaultOfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
-        newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {

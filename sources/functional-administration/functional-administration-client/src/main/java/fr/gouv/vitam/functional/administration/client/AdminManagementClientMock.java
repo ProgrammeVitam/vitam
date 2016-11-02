@@ -60,7 +60,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * Mock client implementation for AdminManagement
  */
-public class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
+class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "stream is a mandatory parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 

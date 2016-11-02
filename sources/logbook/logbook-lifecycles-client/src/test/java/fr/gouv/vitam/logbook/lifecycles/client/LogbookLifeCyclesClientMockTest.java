@@ -179,6 +179,19 @@ public class LogbookLifeCyclesClientMockTest {
         assertFalse(catchException);
     }
 
+    @Test
+    public void testSelect() throws LogbookClientException, InvalidParseOperationException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        assertNotNull(client);
+        assertNotNull(client.selectObjectGroupLifeCycleById("id"));
+        assertNotNull(client.selectUnitLifeCycleById("id"));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id"));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id"));
+
+    }
 
     @Test
     public void statusTest() throws LogbookClientException, VitamApplicationServerException {

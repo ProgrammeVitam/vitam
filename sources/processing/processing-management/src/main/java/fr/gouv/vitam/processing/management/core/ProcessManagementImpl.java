@@ -108,4 +108,11 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         return response;
     }
+
+    // FIXME P0 continue to close other inner resources
+    @Override
+    public void close() {
+        // TODO close processEngine
+        // processEngine.close();
+    }
 }

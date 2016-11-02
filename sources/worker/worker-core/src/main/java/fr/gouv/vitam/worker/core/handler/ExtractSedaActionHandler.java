@@ -148,7 +148,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
-    private static final String BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE = "ERROR: BinaryDataObject version must be unique";
+    private static final String BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE =
+        "ERROR: BinaryDataObject version must be unique";
     private static final String LEVEL = "level_";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
@@ -265,7 +266,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO P0: whould use worker configuration instead of the processing configuration
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             extractSEDAWithWorkspaceClient(workspaceClient, containerId, itemStatus);
         }
@@ -300,7 +301,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+            final JsonXMLConfig config =
+                new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
+                    .namespaceDeclarations(false).build();
             // This file will be a JSON representation of the SEDA manifest with an empty DataObjectPackage structure
             final FileWriter tmpFileWriter =
                 new FileWriter(PropertiesUtils.fileFromTmpFolder(GLOBAL_SEDA_PARAMETERS_FILE));
@@ -631,7 +634,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String elementGuid = GUIDFactory.newGUID().toString();
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + JSON_EXTENSION);
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+        final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
+            .namespaceDeclarations(false).build();
         String groupGuid = null;
         try {
             final FileWriter tmpFileWriter = new FileWriter(tmpFile);
@@ -1296,7 +1300,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         nodeCategoryArray = new ArrayList<>();
                         nodeCategoryArray.add(binaryNode);
                     } else {
-                        int binaryNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) -1;
+                        int binaryNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) - 1;
                         nodeCategoryArray.add(binaryNodePosition, binaryNode);
                     }
                     categoryMap.put(nodeCategory, nodeCategoryArray);

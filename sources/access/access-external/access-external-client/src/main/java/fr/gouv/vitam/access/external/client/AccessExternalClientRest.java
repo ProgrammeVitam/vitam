@@ -31,7 +31,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 /**
  * Rest client implementation for Access External
  */
-public class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
+class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";

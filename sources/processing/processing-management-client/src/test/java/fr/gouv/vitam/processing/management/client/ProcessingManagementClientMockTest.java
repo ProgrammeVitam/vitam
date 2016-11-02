@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,18 +23,34 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.collection;
+ */
+package fr.gouv.vitam.processing.management.client;
 
-import java.util.Iterator;
+import static org.junit.Assert.*;
 
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import org.junit.Test;
+
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
+import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 /**
- * Iterator with a close method.
- *
- * @param <E> Data type of the iterator
- *
+ * 
  */
-public interface CloseableIterator<E> extends Iterator<E>, VitamAutoCloseable {
+public class ProcessingManagementClientMockTest {
+
+    @Test
+    public void fakeTest()
+        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
+        ProcessingException, VitamApplicationServerException {
+        ProcessingManagementClientFactory.changeMode(null);
+        ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient();
+        client.checkStatus();
+        client.executeVitamProcess(null, null);
+        client.registerWorker(null, null, null);
+        client.unregisterWorker(null, null);
+    }
+
 }

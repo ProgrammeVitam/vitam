@@ -106,6 +106,17 @@ public class DbConfigurationImplTest {
         assertEquals(394, dbConfiguration1.getDbPort());
         assertEquals("AAA", dbConfiguration1.getDbHost());
         assertEquals("BBB", dbConfiguration1.getDbName());
+        final DbConfigurationImpl dbConfiguration2 = new DbConfigurationImpl("AAA", 394, "BBB", true, "user", "pwd");
+        assertEquals(394, dbConfiguration2.getDbPort());
+        assertEquals("AAA", dbConfiguration2.getDbHost());
+        assertEquals("BBB", dbConfiguration2.getDbName());
+        assertEquals("user", dbConfiguration2.getDbUserName());
+        assertEquals("pwd", dbConfiguration2.getDbPassword());
+        assertEquals(true, dbConfiguration2.isDbAuthentication());
+        dbConfiguration2.setDbAuthentication(false).setDbUserName("user2").setDbPassword("pwd2");
+        assertEquals("user2", dbConfiguration2.getDbUserName());
+        assertEquals("pwd2", dbConfiguration2.getDbPassword());
+        assertEquals(false, dbConfiguration2.isDbAuthentication());
     }
 
     @Test

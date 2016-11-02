@@ -67,13 +67,11 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -116,21 +114,21 @@ public class WebApplicationResourceTest {
     private static final String SIP_DIRECTORY = "sip";
     private static JunitHelper junitHelper;
     private static int port;
+    private static ServerApplication application;
 
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         final WebApplicationConfig webApplicationConfig =
-            new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT).setJettyConfig(JETTY_CONFIG)
+            (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
+                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
                 .setSecure(false)
-                .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath());
-
-        ServerApplication.setWebApplicationConfig(webApplicationConfig);
-        ServerApplication.run(webApplicationConfig);
+                .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
+                .setJettyConfig(JETTY_CONFIG);
+        application = new ServerApplication(webApplicationConfig);
+        application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
@@ -139,7 +137,7 @@ public class WebApplicationResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        ServerApplication.stop();
+        application.stop();
         junitHelper.releasePort(port);
     }
 
@@ -203,7 +201,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookClientException()
         throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1")).thenThrow(LogbookClientException.class);
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1"))
+            .thenThrow(LogbookClientException.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/logbook/operations/1");
@@ -264,7 +263,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultAccessExternalClientNotFoundException() throws AccessExternalClientServerException,
+    public void testArchiveSearchResultAccessExternalClientNotFoundException()
+        throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         final String preparedDslQuery = "";
@@ -343,7 +343,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsAccessExternalClientNotFoundException() throws AccessExternalClientServerException,
+    public void testArchiveUnitDetailsAccessExternalClientNotFoundException()
+        throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
@@ -783,7 +784,8 @@ public class WebApplicationResourceTest {
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessExternalClientServerException.class);
+            UserInterfaceTransactionManager.searchUnits(anyString()))
+            .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -799,7 +801,8 @@ public class WebApplicationResourceTest {
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessExternalClientNotFoundException.class);
+            UserInterfaceTransactionManager.searchUnits(anyString()))
+            .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -986,7 +989,8 @@ public class WebApplicationResourceTest {
     public void testGetObjectGroupLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
         final JsonNode result = FAKE_JSONNODE_RETURN;
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID)).thenReturn(result);
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+            .thenReturn(result);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
@@ -1142,34 +1146,34 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAvailableFilesListWithInternalSererWhenBadSipDirectory() {
-        final String currentSipDirectory = ServerApplication.getWebApplicationConfig().getSipDirectory();
-        ServerApplication.getWebApplicationConfig().setSipDirectory("SIP_DIRECTORY_NOT_FOUND");
+        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
+        application.getConfiguration().setSipDirectory("SIP_DIRECTORY_NOT_FOUND");
 
         given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/upload/fileslist");
 
         // Reset WebApplicationConfiguration
-        ServerApplication.getWebApplicationConfig().setSipDirectory(currentSipDirectory);
+        application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
 
     @Test
     public void testGetAvailableFilesListWithInternalSererWhenNotConfiguredSipDirectory() {
-        final String currentSipDirectory = ServerApplication.getWebApplicationConfig().getSipDirectory();
-        ServerApplication.getWebApplicationConfig().setSipDirectory(null);
+        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
+        application.getConfiguration().setSipDirectory(null);
 
         given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/upload/fileslist");
 
         // Reset WebApplicationConfiguration
-        ServerApplication.getWebApplicationConfig().setSipDirectory(currentSipDirectory);
+        application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
 
     @Test
     public void testUploadFileFromServerWithInternalServerWhenNotConfiguredSipDirectory() throws VitamException {
-        final String currentSipDirectory = ServerApplication.getWebApplicationConfig().getSipDirectory();
-        ServerApplication.getWebApplicationConfig().setSipDirectory(null);
+        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
+        application.getConfiguration().setSipDirectory(null);
 
         given().param("file_name", "SIP.zip").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
@@ -1177,7 +1181,7 @@ public class WebApplicationResourceTest {
             .get("/upload/SIP.zip");
 
         // Reset WebApplicationConfiguration
-        ServerApplication.getWebApplicationConfig().setSipDirectory(currentSipDirectory);
+        application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
 
     @Test

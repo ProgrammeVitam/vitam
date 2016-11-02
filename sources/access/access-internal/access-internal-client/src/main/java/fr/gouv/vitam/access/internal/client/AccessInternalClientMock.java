@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * Mock client implementation for access
  */
-public class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
+class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
 
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 

@@ -45,7 +45,7 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 /**
  * Mock client implementation for IngestExternal
  */
-public class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
+class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
 

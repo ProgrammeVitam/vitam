@@ -28,56 +28,79 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.client2.TestVitamClientFactory;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
-public class DriverImplTest extends JerseyTest {
+public class DriverImplTest extends VitamJerseyTest {
 
-    private static DriverImpl driver;
     protected static final String HOSTNAME = "localhost";
     private static final String DRIVER_NAME = "WorkspaceDriver";
     private static JunitHelper junitHelper;
-    private static int port;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response get();
+    public DriverImplTest() {
+        super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
     }
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        driver = new DriverImpl();
         junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
     }
 
+    // Define the getApplication to return your Application using the correct Configuration
     @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+
+        @Override
+        protected void platformSecretConfiguration() {
+            // None
+        }
+        
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     @Path("/offer/v1")
@@ -97,42 +120,42 @@ public class DriverImplTest extends JerseyTest {
 
     }
 
-    @Test(expected = StorageDriverException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenNullUrlThenRaiseAnException() throws Exception {
-        driver.connect(null, null);
+        DriverImpl.getInstance().connect(null, null);
     }
 
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        driver.connect("http://" + HOSTNAME + ":" + port, null);
+        DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
     }
 
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        final ConnectionImpl connection = driver.connect("http://" + HOSTNAME + ":" + port, null);
+        final ConnectionImpl connection = DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
         assertNotNull(connection);
     }
 
     @Test()
     public void getNameOK() throws Exception {
-        assertEquals(DRIVER_NAME, driver.getName());
+        assertEquals(DRIVER_NAME, DriverImpl.getInstance().getName());
     }
 
     @Test()
     public void isStorageOfferAvailableOK() throws Exception {
-        assertEquals(true, driver.isStorageOfferAvailable(null, null));
+        assertEquals(true, DriverImpl.getInstance().isStorageOfferAvailable(null, null));
     }
 
     @Test()
     public void getMajorVersionOK() throws Exception {
-        assertEquals(0, driver.getMajorVersion());
+        assertEquals(0, DriverImpl.getInstance().getMajorVersion());
     }
 
     @Test()
     public void getMinorVersionOK() throws Exception {
-        assertEquals(0, driver.getMinorVersion());
+        assertEquals(0, DriverImpl.getInstance().getMinorVersion());
     }
 
 }

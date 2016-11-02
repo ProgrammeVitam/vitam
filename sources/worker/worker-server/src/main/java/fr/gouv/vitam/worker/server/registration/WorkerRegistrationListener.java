@@ -31,6 +31,7 @@ import javax.servlet.ServletContextListener;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
 
 /**
@@ -57,6 +58,7 @@ public class WorkerRegistrationListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener started");
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         final WorkerRegister register = new WorkerRegister(configuration);
         final Thread thread = new Thread(register);
         thread.start();

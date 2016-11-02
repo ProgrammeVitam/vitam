@@ -86,7 +86,7 @@ public class VitamMetricsConfigurationImplTest {
 
         private int counter = 0;
         // Get the business metric registry
-        final private VitamMetricRegistry registry = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry();
+        final private VitamMetricRegistry registry = AbstractVitamApplication.getBusinessMetricsRegistry();
 
         /**
          *
@@ -133,6 +133,7 @@ public class VitamMetricsConfigurationImplTest {
 
         serverPort = response.getServerPort();
         application = response.getApplication();
+        application.startMetrics();
         RestAssured.port = response.getServerPort();
         RestAssured.basePath = BASE_PATH;
     }
@@ -167,7 +168,7 @@ public class VitamMetricsConfigurationImplTest {
 
     @SuppressWarnings("rawtypes")
     private void testBusinessGaugeValue() {
-        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessVitamMetrics().getRegistry().getGauges();
+        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessMetricsRegistry().getGauges();
         final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_RESOURCE_URI);
 

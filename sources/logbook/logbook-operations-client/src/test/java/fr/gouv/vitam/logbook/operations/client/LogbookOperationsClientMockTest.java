@@ -31,6 +31,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -38,7 +40,11 @@ import org.junit.Test;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -172,5 +178,36 @@ public class LogbookOperationsClientMockTest {
             client.selectOperationbyId("eventIdentifier").get("result").get("_id").asText());
     }
 
+    @Test
+    public void bulkTest() throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, LogbookClientNotFoundException {
+        LogbookOperationsClientFactory.changeMode(null);
+
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        fillLogbookParamaters(logbookParameters);
+        client.createDelegate(logbookParameters);
+        client.updateDelegate(logbookParameters);
+        client.commitCreateDelegate(LogbookParameterName.eventIdentifierProcess.name());
+
+        client.updateDelegate(logbookParameters);
+        client.updateDelegate(logbookParameters);
+        client.commitUpdateDelegate(LogbookParameterName.eventIdentifierProcess.name());
+        
+        List<LogbookOperationParameters> list = new ArrayList<>();
+        list.add(logbookParameters);
+        list.add(logbookParameters);
+        client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
+        client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
+    }
+
+    @Test
+    public void closeExecution() throws Exception {
+        LogbookOperationsClientFactory.changeMode(null);
+
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        client.close();
+    }
 
 }
