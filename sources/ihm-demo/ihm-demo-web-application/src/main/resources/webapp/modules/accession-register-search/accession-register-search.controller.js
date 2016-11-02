@@ -90,6 +90,10 @@ angular.module('accession.register.search')
       );
     }
 
+    self.goToDetails = function(id) {
+      $window.open('#!/accessionRegister/detail/' + id)
+    };
+
     // Default Search
     self.searchRegistersByCriteria(null);
   });
