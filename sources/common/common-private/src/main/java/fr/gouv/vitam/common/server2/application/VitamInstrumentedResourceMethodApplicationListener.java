@@ -105,7 +105,7 @@ final class VitamInstrumentedResourceMethodApplicationListener
      */
     public static final String metricMeterName(final String name) {
         ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
-        
+
         return name + METRIC_NAME_DELIMITER + METRIC_METER_NAME;
     }
 
@@ -119,7 +119,7 @@ final class VitamInstrumentedResourceMethodApplicationListener
      */
     public static final String metricTimerName(final String name) {
         ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
-        
+
         return name + METRIC_NAME_DELIMITER + METRIC_TIMER_NAME;
     }
 
@@ -133,7 +133,7 @@ final class VitamInstrumentedResourceMethodApplicationListener
      */
     public static final String metricExceptionMeterName(final String name) {
         ParametersChecker.checkParameterNullOnly(METRIC_NAME_CONFIGURATION_PARAMETERS, name);
-        
+
         return name + METRIC_NAME_DELIMITER + METRIC_EXCEPTION_METER_NAME;
     }
 
@@ -192,7 +192,7 @@ final class VitamInstrumentedResourceMethodApplicationListener
      * @param URI {@link String} the end-point URI
      * @return String
      */
-    final private String metricGenericName(final ResourceMethod method, final String URI) {        
+    final private String metricGenericName(final ResourceMethod method, final String URI) {
         return URI +
             METRIC_NAME_DELIMITER +
             method.getHttpMethod() +
@@ -295,7 +295,11 @@ final class VitamInstrumentedResourceMethodApplicationListener
         // Note : an extended method is a method not present in the original API, but created by Jersey for technical
         // purposes (ex: mediatype transformation, ...)
         if (!method.isExtended() && method.getHttpMethod() != null) {
-            if (rootPath == null) {
+            // TODO P2 /admin/v1/... and .../status URI are removed here but should be removed with regex in Kibana the
+            // day it is possible
+            if (rootPath != null && (rootPath.equals("/admin/v1") || path.equals("/status"))) {
+                return;
+            } else if (rootPath == null) {
                 metricName = metricGenericName(method, path);
             } else {
                 metricName = metricGenericName(method, concatURI(rootPath, path));
@@ -351,7 +355,7 @@ final class VitamInstrumentedResourceMethodApplicationListener
     }
 
     /****************************************************************************************************
-     * * THE CODE ENDING HERE DIFFERS FROM {@link InstrumentedResourceMethodApplicationListener}      * *
+     * * THE CODE ENDING HERE DIFFERS FROM {@link InstrumentedResourceMethodApplicationListener} * *
      ***************************************************************************************************/
 
     private static class TimerRequestEventListener implements RequestEventListener {

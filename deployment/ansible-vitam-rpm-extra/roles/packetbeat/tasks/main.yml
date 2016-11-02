@@ -25,6 +25,7 @@
     flat: yes
 
 - name: create packetbeat index
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/packetbeat'
     method: PUT
@@ -38,6 +39,7 @@
    state: absent
 
 - name: load kibana dashboards to .kibana elasticsearch index
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{item.split(".")[0] }}'
     method: PUT
@@ -47,6 +49,7 @@
   with_lines: find {{role_path}}/files/ -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
 
 - name: restart Kibana
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
   service:
     name: kibana
     state: restarted

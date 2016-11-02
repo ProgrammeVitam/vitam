@@ -29,6 +29,8 @@ package fr.gouv.vitam.common.server2.application;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -51,11 +53,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
 
 /**
- * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This class
- * provides an access to the {@code VitamMetricRegistry} and the possibility to start/stop the reporting.
+ * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This
+ * class provides an access to the {@code VitamMetricRegistry} and the possibility to start/stop the reporting.
  *
  */
-class VitamMetrics {
+public class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
 
     private final VitamMetricsType type;
@@ -82,7 +84,7 @@ class VitamMetrics {
      * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
      *
-     * @param configuration {@link VitamMetricConfiguration} 
+     * @param configuration {@link VitamMetricConfiguration}
      */
     public VitamMetrics(VitamMetricConfiguration configuration) {
         ParametersChecker.checkParameter("VitamMetricConfiguration", configuration);
@@ -101,6 +103,7 @@ class VitamMetrics {
                 configureElasticsearchReporter(configuration);
                 break;
             default:
+                LOGGER.warn("VitamMetrics instanciated without reporter.");
                 break;
         }
     }
@@ -142,15 +145,28 @@ class VitamMetrics {
         additionalFields.put("hostname", ServerIdentity.getInstance().getName());
         additionalFields.put("role", ServerIdentity.getInstance().getRole());
         try {
+            checkElasticsearchConnection(configuration.getElasticsearchHost(), configuration.getElasticSearchPort());
             reporter = ElasticsearchReporter.forRegistry(registry)
-                .hosts(configuration.getElasticsearchHost())
+                .hosts(configuration.getElasticsearchHost() + ":" + configuration.getElasticSearchPort())
                 .index(configuration.getElasticsearchIndex())
                 .indexDateFormat(configuration.getElasticsearchIndexDateFormat())
                 .additionalFields(additionalFields)
                 .build();
         } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
         }
+    }
+
+    private void checkElasticsearchConnection(final String host, final int port) throws IOException {
+        final URL templateUrl = new URL("http://" + host + ":" + port + "/");
+        final HttpURLConnection connection = (HttpURLConnection) templateUrl.openConnection();
+
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(200);
+        connection.connect();
+        // Only by calling getResponseCode causes the connection to throw an exception if the host does not exists.
+        connection.getResponseCode();
+        connection.disconnect();
     }
 
     private void configureJVMMetrics() {
@@ -168,7 +184,7 @@ class VitamMetrics {
         registry.registerAll(garbageCollector);
         registry.registerAll(memoryGauges);
         // ThreadStatesGaugeSet not working because duplicate metrics names.
-        // TODO P0 open a github issue demanding a fix
+        // TODO P2 open a github issue demanding a fix
     }
 
     /**
