@@ -88,9 +88,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getClient();
-
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
     public static final String JSON_EXTENSION = ".json";
@@ -232,7 +229,7 @@ public class SedaUtils {
      * @param params the parameters
      * @throws ProcessingException
      */
-    public static void updateLifeCycleByStep(LogbookParameters logbookLifecycleParameters, WorkerParameters params)
+    public static void updateLifeCycleByStep(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters, WorkerParameters params)
         throws ProcessingException {
 
         try {
@@ -254,7 +251,7 @@ public class SedaUtils {
                 VitamLogbookMessages.getCodeLfc(
                     logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), StatusCode.STARTED));
 
-            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+            logbooklifeCyclesClient.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
@@ -272,7 +269,7 @@ public class SedaUtils {
      * @param params the parameters
      * @throws ProcessingException
      */
-    public static void updateLifeCycleForBegining(LogbookParameters logbookLifecycleParameters, WorkerParameters params)
+    public static void updateLifeCycleForBegining(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters, WorkerParameters params)
         throws ProcessingException {
 
         try {
@@ -284,7 +281,7 @@ public class SedaUtils {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 LIFE_CYCLE_EVENT_TYPE_PROCESS);
 
-            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+            logbooklifeCyclesClient.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
@@ -304,7 +301,7 @@ public class SedaUtils {
      * @param stepStatus the status code
      * @throws ProcessingException
      */
-    public static void setLifeCycleFinalEventStatusByStep(LogbookParameters logbookLifecycleParameters,
+    public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters,
         StatusCode stepStatus)
         throws ProcessingException {
 
@@ -316,7 +313,7 @@ public class SedaUtils {
                 VitamLogbookMessages.getCodeLfc(
                     logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), stepStatus));
 
-            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+            logbooklifeCyclesClient.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);

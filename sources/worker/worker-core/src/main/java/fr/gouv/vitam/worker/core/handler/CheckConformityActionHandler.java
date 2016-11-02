@@ -143,7 +143,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
                 INCOME);
-            SedaUtils.updateLifeCycleForBegining(logbookLifecycleObjectGroupParameters, params);
+            SedaUtils.updateLifeCycleForBegining(logbookClient,logbookLifecycleObjectGroupParameters, params);
 
             // checkMessageDigest
             JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
@@ -185,7 +185,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         try {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
                 itemStatus.getGlobalStatus());
         } catch (ProcessingException e) {
             LOGGER.error(e);
@@ -216,7 +216,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, INCOME);
 
-        SedaUtils.updateLifeCycleForBegining(logbookLifecycleObjectGroupParameters, params);
+        SedaUtils.updateLifeCycleForBegining(logbookClient,logbookLifecycleObjectGroupParameters, params);
 
         try {
             DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput().get(ALGO_RANK));

@@ -140,7 +140,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
-            SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
+            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -278,7 +278,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
-        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
+        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
             itemStatus.getGlobalStatus());
     }
 

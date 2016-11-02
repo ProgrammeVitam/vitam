@@ -149,7 +149,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
+        SedaUtils.updateLifeCycleByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, params);
     }
 
     @Test(expected = ProcessingException.class)
@@ -163,7 +163,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
+        SedaUtils.updateLifeCycleByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, params);
     }
 
     @Test(expected = ProcessingException.class)
@@ -177,7 +177,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
+        SedaUtils.updateLifeCycleByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, params);
     }
 
     @Test(expected = ProcessingException.class)
@@ -190,7 +190,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
+        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, StatusCode.OK);
     }
 
     @Test(expected = ProcessingException.class)
@@ -203,7 +203,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
+        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, StatusCode.OK);
     }
 
     @Test(expected = ProcessingException.class)
@@ -216,7 +216,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
+        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,logbookLifecycleUnitParameters, StatusCode.OK);
     }
 
     private LogbookParameters createLogbookParametersInstance() {
