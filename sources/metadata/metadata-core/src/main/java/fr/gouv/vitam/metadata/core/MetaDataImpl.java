@@ -90,6 +90,9 @@ public class MetaDataImpl implements MetaData {
         this.dbRequestFactory = dbRequestFactory;
     }
 
+    /**
+     * @return the MongoDbAccessMetadataImpl
+     */
     public MongoDbAccessMetadataImpl getMongoDbAccess() {
         return mongoDbAccess;
     }

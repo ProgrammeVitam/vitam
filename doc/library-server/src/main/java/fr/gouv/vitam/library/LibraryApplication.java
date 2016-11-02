@@ -49,6 +49,7 @@ import fr.gouv.vitam.library.config.LibraryConfiguration;
 /**
  * Library static web server application
  */
+// FIXME P0 Should be Server V2
 public class LibraryApplication extends AbstractVitamApplication<LibraryApplication, LibraryConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LibraryApplication.class);

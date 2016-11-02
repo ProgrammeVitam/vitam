@@ -59,6 +59,7 @@ import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
  * Process Distributor Resource implementation
  */
 @Path("/processing/v1/worker_family")
+// FIXME P0 should be server V2
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
 

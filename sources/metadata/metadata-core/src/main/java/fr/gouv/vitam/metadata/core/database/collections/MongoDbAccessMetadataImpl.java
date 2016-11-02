@@ -173,6 +173,9 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
             .append("lock", false));
     }
 
+    /**
+     * @return the Elasticsearch Acess Metadata client
+     */
     public ElasticsearchAccessMetadata getEsClient() {
         return esClient;
     }

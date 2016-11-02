@@ -71,6 +71,7 @@ import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
  * Workspace Connection Implementation
  */
 // FIXME P0: always close javax.ws.rs.core.Response (because can make problems)
+// FIXME P0 should be clientV2/serverV2
 public class ConnectionImpl implements Connection {
 
 

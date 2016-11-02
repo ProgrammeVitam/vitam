@@ -67,6 +67,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      *
      * @param configuration the server configuration to be applied
      */
+    // FIXME P0 create a newProcessManagementImpl for each request
     public ProcessManagementResource(ServerConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
         processManagement = new ProcessManagementImpl(configuration);

@@ -80,6 +80,7 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
     private final Map<String, WorkFlow> poolWorkflows;
+    // FIXME P0 allocate a new ProcessDistributor for each Step
     private final ProcessDistributor processDistributor;
 
     /**

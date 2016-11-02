@@ -71,6 +71,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
+    // FIXME P0 ne devrait pas être static
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getClient();
     private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
