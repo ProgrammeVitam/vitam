@@ -47,7 +47,7 @@
 
 - name: apply configuration files for curator
   template:
-   src: "{{item}}.j2"
+    src: "{{item}}.j2"
     dest: "{{curator_conf_dir}}/{{item}}"
     owner: logstash
   with_items:

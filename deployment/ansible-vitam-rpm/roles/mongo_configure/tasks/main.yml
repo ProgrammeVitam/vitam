@@ -6,7 +6,7 @@
   wait_for: port={{mongos_port}} timeout=10
   when: inventory_hostname == "{{ groups['mongos']|last }}"
 
-# Detect is authentication is enabled
+# Detect if authentication is enabled
 - name: Initiate the admin database
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
   when: inventory_hostname == "{{ groups['mongos']|last }}"
@@ -37,8 +37,8 @@
     - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
-    - admin
     - Vitam
+    - admin
     - logbook
     - masterdata
     - metadata
@@ -50,6 +50,7 @@
   when:
     - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
+
 # Delete the mongodb scripts
 
 - name: Delete the init-database.js file

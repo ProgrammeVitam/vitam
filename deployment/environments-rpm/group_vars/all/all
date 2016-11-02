@@ -81,7 +81,7 @@ mongo_authentication: "true"
 vitam_mongodb_host: "mongos.service.{{consul_domain}}"
 vitam_mongodb_port: "{{mongos_port}}"
 
-vitam_logstash_host: "logstash.service.{{consul_domain}}"
+vitam_logstash_host: "{{ groups['hosts-log-server'][0] }}"
 vitam_logstash_port: 10514
 
 # Normally no need for the host ?
