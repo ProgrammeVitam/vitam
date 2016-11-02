@@ -25,4 +25,41 @@ pour le service ingest-external.
 	en Java en prenant des paramètres d'entrées : le script utilisé, le chemin du fichier à scanner et 
 	le temps limité d'un scan
 	
-	Pour l'intégration dans ingest-external, ce script est appelé dans l'implémentation des APIs de ingest-externe. 
+	Pour l'intégration dans ingest-external, ce script est appelé dans l'implémentation des APIs de ingest-externe.
+    la section suivant montre comment on appelle le script depuis ingest-external en Code.
+    
+    ........Java Code...................................................................................
+     
+    antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
+    
+    .....................................................................................................
+    
+    switch (antiVirusResult) {
+            case 0:
+                LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
+                endParameters.setStatus(LogbookOutcome.OK);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    IngestExternalOutcomeMessage.OK_VIRUS.value());
+                break;
+            case 1:
+                LOGGER.debug(IngestExternalOutcomeMessage.OK_VIRUS.toString());
+                endParameters.setStatus(LogbookOutcome.OK);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    IngestExternalOutcomeMessage.KO_VIRUS.value());
+                break;
+            case 2:
+                LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
+                endParameters.setStatus(LogbookOutcome.KO);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    IngestExternalOutcomeMessage.KO_VIRUS.value());
+                isFileInfected = true;
+                break;
+            default:
+                LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
+                endParameters.setStatus(LogbookOutcome.FATAL);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    IngestExternalOutcomeMessage.KO_VIRUS.value());
+                isFileInfected = true;
+        }
+	.....................................................................................................        
+	
