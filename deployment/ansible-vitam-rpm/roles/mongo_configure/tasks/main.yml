@@ -6,11 +6,21 @@
   wait_for: port={{mongos_port}} timeout=10
   when: inventory_hostname == "{{ groups['mongos']|last }}"
 
+# Detect is authentication is enabled
+- name: Initiate the admin database
+  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
+  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  register: authent_enabled
+  failed_when: false
+  no_log: true
+
 # Copy the mongodb scripts
 
 - name: Copy the init-database.js file
   template: src={{item}}.j2 dest=/tmp/{{item}}
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
     - init-admin-database.js
     - init-metadata-database.js
@@ -23,7 +33,9 @@
 
 - name: Initiate the admin database
   command: mongo localhost:{{mongos_port}}/{{item}} /tmp/init-{{item}}-database.js
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
     - admin
     - Vitam
@@ -35,15 +47,18 @@
 
 - name: Enable the sharding
   command: mongo localhost:{{mongos_port}} /tmp/enable-sharding.js
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
-
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
 # Delete the mongodb scripts
 
 - name: Delete the init-database.js file
   file:
     dest: "/tmp/init-database.js"
     state: "absent"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
     - init-admin-database.js
     - init-metadata-database.js

@@ -2,7 +2,7 @@
 # tasks file for mongo-express
 # Docker role tasks
 - name: installer le package docker
-  yum: 
+  yum:
     name: "{{item}}"
     state: latest
     update_cache: yes
@@ -18,14 +18,14 @@
     state: present
 
 - name: Ensure docker daemon autostart && docker is started
-  service: 
+  service:
     name: docker
     enabled: yes
     state: started
 
 - name: Ensure .docker directory exists
-  file: 
-    name: "/root/.docker" 
+  file:
+    name: "/root/.docker"
     state: directory
     mode: "u=rw,g=r,o=r"
 
@@ -38,11 +38,11 @@
     line: "INSECURE_REGISTRY='--insecure-registry {{docker_registry_private}} --insecure-registry {{docker_registry_proxy}} --insecure-registry {{docker_registry_group}} --insecure-registry {{docker_registry_private_long}} --insecure-registry {{docker_registry_proxy_long}} --insecure-registry {{docker_registry_group_long}}'"
 
 - name: Ensure Login priviledges to docker registry
-  template: 
+  template:
     src: "config.json.j2"
-    dest: "/root/.docker/config.json" 
+    dest: "/root/.docker/config.json"
     owner: "{{local_username}}"
-    group: "{{local_username}}" 
+    group: "{{local_username}}"
     mode: "u=rw,g=r,o=r"
   notify:
     - restart docker
@@ -106,16 +106,19 @@
     restart_policy: always
     ports:
       - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
-    env: 
+    env:
       ME_CONFIG_MONGODB_SERVER: "{{ vitam_mongodb_host }}"
       ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
-      ME_CONFIG_SITE_BASEURL: /mongo-express/ 
+      ME_CONFIG_SITE_BASEURL: /mongo-express/
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_MONGODB_AUTH_USERNAME: {{mongoAdminUser}}
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: {{mongoAdminPassword}}
 
 #OMA : commented as useless in this case
 #- name: put cfg file for Nagios
 #  become_user: root
-#  template: 
-#     dest: "/etc/nagios/conf.d/{{ ansible_fqdn }}_http_{{ service_name }}.cfg" 
+#  template:
+#     dest: "/etc/nagios/conf.d/{{ ansible_fqdn }}_http_{{ service_name }}.cfg"
 #     src: "nagios_http.cfg.j2"
 #  delegate_to: vitam-prod-ldap-1.internet.agri
 
