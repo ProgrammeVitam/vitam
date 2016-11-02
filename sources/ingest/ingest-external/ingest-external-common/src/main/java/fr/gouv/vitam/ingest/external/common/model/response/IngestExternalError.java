@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * IngestExternal error class
  *
  */
+// FIXME P0 utiliser le VitamError de Common Public
 public class IngestExternalError {
 
     private int code;

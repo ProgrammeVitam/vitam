@@ -42,6 +42,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+// FIXME P0 utilisé ?
 public class LogbookOperationParametersList {
 
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";

@@ -72,7 +72,7 @@ public class AccessInternalClientRest extends DefaultClient implements AccessInt
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
     }
-
+    // FIXME P0 JsonNode en argument pour toutes les "query"
     @Override
     public JsonNode selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,

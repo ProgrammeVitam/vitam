@@ -95,6 +95,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param configuration to associate with AccessResourceImpl
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
+        // FIXME P0 Legal if AccessInternalModuleImpl fixed to remove Storage Client in constructor 
         accessModule = new AccessInternalModuleImpl(configuration);
         LOGGER.debug("AccessResource initialized");
     }
@@ -117,6 +118,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 JsonNode en argument pour toutes les "query"
     public Response getUnits(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);

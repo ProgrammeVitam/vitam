@@ -120,6 +120,7 @@ public class WebApplicationResource {
     private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final int TENANT_ID = 0;
 
+    // FIXME P0 utile ??? utilisé nulle part
     @Context
     private HttpServletRequest request;
 

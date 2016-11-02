@@ -88,6 +88,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
+    // FIXME P0 n'a pas besoin d'être une variable globale
     private FormatIdentifier formatIdentifier;
 
     /**
@@ -160,7 +161,6 @@ public class IngestExternalImpl implements IngestExternal {
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.STARTED),
                     containerName);
-            helper.updateDelegate(antivirusParameters);
             try {
                 /*
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
@@ -227,7 +227,6 @@ public class IngestExternalImpl implements IngestExternal {
                         StatusCode.STARTED,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.STARTED),
                         containerName);
-                helper.updateDelegate(formatParameters);
                 formatParameters.setStatus(StatusCode.OK)
                     .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));

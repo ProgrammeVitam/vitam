@@ -83,6 +83,8 @@ import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 @Path("/adminmanagement/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
+    private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -234,7 +236,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocument(JsonNode select)
         throws InvalidParseOperationException, IOException {
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<FileFormat> fileFormatList = new ArrayList<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
@@ -427,7 +429,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentRules(JsonNode select)
         throws InvalidParseOperationException, IOException {
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<FileRules> filerulesList = new ArrayList<>();
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
@@ -501,7 +503,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentFundsRegister(JsonNode select)
         throws InvalidParseOperationException, IOException, ReferentialException {
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<AccessionRegisterSummary> fileFundRegisters = new ArrayList<>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
@@ -542,7 +544,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDetailAccessionRegister(JsonNode select)
         throws InvalidParseOperationException, IOException, ReferentialException {
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<AccessionRegisterDetail>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {

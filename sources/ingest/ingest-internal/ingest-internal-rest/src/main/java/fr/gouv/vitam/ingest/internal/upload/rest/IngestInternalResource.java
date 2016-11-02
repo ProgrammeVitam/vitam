@@ -118,6 +118,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
 
+    // FIXME P0 équivalent static pour tout ce qui est ci-dessous!!! A supprimer
     private final IngestInternalConfiguration configuration;
     private LogbookOperationParameters parameters;
     private final ProcessingManagementClient processingClient;

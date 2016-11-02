@@ -246,7 +246,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoClo
                 for (final CSVRecord record : parser) {
                     try {
                         if (checkRecords(record)) {
-                            final String ruleId = record.get("RuleId");
+                            final String ruleId = record.get(RULEID);
                             final String ruleType = record.get("RuleType");
                             final String ruleValue = record.get("RuleValue");
                             final String ruleDuration = record.get("RuleDuration");
@@ -348,7 +348,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, AutoClo
      * @return
      */
     private boolean checkRecords(CSVRecord record) {
-        return record.get("RuleId") != null && record.get("RuleType") != null && record.get("RuleValue") != null &&
+        return record.get(RULEID) != null && record.get("RuleType") != null && record.get("RuleValue") != null &&
             record.get("RuleDuration") != null && record.get("RuleDescription") != null &&
             record.get("RuleMeasurement") != null;
     }

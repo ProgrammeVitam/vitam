@@ -99,6 +99,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      */
     @GET
     @Path("/units")
+    // FIXME P0 quand une query (partout), argument au format JsonNode natif en réception
     public Response getUnits(String queryDsl) {
         Status status;
         JsonNode result = null;
@@ -490,6 +491,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    // FIXME P0 model VitamError à utiliser
     private RequestResponseError getErrorEntity(Status status) {
         return new RequestResponseError()
             .setError(new VitamError(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
