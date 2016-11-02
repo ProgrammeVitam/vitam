@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.SingletonUtils;
  * Meta-data RequestResponseOK class contains hits and result objects
  *
  */
+// FIXME P0 use default common public RequestResponseOk
 public class RequestResponseOK extends RequestResponse {
     private DatabaseCursor hits;
     private List<String> results;

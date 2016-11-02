@@ -52,8 +52,9 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
- *
+ * Processing Management Client
  */
+//FIXME P0 should be clientV2 / Server V2
 public class ProcessingManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClient.class);
 

@@ -37,6 +37,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 /**
  * Workspace Driver Implementation
  */
+// FIXME P0 should be clientV2/serverV2
 public class DriverImpl implements Driver {
 
     private static final String DRIVER_NAME = "WorkspaceDriver";

@@ -70,6 +70,7 @@ public class WorkerResource extends ApplicationStatusResource {
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
+    // FIXME P0 should be allocated each time a request is received
     private final Worker worker;
 
     /**

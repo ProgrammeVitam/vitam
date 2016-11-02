@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 /**
  * Server application for ihm-demo
  */
+// FIXME P0 should be server V2 ???
 public class ServerApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);

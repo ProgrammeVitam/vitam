@@ -30,6 +30,7 @@ package fr.gouv.vitam.metadata.api.model;
  * Meta-data RequestResponseError class contains error list
  *
  */
+// FIXME P0 use default VitamError in common public error
 public class RequestResponseError extends RequestResponse {
 
     private VitamError error;

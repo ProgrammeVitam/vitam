@@ -97,6 +97,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response insertOrSelectUnit(String request,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
 

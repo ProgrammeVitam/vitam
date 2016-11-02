@@ -51,6 +51,7 @@ import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 /**
  * The process management application is to launch process engine vitamServer
  */
+// FIXME P0 should be clientV2/ServerV2
 public class ProcessManagementApplication
     extends AbstractVitamApplication<ProcessManagementApplication, ServerConfiguration> {
 

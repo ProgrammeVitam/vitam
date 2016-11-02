@@ -264,6 +264,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response selectOperation(String query) {
         Status status;
         try {
@@ -361,6 +362,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // Note: here let String since we need JsonHandler to parser the object
     public Response updateOperationBulk(String arrayNodeOperations) {
         try {
             LogbookOperationParameters[] arrayOperations =
@@ -399,6 +401,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations/{id_op}/unitlifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
         @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
@@ -694,6 +697,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations/{id_op}/objectgrouplifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
         @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
