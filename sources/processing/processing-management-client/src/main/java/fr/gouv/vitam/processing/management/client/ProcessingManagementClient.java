@@ -115,8 +115,6 @@ public class ProcessingManagementClient {
                 throw new IllegalArgumentException("Illegal Argument");
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new ProcessingUnauthorizeException("Unauthorized Operation");
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new ProcessingBadRequestException("Bad Request");
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new ProcessingInternalServerException("Internal Server Error");
             }
