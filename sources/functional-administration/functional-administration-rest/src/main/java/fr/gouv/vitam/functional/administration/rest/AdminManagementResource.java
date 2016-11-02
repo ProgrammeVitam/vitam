@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -135,6 +136,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
+        } finally {
+            StreamUtils.closeSilently(xmlPronom);
         }
     }
 
@@ -170,6 +173,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
+        } finally {
+            StreamUtils.closeSilently(xmlPronom);
         }
 
     }
@@ -296,6 +301,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
+        } finally {
+            StreamUtils.closeSilently(rulesStream);
         }
 
     }
@@ -334,6 +341,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
+        } finally {
+            StreamUtils.closeSilently(rulesStream);
         }
 
     }
