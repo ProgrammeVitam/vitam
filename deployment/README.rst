@@ -25,7 +25,7 @@ Déploiement rpm
 ----------------
 
 Pour tester le déploiement de VITAM : 
-``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --ask-vault-pass --check``
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --check``
 
 .. note:: ce mode n'est pas recommandé
 
@@ -41,6 +41,10 @@ Pour le déployer :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
 
 (et renseigner le mot de passe demandé)
+
+ou
+
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 Pour déployer les extra seulement nécessaire pour le projet :
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``

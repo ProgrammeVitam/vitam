@@ -7,6 +7,7 @@
   when: inventory_hostname == "{{ groups['mongos']|last }}"
 
 # Detect if authentication is enabled
+
 - name: Initiate the admin database
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
   when: inventory_hostname == "{{ groups['mongos']|last }}"
@@ -20,28 +21,15 @@
   template: src={{item}}.j2 dest=/tmp/{{item}}
   when:
     - inventory_hostname == "{{ groups['mongos']|last }}"
-    - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
+    - users-admin.js
+    - users-Vitam.js
     - init-admin-database.js
     - init-metadata-database.js
     - init-logbook-database.js
     - init-masterdata-database.js
     - init-Vitam-database.js
     - enable-sharding.js
-
-# Initiate the databases and the related users
-
-- name: Initiate the admin database
-  command: mongo localhost:{{mongos_port}}/{{item}} /tmp/init-{{item}}-database.js
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
-    - "authent_enabled.stderr == 'exception: login failed'"
-  with_items:
-    - Vitam
-    - admin
-    - logbook
-    - masterdata
-    - metadata
 
 # Enable sharding for specific databases and collections
 
@@ -51,22 +39,16 @@
     - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
 
-# Delete the mongodb scripts
+# Initiate the databases and the related users
 
-- name: Delete the init-database.js file
-  file:
-    dest: "/tmp/init-database.js"
-    state: "absent"
+- name: Create the users
+  command: mongo localhost:{{mongos_port}}/{{item}} /tmp/users-{{item}}.js
   when:
     - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
-    - init-admin-database.js
-    - init-metadata-database.js
-    - init-logbook-database.js
-    - init-masterdata-database.js
-    - init-Vitam-database.js
-    - enable-sharding.js
+    - Vitam
+    - admin
 
 # Activate securite on mongo instances
 
@@ -80,7 +62,9 @@
         keyFile: "{{mongos_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
 
 - name: Activate security on mongod instances
   blockinfile:
@@ -93,7 +77,9 @@
         keyFile: "{{mongod_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
 
 - name: Activate security on mongoc instances
   blockinfile:
@@ -106,7 +92,9 @@
         keyFile: "{{mongoc_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+    - "authent_enabled.stderr == 'exception: login failed'"
 
 # Restart the mongo instances (to enable auth)
 
@@ -117,7 +105,8 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
 
 - name: restart mongoc
   service:
@@ -126,7 +115,8 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
 
 - name: restart mongos
   service:
@@ -135,4 +125,41 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+
+# Make sure the service is open (mongos listening on 27017)
+
+- name: Wait for the service port to be open
+  wait_for: port={{mongos_port}} timeout=10
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+
+# Initiate the databases
+
+- name: Initiate the admin database
+  command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} /tmp/init-{{item}}-database.js
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+  with_items:
+    - Vitam
+    - admin
+  no_log: true
+
+# Delete the mongodb scripts
+
+- name: Delete the init-database.js file
+  file:
+    dest: "/tmp/init-database.js"
+    state: "absent"
+  when:
+    - inventory_hostname == "{{ groups['mongos']|last }}"
+  with_items:
+    - users-admin.js
+    - users-Vitam.js
+    - init-admin-database.js
+    - init-metadata-database.js
+    - init-logbook-database.js
+    - init-masterdata-database.js
+    - init-Vitam-database.js
+    - enable-sharding.js

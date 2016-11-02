@@ -177,4 +177,5 @@ rpm_version=0.10.0-SNAPSHOT*
 days_to_delete=365
 days_to_close=20
 days_to_delete_topbeat=20
+days_to_delete_local=30
 dns_servers=["172.16.1.21"]

@@ -1,30 +1,12 @@
 
 // Create the collections
-db.createCollection("Unit")
-db.createCollection("ObjectGroup")
-db.createCollection("LogbookOperation")
-db.createCollection("LogbookLifeCycleUnit")
-db.createCollection("LogbookLifeCycleObjectGroup")
+
 db.createCollection("AccessionRegisterDetail")
 db.createCollection("AccessionRegisterSummary")
 db.createCollection("FileFormat")
 db.createCollection("FileRules")
 
-// Create unique indexes
-db.FileFormat.createIndex(
-    { "PUID" : 1 },
-    { unique: true }
-)
-db.AccessionRegisterSummary.createIndex(
-    { "_tenant" : 1 , "OriginatingAgency" : 1 },
-    { unique: true }
-)
-db.FileRules.createIndex(
-    { "_tenant" : 1 , "RuleId" : 1 },
-    { unique: true }
-)
-
-// Create simple indexes
+// Create indexes
 // A single collection can have no more than 64 indexes.
 
 db.Unit.createIndex( { "_up" : 1 } )
@@ -92,68 +74,16 @@ db.LogbookLifeCycleObjectGroup.createIndex( { "events.evType" : 1 } )
 db.LogbookLifeCycleObjectGroup.createIndex( { "events.outcome" : 1 } )
 db.LogbookLifeCycleObjectGroup.createIndex( { "event.evIdProc" : 1 } )
 
+db.FileRules.createIndex( { "_tenant" : 1 , "RuleId" : 1 } , { unique: true } )
 db.FileRules.createIndex( { "_tenant" : 1 } )
 db.FileRules.createIndex( { "RuleId" : 1 } )
 db.FileRules.createIndex( { "RuleType" : 1 } )
 
+db.FileFormat.createIndex( { "PUID" : 1 } , { unique: true } )
+
+db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 , "OriginatingAgency" : 1 } , { unique: true } )
 db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 } )
 
 db.AccessionRegisterDetail.createIndex( { "_tenant" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "SubmissionAgency" : 1 } )
-
-// Create admin user
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "Vitam" },
-            { role: "dbAdmin", db: "Vitam" }
-        ]
-    }
-)
-
-// Create metadata user
-db.createUser(
-    {
-        user: "{{mongoMetadataUser}}",
-        pwd: "{{mongoMetadataPassword}}",
-        roles: [
-            { role: "readWrite", db: "Vitam" }
-        ]
-    }
-)
-
-// Create logbook user
-db.createUser(
-    {
-        user: "{{mongoLogbookUser}}",
-        pwd: "{{mongoLogbookPassword}}",
-        roles: [
-            { role: "readWrite", db: "Vitam" }
-        ]
-    }
-)
-
-// Create functional-admin user
-db.createUser(
-    {
-        user: "{{mongoFunctionalAdminUser}}",
-        pwd: "{{mongoFunctionalAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "Vitam" }
-        ]
-    }
-)
-
-// Create worker user
-db.createUser(
-    {
-        user: "{{mongoWorkerUser}}",
-        pwd: "{{mongoWorkerPassword}}",
-        roles: [
-            { role: "readWrite", db: "Vitam" }
-        ]
-    }
-)

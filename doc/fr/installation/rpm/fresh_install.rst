@@ -46,6 +46,7 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les vale
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
    "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
+   "days_to_delete_local","Période de grâce des log VITAM - logback (valeur en jours)",""
    "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
 
 
