@@ -205,7 +205,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/units/" + unitId, headers, updateQuery, MediaType
+            response = performRequest(HttpMethod.PUT, "/units/" + unitId, headers, updateQuery, MediaType
                 .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
