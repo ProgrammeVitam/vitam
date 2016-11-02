@@ -384,9 +384,9 @@ public class MetaDataImplTest {
     @Test
     public void testDiffResultOnUpdate() throws Exception {
         final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    \\\"title\\\" : \\\"title\\\"" +
-            "\\n-    \\\"description\\\" : \\\"description\\n+    \\\"title\\\" : \\\"MODIFIED title\\\"" +
-            "\\n+    \\\"description\\\" : \\\"MODIFIED description\"}]}";
+            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +
+            "\\n-    description : description\\n+    title : MODIFIED title" +
+            "\\n+    description : MODIFIED description\"}]}";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");

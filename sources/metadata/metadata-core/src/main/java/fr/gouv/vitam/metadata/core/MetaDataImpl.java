@@ -328,7 +328,7 @@ public class MetaDataImpl implements MetaData {
         for (final String line : diff) {
             if (line.matches("^(\\+|-){1}\\s{1,}.*")) {
                 // remove the last character which is a ","
-                result.add(line.substring(0, line.length() - 1));
+                result.add(line.substring(0, line.length() - 1).replace("\"", ""));
             }
         }
         return result;
