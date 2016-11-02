@@ -1284,7 +1284,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategory.split("_").length == 1) {
-                        nodeCategory += nodeCategory + "_1";
+                        nodeCategory += "_1";
                         ((ObjectNode) binaryNode).put(SedaConstants.TAG_DO_VERSION, nodeCategory);
                     }
                     if (nodeCategoryArray == null) {
