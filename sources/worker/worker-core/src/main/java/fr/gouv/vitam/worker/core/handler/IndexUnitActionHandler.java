@@ -69,6 +69,8 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -95,6 +97,8 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final String TAG_MANAGEMENT = "Management";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
+    private LogbookLifeCyclesClient logbookClient =
+        LogbookLifeCyclesClientFactory.getInstance().getClient();
     private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
         .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
@@ -120,7 +124,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
+            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -130,7 +134,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         try {
             logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters,
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleUnitParameters,
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);

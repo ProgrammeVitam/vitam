@@ -44,6 +44,8 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -71,6 +73,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     public static final String TXT_EXTENSION = ".txt";
+    private LogbookLifeCyclesClient logbookClient =
+        LogbookLifeCyclesClientFactory.getInstance().getClient();
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
@@ -97,7 +101,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(actionDefinition);
-            SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
+            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
             indexObjectGroup(params, itemStatus);
         } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
@@ -110,7 +114,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         try {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters,
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
