@@ -1,3 +1,4 @@
+{% if (groups['hosts-log-server'] | length) > 0  %}
 metrics:
    - type: JERSEY
      reporter_type: ELASTICSEARCH
@@ -23,3 +24,4 @@ metrics:
      elasticsearch_index_date_format: "YYYY.MM.dd"
      interval: 1
      interval_unit: MINUTES
+{% endif %}

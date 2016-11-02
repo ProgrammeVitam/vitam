@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.common.server2.application;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
