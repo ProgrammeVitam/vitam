@@ -398,32 +398,32 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test(expected = AccessExternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         client.selectObjectById(queryDsql, ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.selectObjectById(queryDsql, ID);
     }
 
     @Test(expected = AccessExternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectObjectById(queryDsql, ID);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.selectObjectById(queryDsql, ID);
     }
 
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         JsonNode result = JsonHandler.getFromString(MOCK_LOGBOOK_RESULT);
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(result).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(result).build());
         assertThat(client.selectObjectById(queryDsql, ID)).isNotNull();
     }
 
