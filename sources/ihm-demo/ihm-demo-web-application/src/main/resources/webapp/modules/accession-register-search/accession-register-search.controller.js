@@ -54,7 +54,7 @@ angular.module('accession.register.search')
     // Search for accession register
     self.searchRegistersByCriteria = function(serviceProducerCriteria) {
       self.searchCriteria = {};
-      self.searchCriteria.orderby = 'creationDate';
+      self.searchCriteria.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
 
       if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
         || serviceProducerCriteria === ''){
