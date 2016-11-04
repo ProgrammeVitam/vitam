@@ -30,7 +30,7 @@ angular.module('accession.register.search')
     'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
-  .controller('accessionRegisterSearchController', function(ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator) {
+  .controller('accessionRegisterSearchController', function($window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator) {
     var self = this;
 
     // ************************************Pagination  **************************** //
