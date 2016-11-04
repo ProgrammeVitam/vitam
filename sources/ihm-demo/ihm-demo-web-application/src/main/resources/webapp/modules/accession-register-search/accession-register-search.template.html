@@ -65,7 +65,7 @@
           </tr>
 
           <tbody ng-if="$ctrl.showResult && $ctrl.totalResult > 0">
-            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="goToDetails(result.OriginatingAgency)"
+            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="$ctrl.goToDetails(result.OriginatingAgency)"
                 ng-repeat="result in $ctrl.registers.slice((($ctrl.currentPage-1)*$ctrl.itemsPerPage), (($ctrl.currentPage)*$ctrl.itemsPerPage))">
               <td>{{ result.OriginatingAgency }}</td>
               <td>{{ result.creationDate }}</td>
