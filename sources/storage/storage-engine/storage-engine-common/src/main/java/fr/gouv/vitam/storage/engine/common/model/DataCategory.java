@@ -31,7 +31,7 @@ package fr.gouv.vitam.storage.engine.common.model;
  * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
  */
 public enum DataCategory {
-    UNIT("unit"), OBJECT("object"), OBJECT_GROUP("objectGroup"), LOGBOOK("logbook"), REPORT("report");
+    UNIT("unit"), OBJECT("object"), OBJECT_GROUP("objectGroup"), LOGBOOK("logbook"), REPORT("report"), MANIFEST("manifest");
 
     /**
      * Folder

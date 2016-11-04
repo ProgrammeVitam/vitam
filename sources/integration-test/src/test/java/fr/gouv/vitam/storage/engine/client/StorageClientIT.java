@@ -82,6 +82,7 @@ public class StorageClientIT {
 
     private static final String CONTAINER_1 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq";
     private static final String CONTAINER_2 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaz";
+    private static final String CONTAINER_3 = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaapq";
     private static final String OBJECT =
         "integration-storage/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp";
 
@@ -91,6 +92,9 @@ public class StorageClientIT {
     private static final String REPORT =
         "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa803";
 
+    private static final String MANIFEST =
+        "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa802";
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -136,6 +140,7 @@ public class StorageClientIT {
         try {
             workspaceClient.createContainer(CONTAINER_1);
             workspaceClient.createContainer(CONTAINER_2);
+            workspaceClient.createContainer(CONTAINER_3);
         } catch (final Exception e) {
             LOGGER.error("Error creating container : " + e);
         }
@@ -152,6 +157,10 @@ public class StorageClientIT {
             workspaceClient.putObject(CONTAINER_2,
                 REPORT,
                 stream);
+            
+            workspaceClient.putObject(CONTAINER_3,
+                MANIFEST,
+                stream);      
             workspaceClient.getObject(CONTAINER_1, OBJECT_ID);
         } catch (final Exception e) {
             LOGGER.error("Error getting or putting object : " + e);
@@ -166,12 +175,15 @@ public class StorageClientIT {
                 OBJECT_ID);
             workspaceClient.deleteObject(CONTAINER_2,
                 REPORT);
+            workspaceClient.deleteObject(CONTAINER_3,
+                MANIFEST);
         } catch (final Exception e) {
             LOGGER.error("Error deleting object : " + e);
         }
         try {
             workspaceClient.deleteContainer(CONTAINER_1);
             workspaceClient.deleteContainer(CONTAINER_2);
+            workspaceClient.deleteContainer(CONTAINER_3);
         } catch (final Exception e) {
             LOGGER.error("Error deleting container : " + e);
         }
@@ -199,6 +211,9 @@ public class StorageClientIT {
             description1.setWorkspaceContainerGUID(CONTAINER_2);
             description1.setWorkspaceObjectURI(REPORT);
 
+            final CreateObjectDescription description2 = new CreateObjectDescription();
+            description2.setWorkspaceContainerGUID(CONTAINER_3);
+            description2.setWorkspaceObjectURI(MANIFEST);            
             // status
             // storageClient.getStatus();
             try {
@@ -231,6 +246,14 @@ public class StorageClientIT {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
 
+            try {
+                storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.MANIFESTS, "objectId",
+                    description2);
+            } catch (final StorageServerClientException svce) {
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
+            
 
             try {
                 final InputStream stream =
@@ -248,6 +271,16 @@ public class StorageClientIT {
                 LOGGER.error(svce);
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
+            
+            try {
+                final InputStream stream =
+                    storageClient.getContainer("0", "default", MANIFEST, StorageCollectionType.MANIFESTS);
+                assertNotNull(stream);
+            } catch (StorageServerClientException | StorageNotFoundException svce) {
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
+            
 
             // TODO P0 : when implemented, uncomment this
             /*

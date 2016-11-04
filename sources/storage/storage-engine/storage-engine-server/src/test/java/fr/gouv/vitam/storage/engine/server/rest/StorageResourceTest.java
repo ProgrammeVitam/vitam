@@ -91,7 +91,9 @@ public class StorageResourceTest {
     private static final String METADATA_ID_URI = "/{id_md}";
     private static final String OBJECT_GROUPS_URI = "/objectgroups";
     private static final String STATUS_URI = "/status";
-
+    private static final String MANIFESTS_URI = "/manifests";
+    private static final String MANIFEST_ID_URI = "/{id_manifest}";
+    
     private static final String ID_O1 = "idO1";
 
     private static JunitHelper junitHelper;
@@ -335,6 +337,37 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public final void testManifestCreation() {
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        createObjectDescription.setWorkspaceObjectURI("mm");
+        createObjectDescription.setWorkspaceContainerGUID("mm");
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when()
+            .post(MANIFESTS_URI + MANIFEST_ID_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+        given().contentType(ContentType.JSON)
+            .body(createObjectDescription).when()
+            .post(MANIFESTS_URI + MANIFEST_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when()
+            .post(MANIFESTS_URI + MANIFEST_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+                VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when()
+            .post(MANIFESTS_URI + MANIFEST_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    
     @Test
     public final void testObjectNotFound() {
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
