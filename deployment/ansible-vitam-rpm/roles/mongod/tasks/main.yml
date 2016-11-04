@@ -63,16 +63,16 @@
 - name: Copy the script which initiate the replica set
   template:
     src=init-replica.js.j2
-    dest=/tmp/init-replica.js
+    dest={{vitam_folder_root}}/tmp/init-replica.js
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 
 - name: Initiate the replica set
-  command: mongo --port {{mongod_port}} /tmp/init-replica.js
+  command: mongo --port {{mongod_port}} {{vitam_folder_root}}/tmp/init-replica.js
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 
 - name: Delete the init-replica.js file
   file:
-    dest: "/tmp/init-replica.js"
+    dest: "{{vitam_folder_root}}/tmp/init-replica.js"
     state: "absent"
   when: inventory_hostname == "{{ groups['mongod']|last }}"
 

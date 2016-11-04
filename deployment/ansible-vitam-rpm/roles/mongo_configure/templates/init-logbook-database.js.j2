@@ -1,9 +1,0 @@
-
-// Create admin user
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [ { role: "dbAdmin", db: "logbook" } ]
-    }
-)
