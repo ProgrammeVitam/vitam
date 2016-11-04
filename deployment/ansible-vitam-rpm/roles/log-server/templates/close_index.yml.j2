@@ -9,9 +9,10 @@ actions:
   1:
     action: close
     description: >-
-      Close indices older than 30 days (based on index name), for logstash-
+      Close indices older than {{days_to_close}} days (based on index name), for logstash-
       prefixed indices.
     options:
+      ignore_empty_list: True
       delete_aliases: False
       timeout_override:
       continue_if_exception: False

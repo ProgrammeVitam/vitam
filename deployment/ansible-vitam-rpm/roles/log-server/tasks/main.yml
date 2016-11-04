@@ -236,8 +236,8 @@
 - name: create root crontab entry for curator for deleting old indexes
   cron:
     name="curator delete index "
-    minute="50"
-    hour="6"
+    minute="10"
+    hour="0"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
   when: ansible_virtualization_type != 'docker'
@@ -245,8 +245,8 @@
 - name: create root crontab entry for curator for closing old indexes
   cron:
     name="curator close index"
-    minute="55"
-    hour="6"
+    minute="05"
+    hour="0"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'

@@ -5,7 +5,7 @@
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<fileNamePattern>{{vitam_folder_log}}/accesslog-{{ vitam_component }}.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>7</maxHistory>
+			<maxHistory>{{ days_to_delete_access_local }}</maxHistory>
       		<totalSizeCap>14GB</totalSizeCap>
 		</rollingPolicy>
 		<encoder>

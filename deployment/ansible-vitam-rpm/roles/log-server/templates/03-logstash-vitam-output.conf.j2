@@ -1,6 +1,7 @@
 
 output
 {
+    # todo: check if drop exists (which module set it, etc...)
     if "_grokparsefailure" not in [tags] and "drop" not in [tags]
     {
         if [type] =~ "logback" or [type] =~ "mongo" or [program] =~ "elasticsearch-data" or [type] =~ "consul"
@@ -39,6 +40,8 @@ output
     # _grokparsefailure cases
     else
     {
+        # todo: remove this if ?
+        # todo: add a template (maybe different from the ones above)?
         if [program] =~ "logback" or [program] =~ "elastic" or [program] =~ "mongo" or [program] =~ "script" or [program] =~ "elasticsearch-data" or [program] =~ "consul"
         {
             elasticsearch

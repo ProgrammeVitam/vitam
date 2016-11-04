@@ -85,8 +85,8 @@
 
 
 # Elasticsearch
-  ProxyPass /_plugin http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_log_http_port}}/_plugin
-  ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPass /_plugin http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
 
   ProxyPass /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/
   ProxyPassReverse /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/

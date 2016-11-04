@@ -18,6 +18,7 @@ filter
     # Special transforms for syslog inputs
     # --------------------------------------------------
 
+    # Todo move this at the end (to find vitam-* for real vitam components)
     if [input] == "syslog" {
         grok {
             break_on_match => false
@@ -37,6 +38,7 @@ filter
         grok {
             break_on_match => false
             keep_empty_captures => true
+            # Fix set program to "curator"
             match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
         }
     }
@@ -56,6 +58,7 @@ filter
         # Here, we apparently need to do that in 2 steps, instead the correct date is not set in the timestamp variable.
         mutate { add_field => [ "date_msg", "%{+YYYY}-%{+MM}-%{jour} %{hr}:%{mn}:%{sec}" ] }
         mutate { replace => { timestamp => "%{date_msg}" } }
+        # TODO review : either don't use the local variable date_msg, or unset it here.
         mutate { add_field => [ "type", "mongo" ] }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss" ]
@@ -66,6 +69,7 @@ filter
     else if [program] =~ "elasticsearch-" {
         grok {
             match => [
+                # Todo: rename err_level to log_level
                 "message",
                 "\[%{TIMESTAMP_ISO8601:timestamp}\]%{SPACE}\[%{LOGLEVEL:err_level}(%{SPACE})?\]%{SPACE}\[(?<module_name>[^ ]*)%{SPACE}\]%{SPACE}\[(?<node_name>[^\]]*)\]%{SPACE}%{GREEDYDATA:msg_info}%{SPACE}"
             ]
@@ -110,6 +114,8 @@ filter
     }
 
     # Now we should have only the vitam components
+    # todo: change this by else if (vitam-*) and else {generic processing}
+    # todo change module name to thread name (everywhere)
     else {
         grok {
             break_on_match => false
@@ -135,6 +141,7 @@ filter
     # If we don t have any grokparsefailure on the message, remove the unused fields
     # --------------------------------------------------
 
+    # todo rescope some remove_fileds (ex: msg_data, space (should be removed), ...)
     if "_grokparsefailure" not in [tags] {
         mutate {
             remove_field => [
