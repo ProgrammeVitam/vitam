@@ -50,6 +50,7 @@ public class ValidationXsdUtilsTest {
     private static final String SEDA_WRONG_FILE = "wrong_sip1.xml";
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY = "ATR_example.xml";
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID = "ATR_example_notvalid.xml";
+    private static final String WRONG_SEDA_MISSING_TITLE = "manifestKoOnTitleMissing.xml";
 
     @Test
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
@@ -65,6 +66,14 @@ public class ValidationXsdUtilsTest {
         throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_WRONG_FILE),
+            SEDA_VALIDATION_FILE));
+    }
+
+    @Test(expected = SAXException.class)
+    public void givenXmlWithMissingTitleWhenCheckXsdThenThrowSAXException()
+        throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(WRONG_SEDA_MISSING_TITLE),
             SEDA_VALIDATION_FILE));
     }
 

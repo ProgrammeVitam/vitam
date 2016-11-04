@@ -40,12 +40,8 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.apache.xerces.util.XMLCatalogResolver;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -53,7 +49,6 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  * else return false
  */
 public class ValidationXsdUtils {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ValidationXsdUtils.class);
     
     private static final String HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1 = "http://www.w3.org/XML/XMLSchema/v1.1";
     /**
@@ -78,23 +73,6 @@ public class ValidationXsdUtils {
         try {
             final Schema schema = getSchema(xsdFile);
             final Validator validator = schema.newValidator();
-            validator.setErrorHandler(new ErrorHandler() {
-                
-                @Override
-                public void warning(SAXParseException exception) throws SAXException {
-                    LOGGER.warn(exception);
-                }
-                
-                @Override
-                public void fatalError(SAXParseException exception) throws SAXException {
-                    LOGGER.warn(exception);
-                }
-                
-                @Override
-                public void error(SAXParseException exception) throws SAXException {
-                    LOGGER.warn(exception);
-                }
-            });
             validator.validate(new StAXSource(xmlStreamReader));
             return true;
         } finally {
