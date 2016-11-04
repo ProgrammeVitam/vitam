@@ -4,13 +4,17 @@
 
 - name: Wait for the service port to be open
   wait_for: port={{mongos_port}} timeout=10
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  run_once: true
 
 # Detect if authentication is enabled
 
 - name: Initiate the admin database
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
-  when: inventory_hostname == "{{ groups['mongos']|last }}"
+  # todo: active become to use mongo user to execute the commands
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
   register: authent_enabled
   failed_when: false
   no_log: true
@@ -18,33 +22,42 @@
 # Copy the mongodb scripts
 
 - name: Copy the init-database.js file
-  template: src={{item}}.j2 dest=/tmp/{{item}}
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
-  with_items:
-    - users-admin.js
-    - users-Vitam.js
-    - init-admin-database.js
-    - init-metadata-database.js
-    - init-logbook-database.js
-    - init-masterdata-database.js
-    - init-Vitam-database.js
-    - enable-sharding.js
+  template:
+    src: "{{item}}.j2"
+    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
+    owner: "{{mongo_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+  run_once: true
+  # with_items:
+  #   - users-admin.js
+  #   - users-Vitam.js
+  #   - init-admin-database.js
+  #   - init-Vitam-database.js
+  #   - enable-sharding.js
 
 # Enable sharding for specific databases and collections
 
 - name: Enable the sharding
-  command: mongo localhost:{{mongos_port}} /tmp/enable-sharding.js
+  command: mongo localhost:{{mongos_port}} {{vitam_folder_root}}/tmp/mongos/enable-sharding.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
+  # TODO/FIXME set_fact auth=true & try to use mongo return code or explain why we parse the stdr
   when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
 
 # Initiate the databases and the related users
 
 - name: Create the users
-  command: mongo localhost:{{mongos_port}}/{{item}} /tmp/users-{{item}}.js
+  command: mongo localhost:{{mongos_port}}/{{item}} {{vitam_folder_root}}/tmp/mongos/users-{{item}}.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
   when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
     - Vitam
@@ -52,6 +65,8 @@
 
 # Activate securite on mongo instances
 
+# Todo check if we can activate security by default and then create the users
+#  (caution : it seems that we can only create one user while being anonymous after security enabling)
 - name: Activate security on mongos instances
   blockinfile:
     dest: "{{mongos_config_path}}/mongos.conf"
@@ -62,8 +77,8 @@
         keyFile: "{{mongos_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
+  run_once: true
   when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
 
 - name: Activate security on mongod instances
@@ -77,8 +92,8 @@
         keyFile: "{{mongod_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
+  run_once: true
   when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
 
 - name: Activate security on mongoc instances
@@ -92,8 +107,8 @@
         keyFile: "{{mongoc_config_path}}/keyfile"
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
+  run_once: true
   when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
     - "authent_enabled.stderr == 'exception: login failed'"
 
 # Restart the mongo instances (to enable auth)
@@ -105,8 +120,7 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
+  run_once: true
 
 - name: restart mongoc
   service:
@@ -115,8 +129,7 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
+  run_once: true
 
 - name: restart mongos
   service:
@@ -125,41 +138,31 @@
      state: restarted
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
+  run_once: true
 
 # Make sure the service is open (mongos listening on 27017)
 
 - name: Wait for the service port to be open
   wait_for: port={{mongos_port}} timeout=10
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
+  run_once: true
 
 # Initiate the databases
 
 - name: Initiate the admin database
-  command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} /tmp/init-{{item}}-database.js
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
+  command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} {{vitam_folder_root}}/tmp/mongos/init-{{item}}-database.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
   with_items:
     - Vitam
     - admin
-  no_log: true
 
 # Delete the mongodb scripts
 
 - name: Delete the init-database.js file
   file:
-    dest: "/tmp/init-database.js"
+    dest: "{{vitam_folder_root}}/tmp/mongos/init-database.js"
     state: "absent"
-  when:
-    - inventory_hostname == "{{ groups['mongos']|last }}"
-  with_items:
-    - users-admin.js
-    - users-Vitam.js
-    - init-admin-database.js
-    - init-metadata-database.js
-    - init-logbook-database.js
-    - init-masterdata-database.js
-    - init-Vitam-database.js
-    - enable-sharding.js
+  run_once: true
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
