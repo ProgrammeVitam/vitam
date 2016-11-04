@@ -398,14 +398,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupPost(@Context HttpHeaders headers,
         @PathParam("ido") String idObjectGroup, String query) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
-            LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-        }
         GUID xRequestId = GUIDFactory.newRequestIdGUID(tenantId);
         final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
         if ((xHttpOverride == null) || !"GET".equalsIgnoreCase(xHttpOverride)) {

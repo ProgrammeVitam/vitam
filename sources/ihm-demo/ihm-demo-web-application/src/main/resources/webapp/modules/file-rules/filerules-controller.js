@@ -71,7 +71,7 @@ angular.module('ihm.demo')
         ctrl.fileRulesList = response.data.sort(function (a, b) {
           return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/10);
+        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");
@@ -85,7 +85,7 @@ angular.module('ihm.demo')
         ctrl.fileRulesList = response.data.sort(function (a, b) {
           return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/10);
+        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");

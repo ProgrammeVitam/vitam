@@ -64,9 +64,9 @@ angular.module('ihm.demo')
       ctrl.searchOptions.orderby = "Name";
       ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
         ctrl.fileFormatList = response.data.sort(function (a, b) {
-          return a.Name.toLowerCase().localeCompare(b.Name.toLowerCase());
+          return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
+        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");
@@ -78,9 +78,9 @@ angular.module('ihm.demo')
       clearResults();
       ctrl.client.all('formats').post({FORMAT: "all", orderby: "Name"}).then(function(response) {
         ctrl.fileFormatList = response.data.sort(function (a, b) {
-          return a.Name.toLowerCase().localeCompare(b.Name.toLowerCase());
+          return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
+        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");

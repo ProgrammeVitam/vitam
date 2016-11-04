@@ -374,11 +374,6 @@ public class AccessExternalResourceImplTest {
         .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-        .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "GET")
-        .when().post(OBJECTS_URI + OBJECT_ID).then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
         .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
             "PUT")
         .when().post(OBJECTS_URI + OBJECT_ID).then()

@@ -55,6 +55,7 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
@@ -71,7 +72,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
     public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
-    private static final int BDO_INFO_MAP_RANK = 2;
+    private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
 
 
@@ -141,9 +142,9 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
                 new FileInputStream((File) handlerIO.getInput().get(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
                 new FileInputStream((File) handlerIO.getInput().get(OBJECTGOUP_MAP_RANK));
-            final InputStream bdoToInfoMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput().get(BDO_INFO_MAP_RANK));
-            final Map<String, Object> bdoInfoMap = JsonHandler.getMapFromInputStream(bdoToInfoMapTmpFile);
+            final InputStream bdoToVersionMapTmpFile =
+                new FileInputStream((File) handlerIO.getInput().get(BDO_TO_VERSION_BDO_MAP_RANK));
+            final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters =
@@ -172,10 +173,10 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
             } else {
                 throw new ProcessingException("No ArchiveTransfer found");
             }
-            long objectSize = 0;
-            for (final String mapKey : bdoInfoMap.keySet()) {
-                objectSize += JsonHandler.toJsonNode(bdoInfoMap.get(mapKey)).get("Size").longValue();
-            }
+
+            // TODO P0 get size manifest.xml in local
+            // TODO P0 extract this information from first parsing
+            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
             register = new AccessionRegisterDetail()
                 .setId(params.getContainerName())
                 .setOriginatingAgency(originalAgency)
@@ -190,11 +191,11 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
                     .setTotal(archiveUnitMap.size())
                     .setRemained(archiveUnitMap.size()))
                 .setTotalObjects(new RegisterValueDetail()
-                    .setTotal(bdoInfoMap.size())
-                    .setRemained(bdoInfoMap.size()))
+                    .setTotal(bdoVersionMap.size())
+                    .setRemained(bdoVersionMap.size()))
                 .setObjectSize(new RegisterValueDetail()
-                    .setTotal(objectSize)
-                    .setRemained(objectSize));
+                    .setTotal(objectsSizeInSip)
+                    .setRemained(objectsSizeInSip));
         } catch (FileNotFoundException | InvalidParseOperationException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);

@@ -504,7 +504,7 @@ public class ProcessingIT {
     }
 
 
-    @Test(expected = ProcessingException.class)
+    @Test
     public void testWorkflowSipDoubleVersionBM() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
@@ -525,7 +525,9 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
 

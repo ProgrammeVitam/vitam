@@ -175,7 +175,7 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
+        final long totalSize = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
 
@@ -183,14 +183,14 @@ public class SedaUtilsTest {
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        utils.computeTotalSizeOfObjectsInManifest(params);
+        SedaUtils.computeTotalSizeOfObjectsInManifest(params);
     }
 
     @Test
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTest());
-        final long manifestSize = utils.getManifestSize(params);
+        final long manifestSize = SedaUtils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
 
@@ -198,7 +198,7 @@ public class SedaUtilsTest {
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTestError());
-        utils.getManifestSize(params);
+        SedaUtils.getManifestSize(params);
     }
 
     private JsonNode getSedaTest() {

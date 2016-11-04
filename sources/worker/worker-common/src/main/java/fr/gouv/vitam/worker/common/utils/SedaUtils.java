@@ -704,7 +704,7 @@ public class SedaUtils {
      * @return SedaUtilInfo
      * @throws ProcessingException throws when error occurs
      */
-    private SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
+    private static SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
         throws ProcessingException {
         InputStream xmlFile = null;
 
@@ -748,7 +748,7 @@ public class SedaUtils {
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
      */
-    public long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
+    public static long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
@@ -769,7 +769,7 @@ public class SedaUtils {
      * @throws ProcessingException when error in getting binary object info
      */
 
-    private long computeBinaryObjectsSizeFromManifest(WorkspaceClient workspaceClient, String containerId)
+    private static long computeBinaryObjectsSizeFromManifest(WorkspaceClient workspaceClient, String containerId)
         throws ProcessingException {
         long size = 0;
         final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
@@ -789,7 +789,7 @@ public class SedaUtils {
      * @param params worker parameters
      * @return the size of the manifest
      */
-    public long getManifestSize(WorkerParameters params)
+    public static long getManifestSize(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
@@ -817,7 +817,7 @@ public class SedaUtils {
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */
-    private JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId, String pathToObject)
+    private static JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId, String pathToObject)
         throws ProcessingException {
         try {
             return workspaceClient.getObjectInformation(containerId, pathToObject);

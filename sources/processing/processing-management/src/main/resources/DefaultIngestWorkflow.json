@@ -105,12 +105,6 @@
                 "name": "algo",
                 "uri": "VALUE:SHA-512"
               }
-            ],
-            "out": [
-              {
-                "name": "seda.file",
-                "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
-              }
             ]
           }
         },
@@ -203,7 +197,7 @@
               },
               {
                 "name": "mapsBDO.file",
-                "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
               },
               {
                 "name": "globalSEDAParameters.file",
