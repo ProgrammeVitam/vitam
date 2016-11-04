@@ -33,7 +33,12 @@ public enum ErrorMessage {
     /**
      * Ingest external upload failed
      */
-    INGEST_EXTERNAL_UPLOAD_ERROR("Ingest external upload failed ");
+    INGEST_EXTERNAL_UPLOAD_ERROR("Ingest external upload failed "),
+
+    /**
+     * Ingest external upload with warning
+     */
+    INGEST_EXTERNAL_UPLOAD_WITH_WARNING("Ingest external upload with warning ");
 
     private final String message;
 

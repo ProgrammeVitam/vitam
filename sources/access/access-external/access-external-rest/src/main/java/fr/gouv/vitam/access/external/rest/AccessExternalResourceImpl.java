@@ -527,7 +527,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(queryJson);
             SanityChecker.checkParameter(idObjectGroup);
             Response response =
-                client.getObject(idObjectGroup, query, xQualifier,
+                client.getObject(query, idObjectGroup, xQualifier,
                     Integer.valueOf(xVersion));
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, xQualifier)

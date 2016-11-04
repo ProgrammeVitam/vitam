@@ -81,7 +81,7 @@
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'">En cours</td>
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() !== 'KO' && log.events[log.events.length-1].outcome.toUpperCase() !== 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() !== 'OK'
-                        && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'">{{log.events[log.events.length-1].outcome}}</td>
+                        && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'">Avertissement</td>
 						<td>{{log.outMessg}}</td>
 
 						<!-- Dynamic columns values -->

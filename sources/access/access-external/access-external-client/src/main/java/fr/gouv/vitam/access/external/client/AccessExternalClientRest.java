@@ -171,10 +171,9 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
 
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
         try {
-            response = performRequest(HttpMethod.POST, "/objects/" + objectId, headers,
+            response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
@@ -234,7 +233,9 @@ public class AccessExternalClientRest extends DefaultClient implements AccessExt
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 

@@ -79,7 +79,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -534,32 +533,32 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         try {
-          GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
-          GUID objectGuid = GUIDFactory.newManifestGUID(0);
-          String containerName = objectGuid.getId();
-          createLogbookOperation(operationGuid, objectGuid);
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
 
-          // workspace client dezip SIP in workspace
-          RestAssured.port = PORT_SERVICE_WORKSPACE;
-          RestAssured.basePath = WORKSPACE_PATH;
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
 
-          final InputStream zipInputStreamSipObject =
-              PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
-          workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-          workspaceClient.createContainer(containerName);
-          workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-          // call processing
-          RestAssured.port = PORT_SERVICE_PROCESSING;
-          RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
-          final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
-          assertNotNull(ret);
-          // format file warning state
-          assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = new ProcessingManagementClient(PROCESSING_URL);
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // format file ko state
+            assertEquals(StatusCode.KO, ret.getGlobalStatus());
 
-          // checkMonitoring - meaning something has been added in the monitoring tool
-          Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
-          assertNotNull(map);
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
