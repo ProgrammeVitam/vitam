@@ -21,7 +21,7 @@
 
 # Copy the mongodb scripts
 
-- name: Copy the init-database.js file
+- name: Copy the database scripts files
   template:
     src: "{{item}}.j2"
     dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
@@ -160,9 +160,9 @@
 
 # Delete the mongodb scripts
 
-- name: Delete the init-database.js file
+- name: Delete the database scripts files
   file:
-    dest: "{{vitam_folder_root}}/tmp/mongos/init-database.js"
+    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
     state: "absent"
   run_once: true
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
