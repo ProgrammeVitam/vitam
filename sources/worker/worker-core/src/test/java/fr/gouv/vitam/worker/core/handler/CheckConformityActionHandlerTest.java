@@ -102,11 +102,10 @@ public class CheckConformityActionHandlerTest {
         WorkerParameters params = getDefaultWorkerParameters();
         HandlerIO handlerIO = new HandlerIO("");
         handlerIO.addInput("SHA-512");
-        handlerIO.addOutput("Maps/containerName.json");
         
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
     
     private DefaultWorkerParameters getDefaultWorkerParameters() {

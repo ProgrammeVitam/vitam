@@ -43,7 +43,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
@@ -79,14 +78,13 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final SedaUtils sedaUtils = SedaUtilsFactory.create();
         long totalSizeToBeStored;
         try {
             checkMandatoryIOParameter(actionDefinition);
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            final long manifestSize = sedaUtils.getManifestSize(params);
+            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final long manifestSize = SedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
             final JsonNode storageCapacityNode;
             

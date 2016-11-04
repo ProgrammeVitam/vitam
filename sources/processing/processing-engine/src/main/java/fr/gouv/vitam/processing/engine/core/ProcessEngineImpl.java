@@ -82,6 +82,8 @@ public class ProcessEngineImpl implements ProcessEngine {
     private final Map<String, WorkFlow> poolWorkflows;
     // FIXME P0 allocate a new ProcessDistributor for each Step
     private final ProcessDistributor processDistributor;
+    private Map<String, String> messageIdentifierMap =new HashMap<>();
+
 
     /**
      * setWorkflow : populate a workflow to the pool of workflow
@@ -154,13 +156,12 @@ public class ProcessEngineImpl implements ProcessEngine {
                 /**
                  * call process distribute to manage steps
                  */
-                String messageIdentifier = null;
                 boolean finished = true;
                 CompositeItemStatus stepResponse;
                 for (final Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
                     final ProcessStep step = entry.getValue();
-                    stepResponse = processStep(step, entry.getKey(), workParams,
-                        workflowStatus, client, workflowId, messageIdentifier,
+                    stepResponse = processStep(processId.getId(), step, entry.getKey(), workParams,
+                        workflowStatus, client, workflowId, messageIdentifierMap.get(processId.getId()),
                         tenantId, finished);
                     // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                     // then break the process
@@ -177,14 +178,15 @@ public class ProcessEngineImpl implements ProcessEngine {
                     ProcessStep lastStep = processSteps.get(theLastKey);
                     // check if it's a final step
                     if (ProcessBehavior.FINALLY.equals(lastStep.getBehavior())) {
-                        processStep(lastStep, theLastKey, workParams,
-                            workflowStatus, client, workflowId, messageIdentifier,
+                        processStep(processId.getId(), lastStep, theLastKey, workParams,
+                            workflowStatus, client, workflowId, messageIdentifierMap.get(processId.getId()),
                             tenantId, finished);
                     } else {
                         LOGGER.info("No final step found");
                     }
                 }
 
+                messageIdentifierMap.remove(processId);
                 LOGGER.info("End Workflow: " + processId.getId());
             }
         } catch (final Exception e) {
@@ -198,7 +200,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         return workflowStatus;
     }
 
-    private CompositeItemStatus processStep(ProcessStep step, String uniqueId, WorkerParameters workParams,
+    private CompositeItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
         ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier,
         int tenantId, boolean finished)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
@@ -247,6 +249,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         if (messageIdentifier == null) {
             if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
                 messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
+                messageIdentifierMap.put(processId, messageIdentifier);
             }
 
         }

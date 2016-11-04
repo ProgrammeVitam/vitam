@@ -191,7 +191,7 @@ public class ExtractSedaActionHandlerTest {
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
     
     @Test

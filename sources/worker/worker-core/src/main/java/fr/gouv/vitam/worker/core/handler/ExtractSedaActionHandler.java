@@ -91,6 +91,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
@@ -226,6 +227,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             extractSEDA(params, itemStatus);
             itemStatus.increment(StatusCode.OK);
 
+        }  catch (final ProcessingDuplicatedVersionException e) {
+            LOGGER.debug("ProcessingException", e);
+            itemStatus.increment(StatusCode.KO);
+
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -315,7 +320,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart()
-                        .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+                    .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
                     String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
@@ -327,7 +332,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart()
-                        .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
+                    .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
                     String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
@@ -359,7 +364,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             guidToLifeCycleParameters.get(objectGroupGuid).setStatus(StatusCode.OK);
                             guidToLifeCycleParameters.get(objectGroupGuid)
-                                .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
+                            .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
                             guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
                                 LogbookParameterName.outcomeDetailMessage,
                                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
@@ -449,8 +454,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void addParentsAndSaveArchiveUnitToWorkspace(WorkspaceClient client, ObjectNode archiveUnitTree,
         String containerId, String path, ItemStatus itemStatus)
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
-        XMLStreamException, IOException, ProcessingException {
+            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
+            XMLStreamException, IOException, ProcessingException {
 
         // Finalize Archive units extraction process
         if (unitIdToGuid == null) {
@@ -470,7 +475,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
                 guidToLifeCycleParameters.get(unitGuid).setStatus(StatusCode.OK);
                 guidToLifeCycleParameters.get(unitGuid)
-                    .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
+                .putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
                 guidToLifeCycleParameters.get(unitGuid).putParameterValue(
                     LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
@@ -606,14 +611,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {
                 if (objectGroupIdToGuid.get(entry.getValue()) == null) {
                     final String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue()); // the AU reference
-                                                                                                    // an BDO
+                    // an BDO
                     if (Strings.isNullOrEmpty(groupId)) {
                         throw new ProcessingException("Archive Unit references a BDO Id but is not correct");
                     } else {
                         if (!groupId.equals(entry.getValue())) {
                             throw new ProcessingException(
                                 "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
-                                    " while this BDO has a GOT id " + groupId);
+                                " while this BDO has a GOT id " + groupId);
                         }
                     }
                 }
@@ -854,26 +859,26 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final String gotGuid = binaryDataObjectIdWithoutObjectGroupId.get(binaryDataOjectId) != null
             ? binaryDataObjectIdWithoutObjectGroupId.get(binaryDataOjectId).getGotGuid() : "";
-        if (Strings.isNullOrEmpty(gotGuid)) {
-            final GotObj gotObj = new GotObj(technicalGotGuid, false);
-            binaryDataObjectIdWithoutObjectGroupId.put(binaryDataOjectId, gotObj);
-            binaryDataObjectIdToObjectGroupId
+            if (Strings.isNullOrEmpty(gotGuid)) {
+                final GotObj gotObj = new GotObj(technicalGotGuid, false);
+                binaryDataObjectIdWithoutObjectGroupId.put(binaryDataOjectId, gotObj);
+                binaryDataObjectIdToObjectGroupId
                 .put(binaryDataOjectId, technicalGotGuid); // update the list of bdo in the map
-        } else {
-            LOGGER.warn("unexpected state - binaryDataObjectIdWithoutObjectGroupId contains the GOT and should not");
-        }
+            } else {
+                LOGGER.warn("unexpected state - binaryDataObjectIdWithoutObjectGroupId contains the GOT and should not");
+            }
 
-        List<String> listBDO = objectGroupIdToBinaryDataObjectId.get(technicalGotGuid);
-        if (listBDO != null && !listBDO.contains(technicalGotGuid)) {
-            listBDO.add(binaryDataOjectId);
-            objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
-        } else {
-            listBDO = new ArrayList<String>();
-            listBDO.add(binaryDataOjectId);
-            objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
-        }
+            List<String> listBDO = objectGroupIdToBinaryDataObjectId.get(technicalGotGuid);
+            if (listBDO != null && !listBDO.contains(technicalGotGuid)) {
+                listBDO.add(binaryDataOjectId);
+                objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
+            } else {
+                listBDO = new ArrayList<String>();
+                listBDO.add(binaryDataOjectId);
+                objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
+            }
 
-        return jsonBDO;
+            return jsonBDO;
     }
 
     private void createObjectGroupLifeCycle(String groupGuid, String containerId)
@@ -976,28 +981,28 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String gotGuid = binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) != null
             ? binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit).getGotGuid() : null;
 
-        if (Strings.isNullOrEmpty(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit)) &&
-            !Strings.isNullOrEmpty(gotGuid)) {
+            if (Strings.isNullOrEmpty(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit)) &&
+                !Strings.isNullOrEmpty(gotGuid)) {
 
-            // nominal case of bdo without go
-            LOGGER.debug("The binary data object id " + objIdRefByUnit +
-                ", is defined without the group object id " +
-                binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
-                ". The technical group object guid is " + gotGuid);
-            return gotGuid;
+                // nominal case of bdo without go
+                LOGGER.debug("The binary data object id " + objIdRefByUnit +
+                    ", is defined without the group object id " +
+                    binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
+                    ". The technical group object guid is " + gotGuid);
+                return gotGuid;
 
-        } else if (!Strings.isNullOrEmpty(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit))) {
-            LOGGER.debug("The binary data object id " + binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
-                " referenced defined with the group object id " + objIdRefByUnit);
-            // il y a un BDO possédant le GO id
-            return binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit);
-        } else if (binaryDataObjectIdToObjectGroupId.containsValue(objIdRefByUnit)) {
-            // case objIdRefByUnit is an GO
-            return objIdRefByUnit;
-        } else {
-            throw new ProcessingException(
-                "The group id " + objIdRefByUnit + " doesn't reference an bdo or go and it not include in bdo");
-        }
+            } else if (!Strings.isNullOrEmpty(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit))) {
+                LOGGER.debug("The binary data object id " + binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
+                    " referenced defined with the group object id " + objIdRefByUnit);
+                // il y a un BDO possédant le GO id
+                return binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit);
+            } else if (binaryDataObjectIdToObjectGroupId.containsValue(objIdRefByUnit)) {
+                // case objIdRefByUnit is an GO
+                return objIdRefByUnit;
+            } else {
+                throw new ProcessingException(
+                    "The group id " + objIdRefByUnit + " doesn't reference an bdo or go and it not include in bdo");
+            }
     }
 
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
@@ -1007,7 +1012,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
                     : LogbookParametersFactory.newLogbookOperationParameters();
 
-            logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
+                logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
         return logbookLifeCycleParameters;
     }
@@ -1278,14 +1283,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         nodeCategory = binaryNode.get(SedaConstants.TAG_DO_VERSION).asText();
                         if (versionList.contains(nodeCategory)) {
                             LOGGER.error(BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
-                            throw new ProcessingException(BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
+                            throw new ProcessingDuplicatedVersionException(BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
                         }
                         versionList.add(nodeCategory);
                     }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategory.split("_").length == 1) {
-                        nodeCategory += "_1";
-                        ((ObjectNode) binaryNode).put(SedaConstants.TAG_DO_VERSION, nodeCategory);
+                        String nodeCategoryNumbered = nodeCategory + "_1";
+                        ((ObjectNode) binaryNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
                     }
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<>();
