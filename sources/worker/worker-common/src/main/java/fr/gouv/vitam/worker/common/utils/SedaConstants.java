@@ -195,7 +195,6 @@ public class SedaConstants {
     public static final String TAG_EVENT_OUTCOME = "Outcome";
     public static final String TAG_EVENT_OUTCOME_DETAIL = "OutcomeDetail";
     public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE = "OutcomeDetailMessage";
-    public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE_CODE = "OutcomeDetailMessageCode";
     public static final String ATTRIBUTE_ID = "id";
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
     public static final String TAG_DATA_OBJECT_GROUP = "DataObjectGroup";

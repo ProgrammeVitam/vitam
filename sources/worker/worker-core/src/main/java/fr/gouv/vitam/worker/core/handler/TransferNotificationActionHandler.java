@@ -776,10 +776,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_OUTCOME_DETAIL_MESSAGE,
                     event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).toString());
             }
-            if (NOT_IMPLEMENTED_YET != null) { // FIXME P0
-                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_OUTCOME_DETAIL_MESSAGE_CODE,
-                    NOT_IMPLEMENTED_YET);
-            }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_EVENT
         }
     }
