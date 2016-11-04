@@ -202,7 +202,9 @@ public class AccessInternalClientRest extends DefaultClient implements AccessInt
         } catch (VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 

@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -287,7 +286,11 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
                     Status finalStatus = Status.OK;
                     if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
-                        finalStatus = Status.BAD_REQUEST;
+                        if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
+                            finalStatus = Status.ACCEPTED;
+                        } else {
+                            finalStatus = Status.BAD_REQUEST;
+                        }
                     }
 
                     helper.writeResponse(Response.status(finalStatus)
@@ -435,7 +438,11 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                         callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
                     Status finalStatus = Status.OK;
                     if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
-                        finalStatus = Status.BAD_REQUEST;
+                        if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
+                            finalStatus = Status.ACCEPTED;
+                        } else {
+                            finalStatus = Status.BAD_REQUEST;
+                        }
                     }
 
                     response = Response.status(finalStatus)
@@ -602,7 +609,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         final String workflowId = "DefaultIngestWorkflow";
         try {
             ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
-            if (StatusCode.OK.equals(itemStatus.getGlobalStatus())) {
+            if (StatusCode.OK.equals(itemStatus.getGlobalStatus()) ||
+                StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
                 callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
                     OutcomeMessage.WORKFLOW_INGEST_OK.value());
             } else {
