@@ -247,8 +247,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // TODO P1 : create helper to build this kind of projection
         // TODO P1 : it would be nice to be able to handle $slice in projection via builder
         request.parseProjection(
-            "{\"$fields\":{\"_qualifiers." + qualifier.trim() + ".versions\": { $slice: [" + version + "," +
-                "1]},\"_id\":0," + "\"_qualifiers." + qualifier.trim() + ".versions._id\":1}}");
+            "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version + "," +
+                "1]},\"_id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1}}");
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
