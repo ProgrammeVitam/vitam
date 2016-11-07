@@ -85,7 +85,7 @@ public class FakeDriverImpl implements Driver {
     }
 
     class ConnectionImpl implements Connection {
-
+        
         @Override
         public StorageCapacityResult getStorageCapacity(String tenantId)
             throws StorageDriverException {

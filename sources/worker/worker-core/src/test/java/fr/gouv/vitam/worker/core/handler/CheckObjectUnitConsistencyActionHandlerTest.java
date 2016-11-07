@@ -26,10 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -39,7 +38,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -79,12 +77,13 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    
+
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
     
     @Before
@@ -153,4 +152,24 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.close();
     }
 
+    @Test(expected = ProcessingException.class)
+    public void givenObjectUnitConsistencyWithEmptyHandlerIOThrowsException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, IOException, ProcessingException {
+
+        HandlerIO action = new HandlerIO("", "");
+        handler = new CheckObjectUnitConsistencyActionHandler();
+        handler.execute(params, action);
+    }
+
+//    @Test(expected = ProcessingException.class)
+//    public void givenObjectUnitConsistencyWithOnlytOneInputThrowsException()
+//        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+//        InvalidParseOperationException, IOException, ProcessingException {
+//
+//        HandlerIO action = new HandlerIO("", "");
+//        action.addInput(PropertiesUtils.getResourceFile(OG_AU));
+//        handler = new CheckObjectUnitConsistencyActionHandler();
+//        handler.execute(params, action);
+//    }
 }

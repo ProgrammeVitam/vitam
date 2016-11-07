@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -136,6 +137,7 @@ public class IngestInternalIT {
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
 
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -272,11 +274,11 @@ public class IngestInternalIT {
             RestAssured.port = PORT_SERVICE_LOGBOOK;
             RestAssured.basePath = LOGBOOK_PATH;
             get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-            
+
             RestAssured.port = PORT_SERVICE_INGEST_INTERNAL;
             RestAssured.basePath = INGEST_INTERNAL_PATH;
             get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -313,6 +315,32 @@ public class IngestInternalIT {
             e.printStackTrace();
             fail("should not raized an exception");
         }
+    }
+
+
+    @Test(expected = VitamException.class)
+    public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+
+        List<LogbookOperationParameters> params = new ArrayList<>();
+        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", objectGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.upload(operationGuid, params, zipInputStreamSipObject, CommonMediaType.ZIP);
     }
 
 }

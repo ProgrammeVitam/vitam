@@ -88,7 +88,6 @@ public class WorkerImpl implements Worker {
     public WorkerImpl(LogbookDbAccess mongoDbAccess) {
         workerId = GUIDFactory.newGUID().toString();
         this.mongoDbAccess = mongoDbAccess;
-
         /**
          * temporary init: will be managed by spring annotation
          */

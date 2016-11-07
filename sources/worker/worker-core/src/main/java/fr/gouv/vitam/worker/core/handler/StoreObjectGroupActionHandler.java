@@ -82,9 +82,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
     private final StorageClientFactory storageClientFactory;
-    private final LogbookLifeCyclesClient logbookLifecycleClient = LogbookLifeCyclesClientFactory.getInstance()
-        .getClient();
-
     private static final String DEFAULT_TENANT = "0";
     private static final int TENANT = 0;
 
@@ -128,37 +125,40 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        try {
-            checkMandatoryIOParameter(actionDefinition);
-            // Update lifecycle of object group : STARTED
-            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifecycleClient,
-                logbookLifecycleObjectGroupParameters, params);
+        try (
+            LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try {
+                checkMandatoryIOParameter(actionDefinition);
+                // Update lifecycle of object group : STARTED
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient,
+                    logbookLifecycleObjectGroupParameters, params);
 
-            // get list of object group's objects
-            final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
-            // get list of object uris
-            for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
-                // Execute action on the object
-                storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus);
+                // get list of object group's objects
+                final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
+                // get list of object uris
+                for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
+                    // Execute action on the object
+                    storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus, logbookLifeCycleClient);
+                }
+            } catch (final StorageClientException e) {
+                LOGGER.error(e);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
             }
-        } catch (final StorageClientException e) {
-            LOGGER.error(e);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
 
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.OK);
-        }
+            if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+                itemStatus.increment(StatusCode.OK);
+            }
 
-        // Update lifecycle of object group : OK/KO
-        try {
-            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifecycleClient,
-                logbookLifecycleObjectGroupParameters, itemStatus);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            // Update lifecycle of object group : OK/KO
+            try {
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,
+                    logbookLifecycleObjectGroupParameters, itemStatus);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
@@ -170,10 +170,12 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param objectGUID the object guid
      * @param objectUri the object uri
      * @param itemStatus item status
+     * @param logbookLifeCycleClient logbook LifeCycle Client
      * @throws StorageClientException throws when a storage error occurs
      * @throws ProcessingException throws when unexpected error occurs
      */
-    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus)
+    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus,
+        LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException, StorageClientException {
         LOGGER.debug("Storing object with guid: " + objectGUID);
         ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
@@ -196,7 +198,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.OK));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
-            updateLifeCycle();
+            updateLifeCycle(logbookLifeCycleClient);
         } catch (final StorageClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -207,7 +209,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.KO));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
-            updateLifeCycle();
+            updateLifeCycle(logbookLifeCycleClient);
             throw e;
         }
     }
@@ -284,13 +286,14 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     /**
      * Update the lifecycle with the current ObjectGroup lifecycle parameters.
-     *
+     * 
+     * @param logbookLifeCycleClient logbook LifeCycle Client
      * @throws ProcessingException throws when error occurs
      */
-    private void updateLifeCycle() throws ProcessingException {
+    private void updateLifeCycle(LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException {
 
         try {
-            logbookLifecycleClient.update(logbookLifecycleObjectGroupParameters);
+            logbookLifeCycleClient.update(logbookLifecycleObjectGroupParameters);
         } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);

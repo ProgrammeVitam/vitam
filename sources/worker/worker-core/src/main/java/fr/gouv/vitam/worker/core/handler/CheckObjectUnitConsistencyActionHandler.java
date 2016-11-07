@@ -73,9 +73,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
-    // FIXME P0 ne devrait pas être static
-    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getClient();
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final int TENANT = 0;
 
@@ -136,40 +133,46 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         final List<String> ogList = new ArrayList<>();
 
         // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK));
+        final InputStream objectGroupToUnitMapFile =
+            new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK));
         final Map<String, Object> objectGroupToUnitStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
 
         // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK));
+        final InputStream objectGroupToGuidMapFile =
+            new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK));
         final Map<String, Object> objectGroupToGuidStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);
 
         final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
+        try (
+            LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            while (it.hasNext()) {
+                final Map.Entry<String, Object> objectGroup = it.next();
+                if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
 
-        while (it.hasNext()) {
-            final Map.Entry<String, Object> objectGroup = it.next();
-            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                    // Update logbook OG lifecycle
+                    final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
+                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                            GUIDReader.getGUID(params.getContainerName()),
+                            HANDLER_ID,
+                            GUIDFactory.newEventGUID(TENANT),
+                            LogbookTypeProcess.CHECK,
+                            StatusCode.WARNING,
+                            StatusCode.WARNING.toString(),
+                            // TODO P0 WORKFLOW
+                            VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" +
+                                objectGroup.getKey(),
+                            GUIDReader.getGUID(objectGroup.getValue().toString()));
+                    try {
 
-                // Update logbook OG lifecycle
-                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
-                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                        GUIDReader.getGUID(params.getContainerName()),
-                        HANDLER_ID,
-                        GUIDFactory.newEventGUID(TENANT),
-                        LogbookTypeProcess.CHECK,
-                        StatusCode.WARNING,
-                        StatusCode.WARNING.toString(),
-                        // TODO P0 WORKFLOW
-                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
-                        GUIDReader.getGUID(objectGroup.getValue().toString()));
-                try {
-                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e) {
-                    LOGGER.error("Can not update logbook lifcycle", e);
+                        logbookLifeCycleClient.update(logbookOGParameter);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
+                        LOGGER.error("Can not update logbook lifcycle", e);
+                    }
+                    ogList.add(objectGroup.getKey());
                 }
-                ogList.add(objectGroup.getKey());
             }
 
         }

@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -70,8 +71,8 @@ public class WorkerResource extends ApplicationStatusResource {
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
-    // FIXME P0 should be allocated each time a request is received
-    private final Worker worker;
+    private final LogbookMongoDbAccessImpl logbookMongoDbAccessImpl;
+    private final Worker workerMocked;
 
     /**
      * Constructor
@@ -90,8 +91,8 @@ public class WorkerResource extends ApplicationStatusResource {
             databaseConfiguration = new DbConfigurationImpl(configuration.getMongoDbNodes(),
                 configuration.getDbName());
         }
-        this.worker =
-            WorkerImplFactory.create(LogbookMongoDbAccessFactory.create(databaseConfiguration));
+        logbookMongoDbAccessImpl = LogbookMongoDbAccessFactory.create(databaseConfiguration);
+        workerMocked = null;
     }
 
 
@@ -103,7 +104,8 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     WorkerResource(WorkerConfiguration configuration, Worker worker) {
         LOGGER.info("init Worker Resource server");
-        this.worker = worker;
+        logbookMongoDbAccessImpl = null;
+        this.workerMocked = worker;
     }
 
     /**
@@ -135,9 +137,17 @@ public class WorkerResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a step description", descriptionStep);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
-            final CompositeItemStatus responses =
-                worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
-            return Response.status(Status.OK).entity(responses).build();
+            final CompositeItemStatus responses;
+            if (workerMocked == null) {
+                responses =
+                    WorkerImplFactory.create(logbookMongoDbAccessImpl).run(descriptionStep.getWorkParams(),
+                        descriptionStep.getStep());
+                return Response.status(Status.OK).entity(responses).build();
+            } else {
+                responses = workerMocked.run(descriptionStep.getWorkParams(),
+                    descriptionStep.getStep());
+                return Response.status(Status.OK).entity(responses).build();
+            }
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))

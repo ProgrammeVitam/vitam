@@ -24,64 +24,26 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.server2.application.configuration;
+package fr.gouv.vitam.worker.core.handler;
 
-/**
- * MongoDbNode class defining a mongo db node
- */
-public class MongoDbNode {
+import static org.junit.Assert.assertEquals;
 
-    private String dbHost;
-    private int dbPort;
+import org.junit.Test;
 
-    /**
-     * MongodbNode empty constructor for YAMLFactory
-     */
-    public MongoDbNode() {
-        // empty
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+
+public class DummyHandlerTest {
+
+    @Test
+    public void dummyHandlerTest()
+        throws Exception {
+        DummyHandler handler = new DummyHandler();
+
+        assertEquals("DummyHandler", DummyHandler.getId());
+        final CompositeItemStatus response = handler.execute(null, null);
+        assertEquals(response.getGlobalStatus(), StatusCode.UNKNOWN);
     }
 
-    /**
-     * MongodbNode constructor with parameters
-     * 
-     * @param dbHost
-     * @param dbPort
-     */
-    public MongoDbNode(String dbHost, int dbPort) {
-        this.dbHost = dbHost;
-        this.dbPort = dbPort;
-    }
-
-    /**
-     * @return the dbHost
-     */
-    public String getDbHost() {
-        return dbHost;
-    }
-
-    /**
-     * @param dbHost
-     * @return MongodbNode
-     */
-    public MongoDbNode setDbHost(String dbHost) {
-        this.dbHost = dbHost;
-        return this;
-    }
-
-    /**
-     * @return the dbPort
-     */
-    public int getDbPort() {
-        return dbPort;
-    }
-
-    /**
-     * @param dbPort
-     * @return MongodbNode
-     */
-    public MongoDbNode setDbPort(int dbPort) {
-        this.dbPort = dbPort;
-        return this;
-    }
 
 }
