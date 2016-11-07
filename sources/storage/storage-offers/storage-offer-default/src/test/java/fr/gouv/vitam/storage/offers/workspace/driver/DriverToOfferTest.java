@@ -95,7 +95,7 @@ public class DriverToOfferTest {
         new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
-        serverPort = 8784;
+        serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;

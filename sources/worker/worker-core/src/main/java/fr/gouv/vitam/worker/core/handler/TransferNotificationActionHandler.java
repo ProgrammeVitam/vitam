@@ -164,10 +164,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
-            // FIXME P0 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
+            // FIXME P0 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id'
+            // to
             // a(n) 'attribute declaration' component.
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+            // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
             try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
                 HandlerIO.transferFileFromTmpIntoWorkspace(
                     workspaceClient,
@@ -186,6 +187,16 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     DEFAULT_STRATEGY,
                     StorageCollectionType.REPORTS,
                     params.getContainerName() + XML, description);
+
+                if (!isWorkflowKo) {
+                    description.setWorkspaceObjectURI(
+                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+                    storageClient.storeFileFromWorkspace(
+                        DEFAULT_TENANT,
+                        DEFAULT_STRATEGY,
+                        StorageCollectionType.MANIFESTS,
+                        params.getContainerName() + XML, description);
+                }
             }
 
             // }
@@ -687,7 +698,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      *         mongo
      */
     // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO    
+    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO
     private MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifecycleObjectGroups(String idProc)
         throws ProcessingException {
         try {

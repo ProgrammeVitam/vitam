@@ -826,4 +826,32 @@ public class StorageResource extends ApplicationStatusResource {
         }
         return response;
     }
+    
+    /**
+     * Post a new object manifest
+     *
+     * @param httpServletRequest http servlet request to get requester
+     *
+     * @param headers http header
+     * @param manifestId the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    //TODO P1: remove httpServletRequest when requester information sent by header (X-Requester)
+    @Path("/manifests/{id_manifest}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createManifestOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders
+        headers, @PathParam("id_manifest") String manifestId, CreateObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
+            return createObjectByType(headers, manifestId, createObjectDescription, DataCategory.MANIFEST,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, manifestId);
+        }
+    }
+        
 }

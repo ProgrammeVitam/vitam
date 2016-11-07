@@ -36,7 +36,9 @@ public enum StorageCollectionType {
     OBJECTS("objects"),
     LOGBOOKS("logbooks"),
     OBJECTGROUPS("objectgroups"),
-    REPORTS("reports");
+    REPORTS("reports"),
+    MANIFESTS("manifests");
+    
     /**
      * Name
      */

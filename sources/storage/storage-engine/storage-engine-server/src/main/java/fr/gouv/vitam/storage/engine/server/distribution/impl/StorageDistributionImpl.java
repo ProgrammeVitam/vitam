@@ -221,6 +221,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case REPORT:
                 description.append("Report ");
                 break;
+            case MANIFEST:
+                description.append("Manifest ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }
