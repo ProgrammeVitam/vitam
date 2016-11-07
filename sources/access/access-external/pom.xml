@@ -13,7 +13,6 @@
 	<modules>
 		<module>access-external-common</module>
 		<module>access-external-api</module>
-		<module>access-external-core</module>
 		<module>access-external-rest</module>
 		<module>access-external-client</module>
 	</modules>
