@@ -56,9 +56,10 @@ angular.module('archive.unit')
         number = Math.floor(Math.log(bytes) / Math.log(1024));
       return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     }})
-  .controller('ArchiveUnitController', function($scope, $http, $routeParams, ihmDemoFactory, $window, ARCHIVE_UNIT_MODULE_CONST,
-                                                ARCHIVE_UNIT_MODULE_FIELD_LABEL, ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL,
-                                                archiveDetailsService, $mdToast, $mdDialog){
+  .controller('ArchiveUnitController', function($scope, $http, $routeParams, $filter, ihmDemoFactory, $window,
+                                                ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
+                                                ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
+                                                $mdDialog){
 
     var self = this;
 
@@ -559,6 +560,9 @@ angular.module('archive.unit')
           }, 100);
         },function (error) {
           console.log('ERROR : '+error);
+          var title = $filter('translate')('archiveUnit.detail.download.error.title');
+          var msg = $filter('translate')('archiveUnit.detail.download.error.message');
+          self.showAlert($event, title, msg);
         });
     };
     // **************************************************************************** //

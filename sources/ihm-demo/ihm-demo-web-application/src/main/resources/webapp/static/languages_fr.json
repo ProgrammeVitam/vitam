@@ -1,4 +1,7 @@
 {
+  "archiveUnit.detail.download.error.title": "Erreur lors du téléchargement",
+  "archiveUnit.detail.download.error.message": "Une erreur s'est produite lors du téléchargement du fichier.\nVeuillez contacter votre administrateur.",
+
   "directive.dynamicTable.selectAll": "Tout sélectionner",
   "directive.dynamicTable.unselectAll": "Tout désélectionner",
 
