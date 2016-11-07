@@ -1,10 +1,15 @@
+
 # Configuration MongoDB TEMPORARY
-dbHost: {{vitam_mongodb_host}}
-dbPort: {{vitam_mongodb_port}}
+mongoDbNodes:
+{% for server in groups['mongos'] %}
+- dbHost: {{server}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
 dbName: Vitam
 dbAuthentication: {{mongo_authentication}}
 dbUserName: {{mongoWorkerUser}}
 dbPassword: {{mongoWorkerPassword}}
+
 # Configuration processing
 # HERE MUST BE MY (WORKER) current configuration
 registerServerHost: {{inventory_hostname}}
