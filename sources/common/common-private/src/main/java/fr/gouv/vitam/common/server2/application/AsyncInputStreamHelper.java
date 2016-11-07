@@ -179,22 +179,15 @@ public class AsyncInputStreamHelper implements StreamingOutput {
     public void writeResponse(ResponseBuilder responseBuilder) {
         try {
             ParametersChecker.checkParameter("ResponseBuilder should not be null", responseBuilder);
-            String contentLength;
             if (receivedResponse != null) {
                 inputStream = receivedResponse.readEntity(InputStream.class);
-                contentLength = receivedResponse.getHeaderString(CONTENT_LENGTH);
-                if (!Strings.isNullOrEmpty(contentLength)) {
-                    responseBuilder.header(CONTENT_LENGTH, contentLength);
-                }
-            } else if (size != null) {
-                responseBuilder.header(CONTENT_LENGTH, size);
             }
             asyncResponse.resume(responseBuilder.entity(self).build());
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
     }
-
+    
     /**
      * Call this to finalize your operation in case of Error message while no remote client operation is done.</br>
      * </br>
