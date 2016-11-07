@@ -1,0 +1,12 @@
+
+// Create functional-admin user
+
+db.createUser(
+    {
+        user: "{{mongoFunctionalAdminUser}}",
+        pwd: "{{mongoFunctionalAdminPassword}}",
+        roles: [
+            { role: "readWrite", db: "masterdata" }
+        ]
+    }
+)

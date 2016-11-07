@@ -1,0 +1,24 @@
+
+// Create logbook user
+
+db.createUser(
+    {
+        user: "{{mongoLogbookUser}}",
+        pwd: "{{mongoLogbookPassword}}",
+        roles: [
+            { role: "readWrite", db: "logbook" }
+        ]
+    }
+)
+
+// Create worker user (temporary)
+
+db.createUser(
+    {
+        user: "{{mongoWorkerUser}}",
+        pwd: "{{mongoWorkerPassword}}",
+        roles: [
+            { role: "readWrite", db: "logbook" }
+        ]
+    }
+)

@@ -1,12 +1,4 @@
 
-// Create the collections
-
-// TODO/FIXME: on which replicaset do we create the collections ?
-db.createCollection("AccessionRegisterDetail")
-db.createCollection("AccessionRegisterSummary")
-db.createCollection("FileFormat")
-db.createCollection("FileRules")
-
 // Create indexes
 // A single collection can have no more than 64 indexes.
 
@@ -49,42 +41,3 @@ db.ObjectGroup.createIndex( { "_qualifiers.Thumbnail.versions.MessageDigest" : 1
 db.ObjectGroup.createIndex( { "_qualifiers.TextContent.versions._id" : 1 } )
 db.ObjectGroup.createIndex( { "_qualifiers.TextContent.versions.FormatIdentification.FormatId" : 1 } )
 db.ObjectGroup.createIndex( { "_qualifiers.TextContent.versions.MessageDigest" : 1 , "_qualifiers.TextContent.versions.Algorithm" : 1 } )
-
-db.LogbookOperation.createIndex( { "_tenant" : 1 } )
-db.LogbookOperation.createIndex( { "evType" : 1 } )
-db.LogbookOperation.createIndex( { "evTypeProc" : 1 } )
-db.LogbookOperation.createIndex( { "events.evType" : 1 } )
-db.LogbookOperation.createIndex( { "events.outcome" : 1 } )
-db.LogbookOperation.createIndex( { "outcome" : 1 } )
-
-db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "evType" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "evIdProc" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "evTypeProc" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "outcome" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "events.evType" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "events.outcome" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( { "event.evIdProc" : 1 } )
-
-db.LogbookLifeCycleObjectGroup.createIndex( { "_tenant" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "evType" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "evIdProc" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "evTypeProc" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "outcome" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "events.evType" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "events.outcome" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( { "event.evIdProc" : 1 } )
-
-db.FileRules.createIndex( { "_tenant" : 1 , "RuleId" : 1 } , { unique: true } )
-db.FileRules.createIndex( { "_tenant" : 1 } )
-db.FileRules.createIndex( { "RuleId" : 1 } )
-db.FileRules.createIndex( { "RuleType" : 1 } )
-
-db.FileFormat.createIndex( { "PUID" : 1 } , { unique: true } )
-
-db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 , "OriginatingAgency" : 1 } , { unique: true } )
-db.AccessionRegisterSummary.createIndex( { "_tenant" : 1 } )
-
-db.AccessionRegisterDetail.createIndex( { "_tenant" : 1 } )
-db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1 } )
-db.AccessionRegisterDetail.createIndex( { "SubmissionAgency" : 1 } )
