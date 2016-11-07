@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -89,8 +91,11 @@ public class ReferentialAccessionRegisterImplTest {
             .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();

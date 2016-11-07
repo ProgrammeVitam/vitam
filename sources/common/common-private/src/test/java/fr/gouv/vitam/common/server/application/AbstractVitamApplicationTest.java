@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.eclipse.jetty.server.Handler;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 public class AbstractVitamApplicationTest {
 
@@ -85,8 +87,13 @@ public class AbstractVitamApplicationTest {
         assertNull(testVitamApplication.getApplicationHandler());
         final DbConfigurationImpl configuration = testVitamApplication.getConfiguration();
         assertNotNull(configuration);
-        assertEquals(45678, configuration.getDbPort());
-        assertEquals("localhost", configuration.getDbHost());
+        
+        List<MongoDbNode> nodes = configuration.getMongoDbNodes();
+        assertEquals("localhost", nodes.get(0).getDbHost());
+        assertEquals(45678, nodes.get(0).getDbPort());
+        assertEquals("127.0.0.2", nodes.get(1).getDbHost());
+        assertEquals(12345, nodes.get(1).getDbPort());
+        
         assertEquals("Vitam-test", configuration.getDbName());
         testVitamApplication.conf = "fake-file-not-exist.conf";
         try {

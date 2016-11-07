@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.mongodb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -40,6 +42,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * MongoDbAccess interface
@@ -141,23 +144,22 @@ public abstract class MongoDbAccess implements DatabaseConnection {
      * @return the MongoClient
      */
     public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
+        List<MongoDbNode> nodes = configuration.getMongoDbNodes();
+        List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();
+        for (MongoDbNode node : nodes){
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
+        
         if (configuration.isDbAuthentication()) {
 
             // create user with username, password and specify the database name
             MongoCredential credential = MongoCredential.createCredential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
-
+            
             // create an instance of mongoclient
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                Arrays.asList(credential),
-                options);
+            return new MongoClient(serverAddress, Arrays.asList(credential), options);
         } else {
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                options);
+            return new MongoClient(serverAddress, options);
         }
     }
     
@@ -170,23 +172,22 @@ public abstract class MongoDbAccess implements DatabaseConnection {
      * @return the MongoClient
      */
     public static MongoClient createMongoClient(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration, MongoClientOptions options) {
+        List<fr.gouv.vitam.common.server2.application.configuration.MongoDbNode> nodes = configuration.getMongoDbNodes();
+        List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();        
+        for (fr.gouv.vitam.common.server2.application.configuration.MongoDbNode node : nodes){
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
+        
         if (configuration.isDbAuthentication()) {
 
             // create user with username, password and specify the database name
             MongoCredential credential = MongoCredential.createCredential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
-
+            
             // create an instance of mongoclient
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                Arrays.asList(credential),
-                options);
+            return new MongoClient(serverAddress, Arrays.asList(credential), options);
         } else {
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                options);
+            return new MongoClient(serverAddress, options);
         }
     }
 

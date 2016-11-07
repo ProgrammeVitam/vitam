@@ -100,12 +100,12 @@ public class LogbookResource extends ApplicationStatusResource {
     public LogbookResource(LogbookConfiguration configuration) {
         if (configuration.isDbAuthentication()) {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(),
+                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
                     true, configuration.getDbUserName(), configuration.getDbPassword());
 
         } else {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);

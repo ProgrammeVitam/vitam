@@ -34,6 +34,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -58,7 +59,8 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -88,9 +90,11 @@ public class LogbookMongoDbAccessFactoryTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, port,
+                new DbConfigurationImpl(nodes,
                     "vitam-test"));
     }
 

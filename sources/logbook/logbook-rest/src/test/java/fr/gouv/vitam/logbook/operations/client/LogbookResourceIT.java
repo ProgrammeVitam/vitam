@@ -28,6 +28,8 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -112,7 +115,9 @@ public class LogbookResourceIT {
         try {
             JunitHelper.setJettyPortSystemProperty(serverPort);
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
+            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
+            logbookConf.setMongoDbNodes(nodes).setDbName("vitam-test");
             logbookConf.setJettyConfig(JETTY_CONFIG);
             application = new LogbookApplication(logbookConf);
             application.start();

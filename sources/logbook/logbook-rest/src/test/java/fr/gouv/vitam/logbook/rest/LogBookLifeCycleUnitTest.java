@@ -29,6 +29,9 @@ package fr.gouv.vitam.logbook.rest;
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.hamcrest.BaseMatcher;
@@ -60,6 +63,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -137,7 +141,9 @@ public class LogBookLifeCycleUnitTest {
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
+            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
+            logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
             application = new LogbookApplication(logbookConf);
             application.start();

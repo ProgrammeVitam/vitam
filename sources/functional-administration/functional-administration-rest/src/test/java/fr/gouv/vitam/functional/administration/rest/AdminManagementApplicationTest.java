@@ -29,6 +29,8 @@ package fr.gouv.vitam.functional.administration.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -46,6 +48,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -78,7 +81,7 @@ public class AdminManagementApplicationTest {
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.setDbPort(databasePort);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
         
@@ -89,7 +92,9 @@ public class AdminManagementApplicationTest {
             .build());
         mongod = mongodExecutable.start();
 
-        configuration = new AdminManagementConfiguration(DATABASE_HOST, databasePort, "db-functional-administration");
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
+        configuration = new AdminManagementConfiguration(nodes, "db-functional-administration");
         mongoDbAccess = MongoDbAccessAdminFactory.create(configuration);
         serverPort = junitHelper.findAvailablePort();
         oldPort = VitamServerFactory.getDefaultPort();

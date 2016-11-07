@@ -24,53 +24,61 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.server2.application.configuration;
 
-package fr.gouv.vitam.common.server.application.configuration;
+public class MongoDbNode {
 
-import java.util.List;
-
-/**
- * Defines minimal common configurations for database configuration properties.
- *
- * <br>
- * <br>
- * Your configuration class must implement it whenever you use database configuration in your configuration file
- *
- */
-public interface DbConfiguration extends VitamApplicationConfiguration {
+    private String dbHost;
+    private int dbPort;
     
     /**
-     * Must return the value of a 'mongoDbNodes' attribute
-     * 
-     *  @retrun the list of mongodb node which contains the dbHost and dbPort
+     * MongodbNode empty constructor for YAMLFactory
      */
-    List<MongoDbNode> getMongoDbNodes();
+    public MongoDbNode() {
+        // empty
+    }
+    
+    /**
+     * MongodbNode constructor with parameters
+     * 
+     * @param dbHost
+     * @param dbPort
+     */
+    public MongoDbNode(String dbHost, int dbPort) {
+        this.dbHost = dbHost;
+        this.dbPort = dbPort;
+    }
+    
+    /**
+     * @return the dbHost
+     */
+    public String getDbHost() {
+        return dbHost;
+    }
 
     /**
-     * Must return the value of a 'dbName' attribute
-     *
-     * @return the database host value
+     * @param dbHost
+     * @return MongodbNode
      */
-    String getDbName();
-    
+    public MongoDbNode setDbHost(String dbHost) {
+        this.dbHost = dbHost;
+        return this;
+    }
+
     /**
-     * Must return the value of a 'dbName' attribute
-     * 
-     * @return the database user name
+     * @return the dbPort
      */
-    String getDbUserName();
-    
+    public int getDbPort() {
+        return dbPort;
+    }
+
     /**
-     * Must return the value of a 'dbName' attribute
-     * 
-     * @return the database user's password
+     * @param dbPort
+     * @return MongodbNode
      */
-    String getDbPassword();
-    
-    /**
-     * Must return the value of a 'dbName' attribute
-     * 
-     * @return boolean is autenticated or not
-     */
-    boolean isDbAuthentication();
+    public MongoDbNode setDbPort(int dbPort) {
+        this.dbPort = dbPort;
+        return this;
+    }
+
 }

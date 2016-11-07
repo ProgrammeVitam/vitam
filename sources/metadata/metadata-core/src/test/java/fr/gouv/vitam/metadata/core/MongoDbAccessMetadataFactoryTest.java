@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -70,6 +71,7 @@ public class MongoDbAccessMetadataFactoryTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static List<ElasticsearchNode> nodes;
+    private static List<MongoDbNode> mongoDbNodes;
 
     private static final String DATABASE_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
@@ -77,6 +79,7 @@ public class MongoDbAccessMetadataFactoryTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static MongoEmbeddedService mongo;
+    private static MongoEmbeddedService mongo_bis;
     private static final String databaseName = "db-metadata";
     private static final String user = "user-metadata";
     private static final String pwd = "user-metadata";
@@ -95,13 +98,25 @@ public class MongoDbAccessMetadataFactoryTest {
         nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
-        // MongoDB
+        // MongoDB Node1
+        mongoDbNodes = new ArrayList<MongoDbNode>();
         port = junitHelper.findAvailablePort();
+        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
 
         // Starting the embedded services within temporary dir
         mongo = new MongoEmbeddedService(
             DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
         mongo.start();
+        
+        // MongoDB Node2
+        mongoDbNodes = new ArrayList<MongoDbNode>();
+        port = junitHelper.findAvailablePort();
+        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
+        
+        // Starting the embedded services within temporary dir
+        mongo_bis = new MongoEmbeddedService(
+            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
+        mongo_bis.start();
     }
 
     /**
@@ -120,7 +135,7 @@ public class MongoDbAccessMetadataFactoryTest {
     @Test
     public void testCreateMetadataMongoAccessWithAuthentication() {
         MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG, true, user, pwd);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG, true, user, pwd);
         mongoDbAccess = new MongoDbAccessMetadataFactory()
             .create(config);
         assertNotNull(mongoDbAccess);
@@ -133,14 +148,14 @@ public class MongoDbAccessMetadataFactoryTest {
         final List<ElasticsearchNode> nodesEmpty = new ArrayList<ElasticsearchNode>();
         final MongoDbAccessMetadataImpl mongoDbAccessError = new MongoDbAccessMetadataFactory()
             .create(
-                new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodesEmpty, JETTY_CONFIG));
+                new MetaDataConfiguration(mongoDbNodes, "vitam-test", CLUSTER_NAME, nodesEmpty, JETTY_CONFIG));
         mongoDbAccessError.close();
     }
 
     @Test(expected = com.mongodb.MongoCommandException.class)
     public void shouldThrowExceptionWhenGetDatabaseNames() {
         MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);
@@ -153,10 +168,13 @@ public class MongoDbAccessMetadataFactoryTest {
 
         MongoCredential credential = MongoCredential.createCredential(
             config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
+        
+        List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();        
+        for (MongoDbNode node : mongoDbNodes){
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
 
-        MongoClient mongoClient = new MongoClient(new ServerAddress(
-            config.getDbHost(),
-            config.getDbPort()),
+        MongoClient mongoClient = new MongoClient(serverAddress,
             Arrays.asList(credential),
             VitamCollection.getMongoClientOptions(classList));
 
@@ -170,7 +188,7 @@ public class MongoDbAccessMetadataFactoryTest {
     @Test
     public void shouldHavePermissions() throws MetaDataException{        
         MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);
@@ -184,9 +202,12 @@ public class MongoDbAccessMetadataFactoryTest {
         MongoCredential credential = MongoCredential.createCredential(
             config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
 
-        MongoClient mongoClient = new MongoClient(new ServerAddress(
-            config.getDbHost(),
-            config.getDbPort()),
+        List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();        
+        for (MongoDbNode node : mongoDbNodes){
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
+        
+        MongoClient mongoClient = new MongoClient(serverAddress,
             Arrays.asList(credential),
             VitamCollection.getMongoClientOptions(classList));
 

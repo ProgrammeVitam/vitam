@@ -31,6 +31,7 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 
 /**
  * MetaDataConfiguration contains database access informations
@@ -38,7 +39,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImp
 public final class MetaDataConfiguration extends DbConfigurationImpl {
 
     private String jettyConfig;
-    private String clusterName;
+    private String clusterName; 
     private List<ElasticsearchNode> elasticsearchNodes;
 
     /**
@@ -51,9 +52,9 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
      * @param elasticsearchNodes elasticsearch nodes
      * @param jettyConfig jetty config fiel name
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
+    public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, String jettyConfig) {
-        super(host, port, dbName);
+        super(mongoDbNodes, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
@@ -75,9 +76,9 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
      * @param dbUserName 
      * @param dbPassword 
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
+    public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName, String dbPassword) {
-        super(host, port, dbName, dbAuthentication, dbUserName, dbPassword);
+        super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);

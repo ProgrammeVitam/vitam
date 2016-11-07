@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -93,8 +94,10 @@ public class MongoDbAccessAdminImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoAccess = MongoDbAccessAdminFactory.create(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
