@@ -39,6 +39,5 @@ public class DatabaseConflictExceptionTest {
         assertEquals("test", new DatabaseConflictException("test").getMessage());
         assertNotNull(new DatabaseConflictException(new Exception()).getCause());
         assertNotNull(new DatabaseConflictException("test", new Exception()).getCause());
-        assertNotNull(new DatabaseConflictException("test", new Exception(), true, true).getCause());
     }
 }

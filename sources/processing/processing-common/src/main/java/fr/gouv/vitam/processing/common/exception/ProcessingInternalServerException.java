@@ -54,15 +54,4 @@ public class ProcessingInternalServerException extends ProcessingException {
     public ProcessingInternalServerException(String message) {
         super(message);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public ProcessingInternalServerException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

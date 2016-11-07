@@ -43,51 +43,51 @@ public class XSSWrapper extends HttpServletRequestWrapper {
     private static final String HTTP_PARAMETER_NAME = "HTTPParameterName";
     private static final String HTTP_HEADER_NAME = "HTTPHeaderName";
     private static final String HTTP_HEADER_VALUE = "HTTPHeaderValue";
-    private static final int REQUEST_LIMIT = 10000; 
+    private static final int REQUEST_LIMIT = 10000;
 
 
     /**
      * Constructor XSSWrapper
-     * 
+     *
      * @param servletRequest
      */
     public XSSWrapper(HttpServletRequest servletRequest) {
         super(servletRequest);
     }
-    
+
     /**
      * Sanitize headers and parameters
-     * 
+     *
      * @return boolean
      */
     public boolean sanitize() {
         return sanitizeParam() | sanitizeHeader();
-        
+
     }
 
     private boolean sanitizeHeader() {
         boolean isInfected = false;
-        Enumeration<String> headers = super.getHeaderNames();
+        final Enumeration<String> headers = super.getHeaderNames();
         if (headers != null) {
-            while(headers.hasMoreElements()){
-                String header = headers.nextElement();
-                String headerValue = super.getHeader(header);
-                isInfected =  isInfected | isStringInfected(header, HTTP_HEADER_NAME);
-                isInfected =  isInfected | isStringInfected(headerValue, HTTP_HEADER_VALUE);
+            while (headers.hasMoreElements()) {
+                final String header = headers.nextElement();
+                final String headerValue = super.getHeader(header);
+                isInfected = isInfected | isStringInfected(header, HTTP_HEADER_NAME);
+                isInfected = isInfected | isStringInfected(headerValue, HTTP_HEADER_VALUE);
             }
         }
         return isInfected;
     }
-    
+
     private boolean sanitizeParam() {
         boolean isInfected = false;
-        Enumeration<String> params = super.getParameterNames();
+        final Enumeration<String> params = super.getParameterNames();
         if (params != null) {
-            while(params.hasMoreElements()){
-                String param = params.nextElement();
-                String paramValue = super.getParameter(param);
-                isInfected =  isInfected | isStringInfected(param, HTTP_PARAMETER_NAME);
-                isInfected =  isInfected | isStringInfected(paramValue, HTTP_PARAMETER_VALUE);
+            while (params.hasMoreElements()) {
+                final String param = params.nextElement();
+                final String paramValue = super.getParameter(param);
+                isInfected = isInfected | isStringInfected(param, HTTP_PARAMETER_NAME);
+                isInfected = isInfected | isStringInfected(paramValue, HTTP_PARAMETER_VALUE);
             }
         }
         return isInfected;
@@ -95,7 +95,7 @@ public class XSSWrapper extends HttpServletRequestWrapper {
 
     /**
      * Find out XSS by ESAPI validator
-     * 
+     *
      * @param value of string
      * @param validator name declared in ESAPI.properties
      * @return boolean

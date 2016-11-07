@@ -54,63 +54,63 @@
           <div class="col-xs-12">
             <div class="form-group col-md-6">
               <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['ID']" edit-mode="$ctrl.isEditMode"
-                                    ng-model="$ctrl.mainFields['ID']">
-                </archive-unit-field>
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['ID']" edit-mode="$ctrl.isEditMode"
+                               ng-model="$ctrl.mainFields['ID']">
+                </display-field>
               </div>
             </div>
             <div class="form-group col-md-6">
               <div class="row simple-field">
-                <archive-unit-field intercept-user-change="$ctrl.interceptUserChanges(fieldSet)" field-size="'5'"
-                                    display-value="$ctrl.mainFields['StartDate'].fieldValue | date:'dd/MM/yyyy'"
-                                    field-object="$ctrl.mainFields['StartDate']" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
-                <archive-unit-field field-size="'5'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    display-value="$ctrl.mainFields['EndDate'].fieldValue | date:'dd/MM/yyyy'"
-                                    field-object="$ctrl.mainFields['EndDate']" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
-              </div>
-            </div>
-          </div>
-          <div class="col-xs-12">
-            <div class="form-group col-md-6">
-              <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['Title']" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
-              </div>
-            </div>
-            <div class="form-group col-md-6">
-              <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['DescriptionLevel']" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
+                <display-field intercept-user-change="$ctrl.interceptUserChanges(fieldSet)" field-size="'5'"
+                               display-value="$ctrl.mainFields['StartDate'].fieldValue | date:'dd/MM/yyyy'"
+                               field-object="$ctrl.mainFields['StartDate']" edit-mode="$ctrl.isEditMode">
+                </display-field>
+                <display-field field-size="'5'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               display-value="$ctrl.mainFields['EndDate'].fieldValue | date:'dd/MM/yyyy'"
+                               field-object="$ctrl.mainFields['EndDate']" edit-mode="$ctrl.isEditMode">
+                </display-field>
               </div>
             </div>
           </div>
           <div class="col-xs-12">
             <div class="form-group col-md-6">
               <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['Title']" edit-mode="$ctrl.isEditMode">
+                </display-field>
               </div>
             </div>
             <div class="form-group col-md-6">
               <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['OriginatingAgency'].content[1]" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['DescriptionLevel']" edit-mode="$ctrl.isEditMode">
+                </display-field>
               </div>
             </div>
           </div>
           <div class="col-xs-12">
             <div class="form-group col-md-6">
               <div class="row simple-field">
-                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                    field-object="$ctrl.mainFields['Description']" edit-mode="$ctrl.isEditMode">
-                </archive-unit-field>
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
+                </display-field>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['OriginatingAgency'].content[1]" edit-mode="$ctrl.isEditMode">
+                </display-field>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                               field-object="$ctrl.mainFields['Description']" edit-mode="$ctrl.isEditMode">
+                </display-field>
               </div>
             </div>
           </div>
@@ -118,9 +118,9 @@
             <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.archiveArray"></div>
             <div class="{{fieldSet.typeF !=='P'? 'form-group col-md-6': 'col-xs-12'}}"
                  ng-repeat-end>
-              <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                      field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-              </archive-unit-fieldtree>
+              <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                 field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+              </display-fieldtree>
             </div>
           </div>
         </div>
@@ -141,9 +141,9 @@
             <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.managmentItems"></div>
             <div class="{{fieldSet.typeF !=='P'?' form-group col-md-6': 'col-xs-12'}}"
                  ng-repeat-end>
-              <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                      field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-              </archive-unit-fieldtree>
+              <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                 field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+              </display-fieldtree>
             </div>
           </div>
         </div>
@@ -172,9 +172,9 @@
               <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in value"></div>
               <div class="{{fieldSet.typeF !=='P'?' form-group col-md-6': 'col-xs-12'}}"
                    ng-repeat-end>
-                <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                        field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-                </archive-unit-fieldtree>
+                <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                   field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+                </display-fieldtree>
               </div>
             </div>
           </div>

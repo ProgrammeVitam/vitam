@@ -26,23 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.jackson.JacksonFeature;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -50,7 +47,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -60,35 +56,28 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
  * LogbookLifeCyclesClient REST implementation
  */
 /**
- * 
+ *
  */
-class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
+class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCyclesClient {
 
+    private static final String REQUEST_PROCONDITION_FAILED = "Request procondition failed";
+    private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientRest.class);
-    private static final String RESOURCE_PATH = "/logbook/v1";
-    private static final String LIFECYCLES_URL = "/lifecycles";
-    private static final String STATUS = "/status";
+    // For Lifecycles under operations
+    private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
     private static final int TENANT_ID = 0;
 
-    private final String serviceUrl;
-    private final Client client;
 
-
-    LogbookLifeCyclesClientRest(String server, int port) {
-        serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        client = ClientBuilder.newClient(config);
+    LogbookLifeCyclesClientRest(LogbookLifeCyclesClientFactory factory) {
+        super(factory);
     }
 
     @Override
@@ -102,30 +91,37 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
-        final Response response =
-            client.target(serviceUrl).path(getServiceUrl(parameters, eip, oid)).request()
-                .post(Entity.json(parameters));
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case CREATED:
-                LOGGER.debug(eip + " " + Response.Status.CREATED.getReasonPhrase());
-                break;
-            case CONFLICT:
-                LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
-                throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
-            case BAD_REQUEST:
-                LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-                throw new LogbookClientBadRequestException(
-                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            default:
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
-                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, getServiceUrl(parameters, eip, oid), null,
+                parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(eip + " " + Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case CONFLICT:
+                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
 
     }
 
     private String getServiceUrl(LogbookParameters parameters, String eip, String oid) {
-        String logBookLifeCycleUrl = null;
+        String logBookLifeCycleUrl;
         if (parameters instanceof LogbookLifeCycleObjectGroupParameters) {
             logBookLifeCycleUrl = OBJECT_GROUP_LIFECYCLES_URL;
         } else if (parameters instanceof LogbookLifeCycleUnitParameters) {
@@ -147,24 +143,31 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
-        final Response response =
-            client.target(serviceUrl).path(getServiceUrl(parameters, eip, oid)).request()
-                .put(Entity.json(parameters));
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                LOGGER.debug(eip + " " + Response.Status.OK.getReasonPhrase());
-                break;
-            case NOT_FOUND:
-                LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            case BAD_REQUEST:
-                LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-                throw new LogbookClientBadRequestException(
-                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            default:
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
-                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid), null,
+                parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(eip + " " + Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -179,24 +182,31 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
-        client.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
-        final Response response = client.target(serviceUrl).path(getServiceUrl(parameters, eip, oid) + "/commit")
-            .request().put(Entity.json(""));
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                LOGGER.debug(oid + " " + Response.Status.OK.getReasonPhrase());
-                break;
-            case NOT_FOUND:
-                LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            case BAD_REQUEST:
-                LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-                throw new LogbookClientBadRequestException(
-                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            default:
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
-                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid) + "/commit", null,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(oid + " " + Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -211,135 +221,113 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
-        final Response response =
-            client.target(serviceUrl).path(getServiceUrl(parameters, eip, oid)).request()
-                .delete();
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                LOGGER.debug(oid + " " + Response.Status.OK.getReasonPhrase());
-                break;
-            case NOT_FOUND:
-                LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            case BAD_REQUEST:
-                LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-                throw new LogbookClientBadRequestException(
-                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            default:
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
-                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.DELETE, getServiceUrl(parameters, eip, oid), null,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(oid + " " + Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(oid + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-    }
-
-    @Override
-    public StatusMessage status() throws LogbookClientServerException {
-        final Response response = client.target(serviceUrl).path(STATUS).request().get();
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                return getStatus(response);
-            default:
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
-                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-        }
-    }
-
-    /**
-     * get status from response
-     * 
-     * @param response
-     * @return statusMessage
-     */
-    private StatusMessage getStatus(final Response response) {
-        StatusMessage message;
-        if (response.hasEntity()) {
-            message = response.readEntity(StatusMessage.class);
-        } else {
-            message = new StatusMessage();
-        }
-        return message;
-    }
-
-    /**
-     * Not implemented yet (think about pool logbook client)
-     */
-    @Override
-    public void close() {
-        // Empty
-    }
-
-    @Override
-    public JsonNode selectLifeCycles(String select) throws LogbookClientException, InvalidParseOperationException {
-        final Response response = client.target(serviceUrl).path(LIFECYCLES_URL).request(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
-            .post(Entity.entity(select, MediaType.APPLICATION_JSON), Response.class);
-
-        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-        } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.error("Illegal Entry Parameter");
-            throw new LogbookClientException("Request procondition failed");
-        }
-
-        return JsonHandler.getFromString(response.readEntity(String.class));
-    }
-
-    @Override
-    public JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException {
-        final Response response = client.target(serviceUrl).path(LIFECYCLES_URL + "/" + id).request()
-
-            .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
-            .post(Entity.entity(LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON),
-                Response.class);
-
-        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-        } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.error("Illegal Entry Parameter");
-            throw new LogbookClientException("Request procondition failed");
-        }
-        return JsonHandler.getFromString(response.readEntity(String.class));
     }
 
     @Override
     public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
-        // TODO : Request ID should be generated by the caller code, not the client directly
+        // TODO P0 : Request ID should be generated by the current context code, not the client directly
         final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        final Response response = client.target(serviceUrl).path(UNIT_LIFECYCLES_URL + "/" + id).request()
-            .accept(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_REQUEST_ID, guid.toString())
-            .get();
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, null,
+                MediaType.APPLICATION_JSON_TYPE);
 
-        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-        } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.error("Illegal Entry Parameter");
-            throw new LogbookClientException("Request procondition failed");
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return JsonHandler.getFromString(response.readEntity(String.class));
     }
 
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String id)
         throws LogbookClientException, InvalidParseOperationException {
-        // TODO : Request ID should be generated by the caller code, not the client directly
+        // TODO P0 : Request ID should be generated by the current context code, not the client directly
         final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        final Response response = client.target(serviceUrl).path(OBJECT_GROUP_LIFECYCLES_URL + "/" + id).request()
-            .accept(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_REQUEST_ID, guid.toString())
-            .get();
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
+            response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_URL + "/" + id, null,
+                MediaType.APPLICATION_JSON_TYPE);
 
-        if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-        } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.error("Illegal Entry Parameter");
-            throw new LogbookClientException("Request procondition failed");
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return JsonHandler.getFromString(response.readEntity(String.class));
     }
+
+    @Override
+    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try {
+            return new VitamRequestIterator(this, HttpMethod.GET,
+                OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
+                null, null);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        }
+    }
+
+    @Override
+    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try {
+            return new VitamRequestIterator(this, HttpMethod.GET,
+                OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
+                null, null);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        }
+    }
+
 }

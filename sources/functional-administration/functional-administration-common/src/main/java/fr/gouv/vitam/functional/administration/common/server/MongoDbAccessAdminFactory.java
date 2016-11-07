@@ -30,17 +30,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 
 /**
  * Factory to get MongoDbAccess for Admin
  */
 public final class MongoDbAccessAdminFactory {
 
+    private MongoDbAccessAdminFactory() {
+        // Empty
+    }
+    
     /**
      * Creation of one MongoDbAccess
      *
@@ -50,16 +54,15 @@ public final class MongoDbAccessAdminFactory {
      */
     public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        List<Class<?>> classList = new ArrayList<>();
-        for (FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
+        final List<Class<?>> classList = new ArrayList<>();
+        for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());
         }
         FunctionalAdminCollections.class.getEnumConstants();
-        return new MongoDbAccessAdminImpl(
-            new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                VitamCollection.getMongoClientOptions(classList)),
-            configuration.getDbName(), true);
+
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
     }
+
 }

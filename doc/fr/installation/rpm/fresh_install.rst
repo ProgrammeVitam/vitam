@@ -21,15 +21,15 @@ Informations "plate-forme"
 
 Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire |repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/hosts.int
+.. literalinclude:: ../../../../deployment/environments-rpm/hosts.example
    :language: ini
    :linenos:
 
-Pour chaque type de "host" (lignes 12 à 157), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
+Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
 
 .. warning:: indiquer les contre-indications !
 
-Ensuite, dans la section ``hosts:vars`` (lignes 164 à 179), renseigner les valeurs comme décrit :
+Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
    :header: "Clé", "Description","Valeur"
@@ -37,19 +37,16 @@ Ensuite, dans la section ``hosts:vars`` (lignes 164 à 179), renseigner les vale
 
    "ansible_ssh_user","Utilisateurs ansible sur les machines sur lesquelles VITAM sera déployé",""
    "ansible_become","Propriété interne à ansible pour passer root",""
-   "vitam_folder_permission","Droits Unix par défaut des arborescences créées pour VITAM",""
-   "vitam_conf_permission","Droits sur les fichiers de configuration déployés pour VITAM",""
    "local_user","En cas de déploiement en local",""
    "environnement","Suffixe",""
-   "vitam_environnement","Comme environnement ; ATTENTION : le mot local est réservé pour cette directive aux seules installations en local",""
    "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
    "consul_domain","nom de domaine consul",""
-   "vitam_ihm_demo_external_dns","a vérifier ...",""
-   "https_reverse_proxy","cas d'appel vers un proxy... Deprecated","10.220.23.1:3128"
-   "proxy_host","cas d'appel vers un proxy (adresse IP)... Deprecated","10.220.23.1"
-   "proxy_port","cas d'appel vers un proxy (port) ... Deprecated","3128"
+   "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
    "rpm_version","Version à installer",""
-   "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
+   "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
+   "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
+   "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
+   "days_to_delete_local","Période de grâce des log VITAM - logback (valeur en jours)",""
    "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
 
 
@@ -60,7 +57,12 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
    :linenos:
 
 
-Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault``.
+Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
+
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/vault.txt
+   :language: ini
+   :linenos:
+
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
@@ -70,51 +72,35 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 Paramétrage de l'antivirus (ingest-externe)
 -------------------------------------------
 
-.. todo:: A expliquer
+.. todo:: A rédiger plus correctement. L'idée est de créer un autre shell sous ``ansible-vitam-rpm/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Il faudra aussi modifier le fichier ``ansible-vitam-rpm/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
 
 Paramétrage des certificats (\*-externe)
 -----------------------------------------
 
-Se reporter aux onformations du paragraphe "pré-script".
+Se reporter à l'étape "PKI" du déploiement, décrite plus bas.
 
-
-
-Test de la configuration
-========================
-
-Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
-
-``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
-
-.. note:: cette commande n'est pas recommandée, du fait de limitations de check.
 
 Déploiement
 ===========
 
-Pré-script
--------------
-Le script suivant est à jour en premier ; il permet de générer ou recopier (selon le cas) une PKI, ainsi que des certificats pour les échanges https entre composants.
+PKI
+---
 
-* Cas de l'absence de CA
+1. paramétrer le fichier ``environnements-rpm/group_vars/all/vault.yml``et le fichier d'inventaire de la plate-forme sous ``environnements-rpm`` (se baser sur le fichier hosts.example)
 
-Dans ce cas, lancer le script ``generate-ca-security.sh``
+2. Lancer le script ``pki-generate-ca.sh`` : en cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
 
-.. note:: ce script est en cours de mise au point.
+3. Lancer la script ``generate_certs.sh <environnement>`` . Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
 
-Puis, lancer le script de génération des certificats / stores nécessaire au bon fonctionnement de VITAM
+3. Lancer la script ``generate_stores.sh <environnement>`` . Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores nécessaires au bon fonctionnement de VITAM.
 
-``generate-security.sh``
-
-Ce fichier se base sur :
-
-- le fait qu'une CA (fichiers ca.crt au minimum) soit présent sous PKI/<to be defined>
-- le fait que le fichier ``vault.yml`` soit paramétré
+4. Lancer le script ``copie_fichiers_vitam.sh <environnement>`` pour recopier dans les bons répertoires d'ansiblerie les certificats et stores précédemment créés.
 
 
 Déploiement
 -------------
 
-Une fois l'étape de pré-script passée avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
 

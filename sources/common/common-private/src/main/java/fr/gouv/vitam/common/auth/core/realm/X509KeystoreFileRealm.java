@@ -62,7 +62,7 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
     private String grantedKeyStorePassphrase;
     private String trustedKeyStoreName;
     private String trustedKeyStorePassphrase;
-    private Set<X509Certificate> grantedIssuers = new HashSet<>();
+    private final Set<X509Certificate> grantedIssuers = new HashSet<>();
 
     /**
      * empty constructor
@@ -86,7 +86,7 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         return doGetX509AuthenticationInfo((X509AuthenticationToken) token);
     }
 
-    // TODO éviter de relire les 2 fichiers granted et trusted à chaque tentative d'authentification  
+    // TODO P1 éviter de relire les 2 fichiers granted et trusted à chaque tentative d'authentification
     @Override
     protected X509AuthenticationInfo doGetX509AuthenticationInfo(X509AuthenticationToken x509AuthenticationToken) {
 
@@ -94,16 +94,16 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         try {
             ParametersChecker.checkParameter(grantedKeyStorePassphrase, "grantedKeyStorePassphrase cannot be null");
             ParametersChecker.checkParameter(trustedKeyStorePassphrase, "trustedKeyStorePassphrase cannot be null");
-            KeyStore trustedks = readAndLoadKeystore(trustedKeyStoreName, trustedKeyStorePassphrase);
-            for (Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
-                String alias = e.nextElement();
+            final KeyStore trustedks = readAndLoadKeystore(trustedKeyStoreName, trustedKeyStorePassphrase);
+            for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
+                final String alias = e.nextElement();
                 grantedIssuers.add((X509Certificate) trustedks.getCertificate(alias));
             }
 
-            KeyStore grantedks = readAndLoadKeystore(grantedKeyStoreName, grantedKeyStorePassphrase);
-            for (Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
-                String alias = e.nextElement();
-                X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
+            final KeyStore grantedks = readAndLoadKeystore(grantedKeyStoreName, grantedKeyStorePassphrase);
+            for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
+                final String alias = e.nextElement();
+                final X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
                 if (new Sha256Hash(x509cert.getEncoded())
                     .equals(new Sha256Hash(x509AuthenticationToken.getX509Certificate().getEncoded()))) {
                     x509AuthenticationInfo = new X509AuthenticationInfo(
@@ -117,13 +117,13 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
             if (x509AuthenticationInfo != null) {
                 assertCredentialsMatch(x509AuthenticationToken, x509AuthenticationInfo);
             }
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             LOGGER.error("Unable to verify the integrity of the keystore", e);
-        } catch (CertificateException e) {
+        } catch (final CertificateException e) {
             LOGGER.error("Unable to load a certificate of the keystore", e);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Unable to open the keystore", e);
-        } catch (KeyStoreException e) {
+        } catch (final KeyStoreException e) {
             // this must not happen
             LOGGER.error("The keystore type has not been loaded", e);
         }
@@ -132,7 +132,7 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
 
     /**
      * Read and load the keystore
-     * 
+     *
      * @param filename : keystore file
      * @param passphrase :keystore passphrase
      * @return the loaded keystore
@@ -144,13 +144,13 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
     private KeyStore readAndLoadKeystore(String filename, String passphrase)
         throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         try {
-            File f = PropertiesUtils.findFile(filename);
-            FileInputStream fis = new FileInputStream(f);
-            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            ks.load(fis, passphrase.toCharArray());
-            fis.close();
-            return ks;
-        } catch (FileNotFoundException e) {
+            final File f = PropertiesUtils.findFile(filename);
+            try (final FileInputStream fis = new FileInputStream(f)) {
+                final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+                ks.load(fis, passphrase.toCharArray());
+                return ks;
+            }
+        } catch (final FileNotFoundException e) {
             LOGGER.error("Keystore Not found : " + filename, e);
         }
         return null;

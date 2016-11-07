@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.junit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -36,11 +37,13 @@ import java.net.ServerSocket;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+
 public class JunitHelperTest {
 
     @Test
     public void testArgumentError() throws Throwable {
-        final JunitHelper junitFindAvailablePort0 = new JunitHelper();
+        final JunitHelper junitFindAvailablePort0 = JunitHelper.getInstance();
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
@@ -65,7 +68,7 @@ public class JunitHelperTest {
 
     @Test
     public void testActivatePort() throws Throwable {
-        final JunitHelper junitFindAvailablePort0 = new JunitHelper();
+        final JunitHelper junitFindAvailablePort0 = JunitHelper.getInstance();
         int port = junitFindAvailablePort0.findAvailablePort();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
@@ -77,6 +80,62 @@ public class JunitHelperTest {
         assertFalse(junitFindAvailablePort0.isListeningOn(port));
         assertFalse(junitFindAvailablePort0.isListeningOn(null, port));
         junitFindAvailablePort0.releasePort(port);
+        StartApplicationResponse<?> response = junitFindAvailablePort0.findAvailablePortSetToApplication(
+            new VitamApplicationTestFactory<Object>() {
+
+                @Override
+                public StartApplicationResponse startVitamApplication(int reservedPort) {
+                    return new StartApplicationResponse<Object>().setServerPort(reservedPort)
+                        .setApplication(null);
+                }
+            });
+        assertFalse(junitFindAvailablePort0.isListeningOn(response.getServerPort()));
+        assertFalse(junitFindAvailablePort0.isListeningOn(null, response.getServerPort()));
+        assertNull(response.getApplication());
+        junitFindAvailablePort0.releasePort(response.getServerPort());
+        final int reservedPortPrevious = response.getServerPort();
+        response = junitFindAvailablePort0.findAvailablePortSetToApplication(
+            new VitamApplicationTestFactory<Object>() {
+
+                @Override
+                public StartApplicationResponse startVitamApplication(int reservedPort) {
+                    return new StartApplicationResponse<Object>().setServerPort(reservedPortPrevious);
+                }
+            });
+        assertFalse(junitFindAvailablePort0.isListeningOn(response.getServerPort()));
+        assertFalse(junitFindAvailablePort0.isListeningOn(null, response.getServerPort()));
+        junitFindAvailablePort0.releasePort(response.getServerPort());
+        try {
+            response = junitFindAvailablePort0.findAvailablePortSetToApplication(
+                new VitamApplicationTestFactory<Object>() {
+
+                    @Override
+                    public StartApplicationResponse startVitamApplication(int reservedPort) {
+                        return new StartApplicationResponse<Object>().setServerPort(-1);
+                    }
+                });
+            fail("Should raized an exception");
+        } catch (final IllegalStateException e) {
+            // nothing to do
+        }
+        try {
+            response = junitFindAvailablePort0.findAvailablePortSetToApplication(null);
+            fail("Should raized an exception");
+        } catch (final IllegalStateException e) {
+            // nothing to do
+        }
+    }
+
+    private static class ToNotAllocate {
+        private ToNotAllocate() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Test
+    public void testPrivateConstructor() {
+        JunitHelper.testPrivateConstructor(JunitHelper.class);
+        JunitHelper.testPrivateConstructor(ToNotAllocate.class);
     }
 
     @Test

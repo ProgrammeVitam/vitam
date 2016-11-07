@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -35,26 +35,26 @@ public class FormatIdentifierResponse {
     /**
      * Literal version of the matched format
      */
-    private String formatLiteral;
-    
+    private final String formatLiteral;
+
     /**
      * mime-type of the matched format
      */
-    private String mimetype;
-    
+    private final String mimetype;
+
     /**
      * PUID of the matched format
      */
-    private String puid;
-    
+    private final String puid;
+
     /**
      * base of format that match the format
      */
-    private String matchedNamespace;
+    private final String matchedNamespace;
 
     /**
-     * Create a new FormatIdentifierResponse with mandatory parameters. 
-     * 
+     * Create a new FormatIdentifierResponse with mandatory parameters.
+     *
      * @param formatLiteral
      * @param mimeType
      * @param puid
@@ -62,7 +62,7 @@ public class FormatIdentifierResponse {
      */
     public FormatIdentifierResponse(String formatLiteral, String mimeType, String puid, String matchedNamespace) {
         this.formatLiteral = formatLiteral;
-        this.mimetype = mimeType;
+        mimetype = mimeType;
         this.puid = puid;
         this.matchedNamespace = matchedNamespace;
     }
@@ -73,7 +73,7 @@ public class FormatIdentifierResponse {
     public String getFormatLiteral() {
         return formatLiteral;
     }
-    
+
     /**
      * @return the mime-type
      */
@@ -94,5 +94,5 @@ public class FormatIdentifierResponse {
     public String getMatchedNamespace() {
         return matchedNamespace;
     }
-    
+
 }

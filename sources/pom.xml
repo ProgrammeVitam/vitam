@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.9.0-SNAPSHOT</version>
+	<version>0.10.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -30,6 +30,7 @@
 		<module>functional-administration</module>
 		<module>technical-administration</module>
 		<module>ihm-demo</module>
+		<module>integration-test</module>
 	</modules>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -119,56 +120,67 @@
 		<jacoco-maven-plugin.version>0.7.6.201602180812</jacoco-maven-plugin.version>
 		<slf4j.version>1.7.21</slf4j.version>
 		<logback.version>1.1.7</logback.version>
-		<jersey.version>2.23</jersey.version>
+		<jersey.version>2.23.2</jersey.version>
 		<jclouds.version>1.9.2</jclouds.version>
-		<jackson.version>2.7.4</jackson.version>
 		<guava.version>19.0</guava.version>
 		<log4j.version>1.2.17</log4j.version>
 		<commons-logging.version>1.2</commons-logging.version>
+		<!-- 2.5? -->
 		<commons-io.version>1.3.2</commons-io.version>
+		<!-- une seule version ? -->
 		<commons-lang3>3.4</commons-lang3>
+		<commons-lang.version>2.6</commons-lang.version>
 		<easymock.version>3.4</easymock.version>
 		<jmeter.version>2.11</jmeter.version>
-		<elasticsearch.version>2.3.3</elasticsearch.version>
-		<mongo.version>3.2.2</mongo.version>
-		<!-- 1.0.5 ? -->
+		<!-- Will be updated to 2.8 when moving to ES 2.4 or 5.0 -->
+		<jackson.version>2.7.8</jackson.version>
+		<!-- Move to 2.4 / 5.0 will move too Jackson https://www.elastic.co/guide/en/elasticsearch/reference/2.4/release-notes-2.4.0.html -->
+		<elasticsearch.version>2.3.5</elasticsearch.version>
+		<mongo.version>3.3.0</mongo.version>
+		<!-- 1.1.6 ? -->
 		<testcontainers.version>1.0.4</testcontainers.version>
 		<yamlbeans.version>1.09</yamlbeans.version>
-		<apache-shiro.version>1.3.0</apache-shiro.version>
-		<jetty.version>9.3.9.v20160517</jetty.version>
+		<apache-shiro.version>1.3.2</apache-shiro.version>
+		<jetty.version>9.3.13.v20161014</jetty.version>
+		<!-- 3.5.2 -->
 		<assertj.version>2.4.0</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
 		<junit.version>4.12</junit.version>
 		<mockito.version>1.10.19</mockito.version>
-		<grizzly.version>2.3.24</grizzly.version>
+		<grizzly.version>2.3.28</grizzly.version>
 		<grizzly.rcm.version>2.3.4</grizzly.rcm.version>
 		<grizzly.utils.version>2.0.0-RC3</grizzly.utils.version>
-		<grizzly.servlet.webserver.version>2.0.0-M2</grizzly.servlet.webserver.version>
-		<org.simpleframework>5.1.4</org.simpleframework>
+		<org.simpleframework>5.1.6</org.simpleframework>
 		<mockrunner.servlet.version>1.1.1</mockrunner.servlet.version>
-		<!-- 1.50.5 -->
-		<flapdoodle.version>1.50.3</flapdoodle.version>
+		<flapdoodle.version>1.50.5</flapdoodle.version>
+		<yandex.version>1.19</yandex.version>
 		<staxon.version>1.3</staxon.version>
-		<org.json.version>20160212</org.json.version>
-		<commons-lang.version>2.6</commons-lang.version>
+		<!-- was 20160212 -->
+		<org.json.version>20160810</org.json.version>
 		<jhades.version>1.0.4</jhades.version>
 		<javax.servlet.version>3.1.0</javax.servlet.version>
 		<javax.inject.version>1</javax.inject.version>
 		<powermock.version>1.6.5</powermock.version>
 		<json-sanitize.version>1.1</json-sanitize.version>
-		<commons-collections4.version>4.0</commons-collections4.version>
+		<commons-collections4.version>4.1</commons-collections4.version>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 		<esapi.version>2.1.0.1</esapi.version>
-		<xerces.version>2.11.0</xerces.version>
+		<!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
+		<xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
+		<xml-resolver.version>1.2</xml-resolver.version>
+		<!-- 3.2.4 ? -->
 		<cglib.version>2.2.2</cglib.version>
 		<opencsv.version>2.3</opencsv.version>
 		<commons-csv.version>1.4</commons-csv.version>
-		<jackson-dataformat-csv.version>2.5.1</jackson-dataformat-csv.version>
-		<bouncycastle.version>1.54</bouncycastle.version>
+		<bouncycastle.version>1.55</bouncycastle.version>
+		<!-- 1.3.0 ? -->
 		<diffutils.version>1.2.1</diffutils.version>
 		<jaxb2.version>1.0.2</jaxb2.version>
-
+		<httpclient.version>4.5.2</httpclient.version>
+		<netty.version>4.1.5.Final</netty.version>
+		<commons-compress.version>1.12</commons-compress.version>
+		<easystream.version>1.2.15</easystream.version>
 		<skipITs>false</skipITs>
 	</properties>
 
@@ -188,6 +200,62 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<doctitle>Vitam API Reference (${project.version})</doctitle>
+							<windowtitle>Vitam API Reference (${project.version})</windowtitle>
+							<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
+							<overview>${basedir}/overview.html</overview>
+							<groups>
+								<group>
+									<title>Access </title>
+									<packages>fr.gouv.vitam.access.*</packages>
+								</group>
+								<group>
+									<title>Common </title>
+									<packages>fr.gouv.vitam.common.*:fr.gouv.vitam.common</packages>
+								</group>
+								<group>
+									<title>Functional administration </title>
+									<packages>fr.gouv.vitam.functional.administration.*</packages>
+								</group>
+								<group>
+									<title>Ihm Demo </title>
+									<packages>fr.gouv.vitam.ihmdemo.*</packages>
+								</group>
+								<group>
+									<title>Ingest </title>
+									<packages>fr.gouv.vitam.ingest.*</packages>
+								</group>
+								<group>
+									<title>Logbook </title>
+									<packages>fr.gouv.vitam.logbook.*</packages>
+								</group>
+								<group>
+									<title>Metadata </title>
+									<packages>fr.gouv.vitam.metadata.*</packages>
+								</group>
+								<group>
+									<title>Processing </title>
+									<packages>fr.gouv.vitam.processing.*</packages>
+								</group>
+								<group>
+									<title>Storage Driver / Offer </title>
+									<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.driver.*</packages>
+								</group>
+								<group>
+									<title>Storage Engine </title>
+									<packages>fr.gouv.vitam.storage.engine.*</packages>
+								</group>
+								<group>
+									<title>Worker </title>
+									<packages>fr.gouv.vitam.worker.*</packages>
+								</group>
+								<group>
+									<title> Workspace </title>
+									<packages>fr.gouv.vitam.workspace.*</packages>
+								</group>
+							</groups>
+						</configuration>
 						<executions>
 							<execution>
 								<phase>package</phase>
@@ -303,6 +371,7 @@
 						<perCoreThreadCount>true</perCoreThreadCount>
 						<forkCount>3C</forkCount>
 						<reuseForks>false</reuseForks>
+						<trimStackTrace>false</trimStackTrace>
 						<!-- Non Parallel mode -->
 						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount> 
 							<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
@@ -498,6 +567,7 @@
 						<defineStatements />
 						<targetOS>linux</targetOS>
 						<requires>
+							<require>systemd</require>
 							<require>java-1.8.0</require>
 							<require>vitam-user-${unix.user}</require>
 						</requires>
@@ -515,22 +585,13 @@
 								<directory>/vitam/conf/${unix.name}</directory>
 								<sources>
 									<source>
-										<location>${basedir}/src/main/config</location>
+										<location>${project.build.directory}/conf</location>
 									</source>
 								</sources>
 							</mapping>
-
-							<mapping>
-								<directory>/vitam/script/${unix.name}</directory>
-								<sources>
-									<source>
-										<location>${project.build.directory}/bin</location>
-									</source>
-								</sources>
-							</mapping>
-							<!-- OMA : added for future use -->
-
-
+							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory> 
+								<sources> <source> <location>${project.build.directory}/script</location> 
+								</source> </sources> </mapping> -->
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
 								<filemode>644</filemode>
@@ -544,6 +605,16 @@
 								</sources>
 							</mapping>
 						</mappings>
+						<!-- Systemd hook scriptlets -->
+						<postinstallScriptlet>
+							<script>%systemd_post vitam-${unix.name}.service</script>
+						</postinstallScriptlet>
+						<preremoveScriptlet>
+							<script>%systemd_preun vitam-${unix.name}.service</script>
+						</preremoveScriptlet>
+						<postremoveScriptlet>
+							<script>%systemd_postun vitam-${unix.name}.service</script>
+						</postremoveScriptlet>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -644,6 +715,11 @@
 				<artifactId>commons-lang</artifactId>
 				<version>${commons-lang.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>net.sf.jsignature.io-tools</groupId>
+				<artifactId>easystream</artifactId>
+				<version>${easystream.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>de.odysseus.staxon</groupId>
@@ -733,11 +809,37 @@
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${javax.servlet.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>${commons-lang3}</version>
+			</dependency>
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-grizzly-connector</artifactId>
+				<version>${jersey.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-netty-connector</artifactId>
+				<version>${jersey.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<!-- ########################## Security ########################## -->
@@ -773,9 +875,17 @@
 				<version>${apache-shiro.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>xerces</groupId>
-				<artifactId>xercesImpl</artifactId>
-				<version>${xerces.version}</version>
+				<groupId>org.opengis.cite.xerces</groupId>
+				<artifactId>xercesImpl-xsd11</artifactId>
+				<version>${xerces-xsd11.version}</version>
+			</dependency>
+			<!-- Removed to put xerces with 1.1 support <dependency> <groupId>xerces</groupId> 
+				<artifactId>xercesImpl</artifactId> <version>${xerces.version}</version> 
+				</dependency> -->
+			<dependency>
+				<groupId>xml-resolver</groupId>
+				<artifactId>xml-resolver</artifactId>
+				<version>${xml-resolver.version}</version>
 			</dependency>
 
 			<dependency>
@@ -908,7 +1018,6 @@
 				<groupId>org.glassfish.jersey.containers</groupId>
 				<artifactId>jersey-container-servlet</artifactId>
 				<version>${jersey.version}</version>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
@@ -939,6 +1048,54 @@
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
 				<version>${flapdoodle.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>ru.yandex.qatools.embed</groupId>
+				<artifactId>embedded-services</artifactId>
+				<version>${yandex.version}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-log4j12</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.xbib.elasticsearch.plugin</groupId>
+						<artifactId>elasticsearch-river-jdbc</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>commons-io</groupId>
+						<artifactId>commons-io</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.codehaus.groovy</groupId>
+						<artifactId>groovy-all</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.apache.lucene</groupId>
+						<artifactId>lucene-expressions</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.github.richardwilly98.elasticsearch</groupId>
+						<artifactId>elasticsearch-river-mongodb</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.elasticsearch</groupId>
+						<artifactId>elasticsearch</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.mongodb</groupId>
+						<artifactId>mongo-java-driver</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>de.flapdoodle.embed</groupId>
+						<artifactId>de.flapdoodle.embed.mongo</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.jhades</groupId>
@@ -973,7 +1130,18 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.dataformat</groupId>
 				<artifactId>jackson-dataformat-csv</artifactId>
-				<version>${jackson-dataformat-csv.version}</version>
+				<version>${jackson.version}</version>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.simpleframework</groupId>
+				<artifactId>simple</artifactId>
+				<version>${org.simpleframework}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

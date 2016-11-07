@@ -31,6 +31,8 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -52,32 +54,30 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
-    private static MongoDbAccess mongoDbAccess;
+    private static LogbookDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
-    private static VitamServer vitamServer;
 
     private static final String REST_URI = "/logbook/v1";
     private static final String OPERATIONS_URI = "/operations";
@@ -86,7 +86,7 @@ public class LogbookResourceTest {
 
     private static int databasePort;
     private static int serverPort;
-    private static File newLogbookConf;
+    private static LogbookApplication application;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -99,20 +99,18 @@ public class LogbookResourceTest {
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
-
+    private static LogbookConfiguration realLogbook; 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -120,57 +118,61 @@ public class LogbookResourceTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
-            MongoDbAccessFactory.create(
+            LogbookMongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
         try {
-            LogbookApplication.startApplication(new String[] {newLogbookConf.getAbsolutePath()});
+            application = new LogbookApplication(realLogbook);
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Logbook Application Server", e);
         }
 
-        final GUID eip = GUIDFactory.newOperationIdGUID(0);
+        final GUID eip = GUIDFactory.newEventGUID(0);
 
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
+            GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
-            "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
 
         logbookParametersSelect = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, "eventTypeValueSelect", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "start ingest", eip);
+            eip, "eventTypeValueSelect", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "start ingest", eip);
 
         logbookParametersSelectId = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, "eventTypeValueSelectId", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "start ingest", eip);
+            eip, "eventTypeValueSelectId", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "start ingest", eip);
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -178,7 +180,6 @@ public class LogbookResourceTest {
         junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
-        newLogbookConf.delete();
         junitHelper.releasePort(databasePort);
     }
 
@@ -243,10 +244,63 @@ public class LogbookResourceTest {
     }
 
     @Test
+    public void testBulk() {
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        // Create
+        LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        queue.add(start);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.unprettyPrint(queue))
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // Update
+        queue.clear();
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.unprettyPrint(queue))
+            .when()
+            .put(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
     public void testError() {
         // Create KO since Bad Request
         final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
-        final String id = GUIDFactory.newOperationIdGUID(0).getId();
+        final String id = GUIDFactory.newEventGUID(0).getId();
         empty.putParameterValue(LogbookParameterName.eventIdentifierProcess, id);
         given()
             .contentType(ContentType.JSON)
@@ -267,7 +321,7 @@ public class LogbookResourceTest {
             .body(logbookParametersWrongStart.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newOperationIdGUID(0).getId())
+                GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
@@ -275,7 +329,7 @@ public class LogbookResourceTest {
             .body(logbookParametersWrongAppend.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newOperationIdGUID(0).getId())
+                GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -368,4 +422,6 @@ public class LogbookResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
+
+
 }

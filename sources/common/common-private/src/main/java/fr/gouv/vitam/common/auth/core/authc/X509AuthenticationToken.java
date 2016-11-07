@@ -1,6 +1,6 @@
 /**
  * Copyright Paul Merlin 2011 (Apache Licence v2.0)
- * 
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -63,7 +63,7 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     private final String host;
 
     /**
-     * 
+     *
      * @param clientCertChain
      * @param host
      */
@@ -71,16 +71,16 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new IllegalArgumentException("No certificate in the chain");
         }
-        this.certChain = clientCertChain;
-        this.certificate = this.certChain[0];
-        this.subjectDN = certificate.getSubjectX500Principal();
-        this.issuerDN = certificate.getIssuerX500Principal();
-        this.hexSerialNumber = certificate.getSerialNumber().toString(16);
+        certChain = clientCertChain;
+        certificate = certChain[0];
+        subjectDN = certificate.getSubjectX500Principal();
+        issuerDN = certificate.getIssuerX500Principal();
+        hexSerialNumber = certificate.getSerialNumber().toString(16);
         this.host = host;
     }
 
     /**
-     * 
+     *
      * @param clientSubjectDN
      * @param clientIssuerDN
      * @param clientHexSerialNumber
@@ -88,16 +88,16 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
      */
     public X509AuthenticationToken(X500Principal clientSubjectDN, X500Principal clientIssuerDN,
         String clientHexSerialNumber, String host) {
-        this.certificate = null;
-        this.certChain = new X509Certificate[] {};
-        this.subjectDN = clientSubjectDN;
-        this.issuerDN = clientIssuerDN;
-        this.hexSerialNumber = clientHexSerialNumber;
+        certificate = null;
+        certChain = new X509Certificate[] {};
+        subjectDN = clientSubjectDN;
+        issuerDN = clientIssuerDN;
+        hexSerialNumber = clientHexSerialNumber;
         this.host = host;
     }
 
     /**
-     * 
+     *
      * @return the X509 certificate
      */
     public X509Certificate getX509Certificate() {
@@ -105,35 +105,35 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     * 
+     *
      * @return the JVM X509 certificate selector
      */
     public CertSelector getX509CertSelector() {
-        X509CertSelector certSelector = new X509CertSelector();
+        final X509CertSelector certSelector = new X509CertSelector();
         certSelector.setCertificate(certificate);
         return certSelector;
     }
 
     /**
-     * 
+     *
      * @return get a Store with the Cert
      */
     public CertStore getX509CertChainStore() {
         try {
-            CollectionCertStoreParameters params = new CollectionCertStoreParameters(Arrays.asList(certChain));
+            final CollectionCertStoreParameters params = new CollectionCertStoreParameters(Arrays.asList(certChain));
             return CertStore.getInstance("CERTIFICATE/COLLECTION", params, BouncyCastleProvider.PROVIDER_NAME);
-        } catch (NoSuchProviderException e) {
+        } catch (final NoSuchProviderException e) {
             LOGGER.error("Bouncy Castle is not loaded", e);
-        } catch (InvalidAlgorithmParameterException e) {
+        } catch (final InvalidAlgorithmParameterException e) {
             LOGGER.error("This type of Certstore is unknown (CERTIFICATE/COLLECTION)", e);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             LOGGER.error("algorithm of the certificate unknown", e);
         }
         return null;
     }
 
     /**
-     * 
+     *
      * @return the subjectDN
      */
     public X500Principal getSubjectDN() {
@@ -141,7 +141,7 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     * 
+     *
      * @return the Issuer DN
      */
     public X500Principal getIssuerDN() {
@@ -149,7 +149,7 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     }
 
     /**
-     * 
+     *
      * @return the Serial Number (in hexadecimal)
      */
     public String getHexSerialNumber() {

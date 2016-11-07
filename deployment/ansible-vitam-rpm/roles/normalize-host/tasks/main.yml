@@ -1,0 +1,35 @@
+---
+
+# Check SELinux with command line instead of using ansible facts since we may not have libselinux-python
+- name: Get selinux mode
+  shell: which getenforce >/dev/null 2>&1; if (( $? != 0 )); then echo "Disabled"; else getenforce; fi
+  register: selinux
+
+- name: Check that selinux is not set to enforcing
+  fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
+  when: selinux.stdout == "Enforcing"
+
+- name: ensure parent dir is OK ith correct permissions
+  file:
+    path: "{{vitam_folder_root}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0555
+
+- name: ensure {{vitam_folder_root}} sub-directories exist
+  file:
+    path: "{{vitam_folder_root}}/{{item}}"
+    owner: root
+    group: root
+    state: directory
+    mode: 0555
+  with_items:
+    - app
+    - bin
+    - conf
+    - data
+    - lib
+    - log
+    - script
+    - tmp

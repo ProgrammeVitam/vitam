@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-external</artifactId>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ingest-external-core</artifactId>
 	<name>ingest-external-core</name>
@@ -27,8 +27,28 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-format-identification</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+ 			<groupId>org.mockito</groupId>
+ 			<artifactId>mockito-all</artifactId>
+ 			<scope>test</scope>
+ 		</dependency>
+ 		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -38,7 +58,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.6</version>
 				<executions>
 					<execution>
 						<id>process-test-classes</id>

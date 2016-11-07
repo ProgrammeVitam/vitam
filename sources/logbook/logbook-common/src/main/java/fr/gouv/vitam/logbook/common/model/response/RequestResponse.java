@@ -32,15 +32,12 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Logbook RequestResponse class contains request query
  *
  */
-/*
- * TODO ; refactor to the common vitam
- * 
- * */
+//TODO P1 ; refactor to the common vitam
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;
 
-    
+
     /**
      * @return the Result part
      */
@@ -50,15 +47,15 @@ public class RequestResponse {
 
     /**
      * RequestResponse constructor
-     * 
+     *
      * @param result the result of type JsonNode which will be setted for RequestResponse
      * @return this
      */
     public RequestResponse setResult(JsonNode result) {
-        this.results = result;
+        results = result;
         return this;
     }
-    
+
     /**
      * @return the query as JsonNode of Response
      */
@@ -68,7 +65,7 @@ public class RequestResponse {
 
     /**
      * RequestResponse constructor
-     * 
+     *
      * @param query the query of type JsonNode which will be setted for RequestResponse
      * @return this
      */

@@ -52,6 +52,8 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - IndexUnitActionHandler
 - StoreObjectGroupActionHandler
 - FormatIdentificationActionHandler
+- AccessionRegisterActionHandler
+- TransferNotificationActionHandler
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
@@ -59,17 +61,109 @@ La classe WorkerImpl permet de lancer ces différents handlers.
 ''''''''''''''''''''''''''''''''''''''''''''''''''''
 4.1.1 description
 '''''''''''''''''
-Ce handler permet de comparer le message digest déclaré dans le manifest et celui calculé par le workspace.
+
+Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches :
+
+-- Vérification de l'empreinte par rapport à l'empreinte indiquée dans le manifeste (en utilisant algorithme déclaré dans manifeste)
+-- Calcul d'une empreinte en SHA-512 si l'empreinte du manifeste est calculée avec un algorithme différent
 
 4.1.2 exécution
 '''''''''''''''
-TODO
+CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow
+et le fichier en InputStream par le workspace.
 
-4.1.3 journalisation : logbook operation? logbook life cycle?
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte de fichier en SHA-512
+
+.. code-block:: java
+			DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput().get(ALGO_RANK));
+            InputStream inputStream =
+                workspaceClient.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
+            Digest vitamDigest = new Digest(digestTypeInput);
+            Digest manifestDigest;
+            boolean isVitamDigest = false;
+            if (!binaryObject.getAlgo().equals(digestTypeInput)) {
+                manifestDigest = new Digest(binaryObject.getAlgo());
+                inputStream = manifestDigest.getDigestInputStream(inputStream);
+            } else {
+                manifestDigest = vitamDigest;
+                isVitamDigest = true;
+            }
+......................
+
+Si les empreintes sont différents, c'est le cas KO.
+Le message { "MessageDigest": "value", "Algorithm": "algo", "ComputedMessageDigest": "value"} va être stocké dans le journal
+Sinon le message { "MessageDigest": "value", "Algorithm": "algo", "SystemMessageDigest": "value", "SystemAlgorithm": "algo"} va être stocké dans le journal
+Mais il y a encore deux cas à ce moment:
+	si l'empreinte est avec l'algorithme SHA-512, c'est le cas OK.
+	sinon, c'est le cas WARNING. le nouveau empreint et son algorithme seront mis à jour dans la collection ObjectGroup.
+
+CheckConformityActionHandler compte aussi le nombre de OK, KO et WARNING.
+Si nombre de KO est plus de 0, l'action est KO.
+
+4.1.3 journalisation :
+''''''''''''''''''''''
 logbook lifecycle
+'''''''''''''''''
+CA 1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste)
 
-4.1.4 modules utilisés
+Dans le processus d'entrée, l'étape de vérification de la conformité de l'empreinte doit être appelée en position 450.
+Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vérification d'empreinte doit être effectuée (celle de l'objet avec celle inscrite dans le manifeste SEDA). Cette étape est déjà existante actuellement.
+Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
+
+CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - Started
+- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "Started"
+* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - OK
+- Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "OK"
+* outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+Comportement du workflow décrit dans l'US #680
+
+- La collection ObjectGroup est aussi mis à jour, en particulier le champs : Message Digest : {  empreinte, algorithme utlisé }
+
+CA 1.3 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - KO
+- Lorsque l'action est KO, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "KO"
+* outcomeDetailMessage FR : « Échec de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>
+Empreinte calculée : <Empreinte calculée par Vitam>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+Comportement du workflow décrit dans l'US #680
+
+****************************
+CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste)
+
+Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le système doit calculer l'empreinte en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
+Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte).
+
+CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - Started
+- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "Started"
+* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+CA 2.2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - OK
+- Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
+* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
+* outcome : "OK"
+* outcomeDetailMessage FR : « Succès de la vérification de l'empreinte »
+* eventDetailData FR : "Empreinte Manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
+"Empreinte calculée (<algorithme utilisé "XXX">): <Empreinte calculée par Vitam>"
+* objectIdentifierIncome : MessageIdentifier du manifest
+
+4.1.5 modules utilisés
 ''''''''''''''''''''''
 processing, worker, workspace et logbook
 
@@ -94,7 +188,45 @@ Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le n
 
 4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-TODO
+Ce handler permet de contrôler la cohérence entre l'object/object group et l'ArchiveUnit. 
+Pour ce but, on détecte les groupes d'object qui ne sont pas référé par au moins d'un ArchiveUnit.
+Ce tache prend deux maps de données qui ont été crée dans l'étape précédente de workflow comme input : 
+objectGroupIdToUnitId 
+objectGroupIdToGuid
+Le ouput de cette contrôle est une liste de groupe d'objects invalide. Si on trouve les groupe d'objects 
+invalide, le logbook lifecycles de group d'object sera mis à jour.
+
+L'exécution de l'algorithme est présenté dans le code suivant :*
+.. code-block:: java ..................................................................
+        while (it.hasNext()) {
+            final Map.Entry<String, Object> objectGroup = it.next();
+            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+
+                // Update logbook OG lifecycle
+                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
+                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                        GUIDReader.getGUID(params.getContainerName()),
+                        HANDLER_ID,
+                        GUIDFactory.newEventGUID(TENANT),
+                        LogbookTypeProcess.CHECK,
+                        StatusCode.WARNING,
+                        StatusCode.WARNING.toString(),
+                        // TODO P0 WORKFLOW
+                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
+                        GUIDReader.getGUID(objectGroup.getValue().toString()));
+                try {
+                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException e) {
+                    LOGGER.error("Can not update logbook lifcycle", e);
+                }
+                ogList.add(objectGroup.getKey());
+            }
+
+        }
+
+........................................................................................
+
 
 4.4 Détail du handler : CheckSedaActionHandler
 ''''''''''''''''''''''''''''''''''''''''''''''
@@ -213,26 +345,189 @@ TODO
 4.9 Détail du handler : StoreObjectGroupActionHandler
 '''''''''''''''''''''''''''''''''''''''''''''''''''''
 4.9.1 description
+'''''''''''''''''
 Persistence des objets dans l'offre de stockage depuis le workspace.
+
 TODO
 
 
-Détail du handler : FormatIdentificationActionHandler
-'''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.10 Détail du handler : FormatIdentificationActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.10.1 Description
+''''''''''''''''''
+
 Ce handler permet d'identifier et contrôler automatiquement le format des objets versés.
 Il s'exécute sur les différents ObjectGroups déclarés dans le manifest. Pour chaque objectGroup, voici ce qui est effectué :
  - récupération du JSON de l'objectGroup présent sur le Workspace
  - transformation de ce Json en une map d'id d'objets / uri de l'objet associée
  - boucle sur les objets :
    - téléchargement de l'objet (File) depuis le Workspace
-   - appel Siegfried en lui passant le path vers l'objet à identifier + récupération de la réponse.
+   - appel l'outil de vérification de format (actuellement Siegfried) en lui passant le path vers l'objet à identifier + récupération de la réponse.
    - appel de l'AdminManagement pour faire une recherche getFormats par rapport au PUID récupéré.
    - mise à jour du Json : le format récupéré par Siegfried est mis à jour dans le Json (pour indexation future).
    - construction d'une réponse.
  - sauvegarde du JSON de l'objectGroup dans le Workspace.
- - aggrégation des retours pour générer un message + mise à jour du logbook. 
-  
+ - aggrégation des retours pour générer un message + mise à jour du logbook.
 
+4.10.2 Détail des différentes maps utilisées :
+''''''''''''''''''''''''''''''''''''''''''''''
+Map<String, String> objectIdToUri
+    contenu         : cette map contient l'id du BDO associé à son uri.
+    création        : elle est créée dans le Handler après récupération du json listant les ObjectGroups
+    MAJ, put        : elle est populée lors de la lecture du json listant les ObjectGroups.
+    lecture, get    : lecture au fur et à mesure du traitement des BDO.
+    suppression     : elle n'est pas enregistrée sur le workspace et est présente en mémoire uniquement.
+
+4.10.3 exécution
+''''''''''''''''
+Ce Handler est exécuté dans l'étape "Contrôle et traitements des objets", juste après le Handler de vérification des empreintes.
+
+4.10.4 journalisation : logbook operation? logbook life cycle?
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Dans le traitement du Handler, sont mis à jour uniquement les journaux de cycle de vie des ObjectGroups.
+Les Outcome pour les journaux de cycle de vie peuvent être les suivants :
+ - Le format PUID n'a pas été trouvé / ne correspond pas avec le référentiel des formats.
+ - Le format du fichier n'a pas pu être trouvé.
+ - Le format du fichier a été complété dans les métadonnées (un "diff" est généré et ajouté).
+ - Le format est correct et correspond au référentiel des formats.
+
+(Note : les messages sont informatifs et ne correspondent aucunement à ce qui sera vraiment inséré en base)
+
+4.10.5 modules utilisés
+'''''''''''''''''''''''
+Le Handler utilise les modules suivants :
+ - Workspace (récupération / copie de fichiers)
+ - Logbook (mise à jour des journaux de cycle de vie des ObjectGroups)
+ - Common-format-identification (appel pour analyse des objets)
+ - AdminManagement (comparaison format retourné par l'outil d'analyse par rapport au référentiel des formats de Vitam).
+
+4.10.6 cas d'erreur
+'''''''''''''''''''
+Les différentes exceptions pouvant être rencontrées :
+ - ReferentialException : si un problème est rencontré lors de l'interrogation du référentiel des formats de Vitam
+ - InvalidParseOperationException/InvalidCreateOperationException : si un problème est rencontré lors de la génération de la requête d'interrogation du référentiel des formats de Vitam
+ - FormatIdentifier*Exception : si un problème est rencontré avec l'outil d'analyse des formats (Siegfried)
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Content*Exception : si un problème est rencontré lors de l'interrogation du workspace
+ - ProcessingException : si un problème plus général est rencontré dans le Handler
+
+
+4.11 Détail du handler : TransferNotificationActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.11.1 Description
+''''''''''''''''''
+
+Ce handler permet de finaliser le processus d'entrée d'un SIP. Cet Handler est un peu spécifique car il sera lancé même si une étape précédente tombe en erreur.
+Il permet de générer un xml de notification qui sera :
+ - une notification KO si une étape du workflow est tombée en erreur.
+ - une notification OK si le process est OK, et que le SIP a bien été intégré sans erreur.
+  
+La première étape dans ce handler est de déterminer l'état du Workflow : OK ou KO.
+ 
+4.10.2 Détail des différentes maps utilisées :
+''''''''''''''''''''''''''''''''''''''''''''''
+Map<String, Object> archiveUnitSystemGuid
+    contenu         : cette map contient la liste des archives units avec son identifiant tel que déclaré dans le manifest, associé à son GUID. 
+
+Map<String, Object> binaryDataObjectSystemGuid
+    contenu         : cette map contient la liste Data Objects avec leur GUID généré associé à l'identifiant déclaré dans le manifest. 
+
+Map<String, Object> bdoObjectGroupSystemGuid
+    contenu         : cette map contient la liste groupes d'objets avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
+
+4.10.3 exécution
+''''''''''''''''
+Ce Handler est exécuté en dernière position. Il sera exécuté quoi qu'il se passe avant.
+Même si le processus est KO avant, le Handler sera exécuté.
+
+*Cas OK :* 
+@TODO@ 
+
+*Cas KO :*
+Pour l'opération d'ingest en cours, on va récupérer dans les logbooks plusieurs informations :
+ - récupération des logbooks operations générés par l'opération d'ingest.
+ - récupération des logbooks lifecycles pour les archive units présentes dans le SIP.
+ - récupération des logbooks lifecycles pour les groupes d'objets présents dans le SIP.
+
+Le Handler s'appuie sur des fichiers qui lui sont transmis. Ces fichiers peuvent ne pas être présents si jamais le process est en erreur avec la génération de ces derniers.
+ - un fichier globalSedaParameters.file contenant des informations sur le manifest (messageIdentifier).
+ - un fichier mapsUnits.file : présentant une map d'archive unit
+ - un fichier mapsBDO.file : présentant la liste des binary data objects
+ - un fichier mapsBDOtoOG=.file : mappant le binary data object à son object group
+
+A noter que ces fichiers ne sont pas obligatoires pour le bon déroulement du handler.  
+  
+Le handler va alors procéder à la génération d'un XML à partir des informationss aggrégées.
+Voici sa structure générale :  
+ - MessageIdentifier est rempli avec le MessageIdentifier présent dans le fichier globalSedaParameters. Il est vide si le fichier n'existe pas.
+ - dans la balise ReplyOutcome :
+   - dans Operation, on aura une liste d'events remplis par les différentes opérations KO et ou FATAL. La liste sera forcément remplie avec au moins un event. Cette liste est obtenue par l'interrogation de la collection LogbookOperations.
+   - dans ArchiveUnitList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleUnits.
+   - dans DataObjectList, on aura une liste d'events en erreur. Cette liste est obtenue par l'interrogation de la collection LogbookLifecycleObjectGroups.
+
+Le XML est alors enregistré sur le Workspace. 
+
+4.10.4 journalisation : logbook operation? logbook life cycle?
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Dans le traitement du Handler, le logbook est interrogé : opérations et cycles de vie.
+Cependant aucune mise à jour est effectuée lors de l'exécution de ce handler.
+
+
+4.10.5 modules utilisés
+'''''''''''''''''''''''
+Le Handler utilise les modules suivants : 
+ - Workspace (récupération / copie de fichiers)
+ - Logbook (partie server) : pour le moment la partie server du logbook est utilisée pour récupérer les différents journaux (opérations et cycles de vie).
+ - Storage : permettant de stocker l'ATR.
+
+4.10.6 cas d'erreur
+'''''''''''''''''''
+Les différentes exceptions pouvant être rencontrées : 
+ - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
+ - Content*Exception : si un problème est rencontré lors de l'interrogation du workspace
+ - XML*Exception : si un souci est rencontré sur la génération du XML 
+ - ProcessingException : si un problème plus général est rencontré dans le Handler
+
+
+4.11 Détail du handler : AccessionRegisterActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.11.1 Description
+''''''''''''''''''
+AccessionRegisterActionHandler permet de fournir une vue globale et dynamique des archives 
+sous la responsabilité du service d'archives, pour chaque tenant.
+
+4.11.2 Détail des maps utilisées
+''''''''''''''''''''''''''''''''
+Map<String, String> objectGroupIdToGuid
+    contenu         : cette map contient l'id du groupe d'objet relié à son guid
+
+Map<String, String> archiveUnitIdToGuid
+	contenu         : cette map contient l'id du groupe d'objet relié à son guid
+    
+Map<String, Object> bdoToBdoInfo
+	contenu         : cette map contient l'id du binary data object relié à son information
+	
+4.11.3 exécution
+''''''''''''''''
+L'alimentation du registre des fonds a lieu pendant la phase de finalisation de l'entrée, 
+une fois que les objets et les units sont rangés. ("stepName": "STP_INGEST_FINALISATION")
+
+Le Registre des Fonds est alimenté de la manière suivante:
+	-- un identifiant unique
+	-- des informations sur le service producteur (OriginatingAgency)
+	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
+	-- date de début de l’enregistrement (Start Date)
+	-- date de fin de l’enregistrement (End Date)
+	-- date de dernière mise à jour de l’enregistrement (Last update)
+	-- nombre d’units (Total Units)
+	-- nombre de GOT (Total ObjectGroups) 
+	-- nombre d'Objets (Total Objects)
+	-- volumétrie des objets (Object Size)
+	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
+	-- status (ItemStatus)
+
+   
 Worker-common
 -------------
 
@@ -243,5 +538,3 @@ Worker-client
 -------------
 Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
 Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
-
-

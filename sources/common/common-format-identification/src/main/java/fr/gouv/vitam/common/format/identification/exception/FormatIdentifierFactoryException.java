@@ -32,6 +32,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class FormatIdentifierFactoryException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -3288206303819769296L;
+
+    /**
      * @param message associated message
      */
     public FormatIdentifierFactoryException(String message) {
@@ -51,17 +56,6 @@ public class FormatIdentifierFactoryException extends VitamException {
      */
     public FormatIdentifierFactoryException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FormatIdentifierFactoryException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

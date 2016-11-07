@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.SingletonUtils;
 /**
  * Step Object in process workflow
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Step {
 
@@ -49,7 +48,7 @@ public class Step {
 
     /**
      * getActions
-     * 
+     *
      * @return the list of actions to be executed for the step
      */
     public List<Action> getActions() {
@@ -91,7 +90,7 @@ public class Step {
     }
 
     /**
-     * @return the step Name 
+     * @return the step Name
      */
     public String getStepName() {
         if (stepName == null) {
@@ -140,8 +139,8 @@ public class Step {
     }
 
     /**
-     * @param stepType the stepType to set
-     * @return the updated Step 
+     * @param behavior the Process Behavior to set
+     * @return the updated Step
      */
     public Step setBehavior(ProcessBehavior behavior) {
         this.behavior = behavior;

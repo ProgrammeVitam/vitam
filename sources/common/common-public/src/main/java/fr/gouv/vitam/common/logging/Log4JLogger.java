@@ -55,6 +55,16 @@ final class Log4JLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void setLevel(VitamLogLevel level) {
+        Log4JLoggerFactory.loggerSetLevel(logger, level);
+    }
+
+    @Override
+    public VitamLogLevel getLevel() {
+        return Log4JLoggerFactory.loggerGetLevel(logger);
+    }
+
+    @Override
     public void timeInfo(String msg) {
         if (logger.isInfoEnabled()) {
             logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);

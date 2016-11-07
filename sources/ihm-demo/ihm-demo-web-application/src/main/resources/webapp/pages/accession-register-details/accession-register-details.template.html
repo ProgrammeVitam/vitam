@@ -1,0 +1,81 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li><a href="#">Page d'accueil</a></li>
+    <li><a href="#">Recherche</a></li>
+    <li><a href="#">Registre de Fonds</a></li>
+    <li><a href="#">Détail du Registre de Fonds</a></li>
+  </ol>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+        <h2>Service producteur {{accessionRegisterId}}</h2>
+    </span>
+
+    <!-- Get description metadata -->
+    <div class="panel-body" id="boxAccessionRegSummary">
+      <div class="table-responsive">
+        <div class="form-group col-md-12">
+          <div class="table-responsive">
+            <table class="table">
+              <tr>
+                <th>Nombre d'unités archivistiques</th>
+                <th>Nombre de groupes d'objets techniques</th>
+                <th>Nombre d'objets</th>
+                <th>Volumétrie des objets</th>
+              </tr>
+              <tr>
+                <td>Total: {{summaryData.TotalUnits.Total}}</td>
+                <td>Total: {{summaryData.TotalObjectGroups.Total}}</td>
+                <td>Total: {{summaryData.TotalObjects.Total}}</td>
+                <td>Total: {{summaryData.ObjectSize.Total}}</td>
+              </tr>
+              <tr>
+                <td>Supprimé: {{summaryData.TotalUnits.Deleted}}</td>
+                <td>Supprimé: {{summaryData.TotalObjectGroups.Deleted}}</td>
+                <td>Supprimé: {{summaryData.TotalObjects.Deleted}}</td>
+                <td>Supprimé: {{summaryData.ObjectSize.Deleted}}</td>
+              </tr>
+              <tr>
+                <td>Restant: {{summaryData.TotalUnits.Remained}}</td>
+                <td>Restant: {{summaryData.TotalObjectGroups.Remained}}</td>
+                <td>Restant: {{summaryData.TotalObjects.Remained}}</td>
+                <td>Restant: {{summaryData.ObjectSize.Remained}}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <span class="panel-header no-toggle">
+        <h2>Liste par opération</h2>
+      </span>
+        <div id="boxSearchResults" class="panel-body">
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Id opération</th>
+              <th>Service versant</th>
+              <th>Date d'entrée</th>
+              <th>Nombre d'unités archivistiques</th>
+              <th>Nombre de groupes d'objets techniques</th>
+              <th>Nombre d'objets</th>
+              <th>Statut</th>
+            </tr>
+            <tbody>
+            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in operationArray">
+              <td>{{result._id}}</td>
+              <td>{{result.SubmissionAgency}}</td>
+              <td>{{result.StartDate}}</td>
+              <td>Total: {{result.TotalUnits.total}}, Supprimé: {{result.TotalUnits.deleted}}, Restant: {{result.TotalUnits.remained}}</td>
+              <td>Total: {{result.TotalObjectGroups.total}}, Supprimé: {{result.TotalObjectGroups.deleted}}, Restant: {{result.TotalObjectGroups.remained}}</td>
+              <td>Total: {{result.TotalObjects.total}}, Supprimé: {{result.TotalObjects.deleted}}, Restant: {{result.TotalObjects.remained}}</td>
+              <td>{{'search.accessionRegister.fields.Status.' + result.Status | translate}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

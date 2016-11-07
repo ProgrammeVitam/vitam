@@ -1,0 +1,59 @@
+{
+    "_id": "aeaaaaaaaaaaaaababpwsakxtllsffiaaaaq",
+    "evId": "aeaaaaaaaaaam7mxaa63wakx2l4m6zqaaabq",
+    "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
+    "evDateTime": "2016-10-17T14:08:23.910",
+    "evIdProc": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
+    "evTypeProc": "INGEST",
+    "outcome": "STARTED",
+    "outDetail": "STARTED",
+    "outMessg": "STARTED",
+    "agId": "{\"name\":\"23e07afaf004\",\"role\":\"worker\",\"pid\":425367}",
+    "obId": "aeaaaaaaaaaaaaababpwsakxtllsffiaaaaq",
+    "evDetData": null,
+    "events": [
+        {
+            "evId": "aeaaaaaaaaaam7mxaa63wakx2l4m6zqaaabq",
+            "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
+            "evDateTime": "2016-10-17T14:08:23.920",
+            "evIdProc": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "OK",
+            "outMessg": "Journal du cycle de vie créé avec succès",
+            "agId": "{\"name\":\"23e07afaf004\",\"role\":\"worker\",\"pid\":425367}",
+            "obId": "aeaaaaaaaaaaaaababpwsakxtllsffiaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        },
+        {
+            "evId": "aeaaaaaaaaaam7mxaa63wakx2l4naeqaaaaq",
+            "evType": "Rangement des units",
+            "evDateTime": "2016-10-17T14:08:24.082",
+            "evIdProc": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "STARTED",
+            "outDetail": "STARTED",
+            "outMessg": "STARTED",
+            "agId": "{\"name\":\"23e07afaf004\",\"role\":\"worker\",\"pid\":425367}",
+            "obId": "aeaaaaaaaaaaaaababpwsakxtllsffiaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        },
+        {
+            "evId": "aeaaaaaaaaaam7mxaa63wakx2l4naeqaaaaq",
+            "evType": "Rangement des units",
+            "evDateTime": "2016-10-17T14:08:24.097",
+            "evIdProc": "aedqaaaaacaam7mxaa3vcakx2l4lpuiaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "FATAL",
+            "outDetail": "FATAL",
+            "outMessg": "Erreur de l'index unit",
+            "agId": "{\"name\":\"23e07afaf004\",\"role\":\"worker\",\"pid\":425367}",
+            "obId": "aeaaaaaaaaaaaaababpwsakxtllsffiaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        }
+    ],
+    "_tenant": 0
+}

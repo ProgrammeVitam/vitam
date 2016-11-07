@@ -37,8 +37,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Map;
 
 import org.junit.Test;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class PropertiesUtilsTest {
 
@@ -60,23 +63,23 @@ public class PropertiesUtilsTest {
         file = PropertiesUtils.fileFromTmpFolder(fictivePath);
         assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamTmpFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
-        
-        try (InputStream stream = PropertiesUtils.getResourcesAsStream("json-test.json")) {
+
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("json-test.json")) {
             assertTrue(stream != null);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             fail("Should not raized an exception");
         }
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testReadResourcesPathFileNotFound() throws IOException {
-        PropertiesUtils.getResourcesPath("vesR[l}EQ2v6");
+        PropertiesUtils.getResourcePath("vesR[l}EQ2v6");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesFileNotFound() throws FileNotFoundException {
-        PropertiesUtils.getResourcesFile("Y?DFe@=JZEwEbf~c");
+        PropertiesUtils.getResourceFile("Y?DFe@=JZEwEbf~c");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
@@ -107,21 +110,22 @@ public class PropertiesUtilsTest {
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesFileNotFoundNull() throws FileNotFoundException {
-        PropertiesUtils.getResourcesFile(null);
+        PropertiesUtils.getResourceFile(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesStreamNotFoundNull() throws FileNotFoundException {
-        PropertiesUtils.getResourcesAsStream(null);
+        PropertiesUtils.getResourceAsStream(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
+
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
-        final File file = PropertiesUtils.getResourcesFile(
+        final File file = PropertiesUtils.getResourceFile(
             ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertTrue(file.exists());
-        final Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
+        final Path path = PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertEquals(file.getAbsolutePath(), path.toString());
         try {
             assertFalse(PropertiesUtils.readProperties(path.toFile()).isEmpty());
@@ -167,6 +171,16 @@ public class PropertiesUtilsTest {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try {
+            final Map<String, Object> testMap = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                new TypeReference<Map<String, Object>>() {});
+            assertEquals("test", (String) testMap.get("test"));
+            assertEquals(12346, (int) testMap.get("number"));
+        } catch (final IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
         try (InputStream inputStream = new FileInputStream(
             PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF))) {
             final ConfigurationTest test = PropertiesUtils.readYaml(
@@ -179,7 +193,7 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourceFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
@@ -189,7 +203,7 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
@@ -214,6 +228,13 @@ public class PropertiesUtilsTest {
             // ignore
         }
         try {
+            final Map<String, Object> testMap = PropertiesUtils.readYaml(
+                (File) null, new TypeReference<Map<String, Object>>() {});
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (final IOException e1) {
+            // ignore
+        }
+        try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
                 (InputStream) null,
                 ConfigurationTest.class);
@@ -231,14 +252,14 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 null);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IOException e1) {
             // ignore
         }
     }
-    
+
     @Test
     public void testWriteYamlFile() throws FileNotFoundException {
         try {
@@ -246,11 +267,12 @@ public class PropertiesUtilsTest {
             final ConfigurationTest test = PropertiesUtils.readYaml(original, ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
-            File destination = File.createTempFile("test", ResourcesPublicUtilTest.YAML_TEST_CONF, original.getParentFile());
+            final File destination =
+                File.createTempFile("test", ResourcesPublicUtilTest.YAML_TEST_CONF, original.getParentFile());
             PropertiesUtils.writeYaml(destination, test);
         } catch (final IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
-        }        
+        }
     }
 }

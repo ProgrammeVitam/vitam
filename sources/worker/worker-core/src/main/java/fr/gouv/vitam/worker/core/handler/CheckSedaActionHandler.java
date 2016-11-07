@@ -28,11 +28,10 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
@@ -44,12 +43,11 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckSedaActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
-    private static final String HANDLER_ID = "checkSeda";
+    private static final String HANDLER_ID = "CHECK_SEDA";
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory SedaUtils factory
      */
     public CheckSedaActionHandler() {
         // empty constructor
@@ -63,11 +61,10 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        LOGGER.debug("checkSedaActionHandler running ...");
-        final EngineResponse response = new ProcessResponse();
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         CheckSedaValidationStatus status;
@@ -77,45 +74,41 @@ public class CheckSedaActionHandler extends ActionHandler {
             if (CheckSedaValidationStatus.VALID.equals(status)) {
                 messageId = sedaUtils.getMessageIdentifier(params);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException", e);
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
-            return response;
+            itemStatus.increment(StatusCode.FATAL);
+            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
 
 
         switch (status) {
             case VALID:
-                response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_OK);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
-                response.setMessageIdentifier(messageId);
-                return response;
+                itemStatus.increment(StatusCode.OK);
+                itemStatus.setData("messageIdentifier", messageId);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NO_FILE:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_NO_FILE);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
-                return response;
+                itemStatus.setItemId(HANDLER_ID + ".NO_FILE");
+                itemStatus.increment(StatusCode.KO);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XML_FILE:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
-                    OutcomeMessage.CHECK_MANIFEST_NOT_XML_FILE);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
-                return response;
+                itemStatus.setItemId(HANDLER_ID + ".NOT_XML_FILE");
+                itemStatus.increment(StatusCode.KO);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XSD_VALID:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
-                    OutcomeMessage.CHECK_MANIFEST_NOT_XSD_VALID);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
-                return response;
+                itemStatus.setItemId(HANDLER_ID + ".NOT_XSD_VALID");
+                itemStatus.increment(StatusCode.KO);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             default:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
-                return response;
+                itemStatus.increment(StatusCode.KO);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add Workspace:SIP/manifest.xml and check it
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 
 }

@@ -41,65 +41,65 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.api.MetaData;
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.RequestResponseOK;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.core.MetaDataImpl;
-import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
-import fr.gouv.vitam.core.database.collections.DbRequest;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.metadata.api.MetaData;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
+import fr.gouv.vitam.metadata.api.model.VitamError;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 /**
  * Units resource REST API
  */
 @Path("/metadata/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class MetaDataResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
-
-    private static final String X_HTTP_METHOD = "X-Http-Method-Override";
-
-
-
     private final MetaData metaDataImpl;
 
     /**
      * MetaDataResource constructor
-     * 
+     *
      * @param configuration {@link MetaDataConfiguration}
      */
-
-    // TODO: comment
     public MetaDataResource(MetaDataConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
         LOGGER.info("init MetaData Resource server");
+    }
+
+    MongoDbAccessMetadataImpl getMongoDbAccess() {
+        return ((MetaDataImpl) metaDataImpl).getMongoDbAccess();
     }
 
     /**
      * Insert or Select unit with json request
      * 
-     * @throws MetaDataDocumentSizeException
-     * @throws MetaDataExecutionException
+     * @param request
+     * @param xhttpOverride
+     * @return Response
      */
 
     @Path("units")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertOrSelectUnit(String request, @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+    // FIXME P0 changer String en JsonNode pour toutes les Query
+    public Response insertOrSelectUnit(String request,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
 
         if (xhttpOverride != null) {
             if ("GET".equals(xhttpOverride)) {
@@ -115,6 +115,8 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Create unit with json request
+     * 
+     * @return Response
      */
     private Response insertUnit(String insertRequest) {
         Status status;
@@ -189,20 +191,16 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
-     * 
+     *
      * @param selectRequest
      * @return
-     * @throws MetaDataDocumentSizeException
-     * @throws MetaDataExecutionException
-     * @throws InvalidParseOperationException
      */
     private Response selectUnitsByQuery(String selectRequest) {
         Status status;
         JsonNode jsonResultNode;
         try {
             jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
-
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -235,9 +233,10 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Select unit by query and path parameter unit_id
-     * 
+     *
      * @param selectRequest
      * @param unitId
+     * @param xhttpOverride
      * @return {@link Response} will be contains an json filled by unit result
      * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -247,7 +246,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectUnitById(String selectRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (!"GET".equals(xhttpOverride)) {
             return Response.status(Status.METHOD_NOT_ALLOWED).build();
         }
@@ -255,7 +254,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * 
+     *
      * @param selectRequest
      * @param unitId
      * @return {@link Response} will be contains an json filled by unit result
@@ -272,9 +271,10 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Update unit by query and path parameter unit_id
-     * 
+     *
      * @param updateRequest
      * @param unitId
+     * @param xhttpOverride
      * @return {@link Response} will be contains an json filled by unit result
      * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -284,7 +284,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (!"GET".equals(xhttpOverride)) {
             return Response.status(Status.METHOD_NOT_ALLOWED).build();
         }
@@ -292,8 +292,9 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Select unit by request and unit id TODO : maybe produce NOT_FOUND when unit is not found?
+     * Selects unit by request and unit id
      */
+    // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
     private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
         JsonNode jsonResultNode;
@@ -377,11 +378,14 @@ public class MetaDataResource extends ApplicationStatusResource {
             .build();
     }
 
-    // OBJECT GROUP RESOURCE. TODO see to externalize it (one resource for units, one resource for object group) to
+    // OBJECT GROUP RESOURCE. TODO P1 see to externalize it (one resource for units, one resource for object group) to
     // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
      * 
+     * @param insertRequest
+     * @return the Response
+     *
      * @throws InvalidParseOperationException
      */
     @Path("objectgroups")
@@ -492,7 +496,8 @@ public class MetaDataResource extends ApplicationStatusResource {
     public Response getObjectGroupById(String selectRequest, @PathParam("id_og") String objectGroupId) {
         try {
             ParametersChecker.checkParameter("Request select required", selectRequest);
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(new RequestResponseError().setError(
                 new VitamError(Status.PRECONDITION_FAILED.getStatusCode())
                     .setContext("METADATA")
@@ -505,8 +510,9 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Select unit by request and unit id TODO : maybe produce NOT_FOUND when objectGroup is not found?
+     * Selects unit by request and unit id
      */
+    // FIXME P0 : maybe produce NOT_FOUND when objectGroup is not found?
     private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
         Status status;
         JsonNode jsonResultNode;

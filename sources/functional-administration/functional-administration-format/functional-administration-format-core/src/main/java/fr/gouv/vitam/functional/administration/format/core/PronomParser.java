@@ -82,9 +82,13 @@ public class PronomParser {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
 
+    private PronomParser() {
+        // Empty
+    }
+
     /**
      * getPronom
-     * 
+     *
      * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
      * @throws FileFormatException
@@ -92,31 +96,31 @@ public class PronomParser {
     @SuppressWarnings("unchecked")
     public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {
         FileFormat pronomFormat = new FileFormat();
-        FileFormat fileFormat0 = new FileFormat();
+        final FileFormat fileFormat0 = new FileFormat();
         boolean bExtension = false;
         boolean bFileFormat = false;
         boolean bPriorityOverId = false;
 
         JsonNode jsonPronom = null;
-        ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
+        final ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
 
-        List<String> extensions = new ArrayList<String>();
-        List<String> priorityOverIdList = new ArrayList<String>();
-        Map<String, String> idToPUID = new HashMap<>();
+        final List<String> extensions = new ArrayList<String>();
+        final List<String> priorityOverIdList = new ArrayList<String>();
+        final Map<String, String> idToPUID = new HashMap<>();
 
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
+            final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {
-                XMLEvent event = eventReader.nextEvent();
+                final XMLEvent event = eventReader.nextEvent();
                 switch (event.getEventType()) {
                     case XMLStreamConstants.START_ELEMENT:
-                        StartElement startElement = event.asStartElement();
+                        final StartElement startElement = event.asStartElement();
                         String qName = startElement.getName().getLocalPart();
                         if (qName.equalsIgnoreCase(TAG_FFSIGNATUREFILE)) {
-                            Iterator<Attribute> attributes = startElement.getAttributes();
+                            final Iterator<Attribute> attributes = startElement.getAttributes();
                             while (attributes.hasNext()) {
-                                Attribute attribute = attributes.next();
+                                final Attribute attribute = attributes.next();
                                 switch (attribute.getName().toString()) {
                                     case ATTR_CREATEDDATE:
                                         fileFormat0.setCreatedDate(attribute.getValue());
@@ -132,10 +136,10 @@ public class PronomParser {
                             priorityOverIdList.clear();
                             bFileFormat = true;
 
-                            Iterator<Attribute> attributes = startElement.getAttributes();
-                            Map<String, Object> attributesMap = new HashMap<>();
+                            final Iterator<Attribute> attributes = startElement.getAttributes();
+                            final Map<String, Object> attributesMap = new HashMap<>();
                             while (attributes.hasNext()) {
-                                Attribute attribute = attributes.next();
+                                final Attribute attribute = attributes.next();
                                 attributesMap.put(attribute.getName().toString(), attribute.getValue());
                             }
                             idToPUID.put(attributesMap.get(ATTR_ID).toString(),
@@ -153,7 +157,7 @@ public class PronomParser {
                         break;
 
                     case XMLStreamConstants.CHARACTERS:
-                        Characters characters = event.asCharacters();
+                        final Characters characters = event.asCharacters();
                         if (bExtension && bFileFormat) {
                             extensions.add(characters.getData());
                             bExtension = false;
@@ -167,16 +171,14 @@ public class PronomParser {
                         break;
 
                     case XMLStreamConstants.END_ELEMENT:
-                        EndElement endElement = event.asEndElement();
+                        final EndElement endElement = event.asEndElement();
                         qName = endElement.getName().getLocalPart();
                         if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
                             pronomFormat.setExtension(extensions);
                             pronomFormat.setPriorityOverIdList(priorityOverIdList);
-                            //Add default value
-                            pronomFormat.setAlert(false);
-                            pronomFormat.setComment("");
-                            pronomFormat.setGroup("");
-                            
+                            // Add default value
+                            pronomFormat.cleanNullValues();
+
                             copyAttributesFromFileFormat(pronomFormat, fileFormat0);
                             jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
                             jsonFileFormatList.add(jsonPronom);
@@ -185,21 +187,21 @@ public class PronomParser {
                         break;
                 }
             }
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             LOGGER.error(e.getMessage());
             throw new InvalidFileFormatParseException("Invalid xml file format");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
             throw new JsonNodeFormatCreationException("Invalid object to create a json");
         }
 
-        for (Iterator<JsonNode> it = jsonFileFormatList.elements(); it.hasNext();) {
-            ObjectNode node = (ObjectNode) it.next();
-            ArrayNode priorityVersionList = (ArrayNode) node.get(TAG_HASPRIORITYOVERFILEFORMATID);
+        for (final Iterator<JsonNode> it = jsonFileFormatList.elements(); it.hasNext();) {
+            final ObjectNode node = (ObjectNode) it.next();
+            final ArrayNode priorityVersionList = (ArrayNode) node.get(TAG_HASPRIORITYOVERFILEFORMATID);
             if (priorityVersionList != null) {
-                ArrayNode newPriorityVersionList = JsonHandler.createArrayNode();
-                for (Iterator<JsonNode> iterator = priorityVersionList.elements(); iterator.hasNext();) {
-                    TextNode childId = (TextNode) iterator.next();
+                final ArrayNode newPriorityVersionList = JsonHandler.createArrayNode();
+                for (final Iterator<JsonNode> iterator = priorityVersionList.elements(); iterator.hasNext();) {
+                    final TextNode childId = (TextNode) iterator.next();
                     newPriorityVersionList.add(idToPUID.get(childId.asText()));
                 }
                 node.set(TAG_HASPRIORITYOVERFILEFORMATID, newPriorityVersionList);
@@ -210,9 +212,9 @@ public class PronomParser {
     }
 
     private static FileFormat getNewFileFormatFromAttributes(FileFormat fileFormat, Map<String, Object> attributes) {
-        FileFormat newFileFormat = new FileFormat();
+        final FileFormat newFileFormat = new FileFormat();
         if (attributes.get(ATTR_PUID).toString().startsWith(FMT)) {
-            for (String i : fileFormat.keySet()) {
+            for (final String i : fileFormat.keySet()) {
                 newFileFormat.put(i, fileFormat.get(i));
             }
             newFileFormat.putAll(attributes);
@@ -226,7 +228,7 @@ public class PronomParser {
 
     private static void copyAttributesFromFileFormat(FileFormat fileFormatSource, FileFormat fileFormatDest) {
         if (fileFormatSource.getString(ATTR_PUID).startsWith(FMT)) {
-            for (String i : fileFormatSource.keySet()) {
+            for (final String i : fileFormatSource.keySet()) {
                 if (!ATTR_PUID.equals(i) && !TAG_HASPRIORITYOVERFILEFORMATID.equals(i)) {
                     fileFormatDest.put(i, fileFormatSource.get(i));
                 }
@@ -235,6 +237,7 @@ public class PronomParser {
             fileFormatDest.clear();
             fileFormatDest.append(CREATED_DATE, fileFormatSource.getString(CREATED_DATE));
             fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
+            fileFormatDest.cleanNullValues();
         }
     }
 }

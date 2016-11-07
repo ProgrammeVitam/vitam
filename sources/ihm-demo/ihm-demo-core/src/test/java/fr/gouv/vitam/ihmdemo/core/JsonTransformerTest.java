@@ -48,36 +48,36 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class JsonTransformerTest {
 
     private static final String VALID_ALL_PARENTS =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_dom:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_dom:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
+            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_ID =
-        "[{Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_dom:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_dom:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+        "[{Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
+            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_UP =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
-            "{_id:'ID028',Title:'ID028',_dom:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_dom:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
+            "{_id:'ID028',Title:'ID028',_tenant:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_INVALID_UP =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_dom:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
-            "{_id:'ID027',Title:'ID027',_up:'WRONG_UP',_dom:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
+            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
+            "{_id:'ID027',Title:'ID027',_up:'WRONG_UP',_tenant:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
 
     private static JsonNode validParents;
     private static JsonNode invalidParentsWithMissingId;
@@ -97,7 +97,7 @@ public class JsonTransformerTest {
 
     @Test
     public void testTransformerSuccess() throws Exception {
-        JsonNode sampleObjectGroup =
+        final JsonNode sampleObjectGroup =
             JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
         assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
@@ -139,7 +139,7 @@ public class JsonTransformerTest {
 
     @Test
     public void testBuildLogbookStatCsvFile() throws VitamException, IOException {
-        ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation, "");
-        // TODO : validate the created report
+        final ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation);
+        // TODO P1 : validate the created report
     }
 }

@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
+ * Functional administration rest package
  * 
  */
 package fr.gouv.vitam.functional.administration.rest;

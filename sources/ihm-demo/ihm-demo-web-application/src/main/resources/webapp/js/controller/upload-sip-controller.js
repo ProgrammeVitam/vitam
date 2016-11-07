@@ -28,11 +28,16 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .constant("VITAM_URL", "/ihm-demo/v1/api/ingest/upload")
-  .controller('uploadController', function($scope, FileUploader, VITAM_URL, $mdDialog, $route, ihmDemoFactory) {
+  .constant("UPLOAD_CONSTANTS", {
+    "VITAM_URL": "/ihm-demo/v1/api/ingest/upload",
+    "ACCEPTED_STATUS": "202",
+    "KO_STATUS": "400"
+  })
+  .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS) {
+
     var uploader = $scope.uploader = new FileUploader({
       queueLimit: 1,
-      url : VITAM_URL,
+      url : UPLOAD_CONSTANTS.VITAM_URL,
       headers : {
         'Content-Type': 'application/octet-stream'
       },
@@ -126,11 +131,30 @@ angular.module('ihm.demo')
       console.info('onProgressAll', progress);
     };
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
-      downloadATR(response, headers);
       console.info('onSuccessItem', fileItem, response, status, headers);
+      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
+        $location.path('/login');
+        $cookies.remove('userCredentials');
+        $cookies.remove('role');
+      } else {
+        if(status == UPLOAD_CONSTANTS.ACCEPTED_STATUS){
+          fileItem.isWarning = true;
+        } else{
+          fileItem.isWarning = false;
+        }
+        fileItem.isSuccess = !fileItem.isWarning;
+        downloadATR(response, headers);
+      }
     };
     uploader.onErrorItem = function(fileItem, response, status, headers) {
       console.info('onErrorItem', fileItem, response, status, headers);
+      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
+          $location.path('/login');
+          $cookies.remove('userCredentials');
+          $cookies.remove('role');
+        } else if(status == UPLOAD_CONSTANTS.KO_STATUS) {
+          downloadATR(response, headers);
+        }
     };
     uploader.onCancelItem = function(fileItem, response, status, headers) {
       console.info('onCancelItem', fileItem, response, status, headers);

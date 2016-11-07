@@ -1,6 +1,6 @@
 import datetime
 
-copyright = u'%s, VITAM' % datetime.datetime.now().year
+copyright = u'%s, French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>' % datetime.datetime.now().year
 author = u'VITAM'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -119,7 +119,7 @@ html_theme_path = ["_themes"]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '../LogoVitamGrand2.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -228,7 +228,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = '../LogoVitamGrand2.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.

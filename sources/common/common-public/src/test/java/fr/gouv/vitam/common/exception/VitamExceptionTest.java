@@ -38,7 +38,7 @@ public class VitamExceptionTest {
         VitamException vitamException0 = new VitamException("");
         VitamException vitamException1 = new VitamException("", vitamException0);
         assertEquals("fr.gouv.vitam.common.exception.VitamException: ", vitamException1.toString());
-        vitamException1 = new VitamException("", vitamException0, false, false);
+        vitamException1 = new VitamException("", vitamException0);
         assertEquals("", vitamException1.getMessage());
         vitamException0 = new VitamException("");
         vitamException1 = new VitamException(vitamException0);

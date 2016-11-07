@@ -29,28 +29,23 @@ package fr.gouv.vitam.ingest.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 /**
  * Ingest external interface
  */
-public interface IngestExternalClient {
+public interface IngestExternalClient extends MockOrRestClient {
     /**
      * ingest upload file in local
-     * TODO : add file name
-     * @throws IngestExternalException 
-     * @throws XMLStreamException 
+     * @param stream 
+     * @return response
+     * 
+     * @throws IngestExternalException
+     * @throws XMLStreamException
      */
+	//TODO P0 : add file name
     Response upload(InputStream stream) throws IngestExternalException, XMLStreamException;
-    
-    /**
-     * Get the status from the service
-     *
-     * @return the Message status
-     * @throws IngestExternalException 
-     */
-    Status status() throws IngestExternalException;
 }

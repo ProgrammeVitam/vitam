@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  *
  */
 public class ParserTokens extends BuilderToken {
-    
+
     /**
      * Default prefix for internal variable
      */
@@ -96,7 +96,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit's immediate parents
          */
-        UNITUPS("unitups");
+        UNITUPS("unitups"),
+        /**
+         * Unit or GOT's list of participating operations
+         */
+        OPERATIONS("operations");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -155,6 +159,7 @@ public class ParserTokens extends BuilderToken {
                         case QUALIFIERS:
                         case SIZE:
                         case OBJECT:
+                        case UNITUPS:
                             return true;
                         default:
                     }

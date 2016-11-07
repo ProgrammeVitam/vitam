@@ -60,7 +60,7 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
     public static RequestToElasticsearch getRequestToElasticsearch(AbstractParser<?> requestParser)
         throws VitamException {
         if (requestParser instanceof SelectParserMultiple) {
-            return new SelectToElasticsearch((SelectParserMultiple) requestParser);
+            return new SelectToElasticsearch(requestParser);
         } else {
             throw new VitamException("Only Select Request is allowed on Indexation");
         }

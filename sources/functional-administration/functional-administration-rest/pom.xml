@@ -6,11 +6,9 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>functional-administration</artifactId>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 	</parent>
-	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>functional-administration-rest</artifactId>
-	<version>0.9.0-SNAPSHOT</version>
 	<name>functional-administration-rest</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,13 +28,19 @@
 			<artifactId>functional-administration-format-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-rules-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-accession-register-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-common</artifactId>
@@ -48,10 +52,15 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>ru.yandex.qatools.embed</groupId>
+			<artifactId>embedded-services</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
@@ -72,10 +81,14 @@
 			<groupId>org.jhades</groupId>
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
-		</dependency>				
+		</dependency>
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+			</plugins>
+		</pluginManagement>
 
 		<plugins>
 			<plugin>
@@ -97,44 +110,44 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
-			    <artifactId>maven-resources-plugin</artifactId>
-			    <executions>
-			      <execution>
-			        <id>copy-resources</id>
-			        <phase>validate</phase>
-			        <goals>
-			          <goal>copy-resources</goal>
-			        </goals>
-			        <configuration>
-			          <outputDirectory>${project.build.directory}/bin</outputDirectory>
-			          <resources>
-			            <resource>
-			                <directory>src/main/bin</directory>
-			                <filtering>true</filtering>
-			            </resource>
-			          </resources>
-			        </configuration>
-			      </execution>
-				<execution>
-					<id>copy-systemd-resources</id>
-					<phase>validate</phase>
-					<goals>
-						<goal>copy-resources</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.build.directory}/systemd</outputDirectory>
-						<resources>
-							<resource>
-								<directory>src/main/systemd</directory>
-								<filtering>true</filtering>
-							</resource>
-						</resources>
-					</configuration>
-				</execution>
-			    </executions>
-			  </plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-config-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/conf</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-systemd-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/systemd</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -154,9 +167,9 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<configuration>
 					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild> 
+					<skipDockerBuild>false</skipDockerBuild>
 					<skipDockerTag>false</skipDockerTag>
-				    <!-- Images specification -->
+					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/functional-administration</imageName>
 					<!-- copy the service's jar file from target into the root directory 
@@ -182,12 +195,12 @@
 					</resources>
 				</configuration>
 			</plugin>
-		   <plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>rpm-maven-plugin</artifactId>
-					<configuration>
-							<disabled>false</disabled>
-					</configuration>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
@@ -207,5 +220,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 </project>

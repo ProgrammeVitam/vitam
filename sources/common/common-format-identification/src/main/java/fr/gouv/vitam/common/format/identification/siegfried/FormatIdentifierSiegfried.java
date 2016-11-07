@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -55,7 +55,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Siegfried implementation of format identifier
  */
 public class FormatIdentifierSiegfried implements FormatIdentifier {
+    /**
+     * Pronom namespace
+     */
     public static final String PRONOM_NAMESPACE = "pronom";
+    /**
+     * Unknown namespace
+     */
     public static final String UNKNOW_NAMESPACE = "UNKNOW";
     private final SiegfriedClient client;
     private final Path rootPath;
@@ -66,7 +72,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     /**
      * Configuration should come with 'client', 'rootPath' and 'versionPath' mandatory parameters. If client is 'http':
      * 'host' and 'port' are mandatory. If not, mock client is used.
-     * 
+     *
      * @param configurationProperties the configuration properties needed to instantiate Siegfried format identifier
      * @throws FormatIdentifierTechnicalException If a technical error occures when the version path is created
      * @throws IllegalArgumentException if mandatory parameter are not given or null
@@ -77,30 +83,30 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         ParametersChecker.checkParameter("Root path cannot be null", configurationProperties.get("rootPath"));
         ParametersChecker.checkParameter("Version pathcannot be null", configurationProperties.get("versionPath"));
 
-        String clientType = (String) configurationProperties.get("client");
-        String root = (String) configurationProperties.get("rootPath");
-        String version = (String) configurationProperties.get("versionPath");
+        final String clientType = (String) configurationProperties.get("client");
+        final String root = (String) configurationProperties.get("rootPath");
+        final String version = (String) configurationProperties.get("versionPath");
 
-        SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
+        final SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
 
         if ("http".equals(clientType)) {
             ParametersChecker.checkParameter("Host cannot be null", configurationProperties.get("host"));
             ParametersChecker.checkParameter("Port cannot be null", configurationProperties.get("port"));
 
-            String host = (String) configurationProperties.get("host");
-            int port = (Integer) configurationProperties.get("port");
+            final String host = (String) configurationProperties.get("host");
+            final int port = (Integer) configurationProperties.get("port");
 
             factory.changeConfiguration(host, port);
-            this.client = factory.getSiegfriedClient();
-            this.rootPath = Paths.get(root);
-            this.versionPath = Paths.get(version);
+            client = factory.getSiegfriedClient();
+            rootPath = Paths.get(root);
+            versionPath = Paths.get(version);
 
-            Boolean createVersionPath = (Boolean) configurationProperties.get("createVersionPath");
+            final Boolean createVersionPath = (Boolean) configurationProperties.get("createVersionPath");
             if (BooleanUtils.isNotFalse(createVersionPath)) {
                 try {
                     // Create directory already check for file existance and possibility to create the directory.
                     Files.createDirectories(versionPath);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new FormatIdentifierTechnicalException(e);
                 }
             }
@@ -109,21 +115,21 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             // Mock configuration
             LOGGER.info("Bad value of client. Use mock");
             factory.changeConfiguration(null, 0);
-            this.client = factory.getSiegfriedClient();
-            this.rootPath = Paths.get(root);
-            this.versionPath = Paths.get(version);
+            client = factory.getSiegfriedClient();
+            rootPath = Paths.get(root);
+            versionPath = Paths.get(version);
         }
     }
 
     /**
      * For JUnit ONLY
-     * 
+     *
      * @param mockedClient a custom instance of siegfried client
      * @param rootPath the siegfried data root path
      * @param versionPath the version request path
      */
     FormatIdentifierSiegfried(SiegfriedClient mockedClient, Path rootPath, Path versionPath) {
-        this.client = mockedClient;
+        client = mockedClient;
         this.rootPath = rootPath;
         this.versionPath = versionPath;
     }
@@ -134,9 +140,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             LOGGER.debug("Check Siegfried status");
         }
 
-        JsonNode response = client.status(versionPath);
+        final JsonNode response = client.status(versionPath);
 
-        String version = response.get("siegfried").asText();
+        final String version = response.get("siegfried").asText();
         return new FormatIdentifierInfo(version, "Siegfried");
     }
 
@@ -147,9 +153,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-        Path filePath = Paths.get(rootPath.toString() + "/" + path.toString());
+        final Path filePath = Paths.get(rootPath.toString() + "/" + path.toString());
 
-        JsonNode response = client.analysePath(filePath);
+        final JsonNode response = client.analysePath(filePath);
 
         return extractFormat(response);
     }
@@ -160,28 +166,28 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             LOGGER.debug("extract format from siegfried response");
         }
 
-        List<FormatIdentifierResponse> matchesFormats = new ArrayList<>();
+        final List<FormatIdentifierResponse> matchesFormats = new ArrayList<>();
 
-        ArrayNode files = (ArrayNode) siegfriedResponse.get("files");
+        final ArrayNode files = (ArrayNode) siegfriedResponse.get("files");
         if (files == null || files.size() != 1) {
             throw new FormatIdentifierBadRequestException("The given path is not link to an unique file");
         }
-        JsonNode file = files.get(0);
+        final JsonNode file = files.get(0);
 
-        ArrayNode matches = (ArrayNode) file.get("matches");
-        for (JsonNode match : matches) {
+        final ArrayNode matches = (ArrayNode) file.get("matches");
+        for (final JsonNode match : matches) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Check match " + match.toString());
             }
-            String formatId = match.get("id").asText();
-            String namespace = match.get("ns").asText();
+            final String formatId = match.get("id").asText();
+            final String namespace = match.get("ns").asText();
             if (formatResolved(formatId, namespace)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Find a format " + formatId + " for " + namespace);
                 }
-                String mimetype = match.get("mime").asText();
-                String format = match.get("format").asText();
-                FormatIdentifierResponse formatIdentifier =
+                final String mimetype = match.get("mime").asText();
+                final String format = match.get("format").asText();
+                final FormatIdentifierResponse formatIdentifier =
                     new FormatIdentifierResponse(format, mimetype, formatId, namespace);
                 matchesFormats.add(formatIdentifier);
             }

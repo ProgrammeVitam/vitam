@@ -20,6 +20,11 @@ functional-administration
 	    			  |--- functional-administration-format-import 
 	    			  
 	    |--- functional-administration-rule : fournir des traitements de base pour la gestion de règles administratives
+	                  |--- functional-administration-rule-api  : Définition des APIs
+                      |--- functional-administration-rule-core : Impélmentation des APIs
+                      
+        |--- functional-administration-accession-register : fournir des traitements de base pour la gestion des registres de fonds
+                      |--- functional-administration-accession-register-core : Impélmentation des traitements des registres de fonds
 	    |			  
 	    |--- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement 
 	    |                       sur les traitements de format référentiel et gestion de règles administratives.
@@ -67,3 +72,21 @@ MongoDbAccess commun pour mongodb
 2.4. functional-administration-client 
 - AdminManagementClientRest.java : créer le client de et des fonctionnalités en se connectant au serveur REST
 - AdminManagementClientMock.java : créer le client et des fonctionnalités en se connectant au mock de serveur
+
+2.2. functional-administration-rules
+	+ functional-administration-rules-api
+	+ functional-administration-rules-core
+	- RulesManagerParser.java :permett de de parser le fichier de référentiel de règle de gestion d'extension .CSV 
+	  et récupérer le contenu en ArrayNode
+	- RulesManagerFileImpl.java : implémentation de base des opération sur les paramètres de référentiel de regle de gestion à partir 
+	de l'array Node générer après le parse de CSV File jusqu'à la base MongoDB.  
+
+2.2. functional-administration-accession-register
+	+ functional-administration-accession-register-api
+	+ functional-administration-accession-register-core
+	- ReferentialAccessionRegisterImpl.java :implémentation de base des opération sur la collection registre de fond .
+	 permet de créer une collection registre de fond et de faire la recherche par Service Producteur
+	 et l'affichage de détaile.
+	
+
+

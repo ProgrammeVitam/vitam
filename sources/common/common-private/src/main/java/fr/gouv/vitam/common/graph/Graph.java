@@ -52,29 +52,29 @@ public class Graph {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Graph.class);
 
-    private Vertex[] vertices;
+    private final Vertex[] vertices;
     private int size;
-    private int maxSize;
-    private Deque<Vertex> stack;
+    private final int maxSize;
+    private final Deque<Vertex> stack;
     private int count = 0;
 
     // map id_xml index
-    private BidiMap<Integer, String> indexMapping;
+    private final BidiMap<Integer, String> indexMapping;
 
     // set of roots
-    private Set<String> roots;
+    private final Set<String> roots;
     // longest path
     private Map<Integer, Set<String>> longestsPath;
 
     /**
      * Graph constructor
-     * 
+     *
      * @param JsonGraph { "ID027" : { }, "ID028" : { "_up" : [ "ID027" ] }, "ID029" : { "_up" : [ "ID028" ] }}
      */
     public Graph(JsonNode jsonGraph) {
         roots = new HashSet<>();
         indexMapping = new DualHashBidiMap<Integer, String>();
-        this.maxSize = jsonGraph.size();
+        maxSize = jsonGraph.size();
         // number of vertice
         LOGGER.debug("maxSize:" + maxSize);
         vertices = new Vertex[maxSize];
@@ -83,11 +83,11 @@ public class Graph {
             addVertex(i + 1);
         }
         // parse json to create graph
-        Iterator<Entry<String, JsonNode>> levelIterator = jsonGraph.fields();
+        final Iterator<Entry<String, JsonNode>> levelIterator = jsonGraph.fields();
         while (levelIterator.hasNext()) {
-            Entry<String, JsonNode> cycle = levelIterator.next();
-            String idChild = cycle.getKey();
-            JsonNode up = cycle.getValue();
+            final Entry<String, JsonNode> cycle = levelIterator.next();
+            final String idChild = cycle.getKey();
+            final JsonNode up = cycle.getValue();
             // create mappping
             addMapIdToIndex(idChild);
 
@@ -112,8 +112,8 @@ public class Graph {
 
     private int addMapIdToIndex(String idXml) {
         if (indexMapping != null) {
-            // FIXME since called many times, better to assign one for all this inverseBidiMap to a private variable
-            BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+            // FIXME P1 since called many times, better to assign one for all this inverseBidiMap to a private variable
+            final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
             if (xmlIdToIndex.get(idXml) == null) {
                 count++;
                 indexMapping.put(count, idXml);
@@ -124,7 +124,7 @@ public class Graph {
 
     /**
      * add vertex
-     * 
+     *
      * @param data
      */
     private void addVertex(int data) {
@@ -133,7 +133,7 @@ public class Graph {
 
     /**
      * add edge
-     * 
+     *
      * @param source
      * @param destination
      */
@@ -152,7 +152,7 @@ public class Graph {
 
         /**
          * Vertex constructor
-         * 
+         *
          * @param data
          */
         public Vertex(int data) {
@@ -181,21 +181,21 @@ public class Graph {
     }
 
     /**
-     * 
+     *
      * @param source
      * @return {@link Map} : longest path for list of child
      */
     private Map<Integer, Integer> findLongestsPath(int source) {
         applyTopologicalSort();
-        Map<Integer, Integer> longestsPathMap = new WeakHashMap<Integer, Integer>();
+        final Map<Integer, Integer> longestsPathMap = new WeakHashMap<Integer, Integer>();
         vertices[source - 1].cost = 0;
         while (!stack.isEmpty()) {
-            Vertex u = stack.pop();
+            final Vertex u = stack.pop();
             if (u.cost != Integer.MIN_VALUE) {
                 Neighbour temp = u.adj;
                 while (temp != null) {
-                    Vertex v = vertices[temp.index];
-                    if (v.cost < (temp.weight + u.cost)) {
+                    final Vertex v = vertices[temp.index];
+                    if (v.cost < temp.weight + u.cost) {
                         v.cost = temp.weight + u.cost;
                     }
                     temp = temp.next;
@@ -212,23 +212,23 @@ public class Graph {
 
     /**
      * create all longest path (or level stack: will be respected when indexing the units)
-     * 
+     *
      * @param roots
      * @return Map<Integer, Integer> :longest path for different roots
      */
     private Map<Integer, Integer> findAllLongestsPath(Set<String> roots) {
-        Map<Integer, Integer> allLongestsPath = new WeakHashMap<Integer, Integer>();
-        for (String rootXmlId : roots) {
+        final Map<Integer, Integer> allLongestsPath = new WeakHashMap<Integer, Integer>();
+        for (final String rootXmlId : roots) {
             // find longest path for different roots
-            Map<Integer, Integer> longestsPathMap = findLongestsPath(getIndex(rootXmlId));
+            final Map<Integer, Integer> longestsPathMap = findLongestsPath(getIndex(rootXmlId));
             if (allLongestsPath.isEmpty()) {
                 // if empty put all distances
                 allLongestsPath.putAll(longestsPathMap);
             } else {
                 // we verify the longest path
-                for (Map.Entry<Integer, Integer> e : longestsPathMap.entrySet()) {
-                    Integer key = e.getKey();
-                    Integer value = e.getValue();
+                for (final Map.Entry<Integer, Integer> e : longestsPathMap.entrySet()) {
+                    final Integer key = e.getKey();
+                    final Integer value = e.getValue();
                     LOGGER.debug("key" + key + "------------ value:" + indexMapping.get(key));
                     if (allLongestsPath.containsKey(key) && allLongestsPath.get(key) < value) {
                         // replace old value
@@ -243,23 +243,23 @@ public class Graph {
 
     /**
      * create level stack: the longest path for different roots
-     * 
+     *
      * @return {@link Map}
      */
     public Map<Integer, Set<String>> getGraphWithLongestPaths() {
 
-        this.longestsPath = new HashMap<Integer, Set<String>>();
+        longestsPath = new HashMap<Integer, Set<String>>();
         Map<Integer, Integer> paths = findAllLongestsPath(roots);
         if (paths != null) {
-            for (Map.Entry<Integer, Integer> e : paths.entrySet()) {
-                Integer unitId = e.getKey();
-                Integer level = e.getValue();
+            for (final Map.Entry<Integer, Integer> e : paths.entrySet()) {
+                final Integer unitId = e.getKey();
+                final Integer level = e.getValue();
                 if (longestsPath.containsKey(level) && longestsPath.get(level) != null) {
                     // add value
                     longestsPath.get(level).add(indexMapping.get(unitId));
 
                 } else {
-                    Set<String> units = new HashSet<String>();
+                    final Set<String> units = new HashSet<String>();
                     units.add(indexMapping.get(unitId));
                     longestsPath.put(level, units);
                 }
@@ -282,7 +282,7 @@ public class Graph {
         Neighbour temp = u.adj;
         u.state = State.VISITED;
         while (temp != null) {
-            Vertex v = vertices[temp.index];
+            final Vertex v = vertices[temp.index];
             if (v.state == State.NEW) {
                 depthFirstSearch(v);
             }
@@ -296,7 +296,7 @@ public class Graph {
         if (indexMapping != null) {
             // check value if exist
             if (indexMapping.containsValue(id)) {
-                BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+                final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
                 key = xmlIdToIndex.get(id);
             } else {
                 key = addMapIdToIndex(id);

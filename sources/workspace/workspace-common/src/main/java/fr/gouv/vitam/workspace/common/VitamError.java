@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 /**
  * VitamError class
  *
- * TODO: refactor to be common since this can be used by many other vitam components
  */
+//TODO P1: refactor to be common since this can be used by many other vitam components
 public class VitamError {
 
     private int code;
@@ -165,7 +165,7 @@ public class VitamError {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("{\"code\":\"");
         sb.append(code);
         sb.append("\",\"context\":\"");
@@ -185,8 +185,8 @@ public class VitamError {
             sb.append(description.replaceAll("\"", "'"));
         }
         sb.append("\",\"errors\":[");
-        StringJoiner joiner = new StringJoiner(",");
-        for (VitamError error : errors) {
+        final StringJoiner joiner = new StringJoiner(",");
+        for (final VitamError error : errors) {
             joiner.add(error.toString());
         }
         sb.append(joiner.toString());

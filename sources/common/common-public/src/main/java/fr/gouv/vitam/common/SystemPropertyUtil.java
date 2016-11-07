@@ -56,6 +56,7 @@ public final class SystemPropertyUtil {
      */
     static {
         refresh();
+        VitamConfiguration.checkVitamConfiguration();
     }
 
     private SystemPropertyUtil() {
@@ -100,13 +101,12 @@ public final class SystemPropertyUtil {
                 // should be used
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                 SysErrLogger.FAKE_LOGGER.syserr(
-                        "Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: " +
-                            e1.getMessage());
+                    "Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: " +
+                        e1.getMessage());
                 SysErrLogger.FAKE_LOGGER.syserr(
                     "Currently file.encoding is: " + get(FILE_ENCODING));
             }
         }
-        VitamConfiguration.checkVitamConfiguration();
     }
 
     /**
@@ -192,7 +192,7 @@ public final class SystemPropertyUtil {
         }
         SysErrLogger.FAKE_LOGGER.syserr(
             "Unable to parse the boolean system property '" + key + "':" + value + " - " +
-            USING_THE_DEFAULT_VALUE + def);
+                USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -226,7 +226,7 @@ public final class SystemPropertyUtil {
         }
         SysErrLogger.FAKE_LOGGER.syserr(
             "Unable to parse the integer system property '" + key + "':" + value + " - " +
-            USING_THE_DEFAULT_VALUE + def);
+                USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -261,7 +261,7 @@ public final class SystemPropertyUtil {
 
         SysErrLogger.FAKE_LOGGER.syserr(
             "Unable to parse the long integer system property '" + key + "':" + value + " - " +
-            USING_THE_DEFAULT_VALUE + def);
+                USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -489,7 +489,7 @@ public final class SystemPropertyUtil {
             String os = "";
             try {
                 os = System.getProperty("os.name").toLowerCase();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 // ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }

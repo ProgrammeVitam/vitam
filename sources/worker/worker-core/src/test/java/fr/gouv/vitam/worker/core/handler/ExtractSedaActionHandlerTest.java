@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,19 +42,17 @@ import java.net.URISyntaxException;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -68,17 +67,25 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class ExtractSedaActionHandlerTest {
     private static final String TMP_TESTS = "/tmp/tests";
     ExtractSedaActionHandler handler = new ExtractSedaActionHandler();
-    private static final String HANDLER_ID = "ExtractSeda";
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
-    private final InputStream seda_arborescence =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
+    private WorkspaceClientFactory workspaceClientFactory;    
+    private final InputStream seda_arborescence;
     private HandlerIO action;
+
+    public ExtractSedaActionHandlerTest() throws FileNotFoundException {
+        seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+    }
 
     @Before
     public void setUp() throws URISyntaxException {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
         action = new HandlerIO("");
         for (int i = 0; i < ExtractSedaActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
             action.addOutput(TMP_TESTS);
@@ -88,32 +95,27 @@ public class ExtractSedaActionHandlerTest {
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
+        assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
-    @Ignore
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
-        assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
@@ -122,16 +124,14 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -140,15 +140,13 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -157,15 +155,13 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -174,15 +170,43 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
+    @Test
+    public void givenSipWithDoubleBMThenFatal()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+    
+    @Test
+    public void givenSipTransformToUsage_1ThenSuccess()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -191,15 +215,13 @@ public class ExtractSedaActionHandlerTest {
         FileNotFoundException {
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-                ("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getStatus());
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
 }

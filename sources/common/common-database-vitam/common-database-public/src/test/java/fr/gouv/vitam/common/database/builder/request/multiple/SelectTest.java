@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.builder.request.multiple;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -115,38 +114,38 @@ public class SelectTest {
     @Test
     public void testAddUsedProjection() {
         final Select select = new Select();
-        assertNull(select.projection);
+        assertTrue(select.getProjection().size() == 0);
         try {
             select.addUsedProjection("var1", "var2");
-            assertEquals(2, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
+            assertEquals(2, select.getProjection().get(PROJECTION.FIELDS.exactToken()).size());
             select.addUsedProjection("var3").addUsedProjection("var4");
-            assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
+            assertEquals(4, select.getProjection().get(PROJECTION.FIELDS.exactToken()).size());
             select.addUnusedProjection("var1", "var2");
             // used/unused identical so don't change the number
-            assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
+            assertEquals(4, select.getProjection().get(PROJECTION.FIELDS.exactToken()).size());
             select.addUnusedProjection("var3").addUnusedProjection("var4");
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
+        assertEquals(4, select.getProjection().get(PROJECTION.FIELDS.exactToken()).size());
         select.resetUsedProjection();
-        assertFalse(select.projection.has(PROJECTION.FIELDS.exactToken()));
+        assertFalse(select.getProjection().has(PROJECTION.FIELDS.exactToken()));
     }
 
     @Test
     public void testAddUsageProjection() {
         final Select select = new Select();
-        assertNull(select.projection);
+        assertTrue(select.getProjection().size() == 0);
         try {
             select.setUsageProjection("usage");
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertTrue(select.projection.has(PROJECTION.USAGE.exactToken()));
+        assertTrue(select.getProjection().has(PROJECTION.USAGE.exactToken()));
         select.resetUsageProjection();
-        assertFalse(select.projection.has(PROJECTION.USAGE.exactToken()));
+        assertFalse(select.getProjection().has(PROJECTION.USAGE.exactToken()));
     }
 
     @Test
@@ -191,9 +190,9 @@ public class SelectTest {
         final Select select = new Select();
         select.addUsedProjection("var1");
         select.setUsageProjection("usageId1");
-        assertEquals(2, select.projection.size());
+        assertEquals(2, select.getProjection().size());
         select.reset();
-        assertEquals(0, select.projection.size());
+        assertEquals(0, select.getProjection().size());
     }
 
     @Test
@@ -201,7 +200,8 @@ public class SelectTest {
         final Select select = new Select();
         select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
         select.parseLimitFilter("{$limit : 5}");
-        assertEquals("{\"maclef1\":1,\"maclef2\":-1}", select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
+        assertEquals("{\"maclef1\":1,\"maclef2\":-1}",
+            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
         assertEquals("5", select.getFilter().get(SELECTFILTER.LIMIT.exactToken()).toString());
         select.resetFilter();
         select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");

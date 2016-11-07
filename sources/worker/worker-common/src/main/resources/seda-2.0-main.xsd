@@ -2,9 +2,8 @@
 <xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
-
 	<xsd:annotation>
-		<xsd:documentation>Cette version est en mode lax, remplaçant les Abstract par des xsd:any</xsd:documentation>
+ 		<xsd:documentation>Cette version est en mode lax, remplaçant les Abstract par des xsd:any</xsd:documentation>
 	</xsd:annotation>
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
     <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
@@ -83,7 +82,7 @@
                     <xsd:documentation>Version de la liste de codes des relations.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any namespace="##other" processContents="lax" minOccurs="0"/>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <!-- <xsd:element ref="OtherCodeListAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>

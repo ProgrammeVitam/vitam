@@ -39,10 +39,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierType;
 
 /**
- * Format Identifier Configuration : contains all the parameters to instaciate a FormatIdentifier implementation. Only
+ * Format Identifier Configuration : contains all the parameters to instantiate a FormatIdentifier implementation. Only
  * the type is mandatory since it is used to choose the implementation class, all other properties are in
  * configurationProperties.
  */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FormatIdentifierConfiguration {
 
@@ -50,11 +51,11 @@ public class FormatIdentifierConfiguration {
     private FormatIdentifierType type;
 
     @JsonIgnore
-    private Map<String, Object> configurationProperties = new HashMap<>();
+    private final Map<String, Object> configurationProperties = new HashMap<>();
 
     /**
      * Get the type
-     * 
+     *
      * @return the type
      */
     @JsonProperty("type")
@@ -64,7 +65,7 @@ public class FormatIdentifierConfiguration {
 
     /**
      * Set the type
-     * 
+     *
      * @param type the type
      */
     @JsonProperty("type")
@@ -74,23 +75,23 @@ public class FormatIdentifierConfiguration {
 
     /**
      * Get the configuration properties
-     * 
+     *
      * @return map of configuration properties
      */
     @JsonAnyGetter
     public Map<String, Object> getConfigurationProperties() {
-        return this.configurationProperties;
+        return configurationProperties;
     }
 
     /**
      * Add a property to the configuration properties
-     * 
+     *
      * @param name the property name
      * @param value the property value
      */
     @JsonAnySetter
     public void setConfigurationProperty(String name, Object value) {
-        this.configurationProperties.put(name, value);
+        configurationProperties.put(name, value);
     }
 
 }

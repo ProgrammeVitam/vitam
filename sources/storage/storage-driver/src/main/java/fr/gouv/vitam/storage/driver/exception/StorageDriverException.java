@@ -34,9 +34,13 @@ package fr.gouv.vitam.storage.driver.exception;
  */
 public class StorageDriverException extends Exception {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5618781604751959001L;
     private final String driverInfo;
     private final ErrorCode errorCode;
-    private static final String ERROR_MESSAGE = "An error occured for driver '";    
+    private static final String ERROR_MESSAGE = "An error occured for driver '";
 
     /**
      * Constructor with a message and additional info about the driver
@@ -93,7 +97,7 @@ public class StorageDriverException extends Exception {
      * @return the error code
      */
     public ErrorCode getErrorCode() {
-        return this.errorCode;
+        return errorCode;
     }
 
     /**

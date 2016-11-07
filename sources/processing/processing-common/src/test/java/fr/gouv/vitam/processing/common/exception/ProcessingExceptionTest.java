@@ -43,6 +43,5 @@ public class ProcessingExceptionTest {
             new ProcessingException(ERROR, new Exception()).toString());
         assertEquals(ERROR, new ProcessingException(ERROR).getMessage());
         assertEquals(JAVA_ERROR, new ProcessingException(new Exception()).getMessage());
-        assertNotNull(new ProcessingUnauthorizeException(ERROR, new Exception(), true, true).getCause());
     }
 }

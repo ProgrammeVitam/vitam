@@ -73,7 +73,7 @@ public class LogbackLoggerTest {
     @Test
     public void testIsTraceEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.TRACE));
-        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("foo1");
         assertTrue(logger.isTraceEnabled());
         buf.setLength(0);
         logger.trace("a");
@@ -87,12 +87,14 @@ public class LogbackLoggerTest {
         logger.trace("", new Object(), new Object(), new Object());
         buf.setLength(0);
         logger.isEnabled(VitamLogLevel.TRACE);
+        logger.setLevel(VitamLogLevel.ERROR);
+        assertFalse(logger.isInfoEnabled());
     }
 
     @Test
     public void testIsDebugEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.DEBUG));
-        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("foo2");
         assertTrue(logger.isDebugEnabled());
         buf.setLength(0);
         logger.debug("a");
@@ -111,7 +113,7 @@ public class LogbackLoggerTest {
     @Test
     public void testIsInfoEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.INFO));
-        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("foo3");
         assertTrue(logger.isInfoEnabled());
         buf.setLength(0);
         logger.info("a");
@@ -130,7 +132,7 @@ public class LogbackLoggerTest {
     @Test
     public void testIsWarnEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
-        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        final VitamLogger logger = VitamLoggerFactory.getInstance("foo4");
         assertTrue(logger.isWarnEnabled());
         buf.setLength(0);
         logger.warn("a");
@@ -149,7 +151,7 @@ public class LogbackLoggerTest {
     @Test
     public void testIsErrorEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.ERROR));
-        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo5");
         assertTrue(logger.isErrorEnabled());
         buf.setLength(0);
         logger.error("a");
@@ -197,7 +199,7 @@ public class LogbackLoggerTest {
         assertTrue(buf.length() == 0);
 
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.TRACE));
-        logger = VitamLoggerFactory.getInstance("foo");
+        logger = VitamLoggerFactory.getInstance("foo6");
         assertTrue(logger.isEnabled(VitamLogLevel.TRACE));
 
         // Check varous calls
@@ -251,7 +253,7 @@ public class LogbackLoggerTest {
     @Test
     public void testTimeTrace() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.INFO));
-        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo7");
         assertTrue(logger.isInfoEnabled());
         buf.setLength(0);
         logger.timeInfo("a");
@@ -267,7 +269,7 @@ public class LogbackLoggerTest {
         assertTrue(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
         buf.setLength(0);
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
-        logger = VitamLoggerFactory.getInstance("foo");
+        logger = VitamLoggerFactory.getInstance("foo8");
         assertFalse(logger.isInfoEnabled());
         buf.setLength(0);
         logger.timeInfo("a");

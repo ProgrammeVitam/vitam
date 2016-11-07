@@ -44,7 +44,7 @@ public class WorkerBeanTest {
 
     @Test
     public void testConstructor() {
-        WorkerBean wb = new WorkerBean();
+        final WorkerBean wb = new WorkerBean();
         assertEquals(null, wb.getFamily());
         assertEquals(null, wb.getName());
         assertEquals(0, wb.getCapacity());
@@ -57,7 +57,7 @@ public class WorkerBeanTest {
 
     @Test
     public void testWorkBeanFromJson() throws InvalidParseOperationException {
-        WorkerBean wb = JsonHandler.getFromString(JSON_WORKER, WorkerBean.class);
+        final WorkerBean wb = JsonHandler.getFromString(JSON_WORKER, WorkerBean.class);
         assertEquals("familyname", wb.getFamily());
         assertEquals("workername", wb.getName());
         assertEquals(10, wb.getCapacity());
@@ -74,10 +74,10 @@ public class WorkerBeanTest {
 
     @Test
     public void testWorkBeanSetters() throws InvalidParseOperationException {
-        WorkerBean wb = new WorkerBean();
+        final WorkerBean wb = new WorkerBean();
         wb.setCapacity(0).setFamily("family").setName("name")
             .setStatus("Active").setStorage(0).setWorkerId("workerId");
-        WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost",89102);
+        final WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost", 89102);
         wb.setConfiguration(wc);
         assertEquals("family", wb.getFamily());
         assertEquals("name", wb.getName());

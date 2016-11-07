@@ -7,3 +7,5 @@ Architecture Technique
 
    introduction.rst
    server.rst
+   notification-atr-ok.rst
+   notification-atr-ko.rst

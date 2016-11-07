@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-server</artifactId>
 	<name>Worker Server</name>
@@ -95,21 +95,15 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
-				<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<parallel>classes</parallel>
-					<threadCount>1</threadCount>
-					<perCoreThreadCount>false</perCoreThreadCount>
-					<forkCount>1</forkCount>
-					<reuseForks>false</reuseForks>
-				</configuration>
-			</plugin>
 			<plugin>
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -134,16 +128,16 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-config-resources</id>
 						<phase>validate</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/bin</outputDirectory>
+							<outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
 							<resources>
 								<resource>
-									<directory>src/main/bin</directory>
+									<directory>${basedir}/src/main/conf</directory>
 									<filtering>true</filtering>
 								</resource>
 							</resources>

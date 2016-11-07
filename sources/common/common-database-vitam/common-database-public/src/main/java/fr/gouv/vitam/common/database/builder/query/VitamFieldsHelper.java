@@ -43,6 +43,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SIZE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OPERATIONS;
 
 
 /**
@@ -138,18 +139,25 @@ public class VitamFieldsHelper {
     public static final String qualifiers() {
         return QUALIFIERS.exactToken();
     }
-    
+
     /**
      * @return #og
      */
     public static final String object() {
         return OBJECT.exactToken();
     }
-    
+
     /**
      * @return #up
      */
     public static final String unitups() {
         return UNITUPS.exactToken();
+    }
+
+    /**
+     * @return #operations
+     */
+    public static final String operations() {
+        return OPERATIONS.exactToken();
     }
 }

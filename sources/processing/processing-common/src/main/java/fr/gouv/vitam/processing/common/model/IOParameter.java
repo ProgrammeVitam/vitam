@@ -1,37 +1,29 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
- * This software is a computer program whose purpose is to implement a digital 
- * archiving back-office system managing high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  *
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
- */
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
 
@@ -46,44 +38,54 @@ import fr.gouv.vitam.common.ParametersChecker;
  * IOParameter for action or step
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class IOParameter  {
+public class IOParameter {
     @JsonProperty("name")
     private String name;
     @JsonProperty("uri")
     private ProcessingUri uri;
+    @JsonProperty("optional")
+    private String optional;
     private String value;
-    
+
     /**
      * @return name
      */
     public String getName() {
         return name;
     }
-    
+
     /**
      * @param name the value to set
-     * @return this 
+     * @return this
      */
     public IOParameter setName(String name) {
         ParametersChecker.checkParameter("Name is a mandatory parameter", name);
         this.name = name;
         return this;
     }
-    
+
     /**
      * @return uri
      */
     public ProcessingUri getUri() {
         return uri;
     }
-    
+
     /**
      * @return value
      */
     public String getValue() {
         return value;
     }
-    
+
+    /**
+     * 
+     * @return optional
+     */
+    public String getOptional() {
+        return optional;
+    }
+
     /**
      * @param uri the value to set
      * @return this
@@ -94,6 +96,7 @@ public class IOParameter  {
         this.uri = uri;
         return this;
     }
+
     /**
      * @param value the value to set
      *
@@ -102,6 +105,22 @@ public class IOParameter  {
     public IOParameter setValue(String value) {
         ParametersChecker.checkParameter("Value is a mandatory parameter", value);
         this.value = value;
+        return this;
+    }
+
+    /**
+     * Set the optional. Sets "false" if value is different of "true".
+     * 
+     * @param optional the optional to set
+     *
+     * @return this
+     */
+    public IOParameter setOptional(String optional) {
+        if (!"true".equals(optional)) {
+            this.optional = "false";
+        } else {
+            this.optional = optional;
+        }
         return this;
     }
 }

@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.model.response;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +34,12 @@ import java.util.List;
 import org.junit.Test;
 
 public class IngestExternalErrorTest {
-    private int code = 123;
-    private List<IngestExternalError> errors = new ArrayList<IngestExternalError>();
+    private final int code = 123;
+    private final List<IngestExternalError> errors = new ArrayList<IngestExternalError>();
 
     @Test
     public void testSettersandGetters() {
-        IngestExternalError ingestExtError = new IngestExternalError(code);
+        final IngestExternalError ingestExtError = new IngestExternalError(code);
         errors.add(ingestExtError);
         assertEquals(code, ingestExtError.setCode(code).getCode());
         assertEquals("description", ingestExtError.setDescription("description").getDescription());

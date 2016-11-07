@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * ingest external rest package
+ * Ingest external rest package
  */
 package fr.gouv.vitam.ingest.external.rest;

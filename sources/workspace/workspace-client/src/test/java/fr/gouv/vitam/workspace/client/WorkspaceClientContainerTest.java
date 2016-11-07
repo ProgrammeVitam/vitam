@@ -28,7 +28,6 @@ package fr.gouv.vitam.workspace.client;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
@@ -38,16 +37,13 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -56,23 +52,15 @@ import fr.gouv.vitam.workspace.common.Entry;
 
 public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
-    private static final String CONTAINER_NAME = "myContainer";
+    private static final String CONTAINER_NAME = "myContainer" + GUIDFactory.newGUID().toString();
 
     @Override
-    protected Application configure() {
-        //set(TestProperties.LOG_TRAFFIC, true);
-        set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        mock = mock(ExpectedResults.class);
-        resourceConfig.registerInstances(new MockContainerResource(mock));
-        return resourceConfig;
+    MockResource getMockResource() {
+        return new MockContainerResource(mock);
     }
 
     @Path("workspace/v1/containers")
-    public static class MockContainerResource {
+    public static class MockContainerResource extends MockResource {
 
         private final ExpectedResults expectedResponse;
 
@@ -81,20 +69,22 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
         }
 
         @POST
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(Entry container) {
+        @Path("{containerName}")
+        public Response create(@PathParam("containerName") String containerName) {
             return expectedResponse.post();
         }
 
         @DELETE
         @Path("{containerName}")
+        @Produces(MediaType.APPLICATION_JSON)
         public Response delete(@PathParam("containerName") String containerName) {
             return expectedResponse.delete();
         }
 
         @HEAD
         @Path("{containerName}")
+        @Produces(MediaType.APPLICATION_JSON)
         public Response isExistingContainer(@PathParam("containerName") String containerName) {
             return expectedResponse.head();
         }
@@ -162,25 +152,24 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckContainerExistenceThenRaiseAnException() {
+    public void givenNullParamWhenCheckContainerExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
         client.isExistingContainer(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckContainerExistenceThenRaiseAnException() {
+    public void givenEmptyParamWhenCheckContainerExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
         client.isExistingContainer("");
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnTrue() {
+    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnTrue() throws ContentAddressableStorageServerException{
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnFalse() {
+    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnFalse() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingContainer(CONTAINER_NAME));
     }
-
 }

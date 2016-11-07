@@ -37,11 +37,12 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
 
 /**
  * Test for logbook operation client
@@ -51,13 +52,13 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void createTest() {
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -84,13 +85,13 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void updateTest() {
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -116,13 +117,13 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void statusTest() throws LogbookClientException {
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+    public void statusTest() throws LogbookClientException, VitamApplicationServerException {
+        LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.status());
+        client.checkStatus();
     }
 
     private void fillLogbookParamaters(LogbookParameters logbookParamaters) {
@@ -161,10 +162,10 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void selectTest() throws LogbookClientException, InvalidParseOperationException {
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
             client.selectOperation(request).get("result").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",

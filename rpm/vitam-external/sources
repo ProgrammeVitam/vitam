@@ -12,3 +12,4 @@ http://packages.elastic.co/curator/4/centos/7/Packages/python-pyyaml-3.11-1.x86_
 https://download.elastic.co/kibana/kibana/kibana-4.6.1-x86_64.rpm
 https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/rpm/elasticsearch/2.4.0/elasticsearch-2.4.0.rpm
 https://download.elastic.co/logstash/logstash/packages/centos/logstash-2.4.0.noarch.rpm
+https://download.elastic.co/beats/packetbeat/packetbeat-1.3.1-x86_64.rpm

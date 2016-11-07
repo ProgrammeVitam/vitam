@@ -28,8 +28,6 @@ package fr.gouv.vitam.ingest.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 
-import java.io.File;
-
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -38,14 +36,10 @@ import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
 
 public class IngestExternalSslResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);
@@ -54,27 +48,26 @@ public class IngestExternalSslResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl-test.conf";
 
-    private static VitamServer vitamServer;
     private static JunitHelper junitHelper;
     private static int serverPort;
+
+    private static IngestExternalApplication application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les test parallèle sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
+        // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
-        // TODO activate authentication
+        // TODO P1 activate authentication
         // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
         try {
-            vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());
-            ((BasicVitamServer) vitamServer).start();
+            application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
+            application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -86,12 +79,8 @@ public class IngestExternalSslResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        try {
-            if (vitamServer != null) {
-                ((BasicVitamServer) vitamServer).stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
+        if (application != null) {
+            application.stop();
         }
         junitHelper.releasePort(serverPort);
     }

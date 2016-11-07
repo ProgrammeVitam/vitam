@@ -38,13 +38,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
- * 
+ *
  */
 public class StorageApplicationTest {
 
@@ -54,7 +53,7 @@ public class StorageApplicationTest {
 
     private static int serverPort;
     private static int oldPort;
-    private static JunitHelper junitHelper = new JunitHelper();
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static File storage;
 
     // @BeforeClass
@@ -84,24 +83,15 @@ public class StorageApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            StorageApplication.startApplication(STORAGE_CONF);
-            StorageApplication.stop();
+            new StorageApplication(STORAGE_CONF);
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (Exception e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-
     }
 
-
-    @Test(expected = VitamException.class)
+    @Test(expected = IllegalStateException.class)
     public final void shouldRaiseAnException() throws VitamException {
-        StorageApplication.startApplication("");
+        new StorageApplication((String) null);
     }
 
 }

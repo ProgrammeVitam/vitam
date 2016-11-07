@@ -28,39 +28,33 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
-import java.util.List;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * Ingest Internal client interface
  */
 
-public interface IngestInternalClient {
-	
-	
-	/**
-     * Get the status from the service
-     *
-     * @return http code
-     */
-    int status();
+public interface IngestInternalClient extends MockOrRestClient {
 
-	/**
-     * Upload SIP
-     *
-     * @param InputStream SIP
-     * @param fileName SIP name
-     *
-     * @return content of xml in type String
-	 * @throws XMLStreamException 
+    /**
+     * 
+     * Upload compressed SIP as stream
+     * 
+     * @param guid
+     * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
+     * @param inputStream SIP
+     * @param logbookParametersList list of log book parameters {@link LogbookParameters}
+     * @throws VitamException if stream is null
+     * @return Response {@link Response}
+     * 
      */
-    Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException, XMLStreamException;
-    
+    Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList, InputStream inputStream,
+        String archiveType) throws VitamException;
 
 }

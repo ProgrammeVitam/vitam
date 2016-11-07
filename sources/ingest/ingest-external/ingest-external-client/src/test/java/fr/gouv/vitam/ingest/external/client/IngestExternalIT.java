@@ -26,95 +26,94 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.File;
-
-import javax.ws.rs.core.Response.Status;
-
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory.IngestExternalClientType;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
 
 /**
- * 
+ *
  */
 public class IngestExternalIT {
 
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl-test.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "ingest-external-client-secure.conf";
-    private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED = "ingest-external-client-secure_notgranted.conf";
+    private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED =
+        "ingest-external-client-secure_notgranted.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_EXPIRED = "ingest-external-client-secure_expired.conf";
-    private static VitamServer vitamServer;
+
+    private static IngestExternalApplication application;
     private static JunitHelper junitHelper;
     private static int serverPort;
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() {
 
-        junitHelper = new JunitHelper();
-        serverPort =junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
+        junitHelper = JunitHelper.getInstance();
+        serverPort = junitHelper.findAvailablePort();
 
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        JunitHelper.setJettyPortSystemProperty(serverPort);
+
+        application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
         try {
-            vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());
-            ((BasicVitamServer) vitamServer).start();
-        } catch (final VitamApplicationServerException e) {
+            application.start();
+        } catch (VitamApplicationServerException e) {
             throw new IllegalStateException(
                 "Cannot start the Ingest External Application Server", e);
         }
     }
-    
+
+
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        if (application != null) {
+            application.stop();
+        }
+        junitHelper.releasePort(serverPort);
+    }
+
     @Test
     public void givenCertifValidThenReturnOK() {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
-        factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
-        IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
+        SecureClientConfiguration secureClientConfiguration =
+            IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
+        secureClientConfiguration.setServerPort(serverPort);
+        IngestExternalClientFactory.changeMode(secureClientConfiguration);
+
         try {
-            IngestExternalClient client = factory.getIngestExternalClient();
-            Status status= client.status();
-            assertEquals(Status.NO_CONTENT.getStatusCode(), status.getStatusCode());
-        } catch (VitamException e) {
+            IngestExternalClientFactory.getInstance().getClient().checkStatus();
+        } catch (VitamApplicationServerException e) {
             e.printStackTrace();
             fail();
         }
     }
-    
-    
-    @Test
-    public void givenCertifNotGrantedThenReturnForbidden() {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
-        factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
-        IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
-        try {
-            IngestExternalClient client = factory.getIngestExternalClient();
-            Status status= client.status();
-            assertEquals(403, status.getStatusCode());
-        } catch (VitamException e) {
-            fail();
-        }
+
+
+    @Test(expected = VitamApplicationServerException.class)
+    public void givenCertifNotGrantedThenReturnForbidden() throws VitamApplicationServerException {
+        SecureClientConfiguration secureClientConfiguration =
+            IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
+        secureClientConfiguration.setServerPort(serverPort);
+
+        IngestExternalClientFactory.changeMode(secureClientConfiguration);
+        IngestExternalClientFactory.getInstance().getClient().checkStatus();
     }
- 
-    
-    @Test(expected = IngestExternalException.class)
-    public void givenCertifExpiredThenRaiseAnException() throws VitamException {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
-        factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
-        IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
-        IngestExternalClient client = factory.getIngestExternalClient();
-        Status status= client.status();
-        fail();
+
+
+    @Test(expected = VitamApplicationServerException.class)
+    public void givenCertifExpiredThenRaiseAnException() throws VitamApplicationServerException {
+        SecureClientConfiguration secureClientConfiguration =
+            IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
+        secureClientConfiguration.setServerPort(serverPort);
+
+        IngestExternalClientFactory.changeMode(secureClientConfiguration);
+        IngestExternalClientFactory.getInstance().getClient().checkStatus();
     }
 }

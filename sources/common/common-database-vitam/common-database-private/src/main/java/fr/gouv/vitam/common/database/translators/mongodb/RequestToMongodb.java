@@ -33,7 +33,6 @@ import org.bson.conversions.Bson;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
@@ -46,7 +45,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public abstract class RequestToMongodb extends RequestToAbstract {
-    
+
     /**
      * @param requestParser AbstractParser of unknown type
      */
@@ -62,15 +61,15 @@ public abstract class RequestToMongodb extends RequestToAbstract {
      */
     public static RequestToMongodb getRequestToMongoDb(AbstractParser<?> requestParser) {
         if (requestParser instanceof SelectParserMultiple) {
-            return new SelectToMongodb((SelectParserMultiple) requestParser);
+            return new SelectToMongodb(requestParser);
         } else if (requestParser instanceof SelectParserSingle) {
-            return new SelectToMongodb((SelectParserSingle) requestParser);
-        }else if (requestParser instanceof InsertParserMultiple) {
-            return new InsertToMongodb((InsertParserMultiple) requestParser);
+            return new SelectToMongodb(requestParser);
+        } else if (requestParser instanceof InsertParserMultiple) {
+            return new InsertToMongodb(requestParser);
         } else if (requestParser instanceof UpdateParserMultiple) {
             return new UpdateToMongodb((UpdateParserMultiple) requestParser);
         } else {
-            return new DeleteToMongodb((DeleteParserMultiple) requestParser);
+            return new DeleteToMongodb(requestParser);
         }
     }
 

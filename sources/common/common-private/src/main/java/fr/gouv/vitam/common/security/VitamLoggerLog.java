@@ -31,13 +31,14 @@ import org.owasp.esapi.Logger;
 /**
  * Dummy Implementation of Logger for ESAPI
  */
-public class VitamLoggerLog  implements Logger {
+public class VitamLoggerLog implements Logger {
 
     private int level = 0;
-    
+
     /**
      * Empty constructor
-     * @param name 
+     * 
+     * @param name
      */
     public VitamLoggerLog(String name) {
         // Nothing to do

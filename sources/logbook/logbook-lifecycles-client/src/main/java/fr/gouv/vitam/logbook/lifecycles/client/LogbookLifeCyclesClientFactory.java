@@ -28,21 +28,20 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * LogbookLifeCyclesClientFactory factory <br />
+ * Logbook lifecycles client factory <br />
  * <br />
  * Use to get a logbook lifecycles client in function of its type.
  *
- * Example for create lifecycles:
+ * Example of lifecycle creation:
  *
  * <pre>
  * {
@@ -55,7 +54,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  *
  *     // Use setters
  *     parameters.setParameterValue(LogbookParameterName.eventTypeProcess, LogbookParameterName.eventTypeProcess
- *         .name()).setParameterValue(LogbookParameterName.outcome, LogbookOutcome.STARTED.name());
+ *         .name()).setParameterValue(LogbookParameterName.outcome, StatusCode.STARTED.name());
  *
  *     client.create(parameters);
  * }
@@ -78,46 +77,27 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  *
  *     // Event type
  *     parameters.setParameterValue(LogbookParameterName.eventType, "UNZIP");
- *     parameters.setParameterValue(LogbookParameterName.outcome, LogbookOutcome.STARTED.name());
+ *     parameters.setParameterValue(LogbookParameterName.outcome, StatusCode.STARTED.name());
  *
  *     client.update(parameters);
  * }
  * </pre>
  */
-public class LogbookLifeCyclesClientFactory {
 
-    /**
-     * Default client lifecycles type
-     */
-    private static LogbookClientType defaultLifeCyclesClientType;
-    private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
+public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLifeCyclesClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientFactory.class);
+    private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
     private static final LogbookLifeCyclesClientFactory LOGBOOK_LIFECYCLES_CLIENT_FACTORY =
         new LogbookLifeCyclesClientFactory();
-
-    private String server = "localhost";
-    private int port = VitamServerFactory.getDefaultPort();
+    /**
+     * RESOURCE PATH
+     */
+    public static final String RESOURCE_PATH = "/logbook/v1";
 
     private LogbookLifeCyclesClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
-    }
-
-    /**
-     * Set the LogbookClientFactory configuration
-     *
-     * @param type
-     * @param server hostname
-     * @param port port to use
-     * @throws IllegalArgumentException if type null or if type is LIFECYCLES and server is null or empty or port <= 0
-     */
-    static final void setConfiguration(LogbookClientType type, String server, int port) {
-        changeDefaultClientType(type);
-        if (type == LogbookClientType.LIFECYCLES) {
-            ParametersChecker.checkParameter("Server cannot be null or empty with LIFECYCLES", server);
-            ParametersChecker.checkValue("port", port, 1);
-        }
-        LOGBOOK_LIFECYCLES_CLIENT_FACTORY.server = server;
-        LOGBOOK_LIFECYCLES_CLIENT_FACTORY.port = port;
+        // All requests from client are SMALL, but responses from server could be Huge
+        // So Chunked mode inactive on client side
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
     /**
@@ -134,14 +114,14 @@ public class LogbookLifeCyclesClientFactory {
      *
      * @return the default logbook client
      */
-    public LogbookLifeCycleClient getLogbookLifeCyclesClient() {
-        LogbookLifeCycleClient client;
-        switch (defaultLifeCyclesClientType) {
-            case MOCK_LIFECYCLES:
+    public LogbookLifeCyclesClient getClient() {
+        LogbookLifeCyclesClient client;
+        switch (getVitamClientType()) {
+            case MOCK:
                 client = new LogbookLifeCyclesClientMock();
                 break;
-            case LIFECYCLES:
-                client = new LogbookLifeCyclesClientRest(server, port);
+            case PRODUCTION:
+                client = new LogbookLifeCyclesClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Log type unknown");
@@ -150,66 +130,34 @@ public class LogbookLifeCyclesClientFactory {
     }
 
     /**
-     * Modify the default logbook client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(LogbookClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultLifeCyclesClientType = type;
-    }
-
-    /**
-     * Get the default logbook client type
-     *
-     * @return the default logbook client type
-     */
-    public static LogbookClientType getDefaultLogbookClientType() {
-        return defaultLifeCyclesClientType;
-    }
-
-    /**
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
+     * @return ClientConfiguration
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(LogbookClientType.MOCK_LIFECYCLES);
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME,
+                configurationPath,
                 fnf);
         }
         if (configuration == null) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
-        } else {
-            server = configuration.getServerHost();
-            port = configuration.getServerPort();
-            changeDefaultClientType(LogbookClientType.LIFECYCLES);
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath);
         }
+        return configuration;
     }
 
     /**
-     * enum to define client type
+     *
+     * @param configuration null for MOCK
      */
-    public enum LogbookClientType {
-        /**
-         * To use only in MOCK: READ lifecycles are not supported (default)
-         */
-        MOCK_LIFECYCLES,
-        /**
-         * Use real service (need server to be set)
-         */
-        LIFECYCLES
+    public static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
 
 }

@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 
 public class BuilderTokenTest {
-    
+
     @Test
     public void testExactToken() {
         assertEquals(PROJECTIONARGS.ID.exactToken(), "#id");

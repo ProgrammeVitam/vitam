@@ -31,9 +31,12 @@ import java.util.Iterator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -80,6 +83,36 @@ public class SelectParserSingle extends RequestParserSingle {
     }
 
     /**
+     * Allow to add one condition to the current parsed Request</br>
+     * </br>
+     * Example:</br>
+     * <pre><code>
+     *   SelectParserSingle parser = new SelectParserSingle(...);
+     *   parser.parse(jsonQuery);
+     *   parser.addCondition(eq(FieldName, value));
+     *   JsonNode newJsonQuery = parser.getRootNode();
+     * </code></pre>
+     * 
+     * @param condition the condition to add
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        SelectParserSingle newOne = new SelectParserSingle(this.adapter);
+        newOne.parse(rootNode);
+        Select select = newOne.getRequest();
+        Query query = select.getQuery();
+        Query newQuery = QueryHelper.and().add(query, condition);
+        getRequest().setQuery(newQuery);
+        JsonNode newJsonNode = getRequest().getFinalSelect().deepCopy();
+        parse(newJsonNode);
+        newOne.request = null;
+        newOne.rootNode = null;
+        newOne.sourceRequest = null;
+
+    }
+
+    /**
      * @throws InvalidParseOperationException if rootNode could parse to projection
      */
     private void internalParseSelect() throws InvalidParseOperationException {
@@ -110,7 +143,8 @@ public class SelectParserSingle extends RequestParserSingle {
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
      *
      * @param rootNode JsonNode
-     * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is in error
+     * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is
+     *         in error
      */
     public void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -119,7 +153,7 @@ public class SelectParserSingle extends RequestParserSingle {
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
-            ((Select) request).resetUsageProjection().resetUsedProjection();
+            ((Select) request).resetUsedProjection();
             final ObjectNode node = JsonHandler.createObjectNode();
             if (rootNode.has(PROJECTION.FIELDS.exactToken())) {
                 adapter.setVarsValue(node, rootNode.path(PROJECTION.FIELDS.exactToken()));

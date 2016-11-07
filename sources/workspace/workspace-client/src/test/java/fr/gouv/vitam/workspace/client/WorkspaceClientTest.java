@@ -26,32 +26,77 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
+import static org.mockito.Mockito.mock;
+
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.test.JerseyTest;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
 
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
-// TODO REVIEW comment this to inform this is an utility class for test
-public abstract class WorkspaceClientTest extends JerseyTest {
+/**
+ * This class is only an utility class for other tests
+ */
+public abstract class WorkspaceClientTest extends VitamJerseyTest {
     protected static final String HOST = "http://localhost";
     protected static final String PATH = "/workspace/v1";
-    private static JunitHelper junitHelper = new JunitHelper();
-    protected static int port = junitHelper.findAvailablePort();
     protected WorkspaceClient client;
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    public WorkspaceClientTest() {
+        super(WorkspaceClientFactory.getInstance());
     }
 
-    @AfterClass
-    public static void shutdownAfterClass() {
-        junitHelper.releasePort(port);
+    // Override the beforeTest if necessary
+    @Override
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (WorkspaceClient) getClient();
     }
-    
-    public WorkspaceClientTest() {
-        client = new WorkspaceClient(HOST + ":" + port);
+
+    @Override
+    public void setup() {
+        mock = mock(ExpectedResults.class);
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.register(getMockResource())
+                .register(MultiPartFeature.class);
+        }
+
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     protected ExpectedResults mock;
@@ -62,9 +107,9 @@ public abstract class WorkspaceClientTest extends JerseyTest {
         Response delete();
 
         Response head();
-        
+
         Response headContainer();
-        
+
         Response headFolder();
 
         Response get();
@@ -72,4 +117,9 @@ public abstract class WorkspaceClientTest extends JerseyTest {
         Response put();
     }
 
+
+    static abstract class MockResource {
+    }
+
+    abstract MockResource getMockResource();
 }

@@ -14,11 +14,11 @@ public class HandlerIOTest {
 
     @Test
     public void testHandlerIO() throws Exception {
-        HandlerIO io = new HandlerIO("");
-        File file = PropertiesUtils.getResourcesFile("sip.xml");
+        final HandlerIO io = new HandlerIO("");
+        final File file = PropertiesUtils.getResourceFile("sip.xml");
         io.addInput(file);
         io.addOutput(file);
-        HandlerIO ioClass = new HandlerIO("");
+        final HandlerIO ioClass = new HandlerIO("");
         ioClass.addInput(File.class);
         ioClass.addOutput(File.class);
         assertEquals(io.getInput().get(0), file);

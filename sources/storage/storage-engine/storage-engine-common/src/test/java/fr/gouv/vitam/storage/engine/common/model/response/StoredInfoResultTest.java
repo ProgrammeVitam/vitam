@@ -30,12 +30,12 @@ package fr.gouv.vitam.storage.engine.common.model.response;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
 
 
 /**
@@ -70,28 +70,28 @@ public class StoredInfoResultTest {
 
     @Test
     public void testGetSetCreationTime() throws Exception {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        final LocalDateTime localDateTime = LocalDateTime.now();
         storedInfoResult.setCreationTime(LocalDateUtil.getString(localDateTime));
         assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getCreationTime());
     }
 
     @Test
     public void testGetSetLastAccessTime() throws Exception {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        final LocalDateTime localDateTime = LocalDateTime.now();
         storedInfoResult.setLastAccessTime(LocalDateUtil.getString(localDateTime));
         assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastAccessTime());
     }
 
     @Test
     public void testGetSetLastCheckedTime() throws Exception {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        final LocalDateTime localDateTime = LocalDateTime.now();
         storedInfoResult.setLastCheckedTime(LocalDateUtil.getString(localDateTime));
         assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastCheckedTime());
     }
 
     @Test
     public void testGetSetLastModifiedTime() throws Exception {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        final LocalDateTime localDateTime = LocalDateTime.now();
         storedInfoResult.setLastModifiedTime(LocalDateUtil.getString(localDateTime));
         assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastModifiedTime());
     }

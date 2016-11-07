@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 /**
  * worker client configuration
@@ -42,7 +42,7 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Construct a configuration with all parameters at once
-     * 
+     *
      * @param serverHost the server hostname
      * @param serverPort the server port
      */

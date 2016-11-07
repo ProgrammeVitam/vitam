@@ -27,17 +27,17 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Ingest Internal Configuration
  */
-public class IngestInternalConfiguration {
-	
-	private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
+public class IngestInternalConfiguration extends DefaultVitamApplicationConfiguration {
+
+    private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
 
     private String workspaceUrl;
     private String processingUrl;
-	private String jettyConfig;
 
 
     /**
@@ -46,67 +46,48 @@ public class IngestInternalConfiguration {
     public IngestInternalConfiguration() {
         // empty
     }
-    
+
     /**
      * Must return the value of a 'workspaceUrl' attribute
      *
      * @return the workspaceUrl value
      */
-	public String getWorkspaceUrl() {
-		return workspaceUrl;
-	}
-	
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
 
     /**
      * @param workspaceUrl the workspace Url to set
      * @return this
      * @throws IllegalArgumentException if workspaceUrl is null or empty
      */
-	public IngestInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
-		 ParametersChecker.checkParameter("workspaceUrl" +IS_A_MANDATORY_PARAMETER,
-				 workspaceUrl);
-		this.workspaceUrl = workspaceUrl;
-		 return this;
-	}
-	
-	/**
+    public IngestInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
+        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER,
+            workspaceUrl);
+        this.workspaceUrl = workspaceUrl;
+        return this;
+    }
+
+    /**
      * Must return the value of a 'workspaceUrl' attribute
      *
      * @return the workspaceUrl value
      */
-	public String getProcessingUrl() {
-		return processingUrl;
-	}
-	
+    public String getProcessingUrl() {
+        return processingUrl;
+    }
+
 
     /**
      * @param processingUrl the processing Url to set
      * @return this
      * @throws IllegalArgumentException if processingUrl is null or empty
      */
-	public IngestInternalConfiguration setProcessingUrl(String processingUrl) {
-		 ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER ,
-				 processingUrl);
-		this.processingUrl = processingUrl;
-		 return this;
-	}
-
-	/**
-	 * getter jettyConfig
-	 * @return
-     */
-	public String getJettyConfig() {
-		return jettyConfig;
-	}
-
-	/**
-	 * setter jettyConfig
-	 * @param jettyConfig the jetty config
-     */
-	public IngestInternalConfiguration setJettyConfig(String jettyConfig) {
-		ParametersChecker.checkParameter("jettyConfig" + IS_A_MANDATORY_PARAMETER ,
-			jettyConfig);
-		this.jettyConfig = jettyConfig;
-		return this;
-	}
+    public IngestInternalConfiguration setProcessingUrl(String processingUrl) {
+        ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER,
+            processingUrl);
+        this.processingUrl = processingUrl;
+        return this;
+    }
 }

@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
+ * 	Processing Management Client package
  *
  */
 package fr.gouv.vitam.processing.management.client;

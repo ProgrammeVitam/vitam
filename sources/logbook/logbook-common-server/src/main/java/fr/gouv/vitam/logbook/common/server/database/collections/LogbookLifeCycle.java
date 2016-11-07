@@ -53,7 +53,7 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      * @param parameters
      * @throws IllegalArgumentException if argument is null
      */
-    public LogbookLifeCycle(LogbookParameters parameters) {
+    public LogbookLifeCycle(LogbookParameters parameters) {        
         ParametersChecker.checkParameter("parameters", parameters);
         // Fill information using LogbookLifeCycleMongoDbName
         final Map<LogbookParameterName, String> map = parameters.getMapParameters();
@@ -63,7 +63,7 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
         append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
         checkId();
     }
-    
+
 
     /**
      * Constructor for Codec
@@ -155,14 +155,14 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      * Initialize indexes for Collection
      */
     static final void addIndexes() {
-        // TODO
+        // TODO P1
     }
 
     /**
      * Drop indexes for Collection
      */
     static final void dropIndexes() {
-        // TODO
+        // TODO P1
 
     }
 }

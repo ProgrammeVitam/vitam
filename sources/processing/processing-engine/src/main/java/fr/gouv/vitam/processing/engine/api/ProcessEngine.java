@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.api;
 
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
@@ -47,6 +47,6 @@ public interface ProcessEngine {
      * @throws WorkflowNotFoundException throws when workflow not found
      * @throws ProcessingException throws when error in execution
      */
-    public EngineResponse startWorkflow(WorkerParameters workParams, String workflowId)
+    public ItemStatus startWorkflow(WorkerParameters workParams, String workflowId)
         throws WorkflowNotFoundException, ProcessingException;
 }

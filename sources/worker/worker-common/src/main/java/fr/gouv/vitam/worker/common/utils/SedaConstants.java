@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -29,10 +29,10 @@ package fr.gouv.vitam.worker.common.utils;
 /**
  * Constants for the Seda used in Json files
  */
-public class SedaConstants {    
+public class SedaConstants {
 
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
-    
+
     /**
      * versions element
      */
@@ -51,7 +51,7 @@ public class SedaConstants {
     /**
      * Tag of nb
      */
-    public static final String TAG_NB = "nb";
+    public static final String TAG_NB = "_nbc";
 
     /**
      * Tag of size
@@ -62,6 +62,11 @@ public class SedaConstants {
      * Tag of messageDigest
      */
     public static final String TAG_DIGEST = "MessageDigest";
+    
+    /**
+     * Tag of algorithm
+     */
+   public static final String ALGORITHM = "Algorithm";
 
     /**
      * Tag of DataObjectVersion
@@ -81,33 +86,33 @@ public class SedaConstants {
     /**
      * Tag of FormatIdentification
      */
-    public static final String TAG_FORMAT_IDENTIFICATION = "FormatIdentification";    
-    
+    public static final String TAG_FORMAT_IDENTIFICATION = "FormatIdentification";
+
     /**
      * Tag of FormatId
      */
     public static final String TAG_FORMAT_ID = "FormatId";
-    
+
     /**
      * Tag of FormatLitteral
      */
     public static final String TAG_FORMAT_LITTERAL = "FormatLitteral";
-    
+
     /**
      * Tag of Mimetype
      */
     public static final String TAG_MIME_TYPE = "MimeType";
-    
+
     /**
      * Tag of DataObjectGroupReferenceId
      */
     public static final String TAG_DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
-    
+
     /**
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
-    
+
     /**
      * Prefix of id element
      */
@@ -136,13 +141,16 @@ public class SedaConstants {
     /**
      * Prefix of tenantID
      */
-    public static final String PREFIX_TENANT_ID = "_tenantId";
+    public static final String PREFIX_TENANT_ID = "_tenant";
 
     /**
      * Prefix of nb
      */
-    public static final String PREFIX_NB = "_nb";
-
+    public static final String PREFIX_NB = "_nbc";
+    /**
+     * Prefix of ops
+     */
+    public static final String PREFIX_OPS = "_ops";
     /**
      * Prefix of type
      */
@@ -152,8 +160,8 @@ public class SedaConstants {
      * Prefix of management
      */
     public static final String PREFIX_MGT = "_mgt";
-    
-    //XML Tags used in SEDA 
+
+    // XML Tags used in SEDA
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
     public static final String TAG_DATE = "Date";
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
@@ -174,9 +182,32 @@ public class SedaConstants {
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
     public static final String TAG_GRANT_DATE = "GrantDate";
+
+    public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
+    public static final String TAG_SUBMISSIONAGENCYIDENTIFIER = "SubmissionAgencyIdentifier";
+
+    
+    public static final String TAG_OPERATION = "Operation";    
+    public static final String TAG_EVENT = "Event";
+    public static final String TAG_EVENT_TYPE = "EventType";
+    public static final String TAG_EVENT_TYPE_CODE = "EventTypeCode";
+    public static final String TAG_EVENT_DATE_TIME = "EventDateTime";
+    public static final String TAG_EVENT_OUTCOME = "Outcome";
+    public static final String TAG_EVENT_OUTCOME_DETAIL = "OutcomeDetail";
+    public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE = "OutcomeDetailMessage";
+    public static final String ATTRIBUTE_ID = "id";
+    public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
+    public static final String TAG_DATA_OBJECT_GROUP = "DataObjectGroup";
+    public static final String TAG_BINARY_DATA_OBJECT_ID = "BinaryDataObjectID";
+    public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";    
+    
+    public static final String NAMESPACE_XLINK = "xlink";
+    public static final String NAMESPACE_PR = "pr";
+    public static final String NAMESPACE_XSI = "xsi";
+    public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";    
     
     private SedaConstants() {
         // Empty constructor
     }
-    
+
 }

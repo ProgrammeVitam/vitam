@@ -55,9 +55,9 @@ import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -292,7 +292,7 @@ public class QueryToMongodb {
             final Entry<String, JsonNode> requestItem = iterator.next();
             try {
                 final String key = requestItem.getKey();
-                if (key.startsWith(ParserTokens.DEFAULT_PREFIX)) {
+                if (key.startsWith(BuilderToken.DEFAULT_PREFIX)) {
                     RANGEARGS.valueOf(key.substring(1).toUpperCase());
                     range.append(key,
                         GlobalDatasParser.getValue(requestItem.getValue()));

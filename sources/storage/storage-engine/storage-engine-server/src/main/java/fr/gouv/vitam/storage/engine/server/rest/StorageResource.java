@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -54,10 +55,9 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -73,9 +73,9 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
  * Storage Resource implementation
  */
 @Path("/storage/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class StorageResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
-
     private final StorageDistribution distribution;
 
     /**
@@ -84,7 +84,6 @@ public class StorageResource extends ApplicationStatusResource {
      * @param configuration the storage configuration to be applied
      */
     public StorageResource(StorageConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         distribution = new StorageDistributionImpl(configuration);
         LOGGER.info("init Storage Resource server");
     }
@@ -95,7 +94,6 @@ public class StorageResource extends ApplicationStatusResource {
      * @param storageDistribution the storage Distribution to be applied
      */
     StorageResource(StorageDistribution storageDistribution) {
-        super(new BasicVitamStatusServiceImpl());
         distribution = storageDistribution;
     }
 
@@ -121,18 +119,18 @@ public class StorageResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStorageInformation(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
-            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            final String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                JsonNode result = distribution.getContainerInformation(tenantId, strategyId);
+                final JsonNode result = distribution.getContainerInformation(tenantId, strategyId);
                 return Response.status(Status.OK).entity(result).build();
-            } catch (StorageNotFoundException exc) {
+            } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (StorageTechnicalException exc) {
+            } catch (final StorageTechnicalException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -150,7 +148,7 @@ public class StorageResource extends ApplicationStatusResource {
      */
     public Response checkPostHeader(HttpHeaders headers) {
         if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-            MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
+            final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
             wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
             try {
                 HttpHeaderHelper.validateHeaderValue(headers, wanted);
@@ -166,7 +164,7 @@ public class StorageResource extends ApplicationStatusResource {
 
 
     /**
-     * Get a list of containers Note : this is NOT to be handled in item #72.
+     * Get a list of containers
      *
      * @param headers http headers
      * @return Response containing the storage information as an input stream, or an error (412 or 404)
@@ -175,7 +173,7 @@ public class StorageResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
-    // TODO si le résultat est une liste alors getContainers (s ajouté)
+    // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
     public Response getContainer(@Context HttpHeaders headers) throws IOException {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
@@ -183,12 +181,12 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Create a container
      * <p>
-     * TODO : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects are
-     * aware of this
      *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO P1 : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects are
+    //aware of this
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -269,18 +267,19 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId)
         throws IOException {
-        Response response = checkTenantStrategyHeader(headers);
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
-            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            final String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                InputStream result = distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.OBJECT);
+                final InputStream result =
+                    distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.OBJECT);
                 return Response.status(Status.OK).entity(result).build();
-            } catch (StorageNotFoundException exc) {
+            } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (StorageTechnicalException exc) {
+            } catch (final StorageTechnicalException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -294,27 +293,31 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new object
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           
      * @param headers http header
      * @param objectId the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */
+    //TODO P1 : remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/objects/{id_object}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectOrGetInformation(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders
+        headers, @PathParam("id_object") String objectId, CreateObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT);
+            // TODO P1 : actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT, httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, objectId);
         }
     }
 
     private Response getObjectInformationWithPost(HttpHeaders headers, String objectId) {
-        Response responsePost = checkPostHeader(headers);
+        final Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
             return getObjectInformation(headers, objectId);
         } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
@@ -326,7 +329,7 @@ public class StorageResource extends ApplicationStatusResource {
 
     /**
      * Retrieve an object data (equivalent to GET with body)
-     * 
+     *
      * @param headers http headers
      * @param objectId the object identifier to retrieve
      * @return Precondtion failed or not yet implemented for now
@@ -338,7 +341,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_OCTET_STREAM + "; qs=0.3", StorageConstants.APPLICATION_ZIP + "; qs=0.3"})
     public Response getObjectWithPost(@Context HttpHeaders headers, @PathParam("id_object") String objectId)
         throws IOException {
-        Response responsePost = checkPostHeader(headers);
+        final Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
             return getObject(headers, objectId);
         } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
@@ -361,14 +364,14 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
         String tenantId, strategyId;
-        Response response = checkTenantStrategyHeader(headers);
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 distribution.deleteObject(tenantId, strategyId, objectId);
                 return Response.status(Status.NO_CONTENT).build();
-            } catch (StorageNotFoundException e) {
+            } catch (final StorageNotFoundException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }
@@ -389,14 +392,14 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
         String tenantId, strategyId;
-        Response response = checkTenantStrategyHeader(headers);
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 distribution.getContainerObjectInformations(tenantId, strategyId, objectId);
                 return Response.status(Status.OK).build();
-            } catch (StorageNotFoundException e) {
+            } catch (final StorageNotFoundException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }
@@ -441,22 +444,25 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new object
      *
+     * @param httpServletRequest http servlet request to get requester
+     *
      * @param headers http header
      * @param logbookId the id of the logbookId
      * @param createObjectDescription the workspace information about logbook to be created
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO P1: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/logbooks/{id_logbook}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createLogbook(@Context HttpHeaders headers,
-        @PathParam("id_logbook") String logbookId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_logbook") String logbookId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
-            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK);
+            // TODO P1: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -527,21 +533,25 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new unit metadata
      *
+     * @param httpServletRequest http servlet request to get requester
+     *
      * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param createObjectDescription the workspace description of the unit to be created
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO P1: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/units/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT);
+            // TODO P1: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -632,22 +642,26 @@ public class StorageResource extends ApplicationStatusResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
+     * @param httpServletRequest http servlet request to get requester
+     *
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
-     * @param createObjectDescription  the workspace description of the unit to be created
+     * @param createObjectDescription the workspace description of the unit to be created
      * @return Response Created, not found or internal server error
      */
-    // TODO : check the existence, in the headers, of the value X-Http-Method-Override, if set
+    //TODO P1: remove httpServletRequest when requester information sent by header (X-Requester)
+    //TODO P1 : check the existence, in the headers, of the value X-Http-Method-Override, if set
     @Path("/objectgroups/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP);
+            // TODO P1: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -705,12 +719,13 @@ public class StorageResource extends ApplicationStatusResource {
     }
 
     private Response buildErrorResponse(VitamCode vitamCode) {
-        return Response.status(vitamCode.getStatus()).entity((new RequestResponseError().setError(
+        return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
             new VitamError(VitamCodeHelper.getCode(vitamCode))
-            .setContext(vitamCode.getService().getName())
-            .setState(vitamCode.getDomain().getName())
-            .setMessage(vitamCode.getMessage())
-            .setDescription(vitamCode.getMessage()))).toString())
+                .setContext(vitamCode.getService().getName())
+                .setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage())
+                .setDescription(vitamCode.getMessage()))
+            .toString())
             .build();
     }
 
@@ -718,31 +733,36 @@ public class StorageResource extends ApplicationStatusResource {
         return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
     }
 
-    
+
     /**
      * Post a new object
+     *
+     * @param httpServletRequest http servlet request to get requester
      *
      * @param headers http header
      * @param reportId the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */
+    //TODO P1: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/reports/{id_report}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createReportOrGetInformation(@Context HttpHeaders headers, @PathParam("id_report") String reportId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders
+        headers, @PathParam("id_report") String reportId, CreateObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT);
+            // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
+            return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT,
+                httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, reportId);
         }
     }
-    
+
     /**
-     * Get an report data Note : this is NOT to be handled in item #72.
+     * Get a report
      *
      * @param headers http header
      * @param objectId the id of the object
@@ -754,19 +774,20 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
     public Response getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
         throws IOException {
-        Response response = checkTenantStrategyHeader(headers);
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
-            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            final String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                InputStream result = distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.REPORT);
-                //TODO fix ByteArray vs Close vs AsyncResponse
+                final InputStream result =
+                    distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.REPORT);
+                // FIXME P0 fix ByteArray vs Close vs AsyncResponse
                 return Response.status(Status.OK).entity(result).build();
-            } catch (StorageNotFoundException exc) {
+            } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (StorageTechnicalException exc) {
+            } catch (final StorageTechnicalException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -775,26 +796,28 @@ public class StorageResource extends ApplicationStatusResource {
         }
         return response;
     }
-    
-    
+
+    // TODO P1: requester have to come from vitam headers (X-Requester), but does not exist actually, so use
+    // getRemoteAdr from HttpServletRequest passed as parameter (requester)
+    // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category) {
-        Response response = checkTenantStrategyHeader(headers);
+        CreateObjectDescription createObjectDescription, DataCategory category, String requester) {
+        final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
-            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            final String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
-                    createObjectDescription, category);
+                final StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
+                    createObjectDescription, category, requester);
                 return Response.status(Status.CREATED).entity(result).build();
-            } catch (StorageNotFoundException exc) {
+            } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (StorageTechnicalException exc) {
+            } catch (final StorageTechnicalException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-            } catch (StorageObjectAlreadyExistsException exc) {
+            } catch (final StorageObjectAlreadyExistsException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
             }

@@ -38,8 +38,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
+import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 
@@ -47,7 +47,7 @@ public class DescriptionStepTest {
 
     @Test
     public void testDescriptionStep() {
-        Step step = new Step();
+        final Step step = new Step();
         step.setStepName("StepName");
         step.setBehavior(ProcessBehavior.NOBLOCKING);
         DescriptionStep ds = new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters());
@@ -60,13 +60,13 @@ public class DescriptionStepTest {
         try {
             ds = new DescriptionStep(null, WorkerParametersFactory.newWorkerParameters());
             fail("Should have raized an exception");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // nothing to do
         }
         try {
             ds = new DescriptionStep(null, null);
             fail("Should have raized an exception");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // nothing to do
         }
     }
@@ -74,10 +74,10 @@ public class DescriptionStepTest {
     @Test
     public void testDescriptionStepJson() {
         try {
-            File json = PropertiesUtils.findFile("descriptionStep.json");
-            JsonNode node = JsonHandler.getFromFile(json);
-            DescriptionStep step = JsonHandler.getFromFile(json, DescriptionStep.class);
-        } catch (Exception e) {
+            final File json = PropertiesUtils.findFile("descriptionStep.json");
+            final JsonNode node = JsonHandler.getFromFile(json);
+            final DescriptionStep step = JsonHandler.getFromFile(json, DescriptionStep.class);
+        } catch (final Exception e) {
             fail("Should not have raised an exception");
         }
 

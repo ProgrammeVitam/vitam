@@ -27,9 +27,9 @@
 
 package fr.gouv.vitam.storage.driver.exception;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * StorageDriverExceptionTest
@@ -38,8 +38,8 @@ public class StorageDriverExceptionTest {
 
     @Test
     public void testGetDriverInfo() throws Exception {
-        StorageDriverException exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode
-            .INTERNAL_SERVER_ERROR, "message");
+        StorageDriverException exc =
+            new StorageDriverException("drivername", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, "message");
         exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.NOT_FOUND, exc);
         exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.PRECONDITION_FAILED,
             "message", exc);

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -35,6 +35,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class FormatIdentifierBadRequestException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -5262728119536621685L;
+
+    /**
      * @param message associated message
      */
     public FormatIdentifierBadRequestException(String message) {
@@ -54,17 +59,6 @@ public class FormatIdentifierBadRequestException extends VitamException {
      */
     public FormatIdentifierBadRequestException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FormatIdentifierBadRequestException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

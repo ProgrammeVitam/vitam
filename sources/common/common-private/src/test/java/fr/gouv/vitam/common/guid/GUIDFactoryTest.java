@@ -56,8 +56,8 @@ public class GUIDFactoryTest {
             GUIDFactory.newWriteLogbookGUID(0).getObjectId());
         assertEquals(GUIDObjectType.STORAGE_OPERATION_TYPE,
             GUIDFactory.newStorageOperationGUID(0, true).getObjectId());
-        assertEquals(GUIDObjectType.OPERATIONID_TYPE,
-            GUIDFactory.newOperationIdGUID(0).getObjectId());
+        assertEquals(GUIDObjectType.EVENT_TYPE,
+            GUIDFactory.newEventGUID(0).getObjectId());
         assertEquals(GUIDObjectType.REQUESTID_TYPE,
             GUIDFactory.newRequestIdGUID(0).getObjectId());
         assertEquals(GUIDObjectType.MANIFEST_TYPE,
@@ -89,8 +89,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.getChildrenType(GUIDObjectType.WRITE_LOGBOOK_TYPE));
         assertEquals(GUIDObjectType.MANIFEST_TYPE,
             GUIDObjectType.getChildrenType(GUIDObjectType.MANIFEST_TYPE));
-        assertEquals(GUIDObjectType.OPERATIONID_TYPE,
-            GUIDObjectType.getChildrenType(GUIDObjectType.OPERATIONID_TYPE));
+        assertEquals(GUIDObjectType.EVENT_TYPE,
+            GUIDObjectType.getChildrenType(GUIDObjectType.EVENT_TYPE));
         assertEquals(GUIDObjectType.REQUESTID_TYPE,
             GUIDObjectType.getChildrenType(GUIDObjectType.REQUESTID_TYPE));
         assertEquals(GUIDObjectType.STORAGE_OPERATION_TYPE,
@@ -111,7 +111,7 @@ public class GUIDFactoryTest {
         assertEquals(true,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.MANIFEST_TYPE));
         assertEquals(true,
-            GUIDObjectType.getDefaultWorm(GUIDObjectType.OPERATIONID_TYPE));
+            GUIDObjectType.getDefaultWorm(GUIDObjectType.EVENT_TYPE));
         assertEquals(true,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.REQUESTID_TYPE));
         assertEquals(false,
@@ -131,8 +131,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.getEnumType(GUIDObjectType.WRITE_LOGBOOK_TYPE));
         assertEquals(GUIDObjectType.GUIDObjectEnumType.MANIFEST,
             GUIDObjectType.getEnumType(GUIDObjectType.MANIFEST_TYPE));
-        assertEquals(GUIDObjectType.GUIDObjectEnumType.OPERATIONID,
-            GUIDObjectType.getEnumType(GUIDObjectType.OPERATIONID_TYPE));
+        assertEquals(GUIDObjectType.GUIDObjectEnumType.EVENT,
+            GUIDObjectType.getEnumType(GUIDObjectType.EVENT_TYPE));
         assertEquals(GUIDObjectType.GUIDObjectEnumType.REQUESTID,
             GUIDObjectType.getEnumType(GUIDObjectType.REQUESTID_TYPE));
         assertEquals(GUIDObjectType.GUIDObjectEnumType.STORAGE_OPERATION,
@@ -152,8 +152,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.WRITE_LOGBOOK_TYPE);
         assertEquals(GUIDObjectType.GUIDObjectEnumType.MANIFEST.getId(),
             GUIDObjectType.MANIFEST_TYPE);
-        assertEquals(GUIDObjectType.GUIDObjectEnumType.OPERATIONID.getId(),
-            GUIDObjectType.OPERATIONID_TYPE);
+        assertEquals(GUIDObjectType.GUIDObjectEnumType.EVENT.getId(),
+            GUIDObjectType.EVENT_TYPE);
         assertEquals(GUIDObjectType.GUIDObjectEnumType.REQUESTID.getId(),
             GUIDObjectType.REQUESTID_TYPE);
         assertEquals(GUIDObjectType.GUIDObjectEnumType.STORAGE_OPERATION.getId(),

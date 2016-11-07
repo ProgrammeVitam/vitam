@@ -70,7 +70,7 @@ public interface DefaultOfferService {
 
     /**
      * Initialize object creation
-     * 
+     *
      * Create container on offer if does not exist for one object Also update digest type and object GUID
      *
      * @param containerName the container name to create
@@ -101,18 +101,20 @@ public interface DefaultOfferService {
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
-     * send in the great order. TODO: multithreading TODO: add chunk number to be able to retry and check error TODO:
-     * better chunk management
+     * send in the great order. 
      *
      * @param containerName the container name
      * @param objectId the offer objectId to create
      * @param objectPart the part of the object to create (chunk style)
      * @param ending true if objectPart is the last part
      * @return the digest of the complete file or the digest of the chunk
-     * 
+     *
      * @throws IOException if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
+    //FIXME P0 : multithreading
+    //TODO P1 : add chunk number to be able to retry and check error
+    //TODO P1 : better chunk management
     String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
         throws IOException, ContentAddressableStorageException;
 
@@ -122,8 +124,9 @@ public interface DefaultOfferService {
      * @param containerName the container suppose to contain the object
      * @param objectId the objectId to check
      * @return true if object exists, false otherwise
+     * @throws ContentAddressableStorageServerException 
      */
-    boolean isObjectExist(String containerName, String objectId);
+    boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException;
 
     /**
      * Get container capacity
@@ -131,6 +134,7 @@ public interface DefaultOfferService {
      * @param containerName the container name
      * @return Json with usableSpace information
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
+     * @throws ContentAddressableStorageServerException 
      */
     JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;

@@ -34,7 +34,7 @@ public class ContentAddressableStorageAlreadyExistException extends ContentAddre
     private static final long serialVersionUID = 672300958086946348L;
 
     /**
-     * @param message as String message to associate with the exception 
+     * @param message as String message to associate with the exception
      */
     public ContentAddressableStorageAlreadyExistException(String message) {
         super(message);

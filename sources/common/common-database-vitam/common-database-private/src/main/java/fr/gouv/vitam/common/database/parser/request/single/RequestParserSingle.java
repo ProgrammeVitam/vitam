@@ -26,8 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.single;
 
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
+
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -110,10 +111,11 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * @param jsonRequest containing a parsed JSON as [ {query}, {filter} ] or { $query : query, $filter : filter }
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
+    @Override
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         super.parseJson(jsonRequest);
         internalParse();
-     }
+    }
 
     /**
      *
@@ -210,6 +212,11 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
             query = path(array, adapter);
         } else {
             query = analyzeOneCommand(queryItem.getKey(), queryItem.getValue());
+            if (query == null) {
+                // NOP
+                request.setQuery(nop());
+                return;
+            }
         }
         hasFullTextQuery = hasFullTextCurrentQuery;
         request.setQuery(query.setFullText(hasFullTextQuery));
@@ -223,6 +230,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     /**
      * @return True if the hint contains notimeout
      */
+    @Override
     public boolean hintNoTimeout() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
@@ -235,7 +243,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         }
         return false;
     }
-    
+
     @Override
     public int getLastDepth() {
         return 0;

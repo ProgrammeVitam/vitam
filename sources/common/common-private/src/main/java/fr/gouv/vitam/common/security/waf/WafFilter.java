@@ -39,10 +39,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
+
+
 /**
  * WAF filter
  */
-public class WafFilter implements Filter{
+public class WafFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -57,10 +60,11 @@ public class WafFilter implements Filter{
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
-        XSSWrapper xss = new XSSWrapper((HttpServletRequest) request);
-        if (xss.sanitize()){
-            HttpServletResponse newResponse = (HttpServletResponse) response;
+        final XSSWrapper xss = new XSSWrapper((HttpServletRequest) request);
+        if (xss.sanitize()) {
+            final HttpServletResponse newResponse = (HttpServletResponse) response;
             newResponse.setStatus(Status.NOT_ACCEPTABLE.getStatusCode());
+            StreamUtils.closeSilently(request.getInputStream());
         } else {
             chain.doFilter(request, response);
         }

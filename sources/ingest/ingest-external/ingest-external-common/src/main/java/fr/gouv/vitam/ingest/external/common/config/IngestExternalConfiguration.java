@@ -26,15 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.config;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+
 /**
  * IngestExternalConfiguration contains access informations of ingest
  */
-public class IngestExternalConfiguration {
+public class IngestExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String path;
-    private String host;
-    private int port;
-    private String jettyConfig;
     private boolean authentication = true;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
@@ -45,39 +44,7 @@ public class IngestExternalConfiguration {
     public IngestExternalConfiguration() {
         // Empty constructor
     }
-    
-    /**
-     * @return host
-     */
-    public String getHost() {
-        return host;
-    }
 
-    /**
-     * @param host
-     * @return IngestExtConfiguration
-     */
-    public IngestExternalConfiguration setHost(String host) {
-        this.host = host;
-        return this;
-    }
-
-    /**
-     * @return port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setPort(int port) {
-        this.port = port;
-        return this;
-    }
-    
     /**
      * @return path
      */
@@ -91,24 +58,6 @@ public class IngestExternalConfiguration {
      */
     public IngestExternalConfiguration setPath(String path) {
         this.path = path;
-        return this;
-    }
-
-    /**
-     *
-     * @return jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     *
-     * @param jettyConfig
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
         return this;
     }
 
@@ -128,7 +77,7 @@ public class IngestExternalConfiguration {
         this.authentication = authentication;
         return this;
     }
-    
+
     /**
      * @return antiVirusScriptName
      */
@@ -144,7 +93,7 @@ public class IngestExternalConfiguration {
         this.antiVirusScriptName = antiVirusScriptName;
         return this;
     }
-    
+
     /**
      * @return long
      */
@@ -160,4 +109,5 @@ public class IngestExternalConfiguration {
         this.timeoutScanDelay = timeoutScanDelay;
         return this;
     }
+
 }

@@ -20,19 +20,10 @@
 #### Elasticsearch installation ####
 
 # tasks file for elasticsearch-cluster
-- name: install java (prerequisite for other components) in case of
-  yum:
-    name: java-1.8.0
-    state: latest
 
-- name: install elasticsearch rpm
+- name: install vitam-elasticsearch rpm
   yum:
-    name: elasticsearch
-    state: latest
-
-- name: install vitam-user-vitamdb package
-  yum:
-    name: vitam-user-vitamdb
+    name: vitam-{{cluster_name}}
     state: latest
 
 # OMA : désactivé car on est désormais en vitamdb
@@ -103,29 +94,40 @@
 
 #### Elasticsearch plugins ####
 
-# TODO : à remplacer par autre chose pour ne pas partir sur internet ! (rpm packaging + package)
-- name : get HEAD plug-in for Elasticsearch
-  become_user: elasticsearch
-  command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
-  args:
-    chdir: /usr/share/elasticsearch/bin 
-    creates: /usr/share/elasticsearch/plugins/head
-  environment:
-    http_proxy: http://{{ https_reverse_proxy }}
-    https_proxy: https://{{ https_reverse_proxy }}
- 
-- name: install unzip
+# OMA: remplacé par un rpm
+# - name : get HEAD plug-in for Elasticsearch
+#   become_user: elasticsearch
+#   command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
+#   args:
+#     chdir: /usr/share/elasticsearch/bin 
+#     creates: /usr/share/elasticsearch/plugins/head
+#   environment:
+#     http_proxy: http://{{ https_reverse_proxy }}
+#     https_proxy: https://{{ https_reverse_proxy }}
+
+- name: install vitam-elasticsearch-head rpm
   yum:
-    name: unzip
+    name: vitam-elasticsearch-head
     state: latest
 
-- name: add kopf plugin (zip src)
-  unarchive:
-    src: kopf.zip
-    dest: /usr/share/elasticsearch/plugins/
-    owner: elasticsearch
-    group: elasticsearch
-    mode: 0755
+# OMA : deprecated as it is now a rpm package
+# - name: install unzip
+#   yum:
+#     name: unzip
+#     state: latest
+
+# - name: add kopf plugin (zip src)
+#   unarchive:
+#     src: kopf.zip
+#     dest: /usr/share/elasticsearch/plugins/
+#     owner: elasticsearch
+#     group: elasticsearch
+#     mode: 0755
+
+- name: install vitam-elasticsearch-kopf rpm
+  yum:
+    name: vitam-elasticsearch-kopf
+    state: latest
 
 # FIXME : won't work when there is no reverse-proxy...
 # - name: configure kopf
@@ -136,14 +138,6 @@
 
 
 #### Elasticsearch systemd service configuration ####
-
-- name: apply elasticsearch-{{groupe}} as a service 
-  template:
-    src: "vitam-elasticsearch-type.service.j2"
-    dest: "/usr/lib/systemd/system/vitam-elasticsearch-{{groupe}}.service"
-    owner: root
-    group: root
-    mode: 0644
 
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
@@ -163,9 +157,6 @@
 # /usr/lib/sysctl.d/elasticsearch.conf
 # with content : 
 # vm.max_map_count=262144
-
-- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
-  command: systemctl daemon-reload
 
 - name: disable standard Easticsearch service
   service:
@@ -201,4 +192,5 @@
   service:
     name: vitam-consul
     state: reloaded
+
 

@@ -169,6 +169,14 @@ public enum OutcomeMessage {
      */
     CHECK_BDO_KO("Echec de la vérification de l'emprunte de l'objet"),
 
+    CHECK_DIGEST("Digest Check, Vérification de l'empreinte des objets"),
+    
+    CHECK_DIGEST_OK("Succès de la vérification de l'empreinte"),
+    
+    CHECK_DIGEST_KO("Échec de la vérification de l'empreinte"),
+    
+    CHECK_DIGEST_STARTED("Début de la vérification de l'empreinte"),
+    
     /**
      * File Format KO
      */
@@ -244,17 +252,27 @@ public enum OutcomeMessage {
      * Getting format identifier failed message (FATAL)
      */
     GETTING_FORMAT_IDENTIFIER_FATAL("L'outil d'analyse de format de fichier n'a pu être initialisé"),
+    
+    /**
+     * ART KO : fail message
+     */
+    FUND_REGISTER_OK("Succès d'enregistrement des archives prises en charge dans le registre des fonds"),
+
+    /**
+     * ART OK : succes message
+     */
+    FUND_REGISTER_KO("Echec d'enregistrement des archives prises en charge dans le registre des fonds"),
 
     /**
      * ART KO : fail message
      */
     ATR_KO("Erreur de Notification ATR"),
-    
+
     /**
      * ART OK : succes message
      */
     ATR_OK("Notification envoyée");
-        
+
     private String value;
 
     private OutcomeMessage(String value) {

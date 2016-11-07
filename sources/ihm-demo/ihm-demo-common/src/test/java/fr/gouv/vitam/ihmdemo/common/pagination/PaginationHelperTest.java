@@ -22,12 +22,12 @@ public class PaginationHelperTest {
 
     static String sessionId;
 
-    private static final String RESULT = 
+    private static final String RESULT =
         "{\"query\":{}," +
             "\"hits\":{\"total\":100,\"offset\":0,\"limit\":25}," +
             "\"result\":";
 
-    private static final String OPERATION =  
+    private static final String OPERATION =
 
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
             "    \"evType\": \"Process_SIP_unitary\"," +
@@ -49,19 +49,19 @@ public class PaginationHelperTest {
             "    \"events\": []}";
 
     @BeforeClass
-    public static void setup(){
-        Ini ini=new Ini();
+    public static void setup() {
+        final Ini ini = new Ini();
         ini.loadFromPath("src/test/resources/shiro.ini");
-        Factory<SecurityManager> factory = new IniSecurityManagerFactory(ini);
-        SecurityManager securityManager = factory.getInstance();
+        final Factory<SecurityManager> factory = new IniSecurityManagerFactory(ini);
+        final SecurityManager securityManager = factory.getInstance();
         SecurityUtils.setSecurityManager(securityManager);
 
-        UsernamePasswordToken token = new UsernamePasswordToken("user","user",true);
+        final UsernamePasswordToken token = new UsernamePasswordToken("user", "user", true);
 
-        Subject currentUser = new Subject.Builder(securityManager).buildSubject();
+        final Subject currentUser = new Subject.Builder(securityManager).buildSubject();
         currentUser.getSession().stop();
         currentUser.login(token);
-        sessionId= currentUser.getSession(true).getId().toString();
+        sessionId = currentUser.getSession(true).getId().toString();
 
 
     }
@@ -70,30 +70,30 @@ public class PaginationHelperTest {
     public void givenSessionAlreadyExistsWhenPaginateResultThenReturnJsonNode() throws Exception {
 
         PaginationHelper.setResult(sessionId, createResult());
-        JsonNode result= PaginationHelper.getResult(sessionId, new OffsetBasedPagination());
-        assertEquals(((JsonNode)result.get("result")).size(),100);
-        result= PaginationHelper.getResult(createResult(), new OffsetBasedPagination());
-        assertEquals(((JsonNode)result.get("result")).size(),100);
+        JsonNode result = PaginationHelper.getResult(sessionId, new OffsetBasedPagination());
+        assertEquals(result.get("result").size(), 100);
+        result = PaginationHelper.getResult(createResult(), new OffsetBasedPagination());
+        assertEquals(result.get("result").size(), 100);
     }
 
 
-    @Test(expected =VitamException.class)
+    @Test(expected = VitamException.class)
     public void givenSessionNotFoundWhenSetResultThenRaiseAnException() throws Exception {
         PaginationHelper.setResult("SessionNotFound", createResult());
     }
 
 
-    private JsonNode createResult() throws InvalidParseOperationException{
-        String result=RESULT +"[";
-        for(int i=0; i<100;i++){
-            String s_i="{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa"+i+"\",";
-            s_i+=OPERATION;
-            result+=s_i;
-            if(i<99){
-                result+=",";
+    private JsonNode createResult() throws InvalidParseOperationException {
+        String result = RESULT + "[";
+        for (int i = 0; i < 100; i++) {
+            String s_i = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
+            s_i += OPERATION;
+            result += s_i;
+            if (i < 99) {
+                result += ",";
             }
         }
-        result+="]}";
+        result += "]}";
         return JsonHandler.getFromString(result);
     }
 

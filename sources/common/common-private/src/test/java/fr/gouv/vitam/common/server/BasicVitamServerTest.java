@@ -40,7 +40,7 @@ public class BasicVitamServerTest {
 
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
-    private static final String JETTY_CONFIG_FILE = "jetty-test.xml";
+    private static final String JETTY_CONFIG_FILE = "jetty-config-test.xml";
     private static final String JETTY_CONFIG_FILE_KO1 = "jetty-test-ko1.xml";
     private static final String JETTY_CONFIG_FILE_KO2 = "jetty-test-ko2.xml";
     private static final String JETTY_CONFIG_FILE_KO_NOTFOUND = "jetty-test-notFound.xml";
@@ -67,7 +67,7 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testBuild() {
-        JunitHelper junitHelper = new JunitHelper();
+        JunitHelper junitHelper = JunitHelper.getInstance();
         int port = junitHelper.findAvailablePort();
         final BasicVitamServer server = new BasicVitamServer(port);
         try {
@@ -105,6 +105,7 @@ public class BasicVitamServerTest {
     public final void testStartingServerWithCorrectConfig() {
 
         try {
+            int servePort = JunitHelper.getInstance().findAvailablePort();
             final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE);
             assertTrue(server.isConfigured());
 
@@ -116,7 +117,7 @@ public class BasicVitamServerTest {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
             server.getServer().destroy();
-
+            JunitHelper.getInstance().releasePort(servePort);
         } catch (VitamApplicationServerException e) {
             assertTrue(false);
         }

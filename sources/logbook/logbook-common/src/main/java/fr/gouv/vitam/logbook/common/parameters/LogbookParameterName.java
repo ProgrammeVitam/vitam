@@ -50,8 +50,8 @@ public enum LogbookParameterName {
      */
     eventDateTime,
     /**
-     * Process identifier: unique identifier for global operation workflow.
-     * <br>Primary key for Operation
+     * Process identifier: unique identifier for global operation workflow. <br>
+     * Primary key for Operation
      */
     eventIdentifierProcess,
     /**
@@ -63,7 +63,7 @@ public enum LogbookParameterName {
     /**
      * Status between: "STARTED", "OK", "WARNING", "ERROR", "FATAL" <br>
      * <br>
-     * One must use the LogbookOutcome enum. <br>
+     * One must use the StatusCode enum. <br>
      * <br>
      * Note that first call should be using "STARTED", while second should be one of the others.
      */
@@ -116,8 +116,8 @@ public enum LogbookParameterName {
      * <br>
      * For instance: SIP GUID, but never ArchiveUnit GUID for an Operation<br>
      * For instance: ArchiveUnit GUID for a LifeCycle<br>
-     * <br>Primary key for LifeCycle
      * <br>
+     * Primary key for LifeCycle <br>
      * One of objectIdentifierRequest and objectIdentifier can be null but not both
      */
     objectIdentifier,

@@ -90,3 +90,18 @@ Glossaire
 
    PDMA
       Perte de Données Maximale Admissible ; il s'agit du pourcentage de données stockées dans le système qu'il est acceptable de perdre lors d'un incident de production.
+
+   NoSQL
+      Base de données non-basée sur un paradigme classique des base relationnelles. `Référence <https://fr.wikipedia.org/wiki/NoSQL>`_
+
+   MitM
+      L'attaque de l'homme du milieu (HDM) ou `man-in-the-middle attack` (MITM) est une attaque qui a pour but d'intercepter les communications entre deux parties, sans que ni l'une ni l'autre ne puisse se douter que le canal de communication entre elles a été compromis. Le canal le plus courant est une connexion à Internet de l'internaute lambda. L'attaquant doit d'abord être capable d'observer et d'intercepter les messages d'une victime à l'autre. L'attaque « homme du milieu » est particulièrement applicable dans la méthode d'échange de clés Diffie-Hellman, quand cet échange est utilisé sans authentification. Avec authentification, Diffie-Hellman est en revanche invulnérable aux écoutes du canal, et est d'ailleurs conçu pour cela. `Référence <https://fr.wikipedia.org/wiki/Attaque_de_l'homme_du_milieu>`_
+
+   DNSSEC 
+      `Domain Name System Security Extensions` est un protocole standardisé par l'IETF permettant de résoudre certains problèmes de sécurité liés au protocole DNS. Les spécifications sont publiées dans la RFC 4033 et les suivantes (une version antérieure de DNSSEC n'a eu aucun succès). `Référence <https://fr.wikipedia.org/wiki/Domain_Name_System_Security_Extensions>`_
+
+   PKI
+      Une infrastructure à clés publiques (ICP) ou infrastructure de gestion de clés (IGC) ou encore Public Key Infrastructure (PKI), est un ensemble de composants physiques (des ordinateurs, des équipements cryptographiques logiciels ou matériel type HSM ou encore des cartes à puces), de procédures humaines (vérifications, validation) et de logiciels (système et application) en vue de gérer le cycle de vie des certificats numériques ou certificats électroniques. `Référence <https://fr.wikipedia.org/wiki/Infrastructure_%C3%A0_cl%C3%A9s_publiques>`_
+
+   SIA
+      Système d'Informations Archivistique

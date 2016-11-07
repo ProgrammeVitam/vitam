@@ -35,6 +35,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class FileFormatNotFoundException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -3598837892502078027L;
+
+    /**
      * @param message associated message
      */
     public FileFormatNotFoundException(String message) {
@@ -54,17 +59,6 @@ public class FileFormatNotFoundException extends VitamException {
      */
     public FileFormatNotFoundException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FileFormatNotFoundException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

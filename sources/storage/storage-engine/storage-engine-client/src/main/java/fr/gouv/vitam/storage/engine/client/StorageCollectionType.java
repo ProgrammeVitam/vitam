@@ -30,8 +30,13 @@ package fr.gouv.vitam.storage.engine.client;
  * Storage collection types with collection names.
  */
 public enum StorageCollectionType {
-    // TODO pourquoi pas de nom à Containers ?
-    CONTAINERS(""), UNITS("units"), OBJECTS("objects"), LOGBOOKS("logbooks"), OBJECTGROUPS("objectgroups"), REPORTS("reports");
+    // TODO P1 pourquoi pas de nom à Containers ?
+    CONTAINERS(""),
+    UNITS("units"),
+    OBJECTS("objects"),
+    LOGBOOKS("logbooks"),
+    OBJECTGROUPS("objectgroups"),
+    REPORTS("reports");
     /**
      * Name
      */

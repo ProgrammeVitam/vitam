@@ -1,0 +1,17 @@
+{
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }

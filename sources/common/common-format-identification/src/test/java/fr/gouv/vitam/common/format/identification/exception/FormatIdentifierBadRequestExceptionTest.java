@@ -17,7 +17,6 @@ public class FormatIdentifierBadRequestExceptionTest {
         assertNotNull(new FormatIdentifierBadRequestException(MESSAGE));
         assertNotNull(new FormatIdentifierBadRequestException(exception));
         assertNotNull(new FormatIdentifierBadRequestException(MESSAGE, exception));
-        assertNotNull(new FormatIdentifierBadRequestException(MESSAGE, exception, true, true));
     }
 
 }

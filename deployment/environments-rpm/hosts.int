@@ -46,18 +46,21 @@ vitam-iaas-ext-01.int
 
 [zone-access:children]
 hosts-ingest-external
+hosts-access-external
 
 [hosts-ingest-external]
 vitam-iaas-app-01.int
 
+[hosts-access-external]
+vitam-iaas-app-01.int
 
 ##### Zone applicative
 
 [zone-applicative:children]
-hosts-ingest
+hosts-ingest-internal
 hosts-processing
 hosts-worker
-hosts-access
+hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
@@ -71,10 +74,10 @@ vitam-iaas-app-03.int
 [hosts-workspace]
 vitam-iaas-storage-01.int
 
-[hosts-ingest]
+[hosts-ingest-internal]
 vitam-iaas-app-02.int
 
-[hosts-access]
+[hosts-access-internal]
 vitam-iaas-app-01.int
 
 [hosts-metadata]
@@ -163,16 +166,16 @@ vitam-iaas-dblog-03.int
 [hosts:vars]
 ansible_ssh_user=centos
 ansible_become=true
-vitam_folder_permission=0755
+vitam_folder_permission=0750
 vitam_conf_permission=0640
 local_user=vitam
 environnement=int
 vitam_reverse_domain=int
 consul_domain=consul
 vitam_ihm_demo_external_dns=int.env.programmevitam.fr
-https_reverse_proxy=10.220.23.1:3128
-proxy_host=10.220.23.1
-proxy_port=3128
-rpm_version=0.9.0-SNAPSHOT*
+rpm_version=0.10.0-SNAPSHOT*
 days_to_delete=365
+days_to_close=20
+days_to_delete_topbeat=20
+days_to_delete_local=30
 dns_servers=["172.16.1.21"]

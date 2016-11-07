@@ -29,11 +29,8 @@ package fr.gouv.vitam.ingest.internal.api.upload;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-
-import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * Upload service a received SIP from a SIA
@@ -41,16 +38,15 @@ import fr.gouv.vitam.common.exception.VitamException;
 public interface UploadService {
 
     /**
-     * Upload service a received SIP from a SIA
+     * Upload compressed SIP as Stream, will be uncompressed in workspace. <br>
+     * 
+     * @since 0.9.0 : support zip , tar and tar.gz archive format
      *
-     * @param uploadedInputStream
-     * @return Response
-     * @throws VitamException, if inputstream is null
-     * @throws XMLStreamException 
+     * @param partList
+     * @param xRequestId
+     * @return Response {@link Response}
      */
-    // TODO commentaire incorrect
-    public Response uploadSipAsStream(List<FormDataBodyPart> partList)
-        throws VitamException, XMLStreamException;
+    public Response uploadSipAsStream(String xRequestId, List<FormDataBodyPart> partList);
 
 
     /**

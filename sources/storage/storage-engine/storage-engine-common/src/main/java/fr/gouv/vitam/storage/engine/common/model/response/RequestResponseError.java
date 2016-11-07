@@ -32,9 +32,8 @@ import fr.gouv.vitam.common.error.VitamError;
 /**
  * Storage RequestResponseError class contains error list
  *
- * TODO : refactor to the common vitam
  */
-
+//TODO P1 : refactor to the common vitam
 public class RequestResponseError extends RequestResponse {
 
     private VitamError error;
@@ -51,7 +50,7 @@ public class RequestResponseError extends RequestResponse {
 
     /**
      * RequestResponseError constructor
-     * 
+     *
      * @param error the error message of type VitamError which will be setted for RequestResponseError
      * @return this
      */

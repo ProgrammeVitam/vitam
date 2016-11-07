@@ -54,15 +54,4 @@ public class ProcessingBadRequestException extends ProcessingException {
     public ProcessingBadRequestException(String message) {
         super(message);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public ProcessingBadRequestException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
 }

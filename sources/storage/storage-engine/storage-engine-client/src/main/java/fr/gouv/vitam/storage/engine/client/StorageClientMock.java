@@ -29,52 +29,38 @@ package fr.gouv.vitam.storage.engine.client;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
  * Mock client implementation for storage
  */
-class StorageClientMock extends StorageClientRest implements StorageClient {
-
-    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
-
+class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
     static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
-
-    /**
-     * Constructor
-     */
-    StorageClientMock() {
-        super(new SSLClientConfiguration("mock", 1, false, "/"), "/", false);
-    }
-
-    @Override
-    public StatusMessage getStatus() throws VitamClientException {
-        return new StatusMessage(SERVER_IDENTITY);
-    }
 
     @Override
     public JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
         try {
             return JsonHandler.getFromString(MOCK_INFOS_RESULT);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
     }
@@ -115,12 +101,18 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
-        StoredInfoResult result = new StoredInfoResult();
+        final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Stockage de l'objet réalisé avec succès");
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
+    }
+    
+    @Override
+    public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+        throws StorageServerClientException, StorageNotFoundException {
+        return Response.status(Status.OK).entity(IOUtils.toInputStream(MOCK_GET_FILE_CONTENT)).build();
     }
 
 }

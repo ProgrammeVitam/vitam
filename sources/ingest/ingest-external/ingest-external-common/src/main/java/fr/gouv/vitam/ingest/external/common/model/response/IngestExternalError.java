@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * IngestExternal error class
  *
  */
+// FIXME P0 utiliser le VitamError de Common Public
 public class IngestExternalError {
 
     private int code;
@@ -42,7 +43,7 @@ public class IngestExternalError {
     private String message;
     private String description;
     private List<IngestExternalError> errors;
-    
+
     /**
      * RequestResponseError constructor
      *
@@ -111,26 +112,44 @@ public class IngestExternalError {
         return this;
     }
 
+    /**
+     * @return code
+     */
     public int getCode() {
         return code;
     }
 
+    /**
+     * @return context
+     */
     public String getContext() {
         return context;
     }
 
+    /**
+     * @return state
+     */
     public String getState() {
         return state;
     }
 
+    /**
+     * @return message
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * @return description
+     */
     public String getDescription() {
         return description;
     }
 
+    /**
+     * @return list of errors
+     */
     public List<IngestExternalError> getErrors() {
         return errors;
     }

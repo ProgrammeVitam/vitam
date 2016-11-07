@@ -30,9 +30,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 
@@ -54,12 +54,12 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
 
 
     /**
-     * 
+     *
      * Get the Process Monitoring instance
      *
      * @return the ProcessMonitoring instance
      */
-    // TODO : Probably we should use a factory
+    // TODO P0 : Probably we should use a factory
     public static ProcessMonitoringImpl getInstance() {
         return INSTANCE;
     }
@@ -71,9 +71,11 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         String uniqueId;
         int iterator = 0;
         for (final Step step : workflow.getSteps()) {
-            ProcessStep processStep = new ProcessStep(step, 0, 0);
-            uniqueId = containerName + "_" + workflow.getId() + "_" + iterator++ + "_" + step.getStepName();
+            ProcessStep processStep = new ProcessStep(step, containerName, workflow.getId(), iterator, 0, 0);
+            //ProcessStep processStep = new ProcessStep(step, 0, 0);
+            uniqueId = containerName + "_" + workflow.getId() + "_" + iterator + "_" + step.getStepName();
             orderedWorkflow.put(uniqueId, processStep);
+            iterator++;
         }
         WORKFLOWS_LIST.put(processId, orderedWorkflow);
         return orderedWorkflow;
@@ -110,6 +112,23 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
             throw new ProcessingException(PROCESS_DOES_NOT_EXIST);
         }
     }
+
+
+    @Override
+    public Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException {
+        if (WORKFLOWS_LIST.containsKey(processId)) {
+            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            for (ProcessStep step : orderedSteps.values()) {
+                if (step.getStepStatusCode() != null && step.getStepStatusCode().isGreaterOrEqualToKo()) {
+                    return Boolean.TRUE;
+                }
+            }
+            return Boolean.FALSE;
+        } else {
+            throw new ProcessingException(PROCESS_DOES_NOT_EXIST);
+        }
+    }
+
 
     @Override
     public void updateStepStatus(String processId, String uniqueId, StatusCode status) throws ProcessingException {

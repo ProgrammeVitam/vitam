@@ -66,18 +66,18 @@
 
 # Kibana
 
-  ProxyPass /app/kibana http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /app/kibana http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/app/kibana
+  ProxyPass /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana
 
-  ProxyPass /api/status http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /api/status http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/api/status
+  ProxyPass /api/status http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /api/status http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/api/status
 
-  ProxyPass /bundles http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /bundles http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/bundles
+  ProxyPass /bundles http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /bundles http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/bundles
 
   # Needed as it conflicts with Elasticsearch reverse proxy
-  ProxyPass /elasticsearch http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/elasticsearch
-  ProxyPassReverse /elasticsearch http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/elasticsearch
+  ProxyPass /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
+  ProxyPassReverse /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
 
 # Documentation
   ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
@@ -85,11 +85,11 @@
 
 
 # Elasticsearch
-  ProxyPass /_plugin http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_plugin
-  ProxyPassReverse _plugin/ http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPass /_plugin http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
 
-  ProxyPass /elasticsearch-log http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/
-  ProxyPassReverse /elasticsearch-log http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/
+  ProxyPass /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/
+  ProxyPassReverse /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/
 
   ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
   ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/

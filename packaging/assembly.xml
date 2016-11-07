@@ -57,6 +57,8 @@
       <outputDirectory>deployment</outputDirectory>
       <excludes>
         <exclude>**/*.retry</exclude>
+        <!-- Only theses 3 hosts files must be delivered : hosts.example;hosts.local;hosts.fulllocal-->
+        <exclude>%regex[.*hosts.(?!example|local|fulllocal).*]</exclude>
       </excludes>
     </fileSet>
   </fileSets>

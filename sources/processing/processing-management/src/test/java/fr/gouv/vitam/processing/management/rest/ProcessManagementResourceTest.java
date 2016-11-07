@@ -42,11 +42,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
@@ -64,14 +64,14 @@ public class ProcessManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         final ServerConfiguration configuration = new ServerConfiguration();
-        configuration.setUrlMetada(URL_METADATA);
+        configuration.setUrlMetadata(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         configuration.setJettyConfig(JETTY_CONFIG);
         ProcessManagementApplication.run(configuration);
@@ -83,8 +83,7 @@ public class ProcessManagementResourceTest {
     public static void shutdownAfterClass() {
         try {
             ProcessManagementApplication.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
         }
         junitHelper.releasePort(port);
     }
@@ -95,7 +94,7 @@ public class ProcessManagementResourceTest {
     @Test
     public void shouldGetStatusReturnNoContent() throws Exception {
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }    
+    }
 
     @Test
     public void shouldReturnErrorNotFoundWhenNotExistWorkFlow() throws Exception {
@@ -105,7 +104,7 @@ public class ProcessManagementResourceTest {
             .post("/operations").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }    
+    }
 
     @Ignore
     @Test

@@ -70,10 +70,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -104,7 +106,7 @@ public class SelectParserSingleTest {
             "$filter : { " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, myvar : 1} } }");
-        
+
         EX_MD = JsonHandler.getFromString("{ $query : " + "{ $and : [ " + "{$exists : 'mavar1'}, " +
             "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] } }, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] }," +
@@ -116,12 +118,13 @@ public class SelectParserSingleTest {
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
-        
+
         EX_BOTH_ES_MD = JsonHandler.getFromString("{ $query : " + "{ $and : [ " + "{$exists : 'mavar1'}, " +
             "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] } }, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] }," +
             "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } },  { $gte : { 'mavar7' : 8 } }, { $lt : { 'mavar7' : 8 } } ] }," + "{ $not : [ " +
+            "{ $lte : { 'mavar7' : 8 } },  { $gte : { 'mavar7' : 8 } }, { $lt : { 'mavar7' : 8 } } ] }," +
+            "{ $not : [ " +
             "{ $eq : { 'mavar8' : 5 } }, { " +
             "$ne : { 'mavar9' : 'ab' } }, { " + "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ] }," +
             "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' } }," +
@@ -139,8 +142,8 @@ public class SelectParserSingleTest {
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
-        
-        
+
+
     }
 
     private static String createLongString(int size) {
@@ -341,7 +344,7 @@ public class SelectParserSingleTest {
             assertEquals("Projection should not be empty", 1,
                 request.getRequest().getProjection().size());
             // reset
-            select.resetUsageProjection().resetUsedProjection();
+            select.resetUsedProjection();
             request.projectionParse(select.getProjection());
             assertEquals("Projection should be empty", 0,
                 request.getRequest().getProjection().size());
@@ -424,6 +427,25 @@ public class SelectParserSingleTest {
         final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
+    }
+
+    @Test
+    public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserSingle request = new SelectParserSingle();
+        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        Select select = new Select();
+        select.setQuery(and().add(term("var01", "value1"), gte("var02", 3)));
+        select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
+            .addUnusedProjection("var4");
+        request.parse(select.getFinalSelect());
+        assertNotNull(request.getRequest());
+        request.addCondition(eq("var5", "value"));
+        assertEquals(
+            "{\"$query\":{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "{\"$eq\":{\"var5\":\"value\"}}]}," +
+                "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
+            request.getRootNode().toString());
     }
 
     @Test

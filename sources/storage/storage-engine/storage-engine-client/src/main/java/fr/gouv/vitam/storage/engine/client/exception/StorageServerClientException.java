@@ -32,6 +32,11 @@ package fr.gouv.vitam.storage.engine.client.exception;
 public class StorageServerClientException extends StorageClientException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -7139657230299981622L;
+
+    /**
      * @param message associated message
      */
     public StorageServerClientException(String message) {
@@ -51,16 +56,5 @@ public class StorageServerClientException extends StorageClientException {
      */
     public StorageServerClientException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageServerClientException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -29,15 +29,24 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
 
 /**
  * Unique Reference to an offer declared in a strategy.
- * TODO : this class may change (or be deleted) if we later think there is no need for other attributes
+ *
  */
+
+//TODO P1 : this class may change (or be deleted) if we later think there is no need for other attributes
+
 public class OfferReference {
     private String id;
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -106,7 +106,7 @@ public final class SiegfriedClientFactory {
     public static SiegfriedClientType getDefaultSiegfriedClientType() {
         return defaultClientType;
     }
-    
+
     /**
      * Modify the default Siegfried client type
      *
@@ -128,7 +128,7 @@ public final class SiegfriedClientFactory {
      */
     public final void changeConfiguration(String server, int port) {
         changeDefaultClientType(SiegfriedClientType.MOCK);
-        
+
         if (server == null) {
             LOGGER.info("No configuration - use mock");
         } else {

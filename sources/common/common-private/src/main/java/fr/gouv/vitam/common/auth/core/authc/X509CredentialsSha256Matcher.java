@@ -1,6 +1,6 @@
 /**
  * Copyright Paul Merlin 2011 (Apache Licence v2.0)
- * 
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) contact.vitam@culture.gouv.fr
  *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
@@ -43,10 +43,10 @@ public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher
     @Override
     public boolean doX509CredentialsMatch(X509AuthenticationToken token, X509AuthenticationInfo info) {
         try {
-            String clientCertSha256 = new Sha256Hash(token.getX509Certificate().getEncoded()).toHex();
-            String subjectCertSha256 = new Sha256Hash(info.getX509Certificate().getEncoded()).toHex();
+            final String clientCertSha256 = new Sha256Hash(token.getX509Certificate().getEncoded()).toHex();
+            final String subjectCertSha256 = new Sha256Hash(info.getX509Certificate().getEncoded()).toHex();
 
-            boolean match = clientCertSha256.equals(subjectCertSha256);
+            final boolean match = clientCertSha256.equals(subjectCertSha256);
 
             if (match) {
                 LOGGER.debug("Client certificate Sha256 hash match the one provided by the Realm, will return true");
@@ -58,7 +58,7 @@ public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher
 
             return match;
 
-        } catch (CertificateEncodingException ex) {
+        } catch (final CertificateEncodingException ex) {
             LOGGER.debug("Unable to do credentials matching", ex);
             return false;
         }

@@ -28,85 +28,131 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
-import java.util.List;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 
 /**
  * Rest client implementation for Ingest Internal
  */
-public class IngestInternalClientRest implements IngestInternalClient{
+public class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
-    private static final String RESOURCE_PATH = "/ingest/v1";
     private static final String UPLOAD_URL = "/upload";
-    private static final String STATUS_URL = "/status";
+    private static final String LOGBOOK_URL = "/logbooks";
+    private static final String INGEST_URL = "/ingests";
 
-    private final String serviceUrl;
-    private final Client client;
-
-    IngestInternalClientRest(String server, int port) {
-        ParametersChecker.checkParameter("server and port are a mandatory parameter",server, port);
-        serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        config.register(MultiPartFeature.class);
-        client = ClientBuilder.newClient(config);
-    }
-
-
-    @Override
-    public int status() {
-
-        return client.target(serviceUrl).path(STATUS_URL).request().get().getStatus();
+    IngestInternalClientRest(IngestInternalClientFactory factory) {
+        super(factory);
     }
 
     @Override
-    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
-
-        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList );
+    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
+        InputStream inputStream,
+        String archiveMimeType) throws VitamException {
+        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         final FormDataMultiPart multiPart = new FormDataMultiPart();
-
         multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
-
-        if(inputStream!=null){
+        if (inputStream != null) {
             multiPart.bodyPart(
-                new StreamDataBodyPart("part", inputStream, "SIP", MediaType.APPLICATION_OCTET_STREAM_TYPE));
+                new StreamDataBodyPart("part", inputStream, "SIP", CommonMediaType.valueOf(archiveMimeType)));
         }
-        //TODO Ajouter X-REQUEST-ID dans les headers pour utiliser dans IngestInternalResource
-        final Response response = client.target(serviceUrl).path(UPLOAD_URL).request()
-            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 
+        Response response =
+            performRequest(HttpMethod.POST, UPLOAD_URL, getDefaultHeaders(guid.getId()),
+                multiPart, MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+        if (Status.OK.getStatusCode() == response.getStatus()) {
+            LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
+        } else {
+            LOGGER.error("SIP Upload Error");
+        }
+
+        return response;
+    }
+
+    // FIXME P0 replace the above command by this one
+    /**
+     * Same as upload but using async service and 2 queries (delegated logbook and upload)
+     * 
+     * @param guid
+     * @param logbookParametersList
+     * @param inputStream
+     * @param archiveMimeType
+     * @return Response containing an InputStream for the ArchiveTransferReply (OK or KO) except in INTERNAL_ERROR (no
+     *         body)
+     * @throws VitamException
+     */
+    public Response uploadAsync(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
+        InputStream inputStream,
+        String archiveMimeType) throws VitamException {
+        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
+        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
+        Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, headers,
+            logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
+            MediaType.APPLICATION_JSON_TYPE, false);
+        if (response.getStatus() != Status.CREATED.getStatusCode()) {
+            throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        }
+        response = performRequest(HttpMethod.POST, INGEST_URL, headers,
+            inputStream, CommonMediaType.valueOf(archiveMimeType), MediaType.APPLICATION_OCTET_STREAM_TYPE);
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
         } else {
             LOGGER.error("SIP Upload Error");
             throw new VitamException("SIP Upload");
         }
-
         return response;
+    }
+
+    // FIXME P0 to be added in Interface and Mock
+    /**
+     * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
+     * 
+     * @param guid
+     * @param logbookParametersList
+     * @throws VitamClientException
+     */
+    public void uploadFinalLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamClientException {
+        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
+        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
+        Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, headers,
+            logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
+            MediaType.APPLICATION_JSON_TYPE, false);
+        if (response.getStatus() != Status.OK.getStatusCode()) {
+            throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        }
+    }
+
+    /**
+     * Generate the default header map
+     *
+     * @param requestId the x-request-id == operation guid
+     * @return header map
+     */
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+        return headers;
     }
 
 }

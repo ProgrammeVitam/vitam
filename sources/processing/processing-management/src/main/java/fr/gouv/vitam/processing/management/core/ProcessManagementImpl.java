@@ -29,19 +29,20 @@ package fr.gouv.vitam.processing.management.core;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
-// FIXME REVIEW add a factory plus constructor and class as package protected
+// FIXME P0 REVIEW add a factory plus constructor and class as package protected
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private final ProcessEngine processEngine;
@@ -87,10 +88,11 @@ public class ProcessManagementImpl implements ProcessManagement {
      * class
      */
     @Override
-    public EngineResponse submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
-        EngineResponse response;
-        workParams.setUrlMetadata(serverConfig.getUrlMetada());
+    public ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
+        ItemStatus response;
+        workParams.setUrlMetadata(serverConfig.getUrlMetadata());
         workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
+        WorkspaceClientFactory.changeMode(serverConfig.getUrlWorkspace());
         try {
             response = processEngine.startWorkflow(workParams, workflowId);
         } catch (final WorkflowNotFoundException e) {

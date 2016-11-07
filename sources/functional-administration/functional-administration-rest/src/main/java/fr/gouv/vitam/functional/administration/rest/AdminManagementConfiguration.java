@@ -27,32 +27,26 @@
 
 package fr.gouv.vitam.functional.administration.rest;
 
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 
 /**
  * AdminManagementConfiguration inherated from DbConfigurationImpl
  */
 public class AdminManagementConfiguration extends DbConfigurationImpl {
+    // constructor
 
-    private String jettyConfig;
-
-    /**
-     * getter of jetty config
-     *
-     * @return the jetty config
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
+    AdminManagementConfiguration() {
+        super();
     }
 
     /**
-     * setter of jetty config
-     *
-     * @param jettyConfig the jetty config to be set
-     * @return
+     * Constructor 
+     * 
+     * @param dbHost the database host
+     * @param dbPort the database port
+     * @param dbName the database name
      */
-    public AdminManagementConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
+    public AdminManagementConfiguration(String dbHost, int dbPort, String dbName) {
+        super(dbHost, dbPort, dbName);
     }
 }

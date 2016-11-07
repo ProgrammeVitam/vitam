@@ -31,9 +31,9 @@ package fr.gouv.vitam.ihmdemo.core;
  *
  */
 public enum UiConstants {
-	/**
-	 * Token used to specify a root item
-	 */
+    /**
+     * Token used to specify a root item
+     */
     SELECT_BY_ID("SELECT_BY_ID", "SELECT_BY_ID"),
 
     /**

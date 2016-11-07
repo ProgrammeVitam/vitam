@@ -37,7 +37,7 @@
         </BinaryDataObject>
         <BinaryDataObject id="ID006">
             <DataObjectGroupId>ID007</DataObjectGroupId>
-            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+            <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
             <Uri>files/file1.txt</Uri>
             <MessageDigest algorithm="SHA-512">ZGVmYXVsdA==</MessageDigest>
             <Size>50</Size>
@@ -50,7 +50,7 @@
         </BinaryDataObject>
         <BinaryDataObject id="ID008">
             <DataObjectGroupId>ID009</DataObjectGroupId>
-            <DataObjectVersion>Diffusion</DataObjectVersion>
+            <DataObjectVersion>Diffusion_1</DataObjectVersion>
             <Uri>files/file1.txt</Uri>
             <MessageDigest algorithm="SHA-512">ZGVmYXVsdA==</MessageDigest>
             <Size>50</Size>
@@ -63,7 +63,7 @@
         </BinaryDataObject>
         <BinaryDataObject id="ID010">
             <DataObjectGroupId>ID030</DataObjectGroupId>
-            <DataObjectVersion>TextContent</DataObjectVersion>
+            <DataObjectVersion>TextContent_1</DataObjectVersion>
             <Uri>files/file1.txt</Uri>
             <MessageDigest algorithm="SHA-512">ZGVmYXVsdA==</MessageDigest>
             <Size>50</Size>

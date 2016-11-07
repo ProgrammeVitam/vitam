@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fr.gouv.vitam</groupId>
+		<artifactId>access</artifactId>
+		<version>0.10.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>access-internal</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>access-internal-common</module>
+		<module>access-internal-api</module>
+		<module>access-internal-core</module>
+		<module>access-internal-rest</module>
+		<module>access-internal-client</module>
+	</modules>
+	<name>Access Internal </name>
+	<dependencies>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-public</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+</project>

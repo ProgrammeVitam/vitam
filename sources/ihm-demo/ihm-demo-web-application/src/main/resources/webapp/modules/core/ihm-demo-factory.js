@@ -43,7 +43,8 @@ angular.module('core')
   'OG_LIFECYCLE_TYPE': 'objectgroup',
   'SIP_TO_UPLOAD_URL': '/upload/fileslist',
   'UPLOAD_SELECTED_SIP_URL': '/upload/',
-  'GENERATE_STAT_URL': '/stat/'
+  'GENERATE_STAT_URL': '/stat/',
+  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -110,6 +111,11 @@ angular.module('core')
   // Generate INGEST statistics report
   dataFactory.generateIngestStatReport = function(operationId){
     return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.GENERATE_STAT_URL + operationId);
+  };
+
+  // Default Accession Register Search
+  dataFactory.getAccessionRegisters = function(defaultCriteria){
+    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.DEFAULT_ACCESSION_REGISTER_SEARCH_URL, defaultCriteria);
   };
 
   return dataFactory;
@@ -191,4 +197,20 @@ angular.module('core')
       login: login,
       logout: logout
     };
+  })
+  .factory('redirectInterceptor', function($q, $location, $cookies) {
+    return  {
+      'response':function(response){
+        if (typeof response.data === 'string' && response.data.indexOf("PROGRAMME VITAM")>-1) {
+          $location.path('/login');
+          $cookies.remove('userCredentials');
+          $cookies.remove('role');
+          return $q.reject(response);
+        }else{
+          return response;
+        }
+      }
+    }
+
   });
+

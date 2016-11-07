@@ -26,16 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 
 public class WorkspaceClientFactoryTest {
 
     @Test
     public void givenWorkspaceClientFactoryWhenCallingCreateThenReturnClient() {
-        final WorkspaceClientFactory factory = new WorkspaceClientFactory();
-        assertTrue(factory.create("") instanceof WorkspaceClient);
+        WorkspaceClientFactory.changeMode("http://localhost:8080");
+        assertTrue(WorkspaceClientFactory.getInstance().getClient() instanceof WorkspaceClient);
     }
-
 }

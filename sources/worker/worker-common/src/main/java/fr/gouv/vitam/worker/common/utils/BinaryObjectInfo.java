@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import java.net.URI;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 
@@ -37,7 +35,8 @@ import fr.gouv.vitam.common.digest.DigestType;
 public final class BinaryObjectInfo {
     private String id;
     private String version;
-    private URI uri;
+    private int rank = 1;
+    private String uri;
     private String messageDigest;
     private long size;
     private DigestType algo;
@@ -79,15 +78,16 @@ public final class BinaryObjectInfo {
     /**
      * @return uri
      */
-    public URI getUri() {
+    public String getUri() {
         return uri;
     }
 
     /**
-     * @param uri the uri of the binary data to set
+     * @param uri 
+     * @param String the uri of the binary data to set
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setUri(URI uri) {
+    public BinaryObjectInfo setUri(String uri) {
         ParametersChecker.checkParameter("uri is a mandatory parameter", uri);
         this.uri = uri;
         return this;
@@ -138,9 +138,27 @@ public final class BinaryObjectInfo {
      * @param algo digest algorithm
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setAlgo(String algo) {
+    public BinaryObjectInfo setAlgo(DigestType algo) {
         ParametersChecker.checkParameter("algo is a mandatory parameter", algo);
-        this.algo = DigestType.fromValue(algo);
+        this.algo = algo;
+        return this;
+    }
+
+    /**
+     * 
+     * @return the rank in version
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * 
+     * @param rank the rank in version
+     * @return this
+     */
+    public BinaryObjectInfo setRank(int rank) {
+        this.rank = rank;
         return this;
     }
 

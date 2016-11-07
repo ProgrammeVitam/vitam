@@ -41,14 +41,14 @@ public class IngestExternalException extends VitamException {
     public IngestExternalException(String message) {
         super(message);
     }
-    
+
     /**
      * @param exception of other module
      */
     public IngestExternalException(Throwable exception) {
         super(exception);
     }
-    
+
     /**
      * @param message associated message
      * @param cause associated cause

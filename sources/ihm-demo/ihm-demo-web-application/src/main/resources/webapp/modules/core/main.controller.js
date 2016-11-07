@@ -26,7 +26,8 @@
  */
 
 angular.module('core')
-  .controller('mainViewController', function($rootScope, $scope, $location, IHM_URLS, authVitamService, $window, Restangular, subject, usernamePasswordToken) {
+  .controller('mainViewController', function($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
+                                             $window, Restangular, subject, usernamePasswordToken) {
     $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
@@ -38,8 +39,6 @@ angular.module('core')
       } else if ($location.path() == '/login') {
         $location.path(IHM_URLS.IHM_DEFAULT_URL);
       }
-
-      // TODO update ng-translate preferedLanguage (Get the brower language ?) - Default fr
 
     });
 
@@ -62,6 +61,7 @@ angular.module('core')
             delete authVitamService.url;
           } else {
             $location.path(IHM_URLS.IHM_DEFAULT_URL);
+            $translate.refresh();
           }
         },
         function(err) {

@@ -45,11 +45,11 @@ angular.module('lifecycle')
     self.maxSize = 5;
 
     self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
+      selfcurrentPage = pageNo;
     };
 
     self.pageChanged = function() {
-     console.log('Page changed to: ' + self.currentPage);
+      console.log('Page changed to: ' + self.currentPage);
     };
 
     self.setItemsPerPage = function(num) {
@@ -73,8 +73,8 @@ angular.module('lifecycle')
     loadStaticValues.loadFromFile().then(
       function onSuccess(response) {
         var config = response.data;
-        self.columnsToDisplay = initFields(config.mandatoryFields);
-        self.customFields = initFields(config.customFields);
+        self.columnsToDisplay = initFields(config.lifeCycleMandatoryFields);
+        self.customFields = initFields(config.lifeCycleCustomFields);
       }, function onError(error) {
 
       });
@@ -86,7 +86,7 @@ angular.module('lifecycle')
     self.showResult = true;
 
     // Get lifeCycle details
-    var buildUnitLifeCycle = function() {
+    var buildLifeCycle = function() {
       ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, self.lifeCycleId).then(function(response) {
         self.receivedResponse = response;
         if (response.data.hits === undefined || response.data.hits === null || response.data.hits.total !== 1) {
@@ -104,7 +104,12 @@ angular.module('lifecycle')
             if(isEndEvent){
               var newEvent = {};
               angular.forEach(value, function(value, key) {
-                newEvent[key.toUpperCase()] = value;
+                var uppercaseKey = key.toUpperCase();
+                if (uppercaseKey === 'EVTYPE') {
+                  newEvent[uppercaseKey] = $filter('translate')(value);
+                } else {
+                  newEvent[uppercaseKey] = value;
+                }
               });
 
               self.lifeCycleDetails.push(newEvent);
@@ -120,5 +125,5 @@ angular.module('lifecycle')
     };
 
     // Display life cycle
-    buildUnitLifeCycle();
+    buildLifeCycle();
   });

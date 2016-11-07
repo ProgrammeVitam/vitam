@@ -49,7 +49,7 @@ public class PronomParserTest {
     @Test
     public void testPronomFormat() throws FileFormatException, FileNotFoundException {
         jsonFileFormat = PronomParser.getPronom(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST)));
-        JsonNode node = jsonFileFormat.get(jsonFileFormat.size() - 1);
+        final JsonNode node = jsonFileFormat.get(jsonFileFormat.size() - 1);
         assertTrue(node.get("Name").toString().contains("RDF/XML"));
         assertEquals(node.get("PUID").textValue(), "fmt/875");
         assertTrue(node.get("MIMEType").toString().contains("application/rdf+xml"));

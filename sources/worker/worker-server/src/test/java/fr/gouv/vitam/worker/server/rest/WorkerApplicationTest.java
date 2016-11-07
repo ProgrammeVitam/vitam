@@ -29,35 +29,26 @@ package fr.gouv.vitam.worker.server.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileOutputStream;
 
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
+
 
 /**
- * 
+ *
  */
 public class WorkerApplicationTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerApplicationTest.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
     private static final String WORKER_CONF = "worker-test.conf";
-    private static final String DATABASE_HOST = "localhost";
     private static int serverPort;
     private static int oldPort;
     private static JunitHelper junitHelper;
@@ -65,22 +56,20 @@ public class WorkerApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         worker = PropertiesUtils.findFile(WORKER_CONF);
-        final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
-        realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888");
-
-        try (FileOutputStream outputStream = new FileOutputStream(worker)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realWorker);
-        }
         serverPort = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        JunitHelper.setJettyPortSystemProperty(serverPort);
+
+        final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
+        realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
+            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888")
+            .setUrlMetadata("http://localhost:8888").setUrlWorkspace("http://localhost:8888");
+
+        File newWorkerConf = File.createTempFile("test", WORKER_CONF, worker.getParentFile());
+        PropertiesUtils.writeYaml(newWorkerConf, realWorker);
+        worker = newWorkerConf;
 
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
@@ -96,13 +85,8 @@ public class WorkerApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            WorkerApplication.startApplication(new String[] {WORKER_CONF});
-            WorkerApplication.stop();
+            new WorkerApplication(worker.getAbsolutePath());
         } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }

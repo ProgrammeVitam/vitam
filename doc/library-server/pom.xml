@@ -7,7 +7,7 @@
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
 		<relativePath>../../sources/pom.xml</relativePath>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>library-server</artifactId>
@@ -58,22 +58,21 @@
 			<artifactId>maven-resources-plugin</artifactId>
 			<executions>
 				<execution>
-					<id>copy-resources</id>
+					<id>copy-config-resources</id>
 					<phase>validate</phase>
 					<goals>
 						<goal>copy-resources</goal>
 					</goals>
 					<configuration>
-						<outputDirectory>${project.build.directory}/bin</outputDirectory>
+						<outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
 						<resources>
 							<resource>
-								<directory>${basedir}/src/main/bin</directory>
+								<directory>${basedir}/src/main/conf</directory>
 								<filtering>true</filtering>
 							</resource>
 						</resources>
 					</configuration>
 				</execution>
-
 				<execution>
 					<id>copy-systemd-resources</id>
 					<phase>validate</phase>
@@ -142,19 +141,12 @@
 						<directory>/vitam/conf/${unix.name}</directory>
 						<sources>
 							<source>
-								<location>${basedir}/src/main/config</location>
+								<location>${project.build.directory}/conf</location>
 							</source>
 						</sources>
 					</mapping>
 
-					<mapping>
-						<directory>/vitam/script/${unix.name}</directory>
-						<sources>
-							<source>
-								<location>${project.build.directory}/bin</location>
-							</source>
-						</sources>
-					</mapping>
+					
 
 					<!-- OMA : added for future use -->
 					<mapping>

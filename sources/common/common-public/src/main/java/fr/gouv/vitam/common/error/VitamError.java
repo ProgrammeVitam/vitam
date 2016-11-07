@@ -29,25 +29,42 @@ package fr.gouv.vitam.common.error;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 
 /**
  * VitamError class
  *
- * TODO: Review model ! Ensure consistency with VitamCode !
- * TODO: refactor to be common since this can be used by many other vitam components
  */
 public class VitamError {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
+    
+    @JsonProperty("httpCode")
+    private int httpCode;
+    @JsonProperty("code")
     private String code;
+    @JsonProperty("context")
     private String context;
+    @JsonProperty("state")
     private String state;
+    @JsonProperty("message")
     private String message;
+    @JsonProperty("description")
     private String description;
+    @JsonProperty("errors")
     private List<VitamError> errors;
+
+    protected VitamError() {
+        // For Json builder
+    }
 
     /**
      * RequestResponseError constructor
@@ -65,6 +82,23 @@ public class VitamError {
      */
     public VitamError setCode(String code) {
         this.code = code;
+        return this;
+    }
+
+    /**
+     * @return the httpCode
+     */
+    public int getHttpCode() {
+        return httpCode;
+    }
+
+    /**
+     * @param httpCode the httpCode to set
+     *
+     * @return this
+     */
+    public VitamError setHttpCode(int httpCode) {
+        this.httpCode = httpCode;
         return this;
     }
 
@@ -166,32 +200,40 @@ public class VitamError {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"code\":\"");
-        sb.append(code);
-        sb.append("\",\"context\":\"");
-        if (context != null) {
-            sb.append(context.replaceAll("\"", "'"));
+        return JsonHandler.unprettyPrintLowerCamelCase(this);
+    }
+    
+    /**
+     * 
+     * @return the Json representation
+     * @throws InvalidParseOperationException 
+     */
+    public JsonNode toJsonNode() {
+        try {
+            return JsonHandler.getFromString(this.toString());
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException(e);
         }
-        sb.append("\",\"state\":\"");
-        if (state != null) {
-            sb.append(state.replaceAll("\"", "'"));
-        }
-        sb.append("\",\"message\":\"");
-        if (message != null) {
-            sb.append(message.replaceAll("\"", "'"));
-        }
-        sb.append("\",\"description\":\"");
-        if (description != null) {
-            sb.append(description.replaceAll("\"", "'"));
-        }
-        sb.append("\",\"errors\":[");
-        StringJoiner joiner = new StringJoiner(",");
-        for (VitamError error : errors) {
-            joiner.add(error.toString());
-        }
-        sb.append(joiner.toString());
-        sb.append("]}");
-        return sb.toString();
+    }
+    
+    /**
+     * 
+     * @param string
+     * @return the corresponding VitamError
+     * @throws InvalidParseOperationException
+     */
+    public static VitamError getFromString(String string) throws InvalidParseOperationException {
+        return JsonHandler.getFromStringLowerCamelCase(string, VitamError.class);
+    }
+
+    /**
+     * 
+     * @param node
+     * @return the corresponding VitamError
+     * @throws InvalidParseOperationException
+     */
+    public static VitamError getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
+        return JsonHandler.getFromJsonNodeLowerCamelCase(node, VitamError.class);
     }
 }

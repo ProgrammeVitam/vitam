@@ -35,15 +35,16 @@ public class SysErrLogger {
      * FAKE LOGGER used where no LOG could be done
      */
     public static final SysErrLogger FAKE_LOGGER = new SysErrLogger();
-    
+
     private SysErrLogger() {
         // Empty
     }
 
     /**
      * Utility method to log nothin
-     * 
+     *
      * Used only in classes where VitamLogger is not allowed
+     *
      * @param throwable
      */
     public void ignoreLog(Throwable throwable) {
@@ -52,8 +53,9 @@ public class SysErrLogger {
 
     /**
      * Utility method to log through System.err
-     * 
+     *
      * Used only in classes where VitamLogger is not allowed
+     *
      * @param message
      */
     public void syserr(String message) {
@@ -62,7 +64,7 @@ public class SysErrLogger {
 
     /**
      * Utility method to log through System.err the current Stacktrace
-     * 
+     *
      * Used only in classes where VitamLogger is not allowed
      */
     public void syserr() {
@@ -71,10 +73,11 @@ public class SysErrLogger {
 
     /**
      * Utility method to log through System.err the current Stacktrace
-     * 
+     *
      * Used only in classes where VitamLogger is not allowed
+     *
      * @param message
-     * @param cause
+     * @param e 
      */
     public void syserr(String message, Throwable e) {
         System.err.print("ERROR " + message + ": "); // NOSONAR

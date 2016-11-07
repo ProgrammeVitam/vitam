@@ -45,7 +45,7 @@ public final class SedaUtilInfo {
 
     /**
      * Add binaryObjectInfo to the Map
-     * 
+     *
      * @param binaryObjectInfo info of a binary object
      */
     public void setBinaryObjectMap(BinaryObjectInfo binaryObjectInfo) {

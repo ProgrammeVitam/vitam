@@ -33,29 +33,34 @@ import java.util.Set;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * Factory to get LogbookParameters object
+ * 
+ * Logbook parameters factory </br>
+
+ * Factory to get LogbookParameters object </br>
  *
  * Example:
  *
  * <pre>
  *     {@code
- *      // Retrieve logbook operation parameters with standard required fields
+ *      // Retrieves logbook operation parameters with standard required fields
  *      LogbookOperationParameters parameters = LogbookParametersFactory.getLogbookOperationParameters();
  *
- *      // Retrieve logbook operation parameters with standard required fields and specifics required fields
+ *      // Retrieves logbook operation parameters with standard required fields and specifics required fields
  *      Set<LogbookParameterName> specificMandatoryFields = new HashSet<>()
  *      // add specific fields
  *      specificMandatoryFields.add(LogbookParameterName.objectIdentifier);
  *      specificMandatoryFields.add(LogbookParameterName.agentIdentifier);
  *
- *      // Retrieve parameter object
+ *      // Retrieves parameter object
  *      parameters = LogbookParametersFactory.getLogbookOperationParameters(specificMandatoryFields);
  *     }
  * </pre>
  */
-// TODO: see WorkerParametersFactory and create a common factory
+
+// TODO P1 : see WorkerParametersFactory and create a common factory
 // for all "vitam parameters" using generic (for example)
 public class LogbookParametersFactory {
 
@@ -158,7 +163,6 @@ public class LogbookParametersFactory {
 
     /**
      * Get a new LogbookOperationParameters object
-     * FIXME cf. @etienne.carriere - nombre de parametres
      *
      * @param eventIdentifier
      * @param eventType
@@ -175,7 +179,7 @@ public class LogbookParametersFactory {
     @Deprecated
     public static LogbookOperationParameters newLogbookOperationParameters(String eventIdentifier,
         String eventType, String eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        LogbookOutcome outcome, String outcomeDetailMessage,
+        StatusCode outcome, String outcomeDetailMessage,
         String eventIdentifierRequest) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
@@ -207,7 +211,7 @@ public class LogbookParametersFactory {
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        LogbookOutcome outcome, String outcomeDetailMessage, GUID eventIdentifierRequest) {
+        StatusCode outcome, String outcomeDetailMessage, GUID eventIdentifierRequest) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
@@ -237,20 +241,20 @@ public class LogbookParametersFactory {
      * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
-                                                                           String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-                                                                           LogbookOutcome outcome, String outcomeDetailMessage, String eventIdentifierRequest) {
+        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome, String outcomeDetailMessage, String eventIdentifierRequest) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-                eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
+            eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
         return (LogbookOperationParameters) parameters
-                .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-                .putParameterValue(LogbookParameterName.eventType, eventType)
-                .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-                .setTypeProcess(eventTypeProcess)
-                .setStatus(outcome)
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-                .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+            .putParameterValue(LogbookParameterName.eventType, eventType)
+            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
+            .setTypeProcess(eventTypeProcess)
+            .setStatus(outcome)
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
     }
 
     /**
@@ -270,26 +274,27 @@ public class LogbookParametersFactory {
      */
     public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        LogbookOutcome outcome, String outcomeDetail, String outcomeDetailMessage,
+        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
         GUID objectIdentifier) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail, outcomeDetailMessage);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
+            outcomeDetailMessage);
         final LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters();
-        return (LogbookLifeCycleUnitParameters) parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-                .putParameterValue(LogbookParameterName.eventType, eventType)
+        return (LogbookLifeCycleUnitParameters) parameters
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+            .putParameterValue(LogbookParameterName.eventType, eventType)
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-                .setTypeProcess(eventTypeProcess)
-                .setStatus(outcome)
-                .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
+            .setTypeProcess(eventTypeProcess)
+            .setStatus(outcome)
+            .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
             .putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier.getId());
     }
 
     /**
      * Get a new LogbookLifeCycleUnitParameters object with objectIdentifier as String
-     * FIXME cf. @etienne.carriere - nombre de parametres
-     * 
+     *
      * @param eventIdentifier
      * @param eventType
      * @param eventIdentifierProcess
@@ -303,21 +308,23 @@ public class LogbookParametersFactory {
      * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(GUID eventIdentifier,
-                                                                                   String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-                                                                                   LogbookOutcome outcome, String outcomeDetail, String outcomeDetailMessage,
-                                                                                   String objectIdentifier) {
+        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
+        String objectIdentifier) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-                eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail, outcomeDetailMessage);
+            eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
+            outcomeDetailMessage);
         final LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters();
-        return (LogbookLifeCycleUnitParameters) parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-                .putParameterValue(LogbookParameterName.eventType, eventType)
-                .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-                .setTypeProcess(eventTypeProcess)
-                .setStatus(outcome)
-                .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-                .putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
+        return (LogbookLifeCycleUnitParameters) parameters
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+            .putParameterValue(LogbookParameterName.eventType, eventType)
+            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
+            .setTypeProcess(eventTypeProcess)
+            .setStatus(outcome)
+            .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
+            .putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
     }
 
     /**
@@ -337,13 +344,15 @@ public class LogbookParametersFactory {
      */
     public static LogbookLifeCycleObjectGroupParameters newLogbookLifeCycleObjectGroupParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        LogbookOutcome outcome, String outcomeDetail, String outcomeDetailMessage,
+        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
         GUID objectIdentifier) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail, outcomeDetailMessage);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
+            outcomeDetailMessage);
         final LogbookLifeCycleObjectGroupParameters parameters = newLogbookLifeCycleObjectGroupParameters();
-        return (LogbookLifeCycleObjectGroupParameters) parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+        return (LogbookLifeCycleObjectGroupParameters) parameters
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
             .putParameterValue(LogbookParameterName.eventType, eventType)
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
             .setTypeProcess(eventTypeProcess)
@@ -371,7 +380,7 @@ public class LogbookParametersFactory {
     }
 
     /**
-     * 
+     *
      * @param mandatoryFieldsToAdd
      * @return the new Set of parameter names
      */

@@ -36,10 +36,10 @@ import org.jclouds.providers.ProviderMetadata;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 
 /**
@@ -52,12 +52,12 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     /**
      * @param configuration to associate with the FileSystem
      */
-    public FileSystem(StorageConfiguration configuration) {
+    public FileSystem(WorkspaceConfiguration configuration) {
         super(configuration);
     }
-
+    
     @Override
-    public BlobStoreContext getContext(StorageConfiguration configuration) {
+    public BlobStoreContext getContext(WorkspaceConfiguration configuration) {
         final Properties props = new Properties();
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
         LOGGER.debug("Get File System Context");
@@ -65,12 +65,12 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public ContainerInformation getContainerInformation(String containerName) throws
-        ContentAddressableStorageNotFoundException {
-        File baseDirFile = getBaseDir(containerName);
-        long usableSpace = baseDirFile.getUsableSpace();
-        long usedSpace = getFolderUsedSize(baseDirFile);
-        ContainerInformation containerInformation = new ContainerInformation();
+    public ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException {
+        final File baseDirFile = getBaseDir(containerName);
+        final long usableSpace = baseDirFile.getUsableSpace();
+        final long usedSpace = getFolderUsedSize(baseDirFile);
+        final ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(usableSpace);
         containerInformation.setUsedSpace(usedSpace);
         return containerInformation;
@@ -78,7 +78,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
 
     private long getFolderUsedSize(File directory) {
         long usedSpace = 0;
-        for (File file : directory.listFiles()) {
+        for (final File file : directory.listFiles()) {
             if (file.isFile()) {
                 usedSpace += file.length();
             } else {
@@ -89,9 +89,9 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     }
 
     private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
-        ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
-        Properties properties = providerMetadata.getDefaultProperties();
-        String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
+        final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
+        final Properties properties = providerMetadata.getDefaultProperties();
+        final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
         File baseDirFile;
         if (containerName != null) {
             baseDirFile = new File(baseDir, containerName);

@@ -49,6 +49,16 @@ final class JdkLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void setLevel(VitamLogLevel level) {
+        JdkLoggerFactory.loggerSetLevel(logger, level);
+    }
+
+    @Override
+    public VitamLogLevel getLevel() {
+        return JdkLoggerFactory.loggerGetLevel(logger);
+    }
+
+    @Override
     public void timeInfo(String msg) {
         if (isInfoEnabled()) {
             logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);

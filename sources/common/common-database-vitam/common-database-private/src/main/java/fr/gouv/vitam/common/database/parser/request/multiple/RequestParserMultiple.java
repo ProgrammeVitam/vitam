@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -42,7 +43,11 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
+import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
@@ -58,13 +63,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * filter }
  *
  */
-public abstract class RequestParserMultiple  extends AbstractParser<RequestMultiple> {
+public abstract class RequestParserMultiple extends AbstractParser<RequestMultiple> {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(RequestParserMultiple.class);
-    /**  
-     * Component's position
-     * [ {root}, {query}, {filter} ]
-     * [   0   ,    1   ,    2     ]
+    /**
+     * Component's position [ {root}, {query}, {filter} ] [ 0 , 1 , 2 ]
      */
     protected static final int ROOT_POS = 0;
     protected static final int QUERY_POS = 1;
@@ -127,6 +130,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
         }
     }
 
+    @Override
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         super.parseJson(jsonRequest);
         internalParse();
@@ -181,7 +185,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
 
     /**
      * Filter part
-     * 
+     *
      * @param rootNode JsonNode The filter of the request
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
@@ -295,6 +299,10 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
             LOGGER.debug("Depth step: {}:{}", lastDepth, lastDepth - prevDepth);
         } else {
             query = analyzeOneCommand(queryItem.getKey(), queryItem.getValue());
+            if (query == null) {
+                // NOP
+                return;
+            }
             final int prevDepth = lastDepth;
             if (exactdepth > 0) {
                 lastDepth = exactdepth;
@@ -304,7 +312,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
             LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth,
                 relativedepth, exactdepth, isDepth);
         }
-        
+
         QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
             exactdepth, relativedepth);
         hasFullTextQuery |= hasFullTextCurrentQuery;
@@ -319,13 +327,51 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return the Request
      */
+    @Override
     public RequestMultiple getRequest() {
         return request;
     }
 
     /**
+     * Allow to add one condition to the current parsed Request on top Query</br>
+     * </br>
+     * Example:</br>
+     * <pre><code>
+     *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
+     *   parser.parse(jsonQuery);
+     *   parser.addCondition(eq(FieldName, value));
+     *   JsonNode newJsonQuery = parser.getRootNode();
+     * </code></pre>
+     * 
+     * @param condition the condition to add
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
+        RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
+        newOne.parse(rootNode);
+        RequestMultiple request = newOne.getRequest();
+        Query query = request.getNthQuery(0);
+        Query newQuery = QueryHelper.and().add(query, condition);
+        getRequest().getQueries().set(0, newQuery);
+        if (newOne instanceof SelectParserMultiple) {
+            parse(((Select) getRequest()).getFinalSelect().deepCopy());
+        } else if (newOne instanceof InsertParserMultiple) {
+            parse(((Insert) getRequest()).getFinalInsert().deepCopy());
+        } else if (newOne instanceof UpdateParserMultiple) {
+            parse(((Update) getRequest()).getFinalUpdate().deepCopy());
+        } else {
+            parse(((Delete) getRequest()).getFinalDelete().deepCopy());
+        }
+        newOne.request = null;
+        newOne.rootNode = null;
+        newOne.sourceRequest = null;
+    }
+
+    /**
      * @return the lastDepth
      */
+    @Override
     public final int getLastDepth() {
         return lastDepth;
     }
@@ -334,6 +380,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return True if the hint contains cache
      */
+    @Override
     public boolean hintCache() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode == null) {
@@ -352,6 +399,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return True if the hint contains notimeout
      */
+    @Override
     public boolean hintNoTimeout() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
@@ -368,6 +416,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return the model between Units/ObjectGroups/Objects (in that order)
      */
+    @Override
     public FILTERARGS model() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {

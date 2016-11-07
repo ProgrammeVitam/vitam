@@ -1,0 +1,5 @@
+---
+
+mongos_config_path:  '{{vitam_folder_root}}/conf/mongos'
+mongoc_config_path:  '{{vitam_folder_root}}/conf/mongoc'
+mongod_config_path:  '{{vitam_folder_root}}/conf/mongod'

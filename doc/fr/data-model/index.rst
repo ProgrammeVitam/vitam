@@ -11,6 +11,7 @@
    :numbered:
 
    dataModel
+   dataIndex
 
 .. only:: latex
 

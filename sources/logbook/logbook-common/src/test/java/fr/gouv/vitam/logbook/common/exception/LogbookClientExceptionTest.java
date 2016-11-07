@@ -42,7 +42,6 @@ public class LogbookClientExceptionTest {
         assertEquals("test", new LogbookClientAlreadyExistsException("test").getMessage());
         assertNotNull(new LogbookClientAlreadyExistsException(new Exception()).getCause());
         assertNotNull(new LogbookClientAlreadyExistsException("test", new Exception()).getCause());
-        assertNotNull(new LogbookClientAlreadyExistsException("test", new Exception(), true, true).getCause());
     }
 
     @Test
@@ -51,7 +50,6 @@ public class LogbookClientExceptionTest {
         assertEquals("test", new LogbookClientException("test").getMessage());
         assertNotNull(new LogbookClientException(new Exception()).getCause());
         assertNotNull(new LogbookClientException("test", new Exception()).getCause());
-        assertNotNull(new LogbookClientException("test", new Exception(), true, true).getCause());
     }
 
     @Test
@@ -60,7 +58,6 @@ public class LogbookClientExceptionTest {
         assertEquals("test", new LogbookClientNotFoundException("test").getMessage());
         assertNotNull(new LogbookClientNotFoundException(new Exception()).getCause());
         assertNotNull(new LogbookClientNotFoundException("test", new Exception()).getCause());
-        assertNotNull(new LogbookClientNotFoundException("test", new Exception(), true, true).getCause());
     }
 
     @Test
@@ -69,7 +66,6 @@ public class LogbookClientExceptionTest {
         assertEquals("test", new LogbookClientBadRequestException("test").getMessage());
         assertNotNull(new LogbookClientBadRequestException(new Exception()).getCause());
         assertNotNull(new LogbookClientBadRequestException("test", new Exception()).getCause());
-        assertNotNull(new LogbookClientBadRequestException("test", new Exception(), true, true).getCause());
     }
 
     @Test
@@ -78,7 +74,6 @@ public class LogbookClientExceptionTest {
         assertEquals("test", new LogbookClientServerException("test").getMessage());
         assertNotNull(new LogbookClientServerException(new Exception()).getCause());
         assertNotNull(new LogbookClientServerException("test", new Exception()).getCause());
-        assertNotNull(new LogbookClientServerException("test", new Exception(), true, true).getCause());
     }
 
 }

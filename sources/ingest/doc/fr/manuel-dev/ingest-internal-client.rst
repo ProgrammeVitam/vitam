@@ -1,3 +1,4 @@
+
 ingest-internal-client
 ######################
 
@@ -50,4 +51,15 @@ Le client propose deux méthodes :
 .. code-block:: java
 
 	  Status status();
-	  UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+	  UploadResponseDTO upload(String archiveMimeType,List<LogbookParameters> logbookParametersList, InputStream inputStream);
+
+
+
+ Cette méthde ( à la version 0.9.0) capable de télécharger un sip compressé en 3 formats (zip, tar, tar.gz)
+
+- Paramètres :
+    - archiveMimeType :: String (mimetype de l'archive ;par exemple application/x-tar)
+    - logbookParametersList :: List<LogbookParameters>
+    - inputStream : InputStream (stream de sip compressé dont le format doit être zip, tar ou tar.gz)
+- Retourne : ATR en format xml
+- Exceptions : 

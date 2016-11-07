@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -114,17 +116,13 @@ public class SanityChecker {
     // Default ASCII for Param check
     private static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
     // ISSUE with integration
-    private static Validator ESAPI;
-
-    static {
-        init();
-    }
+    private static final Validator ESAPI = init();
 
     private SanityChecker() {
         // Empty constructor
     }
 
-    private static final void init() {
+    private static final Validator init() {
         RULES.add(CDATA_TAG_UNESCAPED);
         RULES.add(CDATA_TAG_ESCAPED);
         RULES.add(ENTITY_TAG_UNESCAPED);
@@ -132,18 +130,18 @@ public class SanityChecker {
         RULES.add(SCRIPT_TAG_UNESCAPED);
         RULES.add(SCRIPT_TAG_ESCAPED);
         // ISSUE with integration
-        ESAPI = new DefaultValidator();
+        return new DefaultValidator();
     }
 
     /**
      * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
-     * 
+     *
      * @param xmlFile as File
      * @throws InvalidParseOperationException when parse file error
      * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
+    public static final void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
         checkXmlSanityFileSize(xmlFile);
         // First test tags through file reader (preventing XSS Bomb)
         checkXmlSanityTags(xmlFile);
@@ -153,13 +151,13 @@ public class SanityChecker {
 
     /**
      * checkJsonAll : Check sanity of json : size, invalid tag
-     * 
+     *
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
-        String jsonish = JsonHandler.writeAsString(json);
-        String wellFormedJson = JsonSanitizer.sanitize(jsonish);
+    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
+        final String jsonish = JsonHandler.writeAsString(json);
+        final String wellFormedJson = JsonSanitizer.sanitize(jsonish);
         if (!wellFormedJson.equals(jsonish)) {
             throw new InvalidParseOperationException("Json is not valid from Sanitize check");
         }
@@ -169,12 +167,12 @@ public class SanityChecker {
 
     /**
      * checkJsonAll : Check sanity of json : size, invalid tag
-     * 
+     *
      * @param json as String
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkJsonAll(String json) throws InvalidParseOperationException {
-        String wellFormedJson = JsonSanitizer.sanitize(json);
+    public static final void checkJsonAll(String json) throws InvalidParseOperationException {
+        final String wellFormedJson = JsonSanitizer.sanitize(json);
         if (!wellFormedJson.equals(json)) {
             throw new InvalidParseOperationException("Json is not valid from Sanitize check");
         }
@@ -184,20 +182,55 @@ public class SanityChecker {
 
     /**
      * checkParameter : Check sanity of String: no javascript/xml tag, neither html tag
-     * 
+     *
      * @param params
      * @throws InvalidParseOperationException
      */
-    public static void checkParameter(String... params) throws InvalidParseOperationException {
-        for (String param : params) {
-            checkSanityTags(param, getLimitParamSize());
-            checkHtmlPattern(param);
+    public static final void checkParameter(String... params) throws InvalidParseOperationException {
+        for (final String param : params) {
+            checkParam(param);
         }
     }
 
     /**
+     * checkHeaders : Check sanity of Headers: no javascript/xml tag, neither html tag
+     *
+     * @param headers
+     * @throws InvalidParseOperationException
+     */
+    public static final void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
+        if (headers == null) {
+            return;
+        }
+        final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        if (requestHeaders != null && !requestHeaders.isEmpty()) {
+            for (final String header : requestHeaders.keySet()) {
+                final List<String> values = requestHeaders.get(header);
+                if (values != null && values.stream().anyMatch(value -> isIssueOnParam(value))) {
+                    throw new InvalidParseOperationException(String.format("%s header has wrong value", header));
+                }
+            }
+        }
+    }
+
+    private static final boolean isIssueOnParam(String param) {
+        try {
+            checkParam(param);
+            return false;
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return true;
+        }
+    }
+
+    private static final void checkParam(String param) throws InvalidParseOperationException {
+        checkSanityTags(param, getLimitParamSize());
+        checkHtmlPattern(param);
+    }
+
+    /**
      * check XML Sanity Tag and Value Size
-     * 
+     *
      * @param xmlFile xml file
      * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
@@ -216,26 +249,26 @@ public class SanityChecker {
             try {
                 reader = xmlInputFactory.createXMLStreamReader(xmlStream);
                 while (reader.hasNext()) {
-                    int event = reader.next();
+                    final int event = reader.next();
                     if (event == XMLStreamConstants.CDATA ||
                         event == XMLStreamConstants.ENTITY_DECLARATION ||
                         event == XMLStreamConstants.ENTITY_REFERENCE) {
                         throw new InvalidParseOperationException("XML contains CDATA or ENTITY");
                     }
                     if (event == XMLStreamConstants.CHARACTERS) {
-                        String val = reader.getText().trim();
+                        final String val = reader.getText().trim();
                         if (!val.isEmpty()) {
                             checkSanityTags(val, getLimitFieldSize());
                         }
                     }
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 throw new InvalidParseOperationException("Bad XML format", e);
             } finally {
                 if (reader != null) {
                     try {
                         reader.close();
-                    } catch (XMLStreamException e) {
+                    } catch (final XMLStreamException e) {
                         // Ignore
                         SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                     }
@@ -246,7 +279,7 @@ public class SanityChecker {
 
     /**
      * CheckXMLSanityFileSize : check size of xml file
-     * 
+     *
      * @param xmlFile as File
      * @throws IOException when read file exception
      * @throws InvalidParseOperationException when Sanity Check is in error
@@ -259,7 +292,7 @@ public class SanityChecker {
 
     /**
      * CheckXMLSanityTags : check invalid tag contains of a xml file
-     * 
+     *
      * @param xmlFile : XML file path as String
      * @throws IOException when read file error
      * @throws InvalidParseOperationException when Sanity Check is in error
@@ -277,19 +310,19 @@ public class SanityChecker {
 
     /**
      * Check for all RULES
-     * 
+     *
      * @param line line to check
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     private static final void checkXmlSanityTags(String line) throws InvalidParseOperationException {
-        for (String rule : RULES) {
+        for (final String rule : RULES) {
             checkSanityTags(line, rule);
         }
     }
 
     /**
      * Check for all RULES and Esapi
-     * 
+     *
      * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
@@ -301,7 +334,7 @@ public class SanityChecker {
 
     /**
      * Check using ESAPI from OWASP
-     * 
+     *
      * @param line line to check
      * @param limit limit size
      * @throws InvalidParseOperationException when Sanity Check is in error
@@ -317,7 +350,7 @@ public class SanityChecker {
         // Issue with integration of ESAPI
         try {
             ESAPI.getValidSafeHTML("CheckSafeHtml", line, limit, true);
-        } catch (NoClassDefFoundError e) {
+        } catch (final NoClassDefFoundError e) {
             // Ignore
             throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
         } catch (ValidationException | IntrusionException e) {
@@ -327,20 +360,20 @@ public class SanityChecker {
 
     /**
      * checkSanityTags : check if there is an invalid tag
-     * 
+     *
      * @param invalidTag data to check as String
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     private static final void checkSanityTags(String dataLine, String invalidTag)
         throws InvalidParseOperationException {
-        if (dataLine != null && invalidTag != null && (dataLine.contains(invalidTag))) {
+        if (dataLine != null && invalidTag != null && dataLine.contains(invalidTag)) {
             throw new InvalidParseOperationException("Invalid tag sanity check");
         }
     }
 
     /**
      * checkHtmlPattern : check against Html Pattern within value (not allowed)
-     * 
+     *
      * @param param
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
@@ -352,17 +385,17 @@ public class SanityChecker {
 
     /**
      * checkJsonSanity : check sanity of json and find invalid key
-     * 
+     *
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkJsonSanity(JsonNode json) throws InvalidParseOperationException {
-        Iterator<Map.Entry<String, JsonNode>> fields = json.fields();
+        final Iterator<Map.Entry<String, JsonNode>> fields = json.fields();
         while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> entry = fields.next();
-            String key = entry.getKey();
+            final Map.Entry<String, JsonNode> entry = fields.next();
+            final String key = entry.getKey();
             checkSanityTags(key, getLimitFieldSize());
-            JsonNode value = entry.getValue();
+            final JsonNode value = entry.getValue();
             if (!value.isValueNode()) {
                 checkJsonSanity(value);
             } else {
@@ -375,7 +408,7 @@ public class SanityChecker {
 
     /**
      * checkJsonFileSize
-     * 
+     *
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */

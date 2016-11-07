@@ -28,8 +28,8 @@ package fr.gouv.vitam.worker.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -38,63 +38,38 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * WorkerClient factory
  * </p>
  * <p>
- * Use to get a worker client in function of its type.
+ * Used to get a worker client depending on its type.
  *
  * Example :
  * </p>
- * 
+ *
  * <pre>
  * {
  *     &#064;code
- *     // Retrieve default worker client
+ *     // Retrieves default worker client
  *     WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
- * 
+ *
  *     // Exists
  *     client.exists(asyncId);
  * }
  * </pre>
  *
- * You can change the type of the client to get. The types are define into the enum {@link WorkerClientType}. Use the
+ * You can change the type of the client to get. The types are defined in the enum {@link WorkerClientType}. Use the
  * changeDefaultClientType method to change the client type.
  *
  */
-public class WorkerClientFactory {
 
-    private static WorkerClientType defaultWorkerClientType;
-    private static final String CONFIGURATION_FILENAME = "worker-client.conf";
+public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
+    private static final String CONFIGURATION_FILENAME = "worker-client.conf";
     private static final WorkerClientFactory WORKER_CLIENT_FACTORY = new WorkerClientFactory();
-
-    private WorkerClientConfiguration clientConfiguration = null;
+    /**
+     * RESOURCE PATH
+     */
+    public static final String RESOURCE_PATH = "/worker/v1";
 
     private WorkerClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
-    }
-
-    /**
-     * Set the WorkerClientFactory configuration
-     *
-     * @param configuration the configuration to us
-     * @throws IllegalArgumentException if server is null or empty or port is less than or equal to 0
-     */
-    static final void setConfiguration(WorkerClientConfiguration configuration) {
-        checkConfiguration(configuration);
-        WORKER_CLIENT_FACTORY.clientConfiguration = configuration;
-    }
-
-    /**
-     * Set the WorkerClientFactory configuration
-     *
-     * @param type the worker type
-     * @param configuration the client configuration
-     * @throws IllegalArgumentException if type null or if type is WORKER and server is null or empty or port is less than or equal to 0
-     */
-    public static final void setConfiguration(WorkerClientType type, WorkerClientConfiguration configuration) {
-        changeDefaultClientType(type);
-        if (type == WorkerClientType.WORKER) {
-            checkConfiguration(configuration);
-        }
-        WORKER_CLIENT_FACTORY.clientConfiguration = configuration;
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
     /**
@@ -111,89 +86,51 @@ public class WorkerClientFactory {
      *
      * @return the default worker client
      */
-    public WorkerClient getWorkerClient() {
+    @Override
+    public WorkerClient getClient() {
         WorkerClient client;
-        switch (defaultWorkerClientType) {
-            case MOCK_WORKER:
+        switch (getVitamClientType()) {
+            case MOCK:
                 client = new WorkerClientMock();
                 break;
-            case WORKER:
-                client = new WorkerClientRest(clientConfiguration, WorkerClient.RESOURCE_PATH, true);
+            case PRODUCTION:
+                client = new WorkerClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Worker client type unknown");
         }
         return client;
     }
-
-    /**
-     * Get the default worker client type
-     *
-     * @return the default worker client type
-     */
-    public static WorkerClientType getDefaultWorkerClientType() {
-        return defaultWorkerClientType;
-    }
-
+    
     /**
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(WorkerClientType.MOCK_WORKER);
+    static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
         WorkerClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 WorkerClientConfiguration.class);
         } catch (final IOException fnf) {
             LOGGER
-                .warn("Error when retrieving configuration file {}, using mock",
+                .debug("Error when retrieving configuration file {}, using mock",
                     CONFIGURATION_FILENAME,
                     fnf);
         }
         if (configuration == null) {
-            this.clientConfiguration = null;
-            LOGGER.warn("Error when retrieving configuration file {}, using mock",
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
                 CONFIGURATION_FILENAME);
-        } else {
-            checkConfiguration(configuration);
-            this.clientConfiguration = configuration;
-            changeDefaultClientType(WorkerClientType.WORKER);
         }
-    }
-
-    private static void checkConfiguration(WorkerClientConfiguration configuration) {
-        ParametersChecker.checkParameter("Configuration cannot be null", configuration);
-        ParametersChecker.checkParameter("Server cannot be null or empty", configuration.getServerHost());
-        ParametersChecker.checkValue("Server port cannot be null", configuration.getServerPort(), 1);
+        return configuration;
     }
 
     /**
-     * Modify the default worker client type
      *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
+     * @param configuration null for MOCK
      */
-    static void changeDefaultClientType(WorkerClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultWorkerClientType = type;
+    // TODO P2 should not be public (but IT test)
+    public static final void changeMode(WorkerClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
-    /**
-     * enum to define client type
-     */
-    public enum WorkerClientType {
-        /**
-         * To use only in MOCK
-         */
-        MOCK_WORKER,
-        /**
-         * Use real service
-         */
-        WORKER
-    }
-
 }

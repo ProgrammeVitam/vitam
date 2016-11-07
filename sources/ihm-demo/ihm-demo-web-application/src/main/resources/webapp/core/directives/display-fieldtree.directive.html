@@ -1,0 +1,19 @@
+<div ng-controller="DisplayFieldtreeController">
+
+  <!-- Simple Field -->
+  <div class="row simple-field" ng-if="fieldObject.typeF!=='P'">
+    <display-field field-label="fieldObject.fieldName" field-size="'11'"
+                   intercept-user-change="interceptUserChange(fieldSet)"
+                   field-object="fieldObject" edit-mode="editMode">
+    </display-field>
+  </div>
+
+  <div ng-if="fieldObject.typeF==='P'">
+    <div ng-repeat="fieldContent in fieldObject.content" class="form-group" data-ng-class="getSizeCode(fieldObject.content)" ng-class="$index%2 === 0? 'remove-left-padding': ''">
+      <display-fieldtree intercept-user-change="interceptUserChange(fieldSet)"
+                         field-object="fieldContent" edit-mode="editMode">
+      </display-fieldtree>
+    </div>
+  </div>
+
+</div>

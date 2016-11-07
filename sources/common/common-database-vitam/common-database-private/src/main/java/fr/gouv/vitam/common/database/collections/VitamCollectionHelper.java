@@ -33,7 +33,8 @@ public class VitamCollectionHelper {
 
     /**
      * getCollection with collection class
-     * @param clasz a class of a unknow type 
+     * 
+     * @param clasz a class of a unknow type
      * @return VitamCollection
      */
     public static VitamCollection getCollection(final Class<?> clasz) {

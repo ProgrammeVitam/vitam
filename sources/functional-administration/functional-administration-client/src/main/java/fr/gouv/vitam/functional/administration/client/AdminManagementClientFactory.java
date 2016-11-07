@@ -28,50 +28,30 @@ package fr.gouv.vitam.functional.administration.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
-
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 /**
- * admin management client factory use to get client by type "rest" or "mock"
+ * Admin management client factory use to get client by type "rest" or "mock"
  */
-public class AdminManagementClientFactory {
+public class AdminManagementClientFactory extends VitamClientFactory<AdminManagementClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientFactory.class);
-    private static AdminManagementClientType defaultClientType;
     private static final AdminManagementClientFactory ADMIN_MANAGEMENT_CLIENT_FACTORY =
         new AdminManagementClientFactory();
     private static final String CONFIGURATION_FILENAME = "functional-administration-client.conf";
+    private static final String RESOURCE_PATH = "/adminmanagement/v1";
 
-    private String server = "localhost";
-    private int port = VitamServerFactory.getDefaultPort();
 
     private AdminManagementClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**
-     * Set the AdminManagementClientFactory configuration
-     *
-     * @param type
-     * @param server hostname
-     * @param port port to use
-     */
-    static final void setConfiguration(AdminManagementClientType type, String server, int port) {
-        changeDefaultClientType(type);
-        if (type == AdminManagementClientType.REST_CLIENT) {
-            ParametersChecker.checkParameter("Server cannot be null", server);
-            ParametersChecker.checkValue("port", port, 1);
-        }
-        ADMIN_MANAGEMENT_CLIENT_FACTORY.server = server;
-        ADMIN_MANAGEMENT_CLIENT_FACTORY.port = port;
-    }
-
-    /**
-     * Get the AdminManagementClientFactory instance
+     * Get the WorkerClientFactory instance
      *
      * @return the instance
      */
@@ -80,76 +60,56 @@ public class AdminManagementClientFactory {
     }
 
     /**
-     * Get the default type admin management client
+     * Get the default admin management client
      *
      * @return the default admin management client
      */
-    public AdminManagementClient getAdminManagementClient() {
+    @Override
+    public AdminManagementClient getClient() {
         AdminManagementClient client;
-        switch (defaultClientType) {
-            case MOCK_CLIENT:
+        switch (getVitamClientType()) {
+            case MOCK:
                 client = new AdminManagementClientMock();
                 break;
-            case REST_CLIENT:
-                client = new AdminManagementClientRest(server, port);
+            case PRODUCTION:
+                client = new AdminManagementClientRest(this);
                 break;
             default:
-                throw new IllegalArgumentException("Client type unknown");
+                throw new IllegalArgumentException("Admin management client type unknown");
         }
         return client;
-    }
-
-    /**
-     * Modify the default AdminManagement client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(AdminManagementClientType type) {
-        ParametersChecker.checkParameter("type is a mandatory parameter", type);
-        defaultClientType = type;
     }
 
     /**
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
+     * @return ClientConfiguration
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(AdminManagementClientType.MOCK_CLIENT);
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            // TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the
-            // mock)
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
+            LOGGER.debug("Error when retrieving configuration file {}, using mock",
                 configurationPath,
                 fnf);
         }
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
                 configurationPath);
-        } else {
-            server = configuration.getServerHost();
-            port = configuration.getServerPort();
-            changeDefaultClientType(AdminManagementClientType.REST_CLIENT);
         }
+        return configuration;
     }
-
+    
     /**
-     * enum to define client type
+     *
+     * @param configuration null for MOCK
      */
-    public enum AdminManagementClientType {
-        /**
-         * To use only in MOCK
-         */
-        MOCK_CLIENT,
-        /**
-         * Use real service (need server to be set)
-         */
-        REST_CLIENT
+    // TODO P2 should not be public (but IT test)
+    public static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
 }

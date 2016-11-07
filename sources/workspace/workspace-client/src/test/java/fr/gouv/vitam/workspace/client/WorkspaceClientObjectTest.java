@@ -30,9 +30,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -45,21 +45,18 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -71,30 +68,21 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     private static final String CONTAINER_NAME = "myContainer";
     private static final String OBJECT_NAME = "myObject";
     private static final String FOLDER_SIP = "SIP";
-    
-    public static final String X_DIGEST_ALGORITHM  = "X-digest-algorithm";
-    public static final String X_DIGEST="X-digest";
+
+    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    public static final String X_DIGEST = "X-digest";
     private static final DigestType ALGO = DigestType.MD5;
     private static final String MESSAGE_DIGEST = "DigestHex";
-    
+
     private InputStream stream = null;
 
     @Override
-    protected Application configure() {
-        //set(TestProperties.LOG_TRAFFIC, true);
-        set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        mock = mock(ExpectedResults.class);
-        resourceConfig.registerInstances(new MockObjectResource(mock));
-        return resourceConfig;
+    MockResource getMockResource() {
+        return new MockObjectResource(mock);
     }
 
     @Path("workspace/v1/containers")
-    public static class MockObjectResource {
+    public static class MockObjectResource extends MockResource {
 
         private final ExpectedResults expectedResponse;
 
@@ -102,13 +90,13 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
             this.expectedResponse = expectedResponse;
         }
 
-        @Path("{containerName}/objects")
+        @Path("{containerName}/objects/{objectName}")
         @POST
-        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(@FormDataParam("object") InputStream stream,
-            @FormDataParam("object") FormDataContentDisposition header,
-            @FormDataParam("objectName") String objectName, @PathParam("containerName") String containerName) {
+        public Response create(InputStream stream,
+            @PathParam("containerName") String containerName,
+            @PathParam("objectName") String objectName) {
             return expectedResponse.post();
         }
 
@@ -128,13 +116,13 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
         @Path("{containerName}/objects/{objectName}")
         @GET
-        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response get(@PathParam("containerName") String containerName,
             @PathParam("objectName") String objectName) {
             return expectedResponse.get();
         }
-        
+
         @Path("{containerName}/objects/{objectName}")
         @GET
         @Consumes(MediaType.APPLICATION_JSON)
@@ -146,20 +134,20 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
         @Path("{containerName}/folders/{folderName}")
         @PUT
-        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, "application/zip", "application/gzip"})
         @Produces(MediaType.APPLICATION_JSON)
-        public Response unzipObject(InputStream stream,
+        public Response uncompressObject(InputStream stream,
             @PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+            @PathParam("folderName") String folderName, @PathParam("archiveType") String archiveType) {
             return expectedResponse.put();
         }
-        
+
         @HEAD
         @Path("{containerName}")
         public Response isExistingContainer(@PathParam("containerName") String containerName) {
             return expectedResponse.headContainer();
         }
-        
+
         @HEAD
         @Path("{containerName}/folders/{folderName}")
         public Response isExistingFolder(@PathParam("containerName") String containerName,
@@ -260,42 +248,45 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException() {
+    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
         client.isExistingObject(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException() {
+    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
         client.isExistingObject(CONTAINER_NAME, "");
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue() {
+    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     @Test
-    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() {
+    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
-    
-    //compute digest
-    
+
+    // compute digest
+
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenComputeDigestThenRaiseAnException() throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public void givenNullParamWhenComputeDigestThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, null);
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenComputeDigestThenReturnTrue() throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public void givenObjectAlreadyExistsWhenComputeDigestThenReturnTrue()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
         assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO).equals(MESSAGE_DIGEST));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenComputeDigestThenRaiseAnException() throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public void givenObjectNotFoundWhenComputeDigestThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
@@ -304,13 +295,14 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenUnzipSipThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
-        client.unzipObject(null, FOLDER_SIP,stream);
+        client.uncompressObject(null, FOLDER_SIP, CommonMediaType.ZIP, stream);
+
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenUnzipSipThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
-        client.unzipObject("",FOLDER_SIP, stream);
+        client.uncompressObject("", FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
@@ -319,36 +311,35 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.NOT_FOUND).build());
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.unzipObject(CONTAINER_NAME,FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
-    
-    
+
+
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenExtractObjectThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
         when(mock.headContainer()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.unzipObject(CONTAINER_NAME,FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
-    
+
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
     public void givenFolderAlreadyExistsWhenExtractObjectThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.OK).build());
-        client.unzipObject(CONTAINER_NAME,FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
-    
+
     @Test
     public void givenContainerAlreadyExistsWhenUnzipThenReturnCreated() throws Exception {
         stream = getInputStream("sip.zip");
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.NOT_FOUND).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).build());
-        client.unzipObject(CONTAINER_NAME,FOLDER_SIP, stream);
-        assertTrue(true);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
-    
+
     // get information
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenGetObjetctInformationThenRaiseAnException() throws Exception {
@@ -375,14 +366,14 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnInformation() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"size\" : \"1024\"}").build());
-        JsonNode jsonInfo = client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+        final JsonNode jsonInfo = client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
         assertNotNull(jsonInfo);
         assertNotNull(jsonInfo.get("size"));
         assertEquals(1024, jsonInfo.get("size").asInt());
     }
-    
-    
-    private InputStream getInputStream(String file) {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-    }
+
+
+    private InputStream getInputStream(String file) throws FileNotFoundException {
+        return PropertiesUtils.getResourceAsStream("file1.pdf");
+    }    
 }

@@ -35,11 +35,11 @@ import fr.gouv.vitam.common.exception.CycleFoundException;
  */
 public class DirectedCycle {
     // has vertex v been marked
-    private boolean[] marked;
+    private final boolean[] marked;
     // previous vertex on path to v
-    private int[] edgeTo;
+    private final int[] edgeTo;
     // is vertex on the stack?
-    private boolean[] onStack;
+    private final boolean[] onStack;
     // directed cycle (or null if no such cycle)
     private Stack<Integer> cycle;
 
@@ -49,7 +49,7 @@ public class DirectedCycle {
 
     /**
      * DirectedCycle a constructor :fired when a cycle is found.
-     * 
+     *
      * @param graph the DirectedCycle
      * @throws CycleFoundException
      */
@@ -57,7 +57,7 @@ public class DirectedCycle {
         marked = new boolean[graph.getVertices()];
         onStack = new boolean[graph.getVertices()];
         edgeTo = new int[graph.getVertices()];
-        // FIXME n² or even worth => while merging Graph and DIrectedGraph, you can have the "real" roots (from Graph)
+        // FIXME P1 n² or even worth => while merging Graph and DIrectedGraph, you can have the "real" roots (from Graph)
         // so using it
         for (int v = 0; v < graph.getVertices(); v++) {
             if (!marked[v] && cycle == null) {
@@ -68,19 +68,19 @@ public class DirectedCycle {
 
 
     /**
-     * 
+     *
      * depthFirstSearch is a method for traversing or searching graph data structures. One starts at the root and
      * explores as far as possible along each branch.
-     * 
+     *
      * @param graph
      * @param root
      * @throws CycleFoundException
      */
     private void depthFirstSearch(DirectedGraph graph, int root) {
-        // TODO : the case of graphs which are not strongly connected must be managed
+        // TODO P1 : the case of graphs which are not strongly connected must be managed
         onStack[root] = true;
         marked[root] = true;
-        for (int w : graph.adj(root)) {
+        for (final int w : graph.adj(root)) {
 
             // short circuit if directed cycle found
             if (cycle != null) {
@@ -90,8 +90,8 @@ public class DirectedCycle {
                 depthFirstSearch(graph, w);
             } else if (onStack[w]) {
                 // trace back directed cycle
-                // FIXME you reallocate memory (stack) how many times ??? Clean such as GC is not under pressure
-                // FIXME If I understand correctly, once here, we have a cycle (cycle != null), so why doing the next
+                // FIXME P1 you reallocate memory (stack) how many times ??? Clean such as GC is not under pressure
+                // FIXME P1 If I understand correctly, once here, we have a cycle (cycle != null), so why doing the next
                 // computation ?
                 cycle = new Stack<Integer>();
                 for (int x = root; x != w; x = edgeTo[x]) {
@@ -110,7 +110,7 @@ public class DirectedCycle {
 
     /**
      * Does the DirectedCycle have a directed cycle
-     * 
+     *
      * @return <tt>true</tt> if the Graph has a directed cycle, <tt>false</tt> otherwise
      */
     public boolean hasCycle() {
@@ -119,7 +119,7 @@ public class DirectedCycle {
 
     /**
      * Returns a cycle if the Graph has a directed cycle, and <tt>null</tt> otherwise.
-     * 
+     *
      * @return a cycle (as an iterable) if the DirectedCycle has a cycle, and <tt>null</tt> otherwise
      */
     private Iterable<Integer> cycle() {
@@ -128,7 +128,7 @@ public class DirectedCycle {
 
     /**
      * certify that Graph has a cycle if it reports one
-     * 
+     *
      * @return boolean
      */
     private boolean check() {
@@ -137,7 +137,7 @@ public class DirectedCycle {
             // verify cycle
             int first = -1;
             int last = -1;
-            for (int v : cycle()) {
+            for (final int v : cycle()) {
                 if (first == -1) {
                     first = v;
                 }
@@ -154,7 +154,7 @@ public class DirectedCycle {
 
     /**
      * isCyclic know of a graph is cyclic or not
-     * 
+     *
      * @return boolean
      */
     public boolean isCyclic() {

@@ -27,9 +27,9 @@
 package fr.gouv.vitam.functional.administration.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -38,75 +38,83 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
-public class AdminManagementClientRestTest extends JerseyTest {
+public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/adminmanagement/v1";
+    protected AdminManagementClientRest client;
+    static final String QUERY =
+        "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
 
-    protected AdminManagementClientRest client = null;
 
-    private static JunitHelper junitHelper;
-    private static int port;
-
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-
-        Response post();
-
-        Response checkFormat();
-
-        Response delete();
-
-        Response get();
-
-    }
-
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
     public AdminManagementClientRestTest() {
-        client = new AdminManagementClientRest(HOSTNAME, port);
+        super(AdminManagementClientFactory.getInstance());
     }
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
-        port = junitHelper.findAvailablePort();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        junitHelper.releasePort(port);
-    }
-
+    // Override the beforeTest if necessary
     @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (AdminManagementClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     @Path("/adminmanagement/v1")
@@ -142,7 +150,6 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
         @POST
         @Path("/format/{id_format}")
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getFormatByID() {
             return expectedResponse.post();
@@ -188,7 +195,6 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
         @POST
         @Path("/rules/{id_rule}")
-        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findRuleByID() {
             return expectedResponse.post();
@@ -201,26 +207,45 @@ public class AdminManagementClientRestTest extends JerseyTest {
         public Response getRulesFile() {
             return expectedResponse.post();
         }
+
+        @POST
+        @Path("/accession-register/document")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getFunds() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/accession-register")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createAccessionRegister() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/accession-register/detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getAccessionRegisterDetail() {
+            return expectedResponse.post();
+        }
     }
 
-    @Test
-    public void givenStatusOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        client.status();
-    }
 
     @Test
-    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException {
+    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         assertEquals(Status.OK, client.checkFormat(stream));
     }
 
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKOWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         assertEquals(Status.PRECONDITION_FAILED, client.checkFormat(stream));
     }
 
@@ -228,7 +253,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
     }
 
@@ -243,30 +268,32 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        Select select = new Select();
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final Select select = new Select();
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
-        JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
-        JsonNode result = client.getFormatByID("HDE");
+        final JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
+        final JsonNode result = client.getFormatByID("HDE");
     }
 
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode result = client.getFormatByID("HDE");
+        final JsonNode result = client.getFormatByID("HDE");
     }
 
     /***********************************************************************************
      * Rules Manager
+     * 
+     * @throws FileNotFoundException
      ***********************************************************************************/
 
     @Test
-    public void givenInputstreamRulesFileOKWhenCheckThenReturnOK() throws ReferentialException {
+    public void givenInputstreamRulesFileOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         assertEquals(Status.OK, client.checkRulesFile(stream));
     }
 
@@ -274,9 +301,8 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         assertEquals(Status.PRECONDITION_FAILED, client.checkRulesFile(stream));
 
     }
@@ -285,9 +311,8 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKRulesFileWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         client.importRulesFile(stream);
     }
 
@@ -302,10 +327,9 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = FileRulesException.class)
     public void givenAnInvalidFileThenKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        Select select = new Select();
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        final Select select = new Select();
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         client.importRulesFile(stream);
 
     }
@@ -315,15 +339,18 @@ public class AdminManagementClientRestTest extends JerseyTest {
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
+     * @throws FileNotFoundException
+     * @throws AdminManagementClientServerException
      */
     @Test(expected = FileRulesException.class)
     public void givenIllegalArgumentThenthrowFilesRuleException()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
+        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
+        AdminManagementClientServerException {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        JsonNode result = client.getRuleByID("APP-00001");
+        final JsonNode result = client.getRuleByID("APP-00001");
 
     }
 
@@ -332,15 +359,86 @@ public class AdminManagementClientRestTest extends JerseyTest {
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
+     * @throws FileNotFoundException
+     * @throws AdminManagementClientServerException
      */
     @Test(expected = InvalidParseOperationException.class)
     public void givenInvalidQuerythenReturnko()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
+        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
+        AdminManagementClientServerException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        Select select = new Select();
-        InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        final Select select = new Select();
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        JsonNode result = client.getRule(select.getFinalSelect());
+        final JsonNode result = client.getRule(select.getFinalSelect());
     }
+
+    @Test
+    public void createAccessionRegister()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+
+    @Test(expected = AccessionRegisterException.class)
+    public void createAccessionRegisterError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+
+    @Test(expected = AccessionRegisterException.class)
+    public void createAccessionRegisterUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+
+    /** Accession Register Detail **/
+
+    @Test
+    public void getAccessionRegisterDetail()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = ReferentialException.class)
+    public void getAccessionRegisterDetailError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = AccessionRegisterException.class)
+    public void getAccessionRegisterDetailUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+    }
+
+    /** Accession Register Summary **/
+    @Test
+    public void getAccessionRegisterSummary()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = ReferentialException.class)
+    public void getAccessionRegisterSummaryError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test
+    public void getAccessionRegisterSummaryUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("{}").build());
+        client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+
+    }
+
 }

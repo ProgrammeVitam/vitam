@@ -38,8 +38,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
 
 /**
- * Implementation of the mock of the storage logbook
- * Only log informations
+ * Implementation of the mock of the storage logbook Only log informations
  */
 public class StorageLogbookMock implements StorageLogbook {
 
@@ -52,7 +51,7 @@ public class StorageLogbookMock implements StorageLogbook {
             if (parameters.checkMandatoryParameters()) {
                 logInformation(parameters);
             }
-        } catch (IllegalArgumentException exception) {
+        } catch (final IllegalArgumentException exception) {
             LOGGER.error(exception.getMessage());
             throw new StorageException(exception.getMessage(), exception);
         }
@@ -82,7 +81,7 @@ public class StorageLogbookMock implements StorageLogbook {
 
     /**
      * For the moment, parameters are only logged
-     * 
+     *
      * @param parameters the storage logbook parameters
      */
     private void logInformation(StorageLogbookParameters parameters) {

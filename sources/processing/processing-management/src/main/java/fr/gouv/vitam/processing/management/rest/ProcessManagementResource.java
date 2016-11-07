@@ -34,18 +34,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
@@ -55,6 +55,7 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
  * This class is resource provider of ProcessManagement
  */
 @Path("/processing/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
@@ -66,6 +67,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      *
      * @param configuration the server configuration to be applied
      */
+    // FIXME P0 create a newProcessManagementImpl for each request
     public ProcessManagementResource(ServerConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
         processManagement = new ProcessManagementImpl(configuration);
@@ -81,8 +83,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-        this.processManagement = pManagement;
-        this.config = configuration;
+        processManagement = pManagement;
+        config = configuration;
     }
 
     /**
@@ -98,11 +100,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     public Response executeVitamProcess(ProcessingEntry process) {
         Status status;
         final WorkerParameters workParam = WorkerParametersFactory.newWorkerParameters().setContainerName(process
-            .getContainer()).setUrlMetadata(config.getUrlMetada()).setUrlWorkspace(config.getUrlWorkspace());
-        ProcessResponse resp;
+            .getContainer()).setUrlMetadata(config.getUrlMetadata()).setUrlWorkspace(config.getUrlWorkspace());
+        ItemStatus resp;
 
         try {
-            resp = (ProcessResponse) processManagement.submitWorkflow(workParam, process.getWorkflow());
+            resp = (ItemStatus) processManagement.submitWorkflow(workParam, process.getWorkflow());
         } catch (WorkflowNotFoundException | HandlerNotFoundException e) {
             // if workflow or handler not found
             LOGGER.error(e);
@@ -130,8 +132,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         return Response.status(status).entity(resp).build();
     }
 
-    private Status getStatusFrom(ProcessResponse response) {
-        switch (response.getStatus()) {
+    private Status getStatusFrom(ItemStatus response) {
+        switch (response.getGlobalStatus()) {
             case KO:
                 return Status.BAD_REQUEST;
             case FATAL:

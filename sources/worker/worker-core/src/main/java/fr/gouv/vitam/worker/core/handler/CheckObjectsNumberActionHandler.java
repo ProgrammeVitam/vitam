@@ -32,11 +32,10 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
@@ -44,10 +43,11 @@ import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-/**
- * Handler that checks that the number of digital objects stored in the workspace equals the number of digital objects
- * referenced in the manifest.xml file
+/** 
+ * Handler checking that digital objects number in workspace matches with manifest.xml.
+ *
  */
 public class CheckObjectsNumberActionHandler extends ActionHandler {
 
@@ -59,16 +59,23 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * Handler's ID
      */
-    private static final String HANDLER_ID = "CheckObjectsNumber";
+    private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
 
+    /**
+     * Default Constructor
+     */
+    public CheckObjectsNumberActionHandler() {
+        this.containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
+    }
 
     /**
-     * @param sedaUtilsFactory sedaUtils factory
+     * Constructor for Junit Tests
+     * 
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
-    public CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
+    protected CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
         ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter",
             containerExtractionUtilsFactory);
         this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
@@ -83,12 +90,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) throws ContentAddressableStorageServerException {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
-        EngineResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             checkMandatoryIOParameter(actionDefinition);
@@ -98,20 +103,18 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
                 final List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
                 final List<URI> uriListFromWorkspace = getUriListFromWorkspace(params);
-                checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, response);
+                checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, itemStatus);
 
             } else if (extractUriResponse != null) {
-                response.setStatus(StatusCode.KO)
-                    .setErrorNumber(extractUriResponse.getErrorNumber())
-                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                itemStatus.increment(StatusCode.KO, extractUriResponse.getErrorNumber());
             }
 
-        } catch (ProcessingException e) {
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
-        return response;
-
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 
@@ -136,8 +139,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return List of uri
      * @throws ProcessingException throws when error in execution
+     * @throws ContentAddressableStorageServerException 
      */
-    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException {
+    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException, ContentAddressableStorageServerException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
@@ -147,15 +151,15 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      *
      * @param uriListManifest list of uri from manifest
      * @param uriListWorkspace list of uri from workspace
-     * @param response of handler
+     * @param ItemStatus itemStatus of handler
      * @throws ProcessingException will be throwed when one or all arguments is null
      */
     private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
-        EngineResponse response) throws ProcessingException {
+        ItemStatus itemStatus) throws ProcessingException {
         ParametersChecker.checkParameter("Manifest uri list is a mandatory parameter", uriListManifest);
         ParametersChecker.checkParameter("Workspace uri list is a mandatory parameter", uriListWorkspace);
-        ParametersChecker.checkParameter("EngineResponse is a mandatory parameter", response);
-        // TODO
+        ParametersChecker.checkParameter("ItemStatus is a mandatory parameter", itemStatus);
+        // TODO P1
         // Use Java 8, Methods Reference, lambda expressions and streams
 
         /**
@@ -164,27 +168,30 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         int countCompare = Math.abs(uriListManifest.size() - uriListWorkspace.size());
 
         if (countCompare > 0) {
-            response.setStatus(StatusCode.KO)
-                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+            // The number of object in manifest is the reference for number of OK
+            if (uriListManifest.size() > uriListWorkspace.size()) {
+                itemStatus.increment(StatusCode.OK, uriListManifest.size() - countCompare);
+            } else {
+                itemStatus.increment(StatusCode.OK, uriListManifest.size());
+            }
+            itemStatus.increment(StatusCode.KO, countCompare);
         } else {
 
             /**
              * count the number of object in the manifest found in the sip
              */
-            long countConsistentDigitalObjectFromManifest = 0L;
+            int countConsistentDigitalObjectFromManifest = 0;
             /**
              * count the number of digital object in the sip found in the manifest
              */
-            long countConsistentDigitalObjectFromWorkspace = 0L;
-            // TODO REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
+            int countConsistentDigitalObjectFromWorkspace = 0;
+            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
             // faster and better
             for (final URI uriManifest : uriListManifest) {
                 if (uriListWorkspace.contains(uriManifest)) {
                     countConsistentDigitalObjectFromManifest++;
                 } else {
                     countCompare++;
-                    response.setStatus(StatusCode.KO)
-                        .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
                 }
             }
 
@@ -192,7 +199,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 if (uriListManifest.contains(uriWorkspace)) {
                     countConsistentDigitalObjectFromWorkspace++;
                 } else {
-                    response.setStatus(StatusCode.KO);
                     countCompare++;
                 }
 
@@ -203,20 +209,22 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             final boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
 
             if (countOK && countConsistent) {
-                response.setStatus(StatusCode.OK);
+                itemStatus.increment(StatusCode.OK, uriListManifest.size());
 
             } else {
-                response.setStatus(StatusCode.KO)
-                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                // The number of object in manifest is the reference for number of OK
+                itemStatus.increment(StatusCode.OK, countConsistentDigitalObjectFromManifest);
+                itemStatus.increment(StatusCode.KO, countCompare);
             }
         }
 
-        response.setErrorNumber(countCompare);
+        itemStatus.setData("errorNumber", countCompare);
+
     }
 
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-      //TODO Add Workspace:SIP/manifest.xml and check it 
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 }

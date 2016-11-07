@@ -26,39 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory.IngestExternalClientType;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 
 public class IngestExternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        IngestExternalClientFactory.getInstance().changeConfigurationFile("ingest-external-client.conf");
+        IngestExternalClientFactory
+            .changeMode(IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf"));
     }
-    
+
     @Test
-    public void givenRestClient() throws VitamException {
-        IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", 8082);
-        final IngestExternalClient client 
-            = IngestExternalClientFactory.getInstance().getIngestExternalClient();
-        assertNotNull(client);
+    public void changeDefaultClientTypeTest() {
+
+        // First client type : Production
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertTrue(client instanceof IngestExternalClientRest);
+        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
+
+        // Change to mock type and test
+        IngestExternalClientFactory.changeMode(null);
+        final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
+        assertTrue(client2 instanceof IngestExternalClientMock);
+        assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());
     }
-    
+
     @Test
-    public void givenMockClient() throws VitamException {
-        IngestExternalClientFactory.setConfiguration(IngestExternalClientType.MOCK_CLIENT, null, 0);
-        final IngestExternalClient client 
-            = IngestExternalClientFactory.getInstance().getIngestExternalClient();
-        assertNotNull(client);
-    }
-    
-    @Test(expected=IllegalArgumentException.class)
-    public void givenClientWhenWrongTypeThenThrowException() {
-        IngestExternalClientFactory.setConfiguration(null, null, 0);
+    public void testInitWithConfigurationFile() {
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertTrue(client instanceof IngestExternalClientRest);
+        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
     }
 }

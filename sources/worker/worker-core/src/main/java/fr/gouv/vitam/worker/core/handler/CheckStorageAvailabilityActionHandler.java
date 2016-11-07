@@ -32,11 +32,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -44,7 +43,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
@@ -54,19 +52,18 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
-    private static final String HANDLER_ID = "CheckStorageAvailability";
+    private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
-    private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
+    private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory the seda utils factory
      */
     public CheckStorageAvailabilityActionHandler() {
-        // empty constructor
+        storageClientFactory = StorageClientFactory.getInstance();
     }
 
     /**
@@ -78,46 +75,44 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckStorageAvailabilityActionHandler running ...");
-
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.STORAGE_OFFER_SPACE_OK);
-
-        final SedaUtils sedaUtils = SedaUtilsFactory.create();
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         long totalSizeToBeStored;
         try {
             checkMandatoryIOParameter(actionDefinition);
-            // TODO get size manifest.xml in local
-            // TODO extract this information from first parsing
-            long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            long manifestSize = sedaUtils.getManifestSize(params);
+            // TODO P0 get size manifest.xml in local
+            // TODO P0 extract this information from first parsing
+            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final long manifestSize = SedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
-
-            JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
-            // TODO : add JsonNode to POJO functionality in JsonHandler. For the moment we have to convert to
-            // JsonNode to a string then convert it back to a POJO.
-            StorageInformation information =
-                JsonHandler.getFromString(JsonHandler.writeAsString(storageCapacityNode), StorageInformation.class);
-            long storageCapacity = information.getUsableSpace();
+            final JsonNode storageCapacityNode;
+            
+            try (final StorageClient storageClient = storageClientFactory.getClient()) {
+                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+            }
+                        
+            final StorageInformation information =
+                JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
+            final long storageCapacity = information.getUsableSpace();
             if (storageCapacity >= totalSizeToBeStored) {
-                response.setStatus(StatusCode.OK);
+                itemStatus.increment(StatusCode.OK);
+                itemStatus.setData("requiredSize", storageCapacity);
             } else {
                 // error - KO
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.STORAGE_OFFER_SPACE_KO);
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setData("remainingSize", totalSizeToBeStored - storageCapacity);
             }
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
-                OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE);
+            itemStatus.increment(StatusCode.FATAL);
         }
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add Workspace:SIP/manifest.xml and check it
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 }

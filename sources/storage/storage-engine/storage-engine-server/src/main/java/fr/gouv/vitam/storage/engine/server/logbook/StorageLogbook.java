@@ -35,12 +35,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
 
 /**
- * Storage Logbook interface.
- * It describes methods to be implemented.
+ * Storage Logbook interface. It describes methods to be implemented.
  */
 public interface StorageLogbook {
 
-    
+
     /**
      * Add a storage logbook entry <br>
      * <br>
@@ -49,39 +48,39 @@ public interface StorageLogbook {
      * @throws StorageException if an error is encountered
      */
     void add(StorageLogbookParameters parameters) throws StorageException;
-    
+
     /**
-     * Not implemented yet 
+     * Not implemented yet
      */
     void close();
-    
+
     /**
      * Select a list of operations for a specified object
-     * 
+     *
      * @param objectId the id of the object
-     * @return List of operations for this object Id 
+     * @return List of operations for this object Id
      * @throws StorageException if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException;
-    
+
     /**
      * Select a list of operations for a specified objectgroup
-     * 
+     *
      * @param objectGroupId the id of the object group
-     * @return List of operations for this object Id 
+     * @return List of operations for this object Id
      * @throws StorageException if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException;
-    
+
     /**
      * Select a list of operations for a specified request
-     * 
+     *
      * @param select the request in JsonNode format
-     * @return a List of operations 
+     * @return a List of operations
      * @throws StorageException if any error is encountered
      * @throws InvalidParseOperationException if the select request is not correct
      */
     List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
         throws StorageException, InvalidParseOperationException;
-    
+
 }

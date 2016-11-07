@@ -26,8 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -43,23 +45,23 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.logbook.rest.LogbookConfiguration;
 
@@ -76,39 +78,46 @@ public class LogbookResourceIT {
     private static JunitHelper junitHelper;
     private static int databasePort;
     private static int serverPort;
-    // private static File newLogbookConf;
+    private static LogbookApplication application;
+    private static final int NB_TEST = 100;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
     private static LogbookOperationParameters logbookParametersWrongAppend;
+    private static LogbookLifeCycleObjectGroupParameters logbookLcParametersStart;
+    private static LogbookLifeCycleObjectGroupParameters logbookLcParametersAppend;
+    private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongStart;
+    private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongAppend;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        
-        junitHelper = new JunitHelper();
-        
-       
+
+        junitHelper = JunitHelper.getInstance();
+
+
         databasePort = junitHelper.findAvailablePort();
-        
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
-        
+
         mongod = mongodExecutable.start();
         serverPort = junitHelper.findAvailablePort();
 
         try {
-            LogbookConfiguration logbookConf = new LogbookConfiguration();
+            JunitHelper.setJettyPortSystemProperty(serverPort);
+            final LogbookConfiguration logbookConf = new LogbookConfiguration();
             logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
             logbookConf.setJettyConfig(JETTY_CONFIG);
-            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-            LogbookApplication.run(logbookConf);
-            
+            application = new LogbookApplication(logbookConf);
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
+
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
         } catch (final VitamApplicationServerException e) {
@@ -117,32 +126,20 @@ public class LogbookResourceIT {
                 "Cannot start the Logbook Application Server", e);
         }
 
-        LogbookClientFactory.setConfiguration(LogbookClientType.OPERATIONS, DATABASE_HOST, serverPort);
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(DATABASE_HOST, serverPort));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(DATABASE_HOST, serverPort));
         LOGGER.debug("Initialize client: " + DATABASE_HOST + ":" + serverPort);
 
-        final GUID eip = GUIDFactory.newOperationIdGUID(0);
-        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
-        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
-        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
-        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
-            "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -150,71 +147,230 @@ public class LogbookResourceIT {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
-        // newLogbookConf.delete();
     }
 
 
     @Test
-    public final void testOperation() throws LogbookClientException {
+    public final void testOperation() throws LogbookClientException, VitamApplicationServerException {
         // Creation OK
-        logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip,
+            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        try (final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            client.checkStatus();
 
-        client.create(logbookParametersStart);
+            client.create(logbookParametersStart);
 
-        // Update OK
-        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
-        client.update(logbookParametersAppend);
+            // Update OK
+            client.update(logbookParametersAppend);
 
-        // Create KO since already exists
-        logbookParametersWrongStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersWrongStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
-        try {
-            client.create(logbookParametersWrongStart);
-            fail("Should raized an exception");
-        } catch (final LogbookClientException e) {
-            // ignore
+            // Create KO since already exists
+            try {
+                client.create(logbookParametersWrongStart);
+                fail("Should raized an exception");
+            } catch (final LogbookClientException e) {
+                // ignore
+            }
+
+            // Update KO since not found
+            try {
+                client.update(logbookParametersWrongAppend);
+                fail("Should raized an exception");
+            } catch (final LogbookClientException e) {
+                // ignore
+            }
+            // Create KO since Bad Request
+            final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
+            empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+                logbookParametersWrongAppend.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess));
+            try {
+                client.create(empty);
+                fail("Should raized an exception");
+            } catch (final IllegalArgumentException e) {
+                // ignore
+            }
+            try {
+                client.update(empty);
+                fail("Should raized an exception");
+            } catch (final IllegalArgumentException e) {
+                // ignore
+            }
         }
+    }
 
-        // Update KO since not found
-        logbookParametersWrongAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersWrongAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
-        try {
-            client.update(logbookParametersWrongAppend);
-            fail("Should raized an exception");
-        } catch (final LogbookClientException e) {
-            // ignore
+    @Test
+    public final void testOperationMultiple() throws LogbookClientException, VitamApplicationServerException {
+        // Creation OK
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip,
+            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+
+        try (final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            client.checkStatus();
+
+            client.create(logbookParametersStart);
+
+            // Update multiple OK
+            long start = System.nanoTime();
+            int i = 0;
+            try {
+                for (i = 0; i < NB_TEST; i++) {
+                    client.update(logbookParametersAppend);
+                }
+            } catch (LogbookClientServerException e) {
+                LOGGER.error("Issue after " + i);
+                fail(e.getMessage());
+            }
+            long stop = System.nanoTime();
+            long start2 = System.nanoTime();
+            i = 0;
+            try {
+                for (i = 0; i < NB_TEST; i++) {
+                    client.updateDelegate(logbookParametersAppend);
+                }
+                client.commitUpdateDelegate(eip.getId());
+            } catch (LogbookClientServerException e) {
+                LOGGER.error("Issue after " + i);
+                fail(e.getMessage());
+            }
+            long stop2 = System.nanoTime();
+            LOGGER.warn("Multiple updates vs bulk updates: {} ms vs {} ms", (stop - start) / 1000000,
+                (stop2 - start2) / 1000000);
+            client.checkStatus();
         }
-        // Create KO since Bad Request
-        final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
-        empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            logbookParametersWrongAppend.getParameterValue(
-                LogbookParameterName.eventIdentifierProcess));
-        try {
-            client.create(empty);
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
+    }
+
+    @Test
+    public final void testLifeCycle() throws LogbookClientException, VitamApplicationServerException {
+        // Creation OK
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip);
+        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", eip);
+        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip,
+            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip);
+        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", GUIDFactory.newEventGUID(0));
+
+        try (final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            client.checkStatus();
+
+            client.create(logbookLcParametersStart);
+
+            // Update OK
+            client.update(logbookLcParametersAppend);
+
+            // Create KO since already exists
+            try {
+                client.create(logbookLcParametersWrongStart);
+                fail("Should raized an exception");
+            } catch (final LogbookClientException e) {
+                // ignore
+            }
+
+            // Update KO since not found
+            try {
+                client.update(logbookLcParametersWrongAppend);
+                fail("Should raized an exception");
+            } catch (final LogbookClientException e) {
+                // ignore
+            }
+            // Create KO since Bad Request
+            final LogbookLifeCycleObjectGroupParameters empty =
+                LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+                logbookLcParametersWrongAppend.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess));
+            try {
+                client.create(empty);
+                fail("Should raized an exception");
+            } catch (final IllegalArgumentException e) {
+                // ignore
+            }
+            try {
+                client.update(empty);
+                fail("Should raized an exception");
+            } catch (final IllegalArgumentException e) {
+                // ignore
+            }
         }
-        try {
-            client.update(empty);
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
+    }
+
+    @Test
+    public final void testLifeCycleMultiple() throws LogbookClientException, VitamApplicationServerException {
+        // Creation OK
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip);
+        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", eip);
+        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip,
+            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip);
+        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", eip);
+
+        try (final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            client.checkStatus();
+
+            client.create(logbookLcParametersStart);
+
+            // Update multiple OK
+            int i = 0;
+            try {
+                for (i = 0; i < NB_TEST; i++) {
+                    client.update(logbookLcParametersAppend);
+                }
+            } catch (LogbookClientServerException e) {
+                LOGGER.error("Issue after " + i);
+                fail(e.getMessage());
+            }
         }
-        assertNotNull(client.status());
-        client.close();
     }
 }

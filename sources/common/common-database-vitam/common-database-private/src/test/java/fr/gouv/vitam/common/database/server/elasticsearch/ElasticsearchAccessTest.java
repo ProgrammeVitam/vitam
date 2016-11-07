@@ -26,83 +26,59 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 
 public class ElasticsearchAccessTest {
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    private File elasticsearchHome;
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     private final static String CLUSTER_NAME = "cluster-vitam";
     private final static String HOST_NAME = "localhost";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
+    private static ElasticsearchTestConfiguration config = null;
 
-    private static JunitHelper junitHelper;
-
-
-    @Before
-    public void setup() throws IOException {
-
-        junitHelper = new JunitHelper();
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
-        elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-
-        node.start();
+    @BeforeClass
+    public static void setupBeforeClass() throws IOException {
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
     }
 
 
-    @After
-    public void tearDownAfterClass() {
-        if (node != null) {
-            node.close();
+    @AfterClass
+    public static void tearDownAfterClass() {
+        if (config == null) {
+            return;
         }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
-
+        JunitHelper.stopElasticsearchForTest(config);
     }
 
     @Test
     public void testElasticsearchAccess() throws VitamException {
-        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
-        ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
+        final ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
         assertEquals(CLUSTER_NAME, elastic.getClusterName());
         assertEquals(nodes, elastic.getNodes());
         assertNotNull(elastic.getClient());

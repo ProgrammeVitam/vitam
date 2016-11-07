@@ -28,12 +28,17 @@ package fr.gouv.vitam.common;
 
 import java.io.File;
 
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
  */
 public class VitamConfiguration {
+
+    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration();
     /**
      * Property Vitam Config Folder
      */
@@ -65,16 +70,88 @@ public class VitamConfiguration {
     /**
      * Default Vitam Config Folder
      */
-    // TODO change to /vitam/tmp when configured on the PIC
     private static final String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
+    /**
+     * Default Chunk Size
+     */
+    private static final int CHUNK_SIZE = 65536;
+    /**
+     * Default Connection timeout
+     */
+    private static final int CONNECT_TIMEOUT = 1000;
+    /**
+     * Default Read Timeout
+     */
+    private static final int READ_TIMEOUT = 99999999;
 
-    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration().setDefault();
+    /**
+     * Max total concurrent clients
+     */
+    private static final int MAX_TOTAL_CLIENT = 100;
+    /**
+     * Max concurrent clients associated to one host
+     */
+    private static final int MAX_CLIENT_PER_HOST = 50;
+    /**
+     * Max delay to check an unused client in pool before being returned (Apache Only)
+     */
+    private static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
+    /**
+     * No check of unused client within pool (Apache Only)
+     */
+    public static final int NO_VALIDATION_AFTER_INACTIVITY = -1;
+    /**
+     * Max delay to get a client (Apache Only)
+     */
+    private static final int DELAY_GET_CLIENT = 2000;
+    /**
+     * Specify the delay where connections returned to pool will be checked (Apache Only)
+     */
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 30000;
+    /**
+     * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
+     */
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 30000;
+    /**
+     * General Admin path
+     */
+    public static final String ADMIN_PATH = "/admin/v1";
+    /**
+     * General status path
+     */
+    public static final String STATUS_URL = "/status";
+    /**
+     * Default Digest Type
+     */
+    private static final DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
+    /**
+     * Acceptable Request Time
+     */
+    private static final long ACCEPTABLE_REQUEST_TIME = 10;
+    /**
+     * MongoDB client configuration
+     */
+    private static final int THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS = 1500;
+    /**
+     * Retry repetition
+     */
+    private static final int RETRY_NUMBER = 3;
+    /**
+     * Retry delay
+     */
+    private static final int RETRY_DELAY = 30000;
 
     private String config;
     private String log;
     private String data;
     private String tmp;
+    private static String secret;
+    private static boolean filterActivation;
+    private int connectTimeout = CONNECT_TIMEOUT;
 
+    static {
+        getConfiguration().setDefault();
+    }
     /**
      * Empty constructor
      */
@@ -84,12 +161,12 @@ public class VitamConfiguration {
 
     /**
      * Full argument constructor
-     * 
+     *
      * @param config
      * @param log
      * @param data
      * @param tmp
-     * 
+     *
      * @throws IllegalArgumentException if one argument is null or empty
      */
     VitamConfiguration(String config, String log, String data, String tmp) {
@@ -98,7 +175,7 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
+     *
      * @return the default Vitam Configuration
      */
     public static VitamConfiguration getConfiguration() {
@@ -106,8 +183,19 @@ public class VitamConfiguration {
     }
 
     /**
-     * Replace the default values with values embedded in the VitamConfiguration parameter
      * 
+     * @param vitamConfiguration
+     */
+    void setInternalConfiguration(VitamConfiguration vitamConfiguration) {
+        setConfig(vitamConfiguration.getConfig())
+        .setData(vitamConfiguration.getData())
+        .setLog(vitamConfiguration.getLog())
+        .setTmp(vitamConfiguration.getTmp()).checkValues();
+    }
+
+    /**
+     * Replace the default values with values embedded in the VitamConfiguration parameter
+     *
      * @param vitamConfiguration the new parameter
      * @throws IllegalArgumentException if one argument is null or empty
      */
@@ -120,7 +208,7 @@ public class VitamConfiguration {
 
     /**
      * Replace the default values with values embedded in the VitamConfiguration parameter
-     * 
+     *
      * @param config
      * @param log
      * @param data
@@ -134,21 +222,18 @@ public class VitamConfiguration {
 
     /**
      * Set the default values
-     * 
+     *
      * @return this
      */
     VitamConfiguration setDefault() {
-        setConfig(VITAM_CONFIG_FOLDER_DEFAULT)
-            .setData(VITAM_DATA_FOLDER_DEFAULT)
-            .setLog(VITAM_LOG_FOLDER_DEFAULT)
-            .setTmp(VITAM_TMP_FOLDER_DEFAULT);
+        checkVitamConfiguration();
         checkValues();
         return this;
     }
 
     /**
      * Get Config directory
-     * 
+     *
      * @return the Config directory
      */
     public String getConfig() {
@@ -157,7 +242,7 @@ public class VitamConfiguration {
 
     /**
      * Set Config directory
-     * 
+     *
      * @param config the config directory
      * @return this
      */
@@ -169,7 +254,7 @@ public class VitamConfiguration {
 
     /**
      * Get Log directory
-     * 
+     *
      * @return the Log directory
      */
     public String getLog() {
@@ -178,7 +263,7 @@ public class VitamConfiguration {
 
     /**
      * Set Log directory
-     * 
+     *
      * @param log the Log directory
      * @return this
      */
@@ -190,7 +275,7 @@ public class VitamConfiguration {
 
     /**
      * Get Data directory
-     * 
+     *
      * @return the Data directory
      */
     public String getData() {
@@ -199,7 +284,7 @@ public class VitamConfiguration {
 
     /**
      * Set Data directory
-     * 
+     *
      * @param data the Data directory
      * @return this
      */
@@ -211,7 +296,7 @@ public class VitamConfiguration {
 
     /**
      * Get Tmp directory
-     * 
+     *
      * @return the Tmp directory
      */
     public String getTmp() {
@@ -220,7 +305,7 @@ public class VitamConfiguration {
 
     /**
      * Set Tmp directory
-     * 
+     *
      * @param tmp tmp the Tmp directory
      * @return this
      */
@@ -232,15 +317,15 @@ public class VitamConfiguration {
 
     /**
      * Check if each directory not null and exists
-     * 
+     *
      * @throws IllegalArgumentException if one condition failed
      */
     void checkValues() {
         ParametersChecker.checkParameter("Check directories", tmp, data, log, config);
-        File tmpDir = new File(tmp);
-        File logDir = new File(log);
-        File dataDir = new File(data);
-        File configDir = new File(config);
+        final File tmpDir = new File(tmp);
+        final File logDir = new File(log);
+        final File dataDir = new File(data);
+        final File configDir = new File(config);
         if (!tmpDir.isDirectory()) {
             tmpDir.mkdirs();
         }
@@ -250,18 +335,34 @@ public class VitamConfiguration {
     }
 
     /**
-     * Check if Vitam Configuration is specified using directives on JVM.
-     * If an issue is detected, it only logs the status on STDERR.
+     * Check if Vitam Configuration is specified using directives on JVM. If an issue is detected, it only logs the
+     * status on STDERR.
      */
     static void checkVitamConfiguration() {
-        if (! (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)
-            && SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY) &&
+        if (!(SystemPropertyUtil.contains(VITAM_TMP_PROPERTY) && SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY) &&
             SystemPropertyUtil.contains(VITAM_DATA_PROPERTY) &&
             SystemPropertyUtil.contains(VITAM_LOG_PROPERTY))) {
-            SysErrLogger.FAKE_LOGGER.syserr("One of the directives is not specified: -Dxxx=path where xxx is one of -D"
-                + VITAM_TMP_PROPERTY + " -D" + VITAM_CONFIG_PROPERTY
-                + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
+            SysErrLogger.FAKE_LOGGER.syserr(
+                "One of the directives is not specified: -Dxxx=path where xxx is one of -D" + VITAM_TMP_PROPERTY +
+                    " -D" + VITAM_CONFIG_PROPERTY + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
         }
+        String data = VITAM_DATA_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_DATA_PROPERTY)) {
+            data = SystemPropertyUtil.get(VITAM_DATA_PROPERTY);
+        }
+        String tmp = VITAM_TMP_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)) {
+            tmp = SystemPropertyUtil.get(VITAM_TMP_PROPERTY);
+        }
+        String config = VITAM_CONFIG_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY)) {
+            config = SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
+        }
+        String log = VITAM_LOG_FOLDER_DEFAULT;
+        if (SystemPropertyUtil.contains(VITAM_LOG_PROPERTY)) {
+            log = SystemPropertyUtil.get(VITAM_LOG_PROPERTY);
+        }
+        setConfiguration(config, log, data, tmp);
     }
 
     /**
@@ -280,9 +381,6 @@ public class VitamConfiguration {
      * @return the VitamLogFolder path
      */
     public static String getVitamLogFolder() {
-        if (SystemPropertyUtil.contains(VITAM_LOG_PROPERTY)) {
-            return SystemPropertyUtil.get(VITAM_LOG_PROPERTY);
-        }
         return getConfiguration().getLog();
     }
 
@@ -291,9 +389,6 @@ public class VitamConfiguration {
      * @return the VitamDataFolder path
      */
     public static String getVitamDataFolder() {
-        if (SystemPropertyUtil.contains(VITAM_DATA_PROPERTY)) {
-            return SystemPropertyUtil.get(VITAM_DATA_PROPERTY);
-        }
         return getConfiguration().getData();
     }
 
@@ -302,9 +397,148 @@ public class VitamConfiguration {
      * @return the VitamConfigFolder path
      */
     public static String getVitamConfigFolder() {
-        if (SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY)) {
-            return SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
-        }
         return getConfiguration().getConfig();
     }
+
+    /**
+     * @return the default chunk size
+     */
+    public static int getChunkSize() {
+        return CHUNK_SIZE;
+    }
+
+    /**
+     * @return the default connect timeout
+     */
+    public static int getConnectTimeout() {
+        return getConfiguration().connectTimeout;
+    }
+
+    /**
+     * Junit facility
+     * 
+     * @param timeout
+     */
+    public static void setConnectTimeout(int timeout) {
+        getConfiguration().connectTimeout = timeout;
+    }
+
+    /**
+     * @return the default read timeout
+     */
+    public static int getReadTimeout() {
+        return READ_TIMEOUT;
+    }
+
+    /**
+     * @return the maxTotalClient
+     */
+    public static int getMaxTotalClient() {
+        return MAX_TOTAL_CLIENT;
+    }
+
+    /**
+     * @return the maxClientPerHost
+     */
+    public static int getMaxClientPerHost() {
+        return MAX_CLIENT_PER_HOST;
+    }
+
+    /**
+     * @return the delayValidationAfterInactivity
+     */
+    public static int getDelayValidationAfterInactivity() {
+        return DELAY_VALIDATION_AFTER_INACTIVITY;
+    }
+
+    /**
+     * @return the delayGetClient
+     */
+    public static int getDelayGetClient() {
+        return DELAY_GET_CLIENT;
+    }
+
+    /**
+     * @return the intervalDelayCheckIdle
+     */
+    public static int getIntervalDelayCheckIdle() {
+        return INTERVAL_DELAY_CHECK_IDLE;
+    }
+
+    /**
+     * @return the maxDelayUnusedConnection
+     */
+    public static int getMaxDelayUnusedConnection() {
+        return MAX_DELAY_UNUSED_CONNECTION;
+    }
+
+    /**
+     * @return the secret
+     */
+    public static String getSecret() {
+        if (Strings.isNullOrEmpty(secret)) {
+            return "";
+        }
+        return secret;
+    }
+
+    /**
+     * @param secretValue the secret to set
+     *
+     */
+    public static void setSecret(String secretValue) {
+        ParametersChecker.checkParameter("Platform secret", secretValue);
+        secret = secretValue;
+    }
+
+    /**
+     * @return the filterActivation
+     */
+    public static boolean isFilterActivation() {
+        return filterActivation;
+    }
+
+    /**
+     * @param filterActivationValue the filterActivation to set
+     *
+     */
+    public static void setFilterActivation(boolean filterActivationValue) {
+        filterActivation = filterActivationValue;
+    }
+
+    /**
+     * @return the acceptableRequestTime
+     */
+    public static long getAcceptableRequestTime() {
+        return ACCEPTABLE_REQUEST_TIME;
+    }
+
+    /**
+     * @return the securityDigestType
+     */
+    public static DigestType getSecurityDigestType() {
+        return SECURITY_DIGEST_TYPE;
+    }
+
+    /**
+     * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
+     */
+    public static int getThreadsAllowedToBlockForConnectionMultipliers() {
+        return THREADS_ALLOWED_TO_BLOCK_FOR_CONNECTION_MULTIPLIERS;
+    }
+
+    /**
+     * @return the retryNumber
+     */
+    public static int getRetryNumber() {
+        return RETRY_NUMBER;
+    }
+
+    /**
+     * @return the retryDelay
+     */
+    public static int getRetryDelay() {
+        return RETRY_DELAY;
+    }
+
 }

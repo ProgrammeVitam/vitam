@@ -79,6 +79,7 @@ public class SystemPropertyUtilTest {
         SystemPropertyUtil.set(VitamConfiguration.VITAM_DATA_PROPERTY, KEY_VALUE);
         SystemPropertyUtil.set(VitamConfiguration.VITAM_LOG_PROPERTY, KEY_VALUE);
         SystemPropertyUtil.set(VitamConfiguration.VITAM_TMP_PROPERTY, KEY_VALUE);
+        VitamConfiguration.checkVitamConfiguration();
         assertFalse(VitamConfiguration.getVitamConfigFolder().equals(config));
         assertFalse(VitamConfiguration.getVitamDataFolder().equals(data));
         assertFalse(VitamConfiguration.getVitamLogFolder().equals(log));
@@ -87,6 +88,7 @@ public class SystemPropertyUtilTest {
         SystemPropertyUtil.set(VitamConfiguration.VITAM_DATA_PROPERTY, data);
         SystemPropertyUtil.set(VitamConfiguration.VITAM_LOG_PROPERTY, log);
         SystemPropertyUtil.set(VitamConfiguration.VITAM_TMP_PROPERTY, tmp);
+        VitamConfiguration.checkVitamConfiguration();
         assertTrue(VitamConfiguration.getVitamConfigFolder().equals(config));
         assertTrue(VitamConfiguration.getVitamDataFolder().equals(data));
         assertTrue(VitamConfiguration.getVitamLogFolder().equals(log));

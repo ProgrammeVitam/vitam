@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.logging;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

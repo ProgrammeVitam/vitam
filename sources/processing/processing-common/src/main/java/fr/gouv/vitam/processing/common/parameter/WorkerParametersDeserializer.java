@@ -51,8 +51,8 @@ class WorkerParametersDeserializer extends JsonDeserializer<AbstractWorkerParame
     @Override
     public AbstractWorkerParameters deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
-        DefaultWorkerParameters result = WorkerParametersFactory.newWorkerParameters();
-        Map<String, String> parameters = new HashMap<>();
+        final DefaultWorkerParameters result = WorkerParametersFactory.newWorkerParameters();
+        final Map<String, String> parameters = new HashMap<>();
         JsonToken currentToken = null;
         while ((currentToken = p.nextValue()) != null) {
             switch (currentToken) {

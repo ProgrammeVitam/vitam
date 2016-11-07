@@ -1,0 +1,11 @@
+{
+  "title": "pie-logback-error-level",
+  "visState": "{\"title\":\"pie-logback-error-level\",\"type\":\"pie\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"isDonut\":false},\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"err_level\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"ERROR_LEVEL\"}}],\"listeners\":{}}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "savedSearchId": "vitam-type-logback",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"filter\":[]}"
+  }
+}

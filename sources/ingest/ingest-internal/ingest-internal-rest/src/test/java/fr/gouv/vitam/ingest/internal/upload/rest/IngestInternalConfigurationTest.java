@@ -26,15 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class IngestInternalConfigurationTest {
 
     @Test
     public void givenIngestConfigurationWhenSetPropertiesThenGetSameProperties() {
-        IngestInternalConfiguration config = new IngestInternalConfiguration();
+        final IngestInternalConfiguration config = new IngestInternalConfiguration();
         assertEquals("processingUrl", config.setProcessingUrl("processingUrl").getProcessingUrl());
         assertEquals("workspaceUrl", config.setWorkspaceUrl("workspaceUrl").getWorkspaceUrl());
         assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());

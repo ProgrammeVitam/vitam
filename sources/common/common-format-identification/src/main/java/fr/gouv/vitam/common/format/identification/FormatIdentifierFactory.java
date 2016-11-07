@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -56,8 +55,7 @@ public class FormatIdentifierFactory {
     private final Map<String, FormatIdentifierConfiguration> configurationsFormatIdentifiers =
         Collections.synchronizedMap(new HashMap<>());
 
-    // TODO : use a yaml configuration instead of a json.
-    private static final String FORMAT_IDENTIFIERS_CONF_FILE = "format-identifiers.json";
+    private static final String FORMAT_IDENTIFIERS_CONF_FILE = "format-identifiers.conf";
 
     /**
      * Constructor
@@ -74,15 +72,15 @@ public class FormatIdentifierFactory {
     public final void changeConfigurationFile(String configurationPath) {
         try {
             File configurationFile = PropertiesUtils.findFile(configurationPath);
-            if (configurationFile != null) {               
-                Map<String, FormatIdentifierConfiguration> configMap = new ObjectMapper().readValue(configurationFile,
+            if (configurationFile != null) {
+                Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
                     new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
                 for (FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
                 configurationsFormatIdentifiers.putAll(configMap);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.warn("could not load format identifiers configuration for file {}, no format identifier available",
                 configurationPath, e);
         }
@@ -100,7 +98,7 @@ public class FormatIdentifierFactory {
 
     /**
      * Instanciate the format identifier identified
-     * 
+     *
      * @param formatIdentifierId format identifier id
      * @return the Format Identifier implementation
      * @throws FormatIdentifierNotFoundException if the configuration was not found
@@ -116,7 +114,7 @@ public class FormatIdentifierFactory {
 
     /**
      * Add a format identifier configuration
-     * 
+     *
      * @param formatIdentifierId format identifier id
      * @param configuration format identifier configuration
      * @throws IllegalArgumentException if the parameters are null : formatIdentifierId, configuration,
@@ -130,7 +128,7 @@ public class FormatIdentifierFactory {
 
     /**
      * Remove a format identifier configuration by its id
-     * 
+     *
      * @param formatIdentifierId format identifier id
      * @throws FormatIdentifierNotFoundException if no configuration is registered for the given formatIdentifierId
      * @throws IllegalArgumentException if the parameters are null : formatIdentifierId
@@ -138,13 +136,14 @@ public class FormatIdentifierFactory {
     public void removeFormatIdentifier(String formatIdentifierId) throws FormatIdentifierNotFoundException {
         ParametersChecker.checkParameter(FORMAT_IDENTIFIER_ID_NOT_NULL, formatIdentifierId);
         if (configurationsFormatIdentifiers.remove(formatIdentifierId) == null) {
-            throw new FormatIdentifierNotFoundException("Can't remove " + formatIdentifierId + " because no configuration with this name is registered");
+            throw new FormatIdentifierNotFoundException(
+                "Can't remove " + formatIdentifierId + " because no configuration with this name is registered");
         }
     }
 
     /**
      * Instanciate the format identifier using the configuration linked to the format identifier id given
-     * 
+     *
      * @param formatIdentifierId format identifier id
      * @return the Format Identifier implementation
      * @throws FormatIdentifierNotFoundException if the configuration was not found
@@ -154,7 +153,7 @@ public class FormatIdentifierFactory {
      */
     private FormatIdentifier instanciate(String formatIdentifierId)
         throws FormatIdentifierFactoryException, FormatIdentifierNotFoundException, FormatIdentifierTechnicalException {
-        FormatIdentifierConfiguration infos = configurationsFormatIdentifiers.get(formatIdentifierId);
+        final FormatIdentifierConfiguration infos = configurationsFormatIdentifiers.get(formatIdentifierId);
         if (infos == null) {
             throw new FormatIdentifierNotFoundException(
                 "Format Identifier configuration can't be found for id " + formatIdentifierId);
@@ -173,7 +172,7 @@ public class FormatIdentifierFactory {
 
     /**
      * Check the format identifier configuration
-     * 
+     *
      * @param configuration the format identifier configuration
      * @throws IllegalArgumentException if the parameters are null : configuration, configuration.type
      */

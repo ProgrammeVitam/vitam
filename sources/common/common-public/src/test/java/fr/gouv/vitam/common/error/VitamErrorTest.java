@@ -27,15 +27,14 @@
 
 package fr.gouv.vitam.common.error;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
-
-import fr.gouv.vitam.common.error.VitamError;
+import org.junit.Test;
 
 /**
  *
@@ -44,9 +43,11 @@ public class VitamErrorTest {
 
     private static VitamError vitamError = new VitamError("1");
 
-    private static final String ERROR_JSON = "{\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-        "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\",\"context\":\"\"," +
-        "\"state\":\"\",\"message\":\"\",\"description\":\"\",\"errors\":[]}]}";
+    private static final String ERROR_JSON =
+        "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+        "[{\"httpCode\":0,\"code\":\"1\"}]}";
+
     @Test
     public void testSetGetCode() throws Exception {
         vitamError.setCode("2");
@@ -79,7 +80,7 @@ public class VitamErrorTest {
 
     @Test
     public void testSetErrors() throws Exception {
-        List<VitamError> errorList = new ArrayList<>();
+        final List<VitamError> errorList = new ArrayList<>();
         errorList.add(vitamError);
         vitamError.setErrors(errorList);
         assertTrue(vitamError.getErrors().contains(vitamError));
@@ -87,12 +88,13 @@ public class VitamErrorTest {
 
     @Test
     public void testToString() throws Exception {
-        VitamError error = new VitamError("0");
+        final VitamError error = new VitamError("0");
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
         error.setErrors(Collections.singletonList(new VitamError("1")));
+        System.err.println(error.toString());
         assertEquals(ERROR_JSON, error.toString());
     }
 }

@@ -27,24 +27,38 @@
 package fr.gouv.vitam.processing.common.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.common.model.StatusCode;
 
 public class ProcessStepTest {
     @Test
     public void testConstructor() {
-        assertEquals(0, new ProcessStep().getElementProcessed());        
+        assertEquals(0, new ProcessStep().getElementProcessed());
         assertEquals(0, new ProcessStep().getElementToProcess());
         assertEquals(10, new ProcessStep().setElementToProcess(10).getElementToProcess());
         assertEquals(1, new ProcessStep().setElementProcessed(1).getElementProcessed());
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
         Step step = new Step();
-        assertEquals(1, new ProcessStep(step, 1, 0).getElementToProcess());
-        assertEquals(1, new ProcessStep(step, 1, 1).getElementProcessed());        
+        assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0).getElementToProcess());
+        assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 1).getElementProcessed());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorException() {
-        new ProcessStep(null, 1, 0);               
+        new ProcessStep(null, "containerName", "workflowId", 0, 1, 0);
+    }
+
+    @Test
+    public void equalsTest() {
+        Step step = new Step();
+        step.setStepName("1");
+        ProcessStep processStep = new ProcessStep(step, "containerName", "workflowId", 0, 1, 0);
+        assertEquals(processStep, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0));
+
+        assertNotEquals(processStep, new Object());
+        assertNotEquals(processStep, new ProcessStep(step, "containerName", "workflowId", 2, 1, 0));
     }
 }

@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import static java.lang.String.format;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.EnumSet;
@@ -36,24 +34,20 @@ import javax.servlet.DispatcherType;
 
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
 /**
  * Ingest External web application
@@ -64,84 +58,54 @@ public final class IngestExternalApplication
     private static final String CONF_FILE_NAME = "ingest-external.conf";
     private static final String SHIRO_FILE = "shiro.ini";
     private static final String MODULE_NAME = "ingest-external";
-    private static IngestExternalConfiguration serverConfiguration;
+
+    static VitamServiceRegistry serviceRegistry = null;
+
 
     /**
      * Ingest External constructor
+     * @param configuration 
      */
-    protected IngestExternalApplication() {
-        super(IngestExternalApplication.class, IngestExternalConfiguration.class);
+    public IngestExternalApplication(String configuration) {
+        super(IngestExternalConfiguration.class, configuration);
     }
+
 
     /**
      * Main method to run the application (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
-                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     CONF_FILE_NAME));
             }
-
-            final VitamServer vitamServer = startApplication(args[0]);
-            vitamServer.run();
+            final IngestExternalApplication application = new IngestExternalApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
+            application.run();
         } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    /**
-     * Prepare the application to be run or started.
-     *
-     * @param moduleConf moduleconf
-     * @return the VitamServer
-     * @throws IllegalStateException
-     */
-    public static VitamServer startApplication(String moduleConf) throws VitamException {
-
-        final IngestExternalApplication application = new IngestExternalApplication();
-        application.configure(application.computeConfigurationPathFromInputArguments(moduleConf));
-        serverConfiguration = application.getConfiguration();
-
-        LOGGER.info(format(VitamServer.SERVER_START_WITH_JETTY_CONFIG, MODULE_NAME));
-        VitamServer vitamServer = VitamServerFactory.newVitamServerByJettyConf(serverConfiguration.getJettyConfig());
-        vitamServer.configure(application.getApplicationHandler());
-
-        return vitamServer;
-    }
-
     @Override
-    protected String getConfigFilename() {
-        return CONF_FILE_NAME;
-    }
-
-    /**
-     * Implement this method to construct your application specific handler
-     *
-     * @return the generated Handler
-     * @throws VitamApplicationServerException
-     */
-    @Override
-    protected Handler buildApplicationHandler() throws VitamApplicationServerException {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new IngestExternalResource(getConfiguration()));
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-
+    protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
         if (getConfiguration().isAuthentication()) {
 
             File shiroFile = null;
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }
@@ -149,12 +113,21 @@ public final class IngestExternalApplication
             context.addEventListener(new EnvironmentLoaderListener());
             context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR));
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
+    }
 
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        return context;
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
+    @Override
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
+        IngestExternalResource resource = new IngestExternalResource(getConfiguration());
+        serviceRegistry.register(IngestInternalClientFactory.getInstance());
+        resourceConfig.register(resource)
+            .register(new AdminStatusResource(serviceRegistry));
     }
 
 }

@@ -44,7 +44,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
@@ -68,6 +67,7 @@ import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.missi
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.mlt;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.ne;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nin;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.prefix;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.range;
@@ -354,7 +354,7 @@ public class QueryParserHelperTest {
 
     @Test
     public void testNopQuery() throws Exception {
-        Query nop = nop();
+        final Query nop = nop();
         assertEquals(1, nop.getCurrentQuery().size());
         assertEquals("{\"$nop\":\"1\"}", JsonHandler.unprettyPrint(nop.getCurrentQuery()));
         assertEquals("{\"$nop\":\"1\"}", JsonHandler.unprettyPrint(nop.getCurrentObject()));

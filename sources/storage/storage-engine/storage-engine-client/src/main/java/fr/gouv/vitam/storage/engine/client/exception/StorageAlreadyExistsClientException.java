@@ -32,6 +32,11 @@ package fr.gouv.vitam.storage.engine.client.exception;
 public class StorageAlreadyExistsClientException extends StorageClientException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 6574240025512780668L;
+
+    /**
      * @param message associated message
      */
     public StorageAlreadyExistsClientException(String message) {
@@ -51,16 +56,5 @@ public class StorageAlreadyExistsClientException extends StorageClientException 
      */
     public StorageAlreadyExistsClientException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageAlreadyExistsClientException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

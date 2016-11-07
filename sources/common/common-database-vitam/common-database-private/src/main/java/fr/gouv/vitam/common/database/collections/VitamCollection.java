@@ -36,9 +36,13 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
@@ -70,11 +74,10 @@ public class VitamCollection {
         }
     }
 
-
     /**
      * Initialize the ES Client
      *
-     * @param ElasticsearchAccess ES Client
+     * @param esClient ElasticsearchAccess ES Client
      */
     public void initialize(final ElasticsearchAccess esClient) {
         this.esClient = esClient;
@@ -117,16 +120,31 @@ public class VitamCollection {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
-        List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
-        for (Class<?> clasz : claszList) {
+        if (claszList == null || claszList.isEmpty()) {
+            final CodecRegistry codecRegistry =
+                CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry());
+
+            return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
+        }
+        final List<CodecRegistry> codecs = new ArrayList<>();
+        for (final Class<?> clasz : claszList) {
             codecs.add(CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)));
         }
-
         final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
         final CodecRegistry codecRegistry =
             CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), vitamCodecRegistry);
 
-        return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
+        // See
+        // http://stackoverflow.com/questions/6520439/how-to-configure-mongodb-java-driver-mongooptions-for-production-use
+        return MongoClientOptions.builder().codecRegistry(codecRegistry)
+            .connectTimeout(VitamConfiguration.getConnectTimeout())
+            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getMaxClientPerHost())
+            .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
+            .threadsAllowedToBlockForConnectionMultiplier(VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
+            .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
+            .writeConcern(WriteConcern.ACKNOWLEDGED).readConcern(ReadConcern.DEFAULT)
+            .readPreference(ReadPreference.secondaryPreferred())
+            .build();
     }
 
 

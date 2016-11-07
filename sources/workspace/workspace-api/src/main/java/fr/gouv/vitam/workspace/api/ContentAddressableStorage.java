@@ -34,10 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 /**
@@ -45,7 +45,7 @@ import fr.gouv.vitam.workspace.api.model.ContainerInformation;
  *
  */
 public interface ContentAddressableStorage {
-    // TODO REVIEW should see null checking variable as IllegalArgumentException explicitely
+    // TODO P0 REVIEW should see null checking variable as IllegalArgumentException explicitly
 
     // Container
     /**
@@ -100,8 +100,9 @@ public interface ContentAddressableStorage {
      *
      * @param containerName name of container
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
-    public boolean isExistingContainer(String containerName);
+    public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
 
     // folder (or directory)
 
@@ -135,8 +136,9 @@ public interface ContentAddressableStorage {
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
-    boolean isExistingFolder(String containerName, String folderName);
+    boolean isExistingFolder(String containerName, String folderName) throws ContentAddressableStorageServerException;
 
     // Object
 
@@ -189,15 +191,16 @@ public interface ContentAddressableStorage {
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
      * @return boolean type
+     * @throws ContentAddressableStorageServerException 
      */
 
-    public boolean isExistingObject(String containerName, String objectName);
+    public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageServerException;
 
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
      *
-     * @param containerName, not null allowed container where this exists.
-     * @param folderName, not null allowed fully qualified folder name relative to the container.
+     * @param containerName not null allowed container where this exists.
+     * @param folderName not null allowed fully qualified folder name relative to the container.
      *
      * @return a list of URI
      *
@@ -213,19 +216,19 @@ public interface ContentAddressableStorage {
      *
      * @param containerName : the container name (will be Guid created in ingest module)
      * @param folderName : the folder name
+     * @param archiveType : the archive type (zip, tar, tar.gz, tar.bz2)
      * @param inputStreamObject : SIP input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located
      * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageZipException Thrown when the file is not a zip or an empty zip
+     * @throws ContentAddressableStorageCompressedFileException Thrown when the file is not a zip or an empty zip
      */
-    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
+    public void uncompressObject(String containerName, String folderName, String archiveType,
+        InputStream inputStreamObject)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageServerException, ContentAddressableStorageZipException,
+        ContentAddressableStorageServerException, ContentAddressableStorageCompressedFileException,
         ContentAddressableStorageException;
-
-
 
     /**
      * compute Object Digest using a defined algorithm
@@ -250,9 +253,10 @@ public interface ContentAddressableStorage {
      * @return container information like usableSpace and usedSpace
      * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
      *         exist
+     * @throws ContentAddressableStorageServerException 
      */
     ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Retrieves information about an object at location containerName/objectName
@@ -266,4 +270,6 @@ public interface ContentAddressableStorage {
      */
     public JsonNode getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+
 }

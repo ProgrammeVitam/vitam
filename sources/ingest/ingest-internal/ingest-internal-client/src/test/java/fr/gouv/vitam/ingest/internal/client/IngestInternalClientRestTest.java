@@ -26,9 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -36,65 +35,97 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
-public class IngestInternalClientRestTest extends JerseyTest {
+@SuppressWarnings("rawtypes")
+public class IngestInternalClientRestTest extends VitamJerseyTest {
 
-    private static final String HOST = "localhost";
     private static final String PATH = "/ingest/v1";
-    private static JunitHelper junitHelper = new JunitHelper();
-    private static int port = junitHelper.findAvailablePort();
+
     private IngestInternalClientRest client;
     private UploadResponseDTO uploadResponseDTO;
 
-    protected ExpectedResults mock;
-
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    @SuppressWarnings("unchecked")
     public IngestInternalClientRestTest() {
-        client = new IngestInternalClientRest(HOST, port);
+        super(IngestInternalClientFactory.getInstance());
     }
 
+    @Override
+    public void beforeTest() {
+        client = (IngestInternalClientRest) getClient();
+    }
 
-    interface ExpectedResults {
-        Response post();
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
 
-        Response get();
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockRessource(mock));
+            resourceConfig.register(MultiPartFeature.class);
+        }
+    }
+
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
+    }
+
+    @Override
+    public StartApplicationResponse startVitamApplication(int reservedPort) throws IllegalStateException {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
     }
 
     @Path(PATH)
-    public static class IngestInternalMockResource {
+    public static class MockRessource {
 
         private final ExpectedResults expectedResponse;
 
-        public IngestInternalMockResource(ExpectedResults expectedResponse) {
+        public MockRessource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
 
@@ -106,175 +137,158 @@ public class IngestInternalClientRestTest extends JerseyTest {
             @FormDataParam("file") FormDataContentDisposition header) {
             return expectedResponse.post();
         }
-
-        @Path("/status")
-        @GET
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response status() {
-            return expectedResponse.get();
-        }
-    }
-
-    @Override
-    protected Application configure() {
-        set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        mock = mock(ExpectedResults.class);
-        resourceConfig.registerInstances(new IngestInternalMockResource(mock));
-        return resourceConfig;
-    }
-
-    @Test
-    public void givenStartedServerWhenGetStatusThenReturnOK() {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        assertThat(client.status()).isEqualTo(200);
     }
 
     @Test
     public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
 
-        List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
-        GUID ingestGuid = GUIDFactory.newGUID();
-        GUID conatinerGuid = GUIDFactory.newGUID();
-        LogbookOperationParameters externalOperationParameters1 =
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Start Ingest external",
                 conatinerGuid);
 
-        LogbookOperationParameters externalOperationParameters2 =
+        final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.OK,
+                StatusCode.OK,
                 "End Ingest external",
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
-        Response response = client.upload(operationList, inputStream);
-        inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        when(mock.post())
+            .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
+        final InputStream inputStream =
+
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
 
-        List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
-        GUID ingestGuid = GUIDFactory.newGUID();
-        GUID conatinerGuid = GUIDFactory.newGUID();
-        LogbookOperationParameters externalOperationParameters1 =
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Start Ingest external",
                 conatinerGuid);
 
-        LogbookOperationParameters externalOperationParameters2 =
+        final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.ERROR,
+                StatusCode.KO,
                 "End Ingest external",
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-        
-        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        client.upload(operationList, null);
+
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        when(mock.post()).thenReturn(
+            Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
+        final Response response = client.upload(ingestGuid, operationList, null, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
 
-        List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
-        GUID ingestGuid = GUIDFactory.newGUID();
-        GUID conatinerGuid = GUIDFactory.newGUID();
-        LogbookOperationParameters externalOperationParameters1 =
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Start Ingest external",
                 conatinerGuid);
 
-        LogbookOperationParameters externalOperationParameters2 =
+        final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.OK,
+                StatusCode.OK,
                 "End Ingest external",
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
-
-        InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
-        client.upload(operationList, inputStream);
+        final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.readEntity(String.class));
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
 
-        List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
-        GUID ingestGuid = GUIDFactory.newGUID();
-        GUID conatinerGuid = GUIDFactory.newGUID();
-        LogbookOperationParameters externalOperationParameters1 =
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Start Ingest external",
                 conatinerGuid);
 
-        LogbookOperationParameters externalOperationParameters2 =
+        final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.OK,
+                StatusCode.OK,
                 "End Ingest external",
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-        
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
-        InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_mauvais_format.pdf");
-        client.upload(operationList, inputStream);
+        final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
+        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.readEntity(String.class));
     }
 }

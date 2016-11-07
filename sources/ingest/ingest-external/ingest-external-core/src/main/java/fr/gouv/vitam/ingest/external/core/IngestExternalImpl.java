@@ -26,19 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -46,15 +57,17 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
@@ -62,154 +75,292 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
-    private static final String INGEST_EXT = "Contrôle sanitaire SIP";
+    private static final int STATUS_ANTIVIRUS_KO = 2;
+    private static final int STATUS_ANTIVIRUS_WARNING = 1;
+    private static final int STATUS_ANTIVIRUS_OK = 0;
+    private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
+    private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
+    private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
+    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+
+    private static final String PRONOM_NAMESPACE = "pronom";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
+    // FIXME P0 n'a pas besoin d'être une variable globale
+    private FormatIdentifier formatIdentifier;
 
     /**
-     * Constructor IngestExternalImpl with parameter IngestExternalConfiguration
-     * 
+     * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
+     *
      * @param config
      */
     public IngestExternalImpl(IngestExternalConfiguration config) {
         this.config = config;
+
     }
 
     @Override
-    public Response upload(InputStream input) throws IngestExternalException, XMLStreamException {
+    public Response upload(InputStream input) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        GUID guid = GUIDFactory.newOperationIdGUID(DEFAULT_TENANT);
+        final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
         // Store in local
         GUID containerName = guid;
-        GUID objectName = GUIDFactory.newGUID();
-        GUID ingestGuid = guid;
-
-        FileSystem workspaceFileSystem = new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
-        String antiVirusScriptName = config.getAntiVirusScriptName();
-        long timeoutScanDelay = config.getTimeoutScanDelay();
-        Response responseResult = null;
-        while (true) {
-            boolean hasError = false;
-            try {
-                workspaceFileSystem.createContainer(containerName.toString());
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                hasError = true;
-                containerName = GUIDFactory.newGUID();
-            }
-            if (!hasError) {
-                break;
-            }
-        }
+        final GUID objectName = guid;
+        final GUID ingestGuid = guid;
+        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        FileSystem workspaceFileSystem = null;
 
         try {
-            try {
-                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
-            } catch (ContentAddressableStorageException e) {
-                LOGGER.error("Can not store file", e);
-                throw new IngestExternalException(e);
-            }
-
-            List<LogbookParameters> logbookParametersList = new ArrayList<LogbookParameters>();
-            LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 INGEST_EXT,
                 containerName,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
-                "Début de l'action " + INGEST_EXT,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
                 containerName);
-
-            // TODO should be the file name from a header
+            // TODO P1 should be the file name from a header
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
-            logbookParametersList.add(startedParameters);
+            helper.createDelegate(startedParameters);
 
-            String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
+            workspaceFileSystem =
+                new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
+            final String antiVirusScriptName = config.getAntiVirusScriptName();
+            final long timeoutScanDelay = config.getTimeoutScanDelay();
+            Response responseResult = null;
+
+            try {
+                workspaceFileSystem.createContainer(containerName.toString());
+            } catch (final ContentAddressableStorageAlreadyExistException e) {
+                LOGGER.error("Can not store file", e);
+                throw new IngestExternalException(e);
+            }
+            try {
+                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+            } catch (final ContentAddressableStorageException e) {
+                LOGGER.error("Can not store file", e);
+                throw new IngestExternalException(e);
+            }
+
+            final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
+            File file = new File(filePath);
+            if (!file.canRead()) {
+                LOGGER.error("Can not read file");
+                throw new IngestExternalException("Can not read file");
+            }
             int antiVirusResult;
 
+            final LogbookOperationParameters antivirusParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    ingestGuid,
+                    SANITY_CHECK_SIP,
+                    containerName,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.STARTED),
+                    containerName);
             try {
                 /*
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
                  * virus found but not corrected 3: Fatal scan not performed
                  */
                 antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOGGER.error("Can not scan virus", e);
                 throw new IngestExternalException(e);
             }
 
-            LogbookParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                INGEST_EXT,
-                containerName,
-                LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
-                "End " + INGEST_EXT,
-                containerName);
-
             InputStream inputStream = null;
             boolean isFileInfected = false;
+            String mimeType = CommonMediaType.ZIP;
+            boolean isSupportedMedia = false;
 
-            // TODO: add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
+            // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (antiVirusResult) {
-                case 0:
+                case STATUS_ANTIVIRUS_OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.OK);
-                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        IngestExternalOutcomeMessage.OK_VIRUS.value());
+                    antivirusParameters.setStatus(StatusCode.OK);
+                    antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.OK));
                     break;
-                case 1:
-                    LOGGER.debug(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.KO);
-                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        IngestExternalOutcomeMessage.KO_VIRUS.value());
-                    isFileInfected = true;
-                    break;
-                case 2:
+                case STATUS_ANTIVIRUS_WARNING:
+                case STATUS_ANTIVIRUS_KO:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.KO);
-                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        IngestExternalOutcomeMessage.KO_VIRUS.value());
+                    antivirusParameters.setStatus(StatusCode.KO);
+                    antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.KO));
                     isFileInfected = true;
                     break;
                 default:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.FATAL);
-                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        IngestExternalOutcomeMessage.KO_VIRUS.value());
+                    antivirusParameters.setStatus(StatusCode.FATAL);
+                    antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.KO));
                     isFileInfected = true;
+            }
+            helper.updateDelegate(antivirusParameters);
+
+
+            final LogbookOperationParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                INGEST_EXT,
+                containerName,
+                LogbookTypeProcess.INGEST,
+                StatusCode.UNKNOWN,
+                VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.UNKNOWN),
+                containerName);
+            // update end step param
+            if (antivirusParameters.getStatus().compareTo(endParameters.getStatus()) > 1) {
+                endParameters.setStatus(antivirusParameters.getStatus());
             }
 
             if (!isFileInfected) {
+
+                final LogbookOperationParameters formatParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        ingestGuid,
+                        CHECK_CONTAINER,
+                        containerName,
+                        LogbookTypeProcess.INGEST,
+                        StatusCode.STARTED,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.STARTED),
+                        containerName);
+                formatParameters.setStatus(StatusCode.OK)
+                    .putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));
                 try {
-                    inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
-                } catch (ContentAddressableStorageException e) {
-                    LOGGER.error(e.getMessage());
-                    throw new IngestExternalException(e.getMessage(), e);
+                    LOGGER.debug("Begin siegFried format identification");
+                    // instantiate SiegFried
+                    formatIdentifier =
+                        FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+                    // call siegFried
+                    List<FormatIdentifierResponse> formats =
+                        formatIdentifier.analysePath(Paths.get(containerName.getId() + "/" + objectName.getId()));
+                    FormatIdentifierResponse format = getFirstPronomFormat(formats);
+
+                    if (format == null) {
+                        formatParameters.setStatus(StatusCode.KO);
+                        formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                            VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO));
+                    } else {
+                        LOGGER.debug("SIP format :" + format.getMimetype());
+                        if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
+                            mimeType = format.getMimetype();
+                            isSupportedMedia = true;
+                        } else {
+                            formatParameters.setStatus(StatusCode.KO);
+                            formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO, format.getMimetype()));
+                        }
+                    }
+
+
+                } catch (FormatIdentifierNotFoundException e) {
+                    LOGGER.error(e);
+                    formatParameters.setStatus(StatusCode.FATAL);
+                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
+
+                } catch (FormatIdentifierFactoryException e) {
+                    LOGGER.error(e);
+                    formatParameters.setStatus(StatusCode.FATAL);
+                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
+
+                } catch (FormatIdentifierTechnicalException e) {
+                    LOGGER.error(e);
+                    formatParameters.setStatus(StatusCode.FATAL);
+                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
+                } catch (FileFormatNotFoundException e) {
+                    LOGGER.error(e);
+                    formatParameters.setStatus(StatusCode.FATAL);
+                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
+                } catch (FormatIdentifierBadRequestException e) {
+                    LOGGER.error(e);
+                    formatParameters.setStatus(StatusCode.FATAL);
+                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
                 }
+                helper.updateDelegate(formatParameters);
+                // update end step param
+                if (formatParameters.getStatus().compareTo(endParameters.getStatus()) > 1) {
+                    endParameters.setStatus(formatParameters.getStatus());
+                }
+
+                // finalize end step param
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
+                helper.updateDelegate(endParameters);
+
+                if (isSupportedMedia) {
+                    try {
+                        inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
+                    } catch (final ContentAddressableStorageException e) {
+                        LOGGER.error(e.getMessage());
+                        throw new IngestExternalException(e);
+                    }
+                }
+            } else {
+                // finalize end step param
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
+                helper.updateDelegate(endParameters);
             }
 
-            logbookParametersList.add(endParameters);
-            IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
-            
-            try {
-                //TODO Response async
-                responseResult = client.upload(logbookParametersList, inputStream);
-                if ( responseResult.getStatus()>= 400) {
-                    throw new IngestExternalException("Ingest Internal Exception");
-                }
-            } catch (VitamException e) {
-                throw new IngestExternalException(e.getMessage(), e);
+            try (IngestInternalClient ingestClient =
+                IngestInternalClientFactory.getInstance().getClient()) {
+
+                // FIXME P0 Status could be >= 400 but still getting an ATR KO!
+                // One should try to forward the ATR (whatever OK or KO) using async mode
+                // Moreover one should finalize the Logbook Operation with new entries like
+                // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
+                // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
+                // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
+                // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
+                // then call back ingestClient with updateFinalLogbook
+                // TODO Response async
+                responseResult = ingestClient.upload(ingestGuid, helper.removeCreateDelegate(containerName.getId()),
+                    inputStream, mimeType);
+
+            } catch (final VitamException e) {
+                throw new IngestExternalException(e);
             }
-            
+            return responseResult;
+
+        } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
+            throw new IngestExternalException(e);
         } finally {
-            try {
-                workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
-            } catch (ContentAddressableStorageNotFoundException e) {
-                LOGGER.warn(e);
+            if (workspaceFileSystem != null) {
+                try {
+                    workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                } catch (final ContentAddressableStorageNotFoundException e) {
+                    LOGGER.warn(e);
+                }
+                try {
+                    workspaceFileSystem.deleteContainer(containerName.getId());
+                } catch (final ContentAddressableStorageNotFoundException e) {
+                    LOGGER.warn(e);
+                }
             }
         }
-        
-        return responseResult;
+    }
+
+    /**
+     * Retrieve the first corresponding file format from pronom referential
+     *
+     * @param formats formats list to analyze
+     * @return the first pronom file format or null if not found
+     */
+    private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
+        for (FormatIdentifierResponse format : formats) {
+            if (PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
+                return format;
+            }
+        }
+        return null;
     }
 }

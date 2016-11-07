@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * The class StorageInformation is used to store information about the storage
  */
 public final class StorageInformation {
-    
+
     @JsonProperty("usableSpace")
     private long usableSpace;
 

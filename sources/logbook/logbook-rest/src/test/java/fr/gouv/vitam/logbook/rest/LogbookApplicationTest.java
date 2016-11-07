@@ -47,15 +47,12 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
 
 public class LogbookApplicationTest {
@@ -63,7 +60,7 @@ public class LogbookApplicationTest {
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
-    private static MongoDbAccess mongoDbAccess;
+    private static LogbookDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
     private static int databasePort;
@@ -71,21 +68,18 @@ public class LogbookApplicationTest {
     private static int oldPort;
     private static JunitHelper junitHelper;
     private static File logbook;
+    private static LogbookConfiguration realLogbook;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        try (FileOutputStream outputStream = new FileOutputStream(logbook)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realLogbook);
-        }
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -93,12 +87,12 @@ public class LogbookApplicationTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
-            MongoDbAccessFactory.create(
+            LogbookMongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
@@ -112,29 +106,22 @@ public class LogbookApplicationTest {
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(databasePort);
         VitamServerFactory.setDefaultPort(oldPort);
+        JunitHelper.unsetJettyPortSystemProperty();
     }
 
     @Test
     public final void testFictiveLaunch() {
         try {
-            LogbookApplication.startApplication(new String[] {LOGBOOK_CONF});
-            LogbookApplication.stop();
+            new LogbookApplication(realLogbook);
         } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
 
-    @Test(expected = VitamException.class)
+    @Test(expected = IllegalStateException.class)
     public final void shouldRaiseException() throws VitamException {
-
-        LogbookApplication.startApplication(new String[0]);
-        LogbookApplication.stop();
-
+        new LogbookApplication((String) null);
     }
 
 }

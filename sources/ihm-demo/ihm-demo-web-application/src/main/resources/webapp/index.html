@@ -35,6 +35,12 @@
   <script src="bower_components/jquery-ui/jquery-ui.js"></script>
   <script src="bower_components/angular-translate/angular-translate.min.js"></script>
   <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+  <!-- concatenated flow.js + ng-flow libraries -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow-standalone.js"></script> -->
+  <!-- or include the files separately -->
+  <!-- <script src="bower_components/flow.js/dist/flow.min.js"></script> -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow.min.js"></script> -->
+  <script src="modules/flow/ng-flow-standalone.js"></script>
 
   <script src="modules/parent/app.module.js"></script>
   <script src="modules/parent/app.config.js"></script>
@@ -56,7 +62,7 @@
   <script src="modules/core/main.controller.js"></script>
   <script src="modules/core/ihm-demo-service.js"></script>
 
-  <script src="js/directive/dynamic-table.directive.js"></script>
+  <script src="core/directives/dynamic-table.directive.js"></script>
 
   <script src="modules/archive-unit-search/archive-search.module.js"></script>
   <script src="modules/archive-unit-search/archive-search.controller.js"></script>
@@ -66,11 +72,12 @@
   <script src="modules/archive-unit/archive-unit.constant.js"></script>
   <script src="modules/archive-unit/archive-unit.controller.js"></script>
   <script src="modules/archive-unit/archive-unit.component.js"></script>
-  <script src="modules/archive-unit/directives/archive-unit-field.directive.js"></script>
-  <script src="modules/archive-unit/directives/archive-unit-fieldtree.directive.js"></script>
+  <script src="core/directives/display-field.directive.js"></script>
+  <script src="core/directives/display-fieldtree.directive.js"></script>
 
   <script src="modules/logbook-operation/logbook-operation-component.js"></script>
   <script src="modules/logbook-operation/logbook-operation-controller.js"></script>
+  <script src="js/controller/operation-logbook-entry.controller.js"></script>
 
   <script src="modules/lifecycle/lifecycle.module.js"></script>
   <script src="modules/lifecycle/lifecycle.controller.js"></script>
@@ -79,9 +86,24 @@
   <script src="modules/upload-sip-perf/upload-sip-perf.module.js"></script>
   <script src="modules/upload-sip-perf/upload-sip-perf.controller.js"></script>
   <script src="modules/upload-sip-perf/upload-sip-perf.component.js"></script>
- 
+
+  <script src="modules/accession-register-search/accession-register-search.module.js"></script>
+  <script src="modules/accession-register-search/accession-register-search.controller.js"></script>
+  <script src="modules/accession-register-search/accession-register-search.component.js"></script>
+
+  <script src="resources/messages.resource.js"></script>
+
+  <script src="pages/accession-register-details/accession-register-details.module.js"></script>
+  <script src="pages/accession-register-details/accession-register-details.controller.js"></script>
+  <script src="pages/accession-register-details/accession-register-details.component.js"></script>
+
+  <script src="services/accession-register.service.js"></script>
+  <script src="resources/accession-register.resource.js"></script>
+  <script src="core/services/process-response.service.js"></script>
+
   <!-- FIXME Find better way to fix it -->
   <script src="modules/multiselect/angular-bootstrap-multiselect.js"></script>
+
 </head>
 
 <body  ng-controller='mainViewController'>
@@ -122,11 +144,15 @@
               <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
-          <li class="@@mainMenu2">
-            <a href="#!/archiveSearch">
+          <li class="@@mainMenu2 dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons pull-left">search</i>
-              <span class="pull-left m-l-10">Recherche d'archives</span>
-            </a>
+              <span class="pull-left m-l-10">Recherche</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="Recherche">
+                <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+                <li><a href="#!/accessionRegister/search">Registre des fonds</a></li>
+            </ul>
           </li>
           <li class="@@mainMenu3 dropdown">
             <button class="block dropdown-toggle" data-toggle="dropdown">

@@ -59,19 +59,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Abstract class implementing Parser for a Request
- * 
+ *
  * Common abstract for both Multiple and Single Request
+ * 
  * @param <E> is one of RequestMultiple or RequestSingle
  */
 public abstract class AbstractParser<E extends AbstractRequest> {
@@ -97,7 +98,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     public String getSource() {
         return sourceRequest;
     }
-    
+
 
     /**
      * @return the rootNode
@@ -105,7 +106,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     public JsonNode getRootNode() {
         return rootNode;
     }
-    
+
 
     /**
      * @return the Request
@@ -155,7 +156,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             throw new InvalidParseOperationException("Not correctly parsed: " + query);
         }
         int nb = 0;
-        final Query[] queries;
+        Query[] queries;
         if (commands.isArray()) {
             queries = new Query[commands.size()];
             // multiple elements in array
@@ -165,7 +166,18 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                     JsonHandler.checkUnicity(query.exactToken(), subcommand);
                 final Query subquery =
                     analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
+                if (subquery == null) {
+                    // NOP
+                    continue;
+                }
                 queries[nb++] = subquery;
+            }
+            if (nb != queries.length) {
+                Query[] newQueries = new Query[nb];
+                for (int i = 0; i < nb; i++) {
+                    newQueries[i] = queries[i];
+                }
+                queries = newQueries;
             }
         } else {
             throw new InvalidParseOperationException(
@@ -183,7 +195,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             return queries;
         }
     }
-    
+
     /**
      * Check if the command is allowed using the "standard" database
      *
@@ -203,7 +215,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 return false;
         }
     }
-    
+
     /**
      * Compute the QUERY from command
      *
@@ -213,7 +225,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      */
     public static final QUERY getRequestId(final String queryroot)
         throws InvalidParseOperationException {
-        if (!queryroot.startsWith(ParserTokens.DEFAULT_PREFIX)) {
+        if (!queryroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
             throw new InvalidParseOperationException(
                 "Incorrect request $command: " + queryroot);
         }
@@ -227,7 +239,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         }
         return query;
     }
-    
+
     protected Query analyzeOneCommand(final String refCommand, final JsonNode command)
         throws InvalidParseOperationException,
         InvalidCreateOperationException {
@@ -311,6 +323,8 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 return search(command, adapter);
             case SIZE:
                 return size(command, adapter);
+            case NOP:
+                return null;
             case GEOMETRY:
             case BOX:
             case POLYGON:

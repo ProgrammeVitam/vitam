@@ -17,7 +17,6 @@ public class FormatIdentifierFactoryExceptionTest {
         assertNotNull(new FormatIdentifierFactoryException(MESSAGE));
         assertNotNull(new FormatIdentifierFactoryException(exception));
         assertNotNull(new FormatIdentifierFactoryException(MESSAGE, exception));
-        assertNotNull(new FormatIdentifierFactoryException(MESSAGE, exception, true, true));
     }
 
 }

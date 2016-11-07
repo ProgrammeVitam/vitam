@@ -27,15 +27,12 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory.IngestInternalClientType;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 
 /**
  * Test class for client (and parameters) factory
@@ -44,75 +41,32 @@ public class IngestInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-    	IngestInternalClientFactory.getInstance().changeConfigurationFile("ingest-internal-client-test.conf");
-    }
-
-    @Test
-    public void getClientInstanceTest() {
-        try {
-        	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, null, 10);
-            fail("Should raise an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
-        try {
-        	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, "localhost", -10);
-            fail("Should raise an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
-        try {
-        	IngestInternalClientFactory.setConfiguration(null, null, 10);
-            fail("Should raise an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, -1);
-
-        final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
-        assertNotNull(client);
-
-        final IngestInternalClient client2 =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
-        assertNotNull(client2);
-
-        assertNotSame(client, client2);
-    }
-
-    @Test
-    public void changeDefaultClientTypeTest() {
-        final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
-        assertTrue(client instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type = IngestInternalClientFactory.getDefaultIngestInternalClientType();
-        assertNotNull(type);
-        assertEquals(IngestInternalClientType.PRODUCTION, type);
-
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
-        final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getIngestInternalClient();
-
-        assertTrue(client2 instanceof IngestInternalClientMock);
-        final IngestInternalClientFactory.IngestInternalClientType type2 = IngestInternalClientFactory.getDefaultIngestInternalClientType();
-        assertNotNull(type2);
-        assertEquals(IngestInternalClientType.MOCK, type2);
-
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientFactory.IngestInternalClientType.PRODUCTION, "server", 1025);
-        final IngestInternalClient client3 = IngestInternalClientFactory.getInstance().getIngestInternalClient();
-        assertTrue(client3 instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type3 = IngestInternalClientFactory.getDefaultIngestInternalClientType();
-        assertNotNull(type3);
-        assertEquals(IngestInternalClientType.PRODUCTION, type3);
+        IngestInternalClientFactory
+            .changeMode(IngestInternalClientFactory.changeConfigurationFile("ingest-internal-client-test.conf"));
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type = IngestInternalClientFactory.getDefaultIngestInternalClientType();
-        assertNotNull(type);
-        assertEquals(IngestInternalClientType.PRODUCTION, type);
+        assertEquals(VitamClientType.PRODUCTION, IngestInternalClientFactory.getInstance().getVitamClientType());
+    }
+
+    @Test
+    public void changeDefaultClientTypeTest() {
+
+        // First client type : Production
+        final IngestInternalClient client =
+            IngestInternalClientFactory.getInstance().getClient();
+        assertTrue(client instanceof IngestInternalClientRest);
+        assertEquals(VitamClientType.PRODUCTION, IngestInternalClientFactory.getInstance().getVitamClientType());
+
+        // Change to mock type and test
+        IngestInternalClientFactory.changeMode(null);
+        final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
+        assertTrue(client2 instanceof IngestInternalClientMock);
+        assertEquals(VitamClientType.MOCK, IngestInternalClientFactory.getInstance().getVitamClientType());
     }
 }
 

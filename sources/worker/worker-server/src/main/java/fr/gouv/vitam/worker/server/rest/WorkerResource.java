@@ -1,4 +1,5 @@
 package fr.gouv.vitam.worker.server.rest;
+
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -26,8 +27,6 @@ package fr.gouv.vitam.worker.server.rest;
  * accept its terms.
  *******************************************************************************/
 
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -46,29 +45,33 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Worker Resource implementation
  */
 @Path("/worker/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
-    private Worker worker;
+    // FIXME P0 should be allocated each time a request is received
+    private final Worker worker;
 
     /**
      * Constructor
@@ -76,9 +79,19 @@ public class WorkerResource extends ApplicationStatusResource {
      * @param configuration the worker configuration to be applied
      */
     public WorkerResource(WorkerConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
-        this.worker = WorkerImplFactory.create();
+        DbConfigurationImpl databaseConfiguration;
+        if (configuration.isDbAuthentication()) {
+            databaseConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                    configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
+        } else {
+            databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                configuration.getDbName());
+        }
+        this.worker =
+            WorkerImplFactory.create(LogbookMongoDbAccessFactory.create(databaseConfiguration));
     }
 
 
@@ -89,7 +102,6 @@ public class WorkerResource extends ApplicationStatusResource {
      * @param worker the worker service be applied
      */
     WorkerResource(WorkerConfiguration configuration, Worker worker) {
-        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
         this.worker = worker;
     }
@@ -123,19 +135,20 @@ public class WorkerResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a step description", descriptionStep);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
-            List<EngineResponse> responses = worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
+            final CompositeItemStatus responses =
+                worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
             return Response.status(Status.OK).entity(responses).build();
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (HandlerNotFoundException exc) {
+        } catch (final HandlerNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (ProcessingException exc) {
+        } catch (final ProcessingException | ContentAddressableStorageServerException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }
@@ -157,7 +170,7 @@ public class WorkerResource extends ApplicationStatusResource {
 
     /**
      * Modifying a step (pausing, resuming, prioritizing)
-     * 
+     *
      * @param idAsync the id of the Async
      * @return Response containing the status of the step
      */

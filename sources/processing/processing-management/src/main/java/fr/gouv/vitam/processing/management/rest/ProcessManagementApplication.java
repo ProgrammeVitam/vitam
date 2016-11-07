@@ -51,6 +51,7 @@ import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 /**
  * The process management application is to launch process engine vitamServer
  */
+// FIXME P0 should be clientV2/ServerV2
 public class ProcessManagementApplication
     extends AbstractVitamApplication<ProcessManagementApplication, ServerConfiguration> {
 
@@ -93,6 +94,7 @@ public class ProcessManagementApplication
      *
      * @param arguments the command-line arguments
      * @throws RuntimeException Thrown if something goes wrong
+     * @throws VitamApplicationServerException 
      */
 
     public static void startApplication(String... arguments) throws RuntimeException, VitamApplicationServerException {
@@ -112,6 +114,7 @@ public class ProcessManagementApplication
      * run a vitamServer instance with the configuration and port
      *
      * @param configuration as ServerConfiguration
+     * @throws VitamApplicationServerException 
      * @throws Exception Thrown if something goes wrong
      */
     public static void run(ServerConfiguration configuration) throws VitamApplicationServerException {
@@ -122,7 +125,7 @@ public class ProcessManagementApplication
 
         try {
             vitamServer.start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);

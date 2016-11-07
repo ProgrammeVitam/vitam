@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -61,7 +61,7 @@ public class SiegfriedClientRest implements SiegfriedClient {
 
     /**
      * Create a new Siegfried HTTP Client
-     * 
+     *
      * @param host The hostname of the installed siegfried server
      * @param port The port used to call siegfried server
      */
@@ -77,7 +77,7 @@ public class SiegfriedClientRest implements SiegfriedClient {
     @Override
     public JsonNode analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        Response siegfriedResponse = callSiegfried(filePath);
+        final Response siegfriedResponse = callSiegfried(filePath);
         return handleCommonResponseIdentify(siegfriedResponse);
     }
 
@@ -85,18 +85,18 @@ public class SiegfriedClientRest implements SiegfriedClient {
     public JsonNode status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
 
-        Response siegfriedResponse = callSiegfried(filePath);
+        final Response siegfriedResponse = callSiegfried(filePath);
         return handleCommonResponseStatus(siegfriedResponse);
     }
 
     private Response callSiegfried(Path filePath) throws FormatIdentifierTechnicalException {
         LOGGER.debug("Call siegfried server");
-        String encodedFilePath = BaseXx.getBase64Padding(filePath.toString().getBytes());
+        final String encodedFilePath = BaseXx.getBase64Padding(filePath.toString().getBytes());
         Response response = null;
         try {
             response = client.target(serviceUrl).path("/" + encodedFilePath).request()
                 .accept(MediaType.APPLICATION_JSON).get();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("While call Siegfried HTTP Client", e);
             throw new FormatIdentifierTechnicalException(e);
         }

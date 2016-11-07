@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * database server package in vitam
+ * Database server package in vitam
  */
 package fr.gouv.vitam.common.database.server;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Contains all class related to parameter objects
+ * Contains all classes related to parameter objects
  */
 package fr.gouv.vitam.common.parameter;

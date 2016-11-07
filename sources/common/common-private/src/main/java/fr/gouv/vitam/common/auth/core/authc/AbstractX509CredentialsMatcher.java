@@ -1,6 +1,6 @@
 /**
- * Copyright Paul Merlin 2011 (Apache Licence v2.0) 
- * 
+ * Copyright Paul Merlin 2011 (Apache Licence v2.0)
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program(2015-2019) contact.vitam@culture.gouv.fr
  *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
@@ -44,7 +44,7 @@ public abstract class AbstractX509CredentialsMatcher
     }
 
     /**
-     * 
+     *
      * @param token
      * @param info
      * @return is the Info matchs the token given

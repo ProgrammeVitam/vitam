@@ -1,0 +1,168 @@
+---
+
+# Make sure the service is open (mongos listening on 27017)
+
+- name: Wait for the service port to be open
+  wait_for: port={{mongos_port}} timeout=10
+  run_once: true
+
+# Detect if authentication is enabled
+
+- name: Initiate the admin database
+  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
+  # todo: active become to use mongo user to execute the commands
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
+  register: authent_enabled
+  failed_when: false
+  no_log: true
+
+# Copy the mongodb scripts
+
+- name: Copy the database scripts files
+  template:
+    src: "{{item}}.j2"
+    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
+    owner: "{{mongo_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+  run_once: true
+  # with_items:
+  #   - users-admin.js
+  #   - users-Vitam.js
+  #   - init-admin-database.js
+  #   - init-Vitam-database.js
+  #   - enable-sharding.js
+
+# Enable sharding for specific databases and collections
+
+- name: Enable the sharding
+  command: mongo localhost:{{mongos_port}} {{vitam_folder_root}}/tmp/mongos/enable-sharding.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
+  # TODO/FIXME set_fact auth=true & try to use mongo return code or explain why we parse the stdr
+  when:
+    - "authent_enabled.stderr == 'exception: login failed'"
+
+# Initiate the databases and the related users
+
+- name: Create the users
+  command: mongo localhost:{{mongos_port}}/{{item}} {{vitam_folder_root}}/tmp/mongos/users-{{item}}.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
+  when:
+    - "authent_enabled.stderr == 'exception: login failed'"
+  with_items:
+    - Vitam
+    - admin
+
+# Activate securite on mongo instances
+
+# Todo check if we can activate security by default and then create the users
+#  (caution : it seems that we can only create one user while being anonymous after security enabling)
+- name: Activate security on mongos instances
+  blockinfile:
+    dest: "{{mongos_config_path}}/mongos.conf"
+    insertafter: "# ansible managed security conf"
+    block: |
+      security:
+        clusterAuthMode: keyFile
+        keyFile: "{{mongos_config_path}}/keyfile"
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongos']}}"
+  run_once: true
+  when:
+    - "authent_enabled.stderr == 'exception: login failed'"
+
+- name: Activate security on mongod instances
+  blockinfile:
+    dest: "{{mongod_config_path}}/mongod.conf"
+    insertafter: "# ansible managed security conf"
+    block: |
+      security:
+        authorization: enabled
+        clusterAuthMode: keyFile
+        keyFile: "{{mongod_config_path}}/keyfile"
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongod']}}"
+  run_once: true
+  when:
+    - "authent_enabled.stderr == 'exception: login failed'"
+
+- name: Activate security on mongoc instances
+  blockinfile:
+    dest: "{{mongoc_config_path}}/mongoc.conf"
+    insertafter: "# ansible managed security conf"
+    block: |
+      security:
+        authorization: enabled
+        clusterAuthMode: keyFile
+        keyFile: "{{mongoc_config_path}}/keyfile"
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongoc']}}"
+  run_once: true
+  when:
+    - "authent_enabled.stderr == 'exception: login failed'"
+
+# Restart the mongo instances (to enable auth)
+
+- name: restart mongod
+  service:
+     name: vitam-mongod
+     enabled: true
+     state: restarted
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongod']}}"
+  run_once: true
+
+- name: restart mongoc
+  service:
+     name: vitam-mongoc
+     enabled: true
+     state: restarted
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongoc']}}"
+  run_once: true
+
+- name: restart mongos
+  service:
+     name: vitam-mongos
+     enabled: true
+     state: restarted
+  delegate_to: "{{item}}"
+  with_items: "{{groups['mongos']}}"
+  run_once: true
+
+# Make sure the service is open (mongos listening on 27017)
+
+- name: Wait for the service port to be open
+  wait_for: port={{mongos_port}} timeout=10
+  run_once: true
+
+# Initiate the databases
+
+- name: Initiate the admin database
+  command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} {{vitam_folder_root}}/tmp/mongos/init-{{item}}-database.js
+  # become: true
+  # become_method: su
+  # become_user: "{{ mongo_user}}"
+  run_once: true
+  with_items:
+    - Vitam
+    - admin
+
+# Delete the mongodb scripts
+
+- name: Delete the database scripts files
+  file:
+    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
+    state: "absent"
+  run_once: true
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"

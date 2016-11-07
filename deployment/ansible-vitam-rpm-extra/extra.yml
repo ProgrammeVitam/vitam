@@ -7,6 +7,10 @@
 
 - hosts: vitam
   roles:
+    - packetbeat
+
+- hosts: vitam
+  roles:
     - vitam_browser
 
 - hosts: hosts-mongo-express
@@ -15,7 +19,7 @@
 
 - hosts: library
   roles:
-    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
+    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" } 
 
 - hosts: reverse
   roles:

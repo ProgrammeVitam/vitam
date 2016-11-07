@@ -35,6 +35,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class FormatIdentifierNotFoundException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -7753956782700448060L;
+
+    /**
      * @param message associated message
      */
     public FormatIdentifierNotFoundException(String message) {
@@ -54,17 +59,6 @@ public class FormatIdentifierNotFoundException extends VitamException {
      */
     public FormatIdentifierNotFoundException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FormatIdentifierNotFoundException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

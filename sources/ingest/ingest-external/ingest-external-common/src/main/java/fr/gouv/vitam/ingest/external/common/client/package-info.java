@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * ingest external common client package
+ * Ingest external common client package
  */
 package fr.gouv.vitam.ingest.external.common.client;

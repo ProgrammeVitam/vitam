@@ -1,23 +1,23 @@
 <div id="global" class="container-fluid">
 	<ol class="breadcrumb">
 		<li><a href="#">Page d'accueil</a></li>
-        <li><a href="#">Administration</a></li>  
-		<li><a href="#">Journal des Opérations</a></li>  
-    </ol>
-                    
-    <div class="panel panel-default col-md-12">
-    	<a class="panel-header" href="#boxEntriesSearchForm">
-        	<h2>Journal des Opérations</h2>
-        </a>
-        
-        <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
-        	<div class="form-group col-md-8">
+		<li><a href="#">Administration</a></li>
+		<li><a href="#">Journal des Opérations</a></li>
+	</ol>
+
+	<div class="panel panel-default col-md-12">
+		<a class="panel-header" href="#boxEntriesSearchForm">
+			<h2>Journal des Opérations</h2>
+		</a>
+
+		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="logctrl.getList()">
+			<div class="form-group col-md-8">
 				<label for="entryName">ID</label>
 				<input ng-model="logctrl.searchID" type="text" name="entryName" class="form-control" />
-            </div>
-			
+			</div>
+
 			<div class="form-group col-md-4">
-            	<label for="entryType">Type d'opération</label>
+				<label for="entryType">Type d'opération</label>
 				<select ng-model="logctrl.searchType" class="form-control" name="entryType">
 					<option value="" selected>--</option>
 					<option value="audit">Audit</option>
@@ -29,16 +29,16 @@
 					<option value="masterdata">Données de base</option>
 				</select>
             </div>
-            <button class="btn btn-primary center-block" ng-click="logctrl.getList()">
+            <button class="btn btn-primary center-block" type="submit">
             	<i class="material-icons pull-left">search</i>
             	<span>Rechercher</span>
             </button>
             <button ng-if="logctrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
                 {{logctrl.errorMessage}}
             </button>
-        </div>
+        </form>
 	</div>
-	
+
 	<!-- Pagination -->
 	<div style="text-align: center">
 		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
@@ -51,40 +51,49 @@
 	</div>
 	
 	<div class="panel panel-default col-md-12">
-  		<a class="panel-header">
-    		<h2>Journal des opérations</h2>
-  		</a>
-  		
+		<a class="panel-header">
+			<h2>Journal des opérations</h2>
+		</a>
+
 		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
-    		<div class="table-responsive">
-      			<table class="table">
-        			<tr>
-          				<th>Identifiant de l'operation</th>
-          				<th>Type d'événement</th>
-          				<th>Type d'opération</th>
-          				<th>Début opération</th>
-          				<th>Fin opération</th>
-          				<th>Statut</th>
-        			</tr>
-        			
-        			<tbody ng-repeat='log in logctrl.operationList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage'>
-        				<tr ng-click="logctrl.openDialog($event, log.evIdProc)">
-        					<td>{{log.evIdProc}}</td>
-        					<td>{{log.evType}}</td>
-        					<td>{{log.evTypeProc}}</td>
-        					<td>{{log.evDateTime}}</td>
-        					<td>{{log.events[log.events.length-1].evDateTime}}</td>
-				            <td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'OK'">Succès</td>
-				            <td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'STARTED'">En cours</td>
-            				<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
-            				<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() != 'KO' && log.events[log.events.length-1].outcome.toUpperCase() != 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() != 'OK'
-                        && log.events[log.events.length-1].outcome.toUpperCase() != 'STARTED'">{{log.events[log.events.length-1].outcome}}</td>
-        				</tr>
-        			</tbody>
-        		</table>        		
-        		
-        	</div>
-        </div>
-  	</div>
+
+			<dynamic-table custom-fields="logctrl.customFields" selected-objects="logctrl.selectedObjects">
+			</dynamic-table>
+
+			<div class="table-responsive">
+				<table class="table">
+					<tr>
+						<th>Opération</th>
+						<th>Date</th>
+						<th>Statut</th>
+						<th>Message</th>
+
+						<!-- Dynamic columns -->
+						<th ng-repeat="column in logctrl.selectedObjects">{{column.label}}</th>
+					</tr>
+
+					<tbody ng-repeat='log in logctrl.operationList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage'>
+					<tr ng-click="logctrl.goToDetails(log.evIdProc)">
+						<td>{{log.evType}}</td>
+						<td>{{log.evDateTime}}</td>
+
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'OK'">Succès</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'">En cours</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() !== 'KO' && log.events[log.events.length-1].outcome.toUpperCase() !== 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() !== 'OK'
+                        && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'">Avertissement</td>
+						<td>{{log.outMessg}}</td>
+
+						<!-- Dynamic columns values -->
+						<td ng-repeat = "column in logctrl.selectedObjects">
+							<span >{{log[column.id]}}</span>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
 
 </div>

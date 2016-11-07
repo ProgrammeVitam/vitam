@@ -27,17 +27,20 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
+import javax.ws.rs.HttpMethod;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -51,7 +54,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * LogbookLifeCyclesClient Mock implementation
  */
-class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
+class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookLifeCyclesClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientMock.class);
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
@@ -80,27 +83,6 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
         "    \"obIdReq\": null," +
         "    \"obIdIn\": null," +
         "    \"events\": []}";
-
-    private static final String MOCK_SELECT_RESULT_2 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
-
 
     @Override
     public void create(LogbookParameters parameters)
@@ -150,16 +132,6 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
         logInformation(ROLLBACK, parameters);
     }
 
-    @Override
-    public StatusMessage status() throws LogbookClientServerException {
-        return new StatusMessage(SERVER_IDENTITY);
-    }
-
-    @Override
-    public void close() {
-        // Empty
-    }
-
     /**
      *
      * @return the default first answer
@@ -180,23 +152,6 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
     }
 
     @Override
-    public JsonNode selectLifeCycles(String select) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.debug("Select request:" + select);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
-        response.setQuery(JsonHandler.getFromString(select));
-        response.setResult(JsonHandler.getFromString('[' + MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
-    }
-
-    @Override
-    public JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
-    }
-
-    @Override
     public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
@@ -211,5 +166,19 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
         return new ObjectMapper().convertValue(response, JsonNode.class);
+    }
+
+    @Override
+    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new VitamRequestIterator(this, HttpMethod.GET,
+                "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+    }
+
+    @Override
+    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new VitamRequestIterator(this, HttpMethod.GET,
+            "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
     }
 }

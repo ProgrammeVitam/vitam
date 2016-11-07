@@ -27,14 +27,16 @@
 
 package fr.gouv.vitam.storage.driver;
 
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-
 import java.util.Properties;
 
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+
 /**
- * Driver interface that all storage offer drivers MUST implement to be discovered by the Vitam driver manager. It
- * describe all the services the storage offer MUST at least provide to the Vitam engine.
+ * Driver interface that all storage offer drivers MUST implement to be discovered by the Vitam driver manager. </br>
+ * 
+ * It describes all the services the storage offer MUST at least provide to the Vitam engine.
  */
+
 public interface Driver {
     /**
      * Create a connection to the distant offer service based on given service URL and optional parameters. If no
@@ -44,10 +46,10 @@ public interface Driver {
      * {@link fr.gouv.vitam.storage.driver.constants.StorageDriverParameterNames} whose are generic to all driver
      * implementation. However they can also contains driver implementation specific properties.
      *
-     * @param url        URL to the offer service
+     * @param url URL to the offer service
      * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service.
      * @return a connection which MUST contains all necessary parameters and initial configurations to allow further
-     * requests to the distant offer service without needing to pass parameters/configurations.
+     *         requests to the distant offer service without needing to pass parameters/configurations.
      * @throws StorageDriverException if any problem occurs during connection
      */
     Connection connect(String url, Properties parameters) throws StorageDriverException;
@@ -59,7 +61,7 @@ public interface Driver {
      * The parameters argument can also be used to pass arbitrary string tag/value pairs as connection arguments.
      * </p>
      *
-     * @param url        URL to the offer service
+     * @param url URL to the offer service
      * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service
      * @return MUST return true if the distant offer service is available to accept further requests, false otherwise
      * @throws StorageDriverException if any problem occurs during request

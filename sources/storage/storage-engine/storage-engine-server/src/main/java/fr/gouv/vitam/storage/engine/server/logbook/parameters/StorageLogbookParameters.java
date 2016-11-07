@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 
 /**
  * Storage Logbook Parameters Class
@@ -67,11 +68,11 @@ public class StorageLogbookParameters {
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
 
     /**
-     * Set directly at least all mandatory parameters in the StorageLogbookParameters.
-     * This constructor checks if all mandatory parameters are set
-     * 
+     * Set directly at least all mandatory parameters in the StorageLogbookParameters. This constructor checks if all
+     * mandatory parameters are set
+     *
      * @param mapParameters The initial parameters (MUST contains mandatory parameters
-     * @throws StorageException 
+     * @throws StorageException
      */
     public StorageLogbookParameters(Map<StorageLogbookParameterName, String> mapParameters) {
         this.mapParameters.putAll(mapParameters);
@@ -80,7 +81,7 @@ public class StorageLogbookParameters {
 
     /**
      * Get the event date time as a local date time
-     * 
+     *
      * @return the local date time as a LocalDateTime
      */
     @JsonIgnore
@@ -91,7 +92,7 @@ public class StorageLogbookParameters {
 
     /**
      * set The status of the operation
-     * 
+     *
      * @param outcome the outcome
      * @return the StorageLogbookParameters after the parameter has been added
      */
@@ -103,7 +104,7 @@ public class StorageLogbookParameters {
 
     /**
      * Get the status as an outcome
-     * 
+     *
      * @return the status as a StorageLogbookOutcome
      */
     @JsonIgnore
@@ -121,7 +122,7 @@ public class StorageLogbookParameters {
      * @throws IllegalArgumentException thrown when one parameter is empty or null
      */
     public boolean checkMandatoryParameters() throws IllegalArgumentException {
-        for (StorageLogbookParameterName s : mandatoryParameters) {
+        for (final StorageLogbookParameterName s : mandatoryParameters) {
             ParametersChecker.checkParameter(MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY, mapParameters.get(s));
         }
         return true;
@@ -139,7 +140,7 @@ public class StorageLogbookParameters {
 
     /**
      * set The output detail message of the operation
-     * 
+     *
      * @param outcomeDetailMessage the output message
      * @return the StorageLogbookParameters after the parameter has been added
      */
@@ -151,7 +152,7 @@ public class StorageLogbookParameters {
 
     /**
      * set The External Object Identifier
-     * 
+     *
      * @param objectIdentifierIncome the External Object Identifier
      * @return the StorageLogbookParameters after the parameter has been added
      */

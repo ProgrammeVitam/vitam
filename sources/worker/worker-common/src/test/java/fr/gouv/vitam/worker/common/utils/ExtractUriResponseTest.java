@@ -37,16 +37,16 @@ public class ExtractUriResponseTest {
 
     @Test
     public void testConstructor() throws Exception {
-        ExtractUriResponse extractUriResponse = new ExtractUriResponse();
+        final ExtractUriResponse extractUriResponse = new ExtractUriResponse();
         assertNotNull(extractUriResponse);
         extractUriResponse.setUriListManifest(new ArrayList<URI>());
         extractUriResponse.setErrorDuplicateUri(false);
         assertNotNull(extractUriResponse.getUriListManifest());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorWithNullList() throws Exception {
-        ExtractUriResponse extractUriResponse = new ExtractUriResponse();
+        final ExtractUriResponse extractUriResponse = new ExtractUriResponse();
         extractUriResponse.setUriListManifest(null);
     }
 }

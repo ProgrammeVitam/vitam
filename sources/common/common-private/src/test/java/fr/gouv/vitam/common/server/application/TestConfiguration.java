@@ -64,8 +64,8 @@ public class TestConfiguration {
      * setter urlTest
      *
      * @param urlTest
+     * @return this
      */
-    // TODO @return missing
     public TestConfiguration setUrlMetaData(String urlTest) {
         this.urlTest = urlTest;
         return this;
@@ -74,7 +74,7 @@ public class TestConfiguration {
     /**
      * getter jettyConfig
      * 
-     * @return
+     * @return config
      */
     public String getJettyConfig() {
         return jettyConfig;
@@ -84,7 +84,7 @@ public class TestConfiguration {
      * setter jettyConfig
      * 
      * @param jettyConfig the jetty config
-     * @return
+     * @return this
      */
     public TestConfiguration setJettyConfig(String jettyConfig) {
         this.jettyConfig = jettyConfig;

@@ -27,19 +27,16 @@
 package fr.gouv.vitam.storage.offers.workspace.rest;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Workspace offer configuration.
  */
-public class DefaultOfferConfiguration implements VitamApplicationConfiguration {
+public class DefaultOfferConfiguration extends DefaultVitamApplicationConfiguration {
     private String contextPath;
     private String storagePath;
-    private String jettyConfig;
-
 
     private static final String CONFIGURATION_PARAMETERS = "DefaultOfferConfiguration parameters";
-
 
     /**
      * DefaultOfferConfiguration empty constructor for YAMLFactory
@@ -48,10 +45,9 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
         // empty
     }
 
-
     /**
      * Construct an DefaultOfferConfiguration manually with a specific contextPath
-     * 
+     *
      * @param storagePath path of the storage
      * @param contextPath the application context path
      */
@@ -69,7 +65,6 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
     public String getContextPath() {
         return contextPath;
     }
-
 
     /**
      * @param contextPath the context path to set
@@ -99,26 +94,6 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
      */
     public DefaultOfferConfiguration setStoragePath(String storagePath) {
         this.storagePath = storagePath;
-        return this;
-    }
-
-    /**
-     * getter of jetty config
-     *
-     * @return the jetty config
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter of jetty config
-     *
-     * @param jettyConfig the jetty config to be set
-     * @return default configuration
-     */
-    public DefaultOfferConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
         return this;
     }
 

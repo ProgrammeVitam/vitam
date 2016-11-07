@@ -40,8 +40,7 @@ import javax.xml.stream.XMLStreamException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
@@ -51,40 +50,43 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
  * The Ingest External Resource
  */
 @Path("/ingest-ext/v1")
+@javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
-    private IngestExternalImpl ingestExtern;
+    private IngestExternalConfiguration ingestExternalConfiguration;
 
     /**
      * Constructor IngestExternalResource
-     * 
+     *
      * @param ingestExternalConfiguration
+     * 
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
-        super(new BasicVitamStatusServiceImpl());
-        ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+        this.ingestExternalConfiguration = ingestExternalConfiguration;
         LOGGER.info("init Ingest External Resource server");
     }
 
     /**
-     * upload the file in local TODO : add file name
-     * 
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * upload the file in local
+     *
+     * @param stream data input stream
+     * @param header method for entry data
      * @return Response
-     * @throws XMLStreamException 
+     * @throws XMLStreamException
      */
+    // TODO P0 : add file name
     @Path("upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_XML)
-    public Response upload(InputStream stream) throws XMLStreamException{
+    public Response upload(InputStream stream) throws XMLStreamException {
         Response response;
         try {
+            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             response = ingestExtern.upload(stream);
-        } catch (IngestExternalException e) {
+        } catch (final IngestExternalException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new IngestExternalError(status.getStatusCode())
                     .setContext("ingest")
@@ -94,9 +96,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         "The application 'Xxxx' requested an ingest operation and this operation has errors."))
                 .build();
         }
-        //TODO Fix ByteArray vs Close vs AsyncResponse
-        return Response.status(Status.OK).entity(response.getEntity()) 
+        // FIXME P0 Fix ByteArray vs Close vs AsyncResponse
+        return Response.status(response.getStatus()).entity(response.getEntity())
             .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
-    }    
+
+    }
 
 }

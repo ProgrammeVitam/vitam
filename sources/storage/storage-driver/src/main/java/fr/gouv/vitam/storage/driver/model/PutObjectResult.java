@@ -31,32 +31,51 @@ package fr.gouv.vitam.storage.driver.model;
  * Holds result data that come as a result of a request to put an object on the distant storage offer
  */
 public class PutObjectResult {
-    private String distantObjectId;
-    private String digestHashBase16;
-    private String tenantId;
-    
+    private final String distantObjectId;
+    private final String digestHashBase16;
+    private final long objectSize;
+    private final String tenantId;
+
     /**
      * Initialize the needed parameters for put result
-     * 
+     *
      * @param distantObjectId The distant object id
      * @param digestHashBase16 the object digest hash
      * @param tenantId the request tenantId
+     * @param objectSize 
      */
-    public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId) {
+    public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId, long objectSize) {
         this.distantObjectId = distantObjectId;
         this.digestHashBase16 = digestHashBase16;
         this.tenantId = tenantId;
+        this.objectSize = objectSize;
     }
-    
+
+    /**
+     * @return the object Id
+     */
     public String getDistantObjectId() {
         return distantObjectId;
     }
 
+    /**
+     * @return the digest
+     */
     public String getDigestHashBase16() {
         return digestHashBase16;
     }
-    
+
+    /**
+     * @return the tenant Id
+     */
     public String getTenantId() {
         return tenantId;
+    }
+
+    /**
+     * @return the object Size
+     */
+    public long getObjectSize() {
+        return objectSize;
     }
 }

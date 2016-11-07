@@ -26,35 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.common.digest.DigestType;
 
 public class VitamConfigurationTest {
 
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
+    private static final String SECRET="vitamsecret";
 
     @Test
     public void testPojo() {
-        VitamConfiguration vitamConfiguration = new VitamConfiguration();
+        final VitamConfiguration vitamConfiguration = new VitamConfiguration();
         assertNull(vitamConfiguration.getConfig());
         assertNull(vitamConfiguration.getLog());
         assertNull(vitamConfiguration.getData());
         assertNull(vitamConfiguration.getTmp());
-        
-        vitamConfiguration.setDefault();
+
+        vitamConfiguration.setInternalConfiguration(VitamConfiguration.getConfiguration());;
         assertNotNull(vitamConfiguration.getConfig());
         assertNotNull(vitamConfiguration.getLog());
         assertNotNull(vitamConfiguration.getData());
         assertNotNull(vitamConfiguration.getTmp());
-        
+
         VitamConfiguration vitamConfiguration2 = VitamConfiguration.getConfiguration();
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         assertNotEquals(vitamConfiguration, vitamConfiguration2);
-        
+
         VitamConfiguration.setConfiguration(vitamConfiguration);
         vitamConfiguration2 = VitamConfiguration.getConfiguration();
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
@@ -62,49 +69,59 @@ public class VitamConfigurationTest {
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         assertNotEquals(vitamConfiguration, vitamConfiguration2);
-        
-        VitamConfiguration.setConfiguration(vitamConfiguration.getConfig(), 
-            vitamConfiguration.getLog(), 
-            vitamConfiguration.getData(), 
+
+        VitamConfiguration.setConfiguration(vitamConfiguration.getConfig(),
+            vitamConfiguration.getLog(),
+            vitamConfiguration.getData(),
             vitamConfiguration.getTmp());
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         assertNotEquals(vitamConfiguration, vitamConfiguration2);
-        
-        vitamConfiguration2 = 
-            new VitamConfiguration(vitamConfiguration.getConfig(), 
-                vitamConfiguration.getLog(), 
-                vitamConfiguration.getData(), 
+
+        vitamConfiguration2 =
+            new VitamConfiguration(vitamConfiguration.getConfig(),
+                vitamConfiguration.getLog(),
+                vitamConfiguration.getData(),
                 vitamConfiguration.getTmp());
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         
+        vitamConfiguration2.setSecret(SECRET);
+        vitamConfiguration2.setFilterActivation(true);
+        
+        assertEquals(SECRET, VitamConfiguration.getSecret());
+        assertEquals(true, VitamConfiguration.isFilterActivation());
+        
+        assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
+        assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
+        
+
         try {
             vitamConfiguration2.setConfig(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             vitamConfiguration2.setData(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             vitamConfiguration2.setLog(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             vitamConfiguration2.setTmp(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // ignore
         }
     }

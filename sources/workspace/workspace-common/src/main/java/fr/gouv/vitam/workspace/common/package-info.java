@@ -27,5 +27,4 @@
 /**
  * This package contains Workspace common
  */
-// TODO Missing test on ParametersChecker and others where null is checked
 package fr.gouv.vitam.workspace.common;

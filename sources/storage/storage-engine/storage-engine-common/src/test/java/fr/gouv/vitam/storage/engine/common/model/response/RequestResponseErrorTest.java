@@ -44,19 +44,19 @@ public class RequestResponseErrorTest {
 
     @Test
     public void testGetSetError() throws Exception {
-        VitamError vitamError = new VitamError("1");
+        final VitamError vitamError = new VitamError("1");
         requestResponseError.setError(vitamError);
         assertEquals(vitamError, requestResponseError.getError());
-        RequestResponseError responseError = new RequestResponseError();
-        VitamError error = responseError.getError();
+        final RequestResponseError responseError = new RequestResponseError();
+        final VitamError error = responseError.getError();
         assertEquals("0", error.getCode());
     }
 
     @Test
     public void testToString() throws Exception {
-        RequestResponseError responseError = new RequestResponseError();
+        final RequestResponseError responseError = new RequestResponseError();
         assertEquals("", responseError.toString());
-        VitamError error = new VitamError("0");
+        final VitamError error = new VitamError("0");
         responseError.setError(error);
         assertEquals(error.toString(), responseError.toString());
     }

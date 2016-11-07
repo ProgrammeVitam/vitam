@@ -3,7 +3,7 @@
     <li><a href="#">Page d'accueil</a></li>
     <li><a href="#!/admin/logbookOperations">Suivi des opérations</a></li>
   </ol>
-  <div class="panel panel-default col-md-12">
+  <form class="panel panel-default col-md-12" ng-submit="logctrl.getLogbooks()">
     <a class="panel-header" data-toggle="collapse">
       <h2>Rechercher</h2>
     </a>
@@ -19,11 +19,11 @@
           </button>
         </div>
         <div class="col-md-6">
-          <button class="btn btn-primary center-block" ng-click="logctrl.getLogbooks()"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+          <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
         </div>
       </div>
     </div>
-  </div>
+  </form>
 
   <!--  Pagination -->
     <!-- <div style="text-align: center">
@@ -81,7 +81,7 @@
             <td ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
             <td ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
             <td ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
-                        && log.events[1].outcome.toUpperCase() != 'STARTED'">{{log.events[1].outcome}}</td>
+                        && log.events[1].outcome.toUpperCase() != 'STARTED'">Avertissement</td>
           </tr>
         </tbody>
 

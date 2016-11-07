@@ -41,6 +41,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -51,8 +52,9 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
- *
+ * Processing Management Client
  */
+//FIXME P0 should be clientV2 / Server V2
 public class ProcessingManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClient.class);
 
@@ -60,7 +62,7 @@ public class ProcessingManagementClient {
     private final String url;
     private static final String RESOURCE_PATH = "/processing/v1";
 
-    // FIXME REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
+    // FIXME P0 REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
     /**
      * @param url of metadata server
      */
@@ -91,10 +93,11 @@ public class ProcessingManagementClient {
      * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
      * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
      * @throws ProcessingBadRequestException thrown in case of bad request server error
+     * @throws ProcessingException 
      * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
      *         client and server
      */
-    public String executeVitamProcess(String container, String workflow)
+    public ItemStatus executeVitamProcess(String container, String workflow)
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
         ProcessingException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
@@ -113,16 +116,14 @@ public class ProcessingManagementClient {
                 throw new IllegalArgumentException("Illegal Argument");
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new ProcessingUnauthorizeException("Unauthorized Operation");
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new ProcessingBadRequestException("Bad Request");
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new ProcessingInternalServerException("Internal Server Error");
             }
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response.readEntity(String.class);
-        } catch (javax.ws.rs.ProcessingException e) {
+            return response.readEntity(ItemStatus.class);
+        } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new ProcessingInternalServerException("Internal Server Error", e);
         }
@@ -131,7 +132,7 @@ public class ProcessingManagementClient {
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
      * thrown.
-     * 
+     *
      * @param familyId the id of the family to which the worker has to be registered
      * @param workerId the id of the worker to be registered
      * @param workerDescription the description of the worker as a workerBean
@@ -157,7 +158,7 @@ public class ProcessingManagementClient {
     /**
      * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception
      * is thrown.
-     * 
+     *
      * @param familyId the id of the family to which the worker has to be registered
      * @param workerId the id of the worker to be registered
      * @throws ProcessingBadRequestException if the worker or the family does not exist

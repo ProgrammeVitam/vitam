@@ -43,7 +43,8 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -51,137 +52,140 @@ import fr.gouv.vitam.functional.administration.common.exception.FileFormatExcept
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
-public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
+public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final String COLLECTION_NAME = "FileFormat";
-    private final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
-    private final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
-    private final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
+    private static final String COLLECTION_NAME = "FileFormat";
+    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
+    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
+    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
 
-    private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
-    private String EVENT_TYPE_CREATE = "CREATE";
-    private String EVENT_TYPE_DELETE = "DELETE";
-    // TODO: should change to REFERENTIAL_FORMAT
-    private LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
+    private static final String EVENT_TYPE_CREATE = "CREATE";
+    private static final String EVENT_TYPE_DELETE = "DELETE";
+    private static final LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
 
     /**
      * Constructor
-     * 
+     *
      * @param dbConfiguration
      */
-    public ReferentialFormatFileImpl(DbConfiguration dbConfiguration) {
-        this.mongoAccess = MongoDbAccessAdminFactory.create(dbConfiguration);
+    public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
+        mongoAccess = dbConfiguration;
     }
 
     @Override
     public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final GUID eip = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersStart =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
+                    "start importing referential file ", eip);
+            try {
+                client.create(logbookParametersStart);
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+                throw new ReferentialException(e);
+            }
 
-        GUID eip = GUIDFactory.newGUID();
-        LogbookOperationParameters logbookParametersStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
-                "start importing referential file ", eip);
-        try {
-            client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
-        }
+            final GUID eip1 = GUIDFactory.newGUID();
+            try {
+                final ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
+                if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
 
-        GUID eip1 = GUIDFactory.newGUID();
-        try {
-            ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
-            if (this.mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-                this.mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+                    final LogbookOperationParameters logbookParametersEnd =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK,
+                            MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
+                                " du fichier de signature PRONOM (DROID_SignatureFile)",
+                            eip1);
 
-                LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
-                        MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
-                            " du fichier de signature PRONOM (DROID_SignatureFile)",
-                        eip1);
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
+                    }
+                } else {
+                    final LogbookOperationParameters logbookParametersEnd =
+                        LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                            LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
+                    }
 
-                try {
-                    client.update(logbookParametersEnd);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e) {
-                    LOGGER.error(e.getMessage());
+                    throw new DatabaseConflictException("File format collection is not empty");
                 }
-            } else {
-                LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+            } catch (final ReferentialException e) {
+                LOGGER.error(e.getMessage());
+                final LogbookOperationParameters logbookParametersEnd =
+                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
                 try {
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                     LogbookClientServerException e1) {
-                    LOGGER.error(e1.getMessage());
+                    LOGGER.error(e1);
+                    throw new ReferentialException(e1);
                 }
-
-                throw new DatabaseConflictException("File format collection is not empty");
+                throw new ReferentialException(e);
             }
-        } catch (ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            LogbookOperationParameters logbookParametersEnd =
-                LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                    LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
-            try {
-                client.update(logbookParametersEnd);
-            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                LogbookClientServerException e1) {
-                LOGGER.error(e1.getMessage());
-            }
-            throw new ReferentialException(e);
         }
     }
 
     @Override
     public void deleteCollection() {
-        GUID eip = GUIDFactory.newGUID();
-        LogbookOperationParameters logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
-            "start deleting referential format from database ", eip);
-        try {
-            client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final GUID eip = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersStart =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
+                    "start deleting referential format from database ", eip);
+            try {
+                client.create(logbookParametersStart);
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+            }
+
+            mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+
+            final GUID eip1 = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersEnd =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
+                    eip1);
+
+            try {
+                client.update(logbookParametersEnd);
+            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+            }
         }
-
-        this.mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-
-        GUID eip1 = GUIDFactory.newGUID();
-        LogbookOperationParameters logbookParametersEnd =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
-                eip1);
-
-        try {
-            client.update(logbookParametersEnd);
-        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
-        }
-
     }
 
     @Override
@@ -189,21 +193,27 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
-            while (eventReader.hasNext()) {
-                eventReader.nextEvent();
+            final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
+            try {
+                while (eventReader.hasNext()) {
+                    eventReader.nextEvent();
+                }
+            } finally {
+                eventReader.close();
             }
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             LOGGER.error(e);
             throw new ReferentialException("Invalid Format", e);
+        } finally {
+            StreamUtils.closeSilently(xmlPronom);
         }
     }
 
     @Override
     public FileFormat findDocumentById(String id) throws ReferentialException {
         try {
-            return (FileFormat) this.mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
-        } catch (ReferentialException e) {
+            return (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw new FileFormatException(e);
         }
@@ -211,10 +221,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
 
     @Override
     public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
-        try {
-            @SuppressWarnings("unchecked")
-            MongoCursor<FileFormat> formats =
-                (MongoCursor<FileFormat>) this.mongoAccess.select(select, FunctionalAdminCollections.FORMATS);
+        try (@SuppressWarnings("unchecked")
+        final MongoCursor<FileFormat> formats =
+            (MongoCursor<FileFormat>) mongoAccess.select(select, FunctionalAdminCollections.FORMATS)) {
             final List<FileFormat> result = new ArrayList<>();
             if (formats == null || !formats.hasNext()) {
                 throw new FileFormatNotFoundException("Format not found");
@@ -223,9 +232,14 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
                 result.add(formats.next());
             }
             return result;
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw new FileFormatException(e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        // Empty
     }
 }

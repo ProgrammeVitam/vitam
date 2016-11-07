@@ -52,12 +52,12 @@ class SiegfriedClientMock implements SiegfriedClient {
     }
 
     private JsonNode getVersionJson() {
-        String versionResponse = "{\"siegfried\":\"mock-1.0\"}";
+        final String versionResponse = "{\"siegfried\":\"mock-1.0\"}";
         return getJsonNode(versionResponse);
     }
 
     private JsonNode getFormatJson() {
-        String okResponse =
+        final String okResponse =
             "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/263\",\"format\": \"ZIP Format\",\"mime\": \"application/zip\"}]}]}";
         return getJsonNode(okResponse);
     }
@@ -65,7 +65,7 @@ class SiegfriedClientMock implements SiegfriedClient {
     private static JsonNode getJsonNode(String jsonString) {
         try {
             return JsonHandler.getFromString(jsonString);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IllegalArgumentException(e);
         }
     }

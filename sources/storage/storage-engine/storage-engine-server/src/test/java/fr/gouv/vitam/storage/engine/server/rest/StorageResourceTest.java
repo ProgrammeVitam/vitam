@@ -70,7 +70,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
 /**
- * 
+ *
  */
 public class StorageResourceTest {
 
@@ -108,7 +108,7 @@ public class StorageResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
@@ -295,7 +295,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testObjectCreated() {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -304,10 +304,10 @@ public class StorageResourceTest {
             .post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.CREATED.getStatusCode());
     }
-    
+
     @Test
     public final void testReportCreation() {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -316,27 +316,28 @@ public class StorageResourceTest {
             .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
             .statusCode(Status.CREATED.getStatusCode());
         given().contentType(ContentType.JSON)
-        .body(createObjectDescription).when()
-        .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    
+            .body(createObjectDescription).when()
+            .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given().contentType(ContentType.JSON)
-        .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_Ardyexist)
-        .body(createObjectDescription).when()
-        .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
-        .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-        
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when()
+            .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
         given().contentType(ContentType.JSON)
-        .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, 
-            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-        .when()
-        .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+                VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when()
+            .post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public final void testObjectNotFound() {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -349,7 +350,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testObjectTechnicalError() {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -503,22 +504,24 @@ public class StorageResourceTest {
             VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
             .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void getReportOk() throws Exception {
         given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
             VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
             .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+            .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
             VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
             .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
-        
+
         given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E,
             VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
-            .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -825,13 +828,12 @@ public class StorageResourceTest {
     }
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
-
+        final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
 
         final ResourceConfig resourceConfig = new ResourceConfig();
-        StorageResourceTest outer = new StorageResourceTest();
+        final StorageResourceTest outer = new StorageResourceTest();
         resourceConfig.register(JacksonFeature.class);
-        StorageDistributionInnerClass storage = outer.new StorageDistributionInnerClass();
+        final StorageDistributionInnerClass storage = outer.new StorageDistributionInnerClass();
         resourceConfig.register(new StorageResource(storage));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
@@ -840,7 +842,7 @@ public class StorageResourceTest {
         contextHandler.setContextPath("/");
         contextHandler.addServlet(sh, "/*");
 
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] {contextHandler});
         vitamServer.configure(contextHandler);
         return vitamServer;
@@ -850,7 +852,7 @@ public class StorageResourceTest {
 
         @Override
         public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-            CreateObjectDescription createObjectDescription, DataCategory category)
+            CreateObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
@@ -875,13 +877,11 @@ public class StorageResourceTest {
 
         @Override
         public InputStream getStorageContainer(String tenantId, String strategyId) throws StorageNotFoundException {
-            // TODO Auto-generated method stub
             return null;
         }
 
         @Override
         public JsonNode createContainer(String tenantId, String strategyId) throws StorageAlreadyExistsException {
-            // TODO Auto-generated method stub
             return null;
         }
 
@@ -901,7 +901,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category)
+        public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId,
+            DataCategory category)
             throws StorageNotFoundException, StorageTechnicalException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Object not found");
@@ -1005,7 +1006,6 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode status() throws StorageException {
-            // TODO Auto-generated method stub
             return null;
         }
 

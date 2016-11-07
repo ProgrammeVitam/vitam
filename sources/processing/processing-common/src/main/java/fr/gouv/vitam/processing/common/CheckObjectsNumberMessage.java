@@ -30,7 +30,7 @@ package fr.gouv.vitam.processing.common;
  * Display logged messages
  */
 public enum CheckObjectsNumberMessage {
-    // TODO Javadoc for each
+    // TODO P1 Javadoc for each
     DUPLICATED_DIGITAL_OBJECT_WORKSPACE("Objet numérique dupliqué trouvé dans le SIP: "),
     LIST_OF_UNDECLARED_DIGITAL_OBJECT("List of undeclared digital objects: "),
     COUNT_DIGITAL_OBJECT_SIP("Nombre d'objets numériques trouvés dans le SIP: "),

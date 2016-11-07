@@ -27,14 +27,14 @@
 package fr.gouv.vitam.common.exception;
 
 /**
- * 
+ *
  * Exception used in DFS when a cycle is found
- * 
+ *
  */
 public class CycleFoundException extends VitamException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2684023194234768369L;
 

@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.junit.Before;
@@ -42,12 +43,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.client.MetaDataClient;
-import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -66,15 +67,19 @@ public class StoreObjectGroupActionHandlerTest {
     private static final String CONTAINER_NAME = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
     private static final String OBJECT_GROUP_GUID = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
     StoreObjectGroupActionHandler handler;
-    private static final String HANDLER_ID = "StoreObjectGroup";
+    private static final String HANDLER_ID = "OG_STORAGE";
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;    
     private MetaDataClient metadataClient;
     private StorageClient storageClient;
     private HandlerIO action;
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(OBJECT_GROUP);
+    private final InputStream objectGroup;
     private static final String OBJ = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
+
+    public StoreObjectGroupActionHandlerTest() throws FileNotFoundException {
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -82,69 +87,75 @@ public class StoreObjectGroupActionHandlerTest {
         metadataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
         action = new HandlerIO("");
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP));
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
     @Test
-    public void givenStorageErrorWhenExecuteThenReturnResponseKO() throws Exception {
-        StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
+    public void givenWorkspaceErrorWhenExecuteThenReturnResponseKO() throws Exception {
+        final StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
 
-        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
-            .setObjectName(CONTAINER_NAME + ".json").setCurrentStep("Store ObjectGroup");
+        final WorkerParameters paramsObjectGroups =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+                .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
+                .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
-        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
-        when(storageClientFactory.getStorageClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
         handler = new StoreObjectGroupActionHandler(storageClientFactory);
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
 
-        final EngineResponse response = handler.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.KO, response.getStatus());
+        final CompositeItemStatus response = handler.execute(paramsObjectGroups, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
         throws Exception {
-        StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
+        final StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
 
-        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
-            .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
+        final WorkerParameters paramsObjectGroups =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+                .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
+                .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
-        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(objectGroup);
-
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(), anyObject(),
             anyObject(),
             anyObject(), anyObject());
-        when(storageClientFactory.getStorageClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
 
         handler = new StoreObjectGroupActionHandler(storageClientFactory);
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
 
-        final EngineResponse response = handler.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.OK, response.getStatus());
+        final CompositeItemStatus response = handler.execute(paramsObjectGroups, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     private StoredInfoResult getStorageResult() {
-        StoredInfoResult storedInfoResult = new StoredInfoResult();
+        final StoredInfoResult storedInfoResult = new StoredInfoResult();
         storedInfoResult.setInfo("Info");
         storedInfoResult.setId("obj");
         return storedInfoResult;

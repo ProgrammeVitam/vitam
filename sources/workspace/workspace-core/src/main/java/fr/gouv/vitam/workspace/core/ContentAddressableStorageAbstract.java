@@ -26,17 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.core;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipInputStream;
 
+import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.ContainerNotFoundException;
@@ -49,40 +50,38 @@ import org.jclouds.blobstore.options.ListContainerOptions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.UriUtils;
 import fr.gouv.vitam.workspace.common.WorkspaceMessage;
+import fr.gouv.vitam.workspace.common.compress.VitamArchiveStreamFactory;
 
 /**
  * Abstract Content Addressable Storage
  */
 public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
-
-    // TODO: passed to protected but is it desired ? Better with getter ?
+    // TODO P0: passed to protected but is it desired ? Better with getter ?
     protected final BlobStoreContext context;
 
     private static final int MAX_RESULTS = 51000;
-    // Buffer size for purge the InputStream when uploading a ZipFile
-    // TODO : should be removed when the refactored client and server will be put in place
-    private static final int BUFFER_SIZE = 64 * 1024;
-
 
 
     /**
@@ -90,7 +89,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      *
      * @param configuration
      */
-    public ContentAddressableStorageAbstract(StorageConfiguration configuration) {
+    public ContentAddressableStorageAbstract(WorkspaceConfiguration configuration) {
         context = getContext(configuration);
     }
 
@@ -100,11 +99,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * @param configuration
      * @return BlobStoreContext
      */
-    public abstract BlobStoreContext getContext(StorageConfiguration configuration);
+    public abstract BlobStoreContext getContext(WorkspaceConfiguration configuration);
 
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
-
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
@@ -222,7 +220,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             }
-            // FIXME REVIEW should it be a check of emptyness?
+            // FIXME P1 REVIEW should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
         } finally {
             context.close();
@@ -261,6 +259,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageException(e);
         } finally {
             context.close();
+            StreamUtils.closeSilently(stream);
         }
     }
 
@@ -272,8 +271,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" +
-                    containerName + "'");
+                LOGGER.error(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
@@ -294,10 +293,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } finally {
             context.close();
         }
-        // FIXME REVIEW use from Commons SingletonUtils
-        // FIXME REVIEW : The method return an empty InputStream if the object name doesn't exists or if the file is
-        // empty. If the file doesn't exist, it must have a different return value (notfound)
-        return new ByteArrayInputStream(new byte[0]);
+        return SingletonUtils.singletonInputStream();
     }
 
     @Override
@@ -327,9 +323,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try {
-            InputStream stream = getObject(containerName, objectName);
-            Digest digest = new Digest(algo);
+        try (final InputStream stream = getObject(containerName, objectName)) {
+            final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
         } catch (final IOException e) {
@@ -364,29 +359,29 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             // It's like a filter
             final ListContainerOptions listContainerOptions = new ListContainerOptions();
             // List of all resources in a container recursively
-            final PageSet<? extends StorageMetadata> blobStoreList =
-                blobStore.list(containerName,
-                    listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
+            final PageSet<? extends StorageMetadata> blobStoreList = blobStore.list(containerName,
+                listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
 
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.debug(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
 
-            // TODO
+            // TODO P1
             // Get the uri
             // Today the uri null so
 
-            // The temporary solution is to concat the file path to the generated GUID
+            // The temporary solution is to concat the file path to the
+            // generated GUID
 
             // if (storageMetada.getUri()!=null) {
             // uriListFromContainer.add(storageMetada.getUri());
             // }
 
-
             for (final StorageMetadata storageMetada : blobStoreList) {
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
-                    // FIXME REVIEW the UriUtils does not what is specified: it only removes the first folder, not the
+                    // TODO P1 REVIEW the UriUtils does not what is specified: it
+                    // only removes the first folder, not the
                     // extension and only for uri with "." in it
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
@@ -404,10 +399,11 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         return uriFolderListFromContainer;
     }
 
-
     @Override
-    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
-        throws ContentAddressableStorageException {
+    public void uncompressObject(String containerName, String folderName, String archiveMimeType,
+        InputStream inputStreamObject) throws ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
+        ContentAddressableStorageCompressedFileException, ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
         LOGGER.debug("init unzip method  ...");
@@ -427,7 +423,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         LOGGER.debug("create folder name " + folderName);
 
         createFolder(containerName, folderName);
-        extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
+
+        extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
+            inputStreamObject);
+
     }
 
     @Override
@@ -435,57 +434,59 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         throws ContentAddressableStorageNotFoundException;
 
     /**
-     * extract compressed SIP and push the objects on the SIP folder
+     * Extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName : GUID
-     * @param folderName : folder Name
+     * @param containerName GUID
+     * @param folderName folder Name
+     * @param archiverType archive type zip, tar tar.gz
      * @param inputStreamObject :compressed SIP stream
-     * @throws ContentAddressableStorageZipException if the file is not a zip or an empty zip
-     * @throws ContentAddressableStorageException if an IOException occure when unzipping the file
+     * @throws ContentAddressableStorageCompressedFileException if the file is not a zip or an empty zip
+     * @throws ContentAddressableStorageException if an IOException occurs when extracting the file
+     * @throws ArchiveException
      */
-    private void extractZippedInputStreamOnContainer(String containerName, String folderName,
-        InputStream inputStreamObject)
-        throws ContentAddressableStorageException {
+    private void extractArchiveInputStreamOnContainer(final String containerName, final String folderName,
+        final MediaType archiverType, final InputStream inputStreamObject)
+        throws ContentAddressableStorageException, ContentAddressableStorageCompressedFileException {
 
-        try {
-            ZipEntry zipEntry;
-            final ZipInputStream zInputStream = new ZipInputStream(inputStreamObject);
-
+        try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
+            final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+            .createArchiveInputStream(archiverType, inputStreamClosable);) {
+            ArchiveEntry archiveEntry;
             boolean isEmpty = true;
-            while ((zipEntry = zInputStream.getNextEntry()) != null) {
 
-                LOGGER.debug("containerName : " + containerName + "    / ZipEntryName : " + zipEntry.getName());
+            // create entryInputStream to resolve the stream closed problem
+            final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
+
+            while ((archiveEntry = archiveInputStream.getNextEntry()) != null) {
+
+                LOGGER.debug("containerName : " + containerName + "    / ArchiveEntryName : " + archiveEntry.getName());
+
                 isEmpty = false;
-                if (zipEntry.isDirectory()) {
+                if (archiveEntry.isDirectory()) {
                     continue;
                 }
-                // create entryInputStream to resolve the stream closed problem
-                final EntryImputStream entryInputStream = new EntryImputStream(zInputStream);
                 // put object in container
-                putObject(containerName, folderName + File.separator + zipEntry.getName(),
-                    entryInputStream);
+                putObject(containerName, folderName + File.separator + archiveEntry.getName(), entryInputStream);
+                LOGGER.debug("Container name: " + containerName);
+                LOGGER.debug("IsExisiting: " +
+                    isExistingObject(containerName, folderName + File.separator + archiveEntry.getName()) + " = " +
+                    folderName + File.separator + archiveEntry.getName());
+                // after put entry stream open stream to add a next
+                entryInputStream.setClosed(false);
             }
-	    // Used to purge the InputStream as the ZipInputStream doesn't read the inputFile to the end
-	    // TODO : should be removed when the refactorised server will be put in place 
-            byte[] buff = new byte[BUFFER_SIZE];
-            while (inputStreamObject.read(buff)!=-1){ 
-                // NOSONAR : PURGE THE InputStream
-            }
-            zInputStream.close();
-
+            archiveInputStream.close();
             if (isEmpty) {
-                throw new ContentAddressableStorageZipException("File is empty or not a zip file");
+                throw new ContentAddressableStorageCompressedFileException("File is empty");
             }
-        } catch (final ZipException e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageZipException(e);
         } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
+            throw new ContentAddressableStorageException(e);
+        } catch (final ArchiveException e) {
+            LOGGER.error(e);
             throw new ContentAddressableStorageException(e);
         }
 
     }
-
 
     @Override
     public JsonNode getObjectInformation(String containerName, String objectName)
@@ -503,7 +504,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             }
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob && null != blob.getMetadata()) {
-                Long size = blob.getMetadata().getSize();
+                final Long size = blob.getMetadata().getSize();
                 jsonNodeObjectInformation = JsonHandler.createObjectNode();
                 jsonNodeObjectInformation.put("size", size);
                 jsonNodeObjectInformation.put("object_name", objectName);
@@ -525,43 +526,77 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     /**
-     * EntryImputStream class
+     * Archive input streams <b>MUST</b> override the {@link #read(byte[], int, int)} - or {@link #read()} - method so
+     * that reading from the stream generates EOF for the end of data in each entry as well as at the end of the file
+     * proper.
      */
-    static class EntryImputStream extends InputStream {
+    static class ArchiveEntryInputStream extends InputStream {
 
-
-        ZipInputStream zipInputStream;
+        InputStream inputStream;
+        boolean closed = false;
 
         /**
-         * @param in
+         * @param archiveInputStream
+         * @throws IOException
          */
-        public EntryImputStream(ZipInputStream in) {
-            this.zipInputStream = in;
+        public ArchiveEntryInputStream(InputStream archiveInputStream) throws IOException {
+            inputStream = archiveInputStream;
+        }
+
+        @Override
+        public int available() throws IOException {
+            if (closed) {
+                return -1;
+            }
+            return inputStream.available();
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            if (closed) {
+                return -1;
+            }
+            return inputStream.skip(n);
         }
 
         @Override
         public int read() throws IOException {
-            return zipInputStream.read();
+            if (closed) {
+                return -1;
+            }
+            return inputStream.read();
+
         }
 
         @Override
         public int read(byte[] b) throws IOException {
-            return zipInputStream.read(b);
+            if (closed) {
+                return -1;
+            }
+            return inputStream.read(b);
         }
 
         @Override
         public int read(byte[] b, int off, int len) throws IOException {
-            return zipInputStream.read(b, off, len);
+            if (closed) {
+                return -1;
+            }
+            return inputStream.read(b, off, len);
         }
 
         @Override
-        public void close() throws IOException {
-            zipInputStream.closeEntry();
+        public void close() {
+            closed = true;
+        }
+
+        /**
+         * Allow to "fakely" reopen this InputStream
+         * @param isclosed
+         */
+        public void setClosed(boolean isclosed) {
+            closed = isclosed;
         }
 
     }
 
-
 }
-
-

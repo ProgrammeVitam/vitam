@@ -26,27 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 
@@ -55,108 +47,67 @@ import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
  */
 public class IngestInternalApplication
     extends AbstractVitamApplication<IngestInternalApplication, IngestInternalConfiguration> {
-
-    private static final String INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "IngestInternalApplication Starts on default port";
-    private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalApplication.class);
     private static final String INGEST_INTERNAL_CONF_FILE_NAME = "ingest-internal.conf";
-    private static IngestInternalConfiguration configuration;
+    private static final String MODULE_NAME = "ingest-internal";
+
+    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * Ingest Internal constructor
+     * @param configuration 
      */
-    protected IngestInternalApplication() {
-        super(IngestInternalApplication.class, IngestInternalConfiguration.class);
+    public IngestInternalApplication(String configuration) {
+        super(IngestInternalConfiguration.class, configuration);
     }
 
     /**
-     * runs Ingest Internal server app
+     * Main method to run the application (doing start and join)
      *
-     * @param args
+     * @param args command line parameters
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
+            if (args == null || args.length == 0) {
+                LOGGER.error(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, INGEST_INTERNAL_CONF_FILE_NAME));
+                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    INGEST_INTERNAL_CONF_FILE_NAME));
+            }
+            final IngestInternalApplication application = new IngestInternalApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
+            application.run();
         } catch (final Exception e) {
-            LOGGER.error("Can not start Ingest External Application server. " + e.getMessage(), e);
+            LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    /**
-     * Prepare the application to be run or started.
-     *
-     * @param args
-     * @return the VitamServer
-     * @throws IllegalStateException
-     */
-    public static VitamServer startApplication(String[] args) {
-        try {
-            VitamServer vitamServer = null;
-
-            if (args != null && args.length >= 1) {
-
-                try {
-                    final File yamlFile = PropertiesUtils.findFile(args[0]);
-                    configuration = PropertiesUtils.readYaml(yamlFile, IngestInternalConfiguration.class);
-                    String jettyConfig = configuration.getJettyConfig();
-
-                    LOGGER.info("Ingest Internal Starts with jetty config");
-                    vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-
-                } catch (FileNotFoundException e) {
-                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file not found ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                } catch (IOException e) {
-                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file io error ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
-                throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
-            }
-
-            final IngestInternalApplication application = new IngestInternalApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(args));
-            if (vitamServer != null) {
-                vitamServer.configure(application.getApplicationHandler());
-            }
-            return vitamServer;
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new IllegalStateException("Cannot start the Ingest Internal Application Server", e);
-        }
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
     }
 
-    /**
-     * Implement this method to construct your application specific handler
-     *
-     * @return the generated Handler
-     */
     @Override
-    protected Handler buildApplicationHandler() {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
+        // Start by registering Multipart
         resourceConfig.register(MultiPartFeature.class);
-        resourceConfig.register(new IngestInternalResource(getConfiguration()));
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        return context;
-    }
-
-    /**
-     * Must return the name as a string of your configuration file. Example : "ingest-internal.conf"
-     *
-     * @return the name of the application configuration file
-     */
-    @Override
-    protected String getConfigFilename() {
-        return INGEST_INTERNAL_CONF_FILE_NAME;
+        IngestInternalResource resource = new IngestInternalResource(getConfiguration());
+        // Register Workspace
+        serviceRegistry.register(WorkspaceClientFactory.getInstance())
+            // Register Logbook for Operation
+            .register(LogbookOperationsClientFactory.getInstance())
+            // Register Storage (ATR access)
+            .register(StorageClientFactory.getInstance());
+        // Will register Processing once in V2 FIXME P0
+        // .register(ProcessingManagementClientFactory.getInstance());
+        resourceConfig.register(resource)
+            .register(new AdminStatusResource(serviceRegistry));
     }
 }

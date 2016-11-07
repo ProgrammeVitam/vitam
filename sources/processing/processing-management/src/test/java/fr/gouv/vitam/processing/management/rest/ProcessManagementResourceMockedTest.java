@@ -54,6 +54,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
@@ -62,8 +64,6 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 public class ProcessManagementResourceMockedTest {
@@ -76,7 +76,7 @@ public class ProcessManagementResourceMockedTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
             vitamServer = buildTestServer();
@@ -86,7 +86,7 @@ public class ProcessManagementResourceMockedTest {
             RestAssured.basePath = PORCESSING_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);
@@ -94,16 +94,16 @@ public class ProcessManagementResourceMockedTest {
     }
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
+        final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
 
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         mock = Mockito.mock(ProcessManagement.class);
 
-        ServerConfiguration serverConfiguration = new ServerConfiguration();
-        serverConfiguration.setUrlWorkspace("fakeUrl");
-        serverConfiguration.setUrlMetada("fakeUrl");
+        final ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setUrlWorkspace("http://localhost:8083");
+        serverConfiguration.setUrlMetadata("http://localhost:8083");
         resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
@@ -112,7 +112,7 @@ public class ProcessManagementResourceMockedTest {
         contextHandler.setContextPath("/");
         contextHandler.addServlet(sh, "/*");
 
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] {contextHandler});
         vitamServer.configure(contextHandler);
         return vitamServer;
@@ -133,24 +133,27 @@ public class ProcessManagementResourceMockedTest {
     public void executeVitamProcessNotFound() throws Exception {
         reset(mock);
         when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new WorkflowNotFoundException(""));
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.NOT_FOUND
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.NOT_FOUND
+                .getStatusCode());
 
         reset(mock);
         when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new HandlerNotFoundException(""));
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.NOT_FOUND
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.NOT_FOUND
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessPreconditionFailed() throws Exception {
         reset(mock);
         when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new IllegalArgumentException());
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.PRECONDITION_FAILED
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.PRECONDITION_FAILED
+                .getStatusCode());
     }
 
     // XXX: Why Unauthorize ? see implementation
@@ -158,64 +161,68 @@ public class ProcessManagementResourceMockedTest {
     public void executeVitamProcessUnauthorize() throws Exception {
         reset(mock);
         when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new ProcessingException(""));
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.UNAUTHORIZED
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.UNAUTHORIZED
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessInternalServerError() throws Exception {
         reset(mock);
-        ProcessResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.FATAL);
+        final ItemStatus response = new ItemStatus("WokflowID");
+        response.increment(StatusCode.FATAL);
         when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.INTERNAL_SERVER_ERROR
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessBadRequest() throws Exception {
         reset(mock);
-        ProcessResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.KO);
+        final ItemStatus response = new ItemStatus("WokflowID");
+        response.increment(StatusCode.KO);
+
         when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.BAD_REQUEST
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
+            .statusCode(Response.Status.BAD_REQUEST
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessOK() throws Exception {
         reset(mock);
-        ProcessResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.OK);
+        final ItemStatus response = new ItemStatus("WokflowID");
+        response.increment(StatusCode.OK);
         when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessOKWarning() throws Exception {
         reset(mock);
-        ProcessResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.WARNING);
+        final ItemStatus response = new ItemStatus("WokflowID");
+        response.increment(StatusCode.WARNING);
         when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
+                .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessOKSubmitted() throws Exception {
         reset(mock);
-        ProcessResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.STARTED);
+        final ItemStatus response = new ItemStatus("WokflowID");
+        response.increment(StatusCode.STARTED);
         when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(new ProcessingEntry
-            ("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
-            .getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
+                .getStatusCode());
     }
 
 }

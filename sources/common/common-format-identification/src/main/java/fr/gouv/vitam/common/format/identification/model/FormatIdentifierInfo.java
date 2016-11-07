@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -31,13 +31,13 @@ package fr.gouv.vitam.common.format.identification.model;
  * FormatIdentifierInfo the object containing information returned by the status
  */
 public class FormatIdentifierInfo {
-    
-    private String version;
-    private String softwareName;
-    
+
+    private final String version;
+    private final String softwareName;
+
     /**
      * Create a new FormatIdentifierInfo with all parameters
-     * 
+     *
      * @param version the identifier version
      * @param softwareName the identifier name
      */
@@ -47,7 +47,7 @@ public class FormatIdentifierInfo {
     }
 
     /**
-     * 
+     *
      * @return the identifier version
      */
     public String getVersion() {
@@ -55,11 +55,11 @@ public class FormatIdentifierInfo {
     }
 
     /**
-     *     
+     * 
      * @return the identifier name
      */
     public String getSoftwareName() {
         return softwareName;
     }
-    
+
 }

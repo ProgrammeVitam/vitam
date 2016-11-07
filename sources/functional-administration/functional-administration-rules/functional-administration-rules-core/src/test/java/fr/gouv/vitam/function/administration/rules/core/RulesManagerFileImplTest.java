@@ -55,9 +55,10 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 
 public class RulesManagerFileImplTest {
     String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
@@ -78,7 +79,7 @@ public class RulesManagerFileImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -86,7 +87,8 @@ public class RulesManagerFileImplTest {
             .build());
         mongod = mongodExecutable.start();
         rulesFileManager = new RulesManagerFileImpl(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            MongoDbAccessAdminFactory.create(
+                new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
 
     }
 
@@ -112,14 +114,14 @@ public class RulesManagerFileImplTest {
     @Test
     public void testimportAndDeleteRulesFile() throws Exception {
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(22, collection.count());
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00005"));
-        List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
-        String id = fileList.get(0).getString("RuleId");
-        FileRules file = rulesFileManager.findDocumentById(id);
+        final List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
+        final String id = fileList.get(0).getString("RuleId");
+        final FileRules file = rulesFileManager.findDocumentById(id);
         // assertEquals(file, fileList.get(0));
         rulesFileManager.deleteCollection();
         assertEquals(0, collection.count());

@@ -26,10 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -40,7 +43,7 @@ public interface MongoDbAccessReferential {
 
     /**
      * insert documents
-     * 
+     *
      * @param arrayNode of documents
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
@@ -48,8 +51,17 @@ public interface MongoDbAccessReferential {
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
 
     /**
+     * insert documents
+     *
+     * @param jsonNode of documents
+     * @param collection collection of Mongo for insert
+     * @throws ReferentialException when error occurs
+     */
+    public void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
+    
+    /**
      * Drop FileFormat collections
-     * 
+     *
      * @param collection collection of Mongo for insert
      */
     public void deleteCollection(FunctionalAdminCollections collection);
@@ -61,6 +73,16 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
+        throws ReferentialException;
+    
+    /**
+     * @param map Map of key-value
+     * @param object
+     * @param collection collection of Mongo for insert
+     * @param action
+     * @throws ReferentialException when error occurs
+     */
+    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection, UPDATEACTION action)
         throws ReferentialException;
 
     /**

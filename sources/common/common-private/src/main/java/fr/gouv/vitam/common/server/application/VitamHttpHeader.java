@@ -37,14 +37,18 @@ import fr.gouv.vitam.common.GlobalDataRest;
 public enum VitamHttpHeader {
 
     /**
-     * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy
-     * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
+     * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy 
      */
+     //TODO P1 : change regex to be more
+     //precise (something like ^\s*\w+$ or \s*\w+\s*$)
+     
     STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
      * The X_STRATEGY_ID header, used in requests to use a particular strategy
-     * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
-     */
+     */ 
+     //TODO P1 : change regex to be more precise
+     //(something like ^\s*\w+$ or \s*\w+\s*$)
+     
     TENANT_ID(GlobalDataRest.X_TENANT_ID, ".+"),
     /**
      * The X-Http-Method-Override header, used in requests to handle unsupported Http methods with body
@@ -79,7 +83,7 @@ public enum VitamHttpHeader {
      * @return the header name
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
@@ -88,7 +92,7 @@ public enum VitamHttpHeader {
      * @return the regular expression
      */
     public String getRegExp() {
-        return this.regExp;
+        return regExp;
     }
 
     /**
@@ -98,7 +102,7 @@ public enum VitamHttpHeader {
      * @return the header if exists, null otherwise
      */
     public static VitamHttpHeader get(String headerName) {
-        for (VitamHttpHeader v : values()) {
+        for (final VitamHttpHeader v : values()) {
             if (v.getName().equals(headerName)) {
                 return v;
             }

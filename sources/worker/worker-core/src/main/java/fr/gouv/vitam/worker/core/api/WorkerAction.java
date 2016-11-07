@@ -27,9 +27,10 @@
 package fr.gouv.vitam.worker.core.api;
 
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  *
@@ -43,12 +44,14 @@ public interface WorkerAction {
 
     /**
      *
-     * @param params {@link WorkerParameters}
-     * @return Response:response contains a list of functional message and status code
+     * @param param  {@link WorkerParameters}
+     * @param handler 
+     * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
+     * @throws ContentAddressableStorageServerException 
      */
-    EngineResponse execute(WorkerParameters param, HandlerIO handler) throws ProcessingException;
-    
+    CompositeItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException;
+
     /**
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete

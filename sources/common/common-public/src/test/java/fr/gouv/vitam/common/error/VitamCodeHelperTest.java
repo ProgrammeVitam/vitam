@@ -71,7 +71,7 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getFromStringTest() {
-        VitamCode code = VitamCodeHelper.getFrom("000000");
+        final VitamCode code = VitamCodeHelper.getFrom("000000");
         assertNotNull(code);
         assertEquals(VitamCode.TEST, code);
     }
@@ -86,40 +86,40 @@ public class VitamCodeHelperTest {
         try {
             VitamCodeHelper.getMessage(null, DomainName.TEST, "00");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getMessage(ServiceName.VITAM, null, "00");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getMessage(ServiceName.VITAM, DomainName.TEST, "");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getMessage(ServiceName.VITAM, DomainName.TEST, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void getMessageNotFoundTest() {
         VitamCodeHelper.getMessage(ServiceName.VITAM, DomainName.TEST, "ZZ");
     }
 
     @Test
     public void getMessageTest() {
-        String message = VitamCodeHelper.getMessage(ServiceName.VITAM, DomainName.TEST, "00");
+        final String message = VitamCodeHelper.getMessage(ServiceName.VITAM, DomainName.TEST, "00");
         assertNotNull(message);
         assertEquals(VitamCode.TEST.getMessage(), message);
     }
@@ -136,11 +136,11 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getMessageFromStringTest() {
-        String message = VitamCodeHelper.getMessage("000000");
+        final String message = VitamCodeHelper.getMessage("000000");
         assertNotNull(message);
         assertEquals(VitamCode.TEST.getMessage(), message);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void getMessageFromVitamCodeNullParameterTest() {
         VitamCodeHelper.getMessageFromVitamCode(null);
@@ -148,25 +148,25 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getMessageFromVitamCodeTest() {
-        VitamCode code = VitamCodeHelper.getFrom("000000");
-        String message = VitamCodeHelper.getMessageFromVitamCode(code);
+        final VitamCode code = VitamCodeHelper.getFrom("000000");
+        final String message = VitamCodeHelper.getMessageFromVitamCode(code);
         assertNotNull(message);
         assertEquals(VitamCode.TEST.getMessage(), message);
     }
 
     @Test
     public void getTranslatedMessageFromVitamCodeWrongParametersTest() {
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromVitamCode(null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromVitamCode(VitamCode.TEST, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
@@ -174,51 +174,51 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getTranslatedMessageFromVitamCodeTest() {
-        String message = VitamCodeHelper.getParametrizedMessageFromVitamCode(VitamCode.TEST, "test");
+        final String message = VitamCodeHelper.getParametrizedMessageFromVitamCode(VitamCode.TEST, "test");
         assertNotNull(message);
         assertEquals(String.format(VitamCode.TEST.getMessage(), "test"), message);
     }
 
     @Test
     public void getTranslatedMessageFromCodeWrongParametersTest() {
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromCode(null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromCode("", null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromCode("ZZZZZZ", null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromCode("ZZZZZZ", "", "test");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
-        try  {
+        try {
             VitamCodeHelper.getParametrizedMessageFromCode("ZZZZZZ", "test", null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
     }
 
     @Test
     public void getTranslatedMessageFromCodeTest() {
-        String message = VitamCodeHelper.getParametrizedMessageFromCode("000000", "test");
+        final String message = VitamCodeHelper.getParametrizedMessageFromCode("000000", "test");
         assertNotNull(message);
         assertEquals(String.format(VitamCode.TEST.getMessage(), "test"), message);
     }
@@ -228,63 +228,63 @@ public class VitamCodeHelperTest {
         try {
             VitamCodeHelper.getParametrizedMessage(null, null, null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, null, null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(null, DomainName.TEST, null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(null, null, "ZZ", "test");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, null, null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, "", null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, "ZZ", null);
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
 
         try {
             VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, "ZZ", "");
             fail("Must thrown an IllegalArgumentException");
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
     }
 
     @Test
     public void getTranslatedMessageTest() {
-        String message = VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, "00", "test");
+        final String message = VitamCodeHelper.getParametrizedMessage(ServiceName.VITAM, DomainName.TEST, "00", "test");
         assertNotNull(message);
         assertEquals(String.format(VitamCode.TEST.getMessage(), "test"), message);
     }
@@ -296,7 +296,7 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getFromDomainTest() {
-        List<VitamCode> codes = VitamCodeHelper.getFromDomain(DomainName.TEST);
+        final List<VitamCode> codes = VitamCodeHelper.getFromDomain(DomainName.TEST);
         assertNotNull(codes);
         assertEquals(1, codes.size());
         assertEquals(VitamCode.TEST, codes.get(0));
@@ -309,9 +309,9 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getFromServiceTest() {
-        List<VitamCode> codes = VitamCodeHelper.getFromService(ServiceName.VITAM);
+        final List<VitamCode> codes = VitamCodeHelper.getFromService(ServiceName.VITAM);
         assertNotNull(codes);
-        assertEquals(1, codes.size());
+        assertEquals(2, codes.size());
         assertEquals(VitamCode.TEST, codes.get(0));
     }
 
@@ -322,14 +322,14 @@ public class VitamCodeHelperTest {
 
     @Test
     public void getCodeTest() {
-        String code = VitamCodeHelper.getCode(VitamCode.TEST);
+        final String code = VitamCodeHelper.getCode(VitamCode.TEST);
         assertNotNull(code);
         assertEquals("000000", code);
     }
 
     @Test
     public void getLogMessageTest() {
-        String message = VitamCodeHelper.getLogMessage(VitamCode.TEST, "test");
+        final String message = VitamCodeHelper.getLogMessage(VitamCode.TEST, "test");
         assertNotNull(message);
         assertEquals(String.format("[%s] %s", VitamCodeHelper.getCode(VitamCode.TEST), String.format(VitamCode.TEST
             .getMessage(), "test")), message);

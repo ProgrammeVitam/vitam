@@ -52,7 +52,7 @@ class FileDriverMapperConfiguration {
      */
     FileDriverMapperConfiguration(String path, String delimiter) {
         ParametersChecker.checkParameter("Driver Mapping directory and delimiter configuration", path, delimiter);
-        this.driverMappingPath = path;
+        driverMappingPath = path;
         this.delimiter = delimiter;
     }
 

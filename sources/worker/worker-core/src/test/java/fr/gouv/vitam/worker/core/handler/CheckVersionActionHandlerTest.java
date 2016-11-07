@@ -44,9 +44,9 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -58,12 +58,12 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 @PrepareForTest({SedaUtilsFactory.class})
 public class CheckVersionActionHandlerTest {
     CheckVersionActionHandler handlerVersion = new CheckVersionActionHandler();
-    private static final String HANDLER_ID = "CheckVersion";
+    private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-        ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-        ("containerName");
-    private HandlerIO handlerIO = new HandlerIO("");
+    private final WorkerParameters params =
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+    private final HandlerIO handlerIO = new HandlerIO("");
 
     @Before
     public void setUp() throws Exception {
@@ -71,34 +71,34 @@ public class CheckVersionActionHandlerTest {
         sedaUtils = mock(SedaUtils.class);
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
     }
-    
+
     @Test
-    public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK() 
-        throws ProcessingException, IOException, URISyntaxException{
-        List<String> invalidVersionList = new ArrayList<String>();
+    public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
+        throws ProcessingException, IOException, URISyntaxException {
+        final List<String> invalidVersionList = new ArrayList<String>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params, handlerIO);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
     @Test
-    public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning() 
-        throws ProcessingException, IOException, URISyntaxException{
-        List<String> invalidVersionList = new ArrayList<String>();
+    public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
+        throws ProcessingException, IOException, URISyntaxException {
+        final List<String> invalidVersionList = new ArrayList<String>();
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params, handlerIO);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-    
+
     @Test
-    public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal() 
-        throws ProcessingException, IOException, URISyntaxException{
+    public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
+        throws ProcessingException, IOException, URISyntaxException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params, handlerIO);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 }

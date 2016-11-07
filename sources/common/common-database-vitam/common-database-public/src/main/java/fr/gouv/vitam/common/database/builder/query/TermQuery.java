@@ -56,8 +56,8 @@ public class TermQuery extends Query {
      * Term Query constructor
      *
      * @param variableName key name
-     * @param value key value 
-     * @throws InvalidCreateOperationException when query is invalid 
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -70,7 +70,7 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName  key name
+     * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
@@ -85,7 +85,7 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName  key name
+     * @param variableName key name
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */

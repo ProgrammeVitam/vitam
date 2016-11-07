@@ -52,22 +52,22 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 public class LogbookOperationsImplWithMongoTest {
 
     private static final String DATABASE_HOST = "localhost";
-    static MongoDbAccess mongoDbAccess;
+    static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
@@ -82,15 +82,15 @@ public class LogbookOperationsImplWithMongoTest {
     private static LogbookOperationParameters logbookParameters2;
     private static LogbookOperationParameters logbookParameters3;
 
-    final static GUID eip = GUIDFactory.newOperationIdGUID(0);
-    final static GUID eip1 = GUIDFactory.newOperationIdGUID(2);
-    final static GUID eip2 = GUIDFactory.newOperationIdGUID(2);
-    final static GUID eip3 = GUIDFactory.newOperationIdGUID(3);
+    final static GUID eip = GUIDFactory.newEventGUID(0);
+    final static GUID eip1 = GUIDFactory.newEventGUID(2);
+    final static GUID eip2 = GUIDFactory.newEventGUID(2);
+    final static GUID eip3 = GUIDFactory.newEventGUID(3);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -98,7 +98,7 @@ public class LogbookOperationsImplWithMongoTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
-            MongoDbAccessFactory.create(
+            LogbookMongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, port,
                     "vitam-test"));
 
@@ -108,34 +108,34 @@ public class LogbookOperationsImplWithMongoTest {
 
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
+            GUIDFactory.newEventGUID(0),
             "eventType", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip.getId(),
             "eventType", eip.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0).getId(),
-            "eventType", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", "x-request-id");
+            GUIDFactory.newEventGUID(0).getId(),
+            "eventType", GUIDFactory.newEventGUID(0).getId(), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "x-request-id");
 
         logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
             eip1.getId(),
             "eventType", eip1.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
         logbookParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
             eip2.getId(),
             "eventType", eip2.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
         logbookParameters3 = LogbookParametersFactory.newLogbookOperationParameters(
             eip3.getId(),
             "eventType", eip3.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
     }
 

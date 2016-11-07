@@ -43,11 +43,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 public class VitamServerFactoryTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerFactory.class);
-    private final String JETTY_CONFIG_TEST = "jetty-test.xml";
+    private final String JETTY_CONFIG_TEST = "jetty-config-test.xml";
 
     @Test
     public final void testNewVitamServerOnDefaultPort() {
-        JunitHelper junitHelper = new JunitHelper();
+        JunitHelper junitHelper = JunitHelper.getInstance();
         int serverPort = junitHelper.findAvailablePort();
         int oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
@@ -74,7 +74,7 @@ public class VitamServerFactoryTest {
 
     @Test
     public final void testNewVitamServer() {
-        JunitHelper junitHelper = new JunitHelper();
+        JunitHelper junitHelper = JunitHelper.getInstance();
         int port = junitHelper.findAvailablePort();
         final VitamServer server = VitamServerFactory.newVitamServer(port);
         assertEquals(port, server.getPort());
@@ -130,7 +130,7 @@ public class VitamServerFactoryTest {
 
     @Test
     public final void testSetterGetter() {
-        JunitHelper junitHelper = new JunitHelper();
+        JunitHelper junitHelper = JunitHelper.getInstance();
         int port = junitHelper.findAvailablePort();
         int oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(port);

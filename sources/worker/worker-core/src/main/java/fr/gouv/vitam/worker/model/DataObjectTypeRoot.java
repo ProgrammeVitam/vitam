@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.model;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
+
 /**
  * The override of the generated pojo is needed to describe it as a root element to generate the XML Stream
  */

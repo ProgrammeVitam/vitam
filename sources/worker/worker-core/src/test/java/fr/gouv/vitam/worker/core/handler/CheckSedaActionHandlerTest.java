@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,9 +45,9 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -58,8 +59,8 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({SedaUtilsFactory.class})
 public class CheckSedaActionHandlerTest {
-    CheckSedaActionHandler handler = new CheckSedaActionHandler();;
-    private static final String HANDLER_ID = "checkSeda";
+    CheckSedaActionHandler handler = new CheckSedaActionHandler();
+    private static final String HANDLER_ID = "CHECK_SEDA";
     private HandlerIO action;
     private SedaUtils sedaUtils;
 
@@ -76,60 +77,57 @@ public class CheckSedaActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject());
         when(sedaUtils.getMessageIdentifier(anyObject())).thenThrow(new ProcessingException(""));
+        assertNotNull(CheckSedaActionHandler.getId());
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
     @Test
     public void givenWorkspaceWhenXmlExistThenReturnResponseOK()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(anyObject());
-        assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
     public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(anyObject());
-        assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
     @Test
     public void givenWorkspaceWhenFileNotXmlThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XML_FILE).when(sedaUtils).checkSedaValidation(anyObject());
-        assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
     @Test
     public void givenWorkspaceWhenXmlNotThereThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject());
-        assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
 }

@@ -28,7 +28,7 @@ package fr.gouv.vitam.functional.administration.common.exception;
 
 /**
  * FileRulesException manage File Rules Exception
- * 
+ *
  */
 public class FileRulesException extends ReferentialException {
 
@@ -57,17 +57,6 @@ public class FileRulesException extends ReferentialException {
      */
     public FileRulesException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FileRulesException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

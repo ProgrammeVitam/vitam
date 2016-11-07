@@ -59,6 +59,7 @@ import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
  * Process Distributor Resource implementation
  */
 @Path("/processing/v1/worker_family")
+// FIXME P0 should be server V2
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
 
@@ -86,7 +87,7 @@ public class ProcessDistributorResource {
 
     /**
      * Get the list of worker families
-     * 
+     *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
@@ -98,7 +99,7 @@ public class ProcessDistributorResource {
 
     /**
      * Interact with worker families
-     * 
+     *
      * @param headers http header
      * @param query the query
      * @return Response NOT_IMPLEMENTED
@@ -112,7 +113,7 @@ public class ProcessDistributorResource {
 
     /**
      * Get the list of worker families
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @return Response NOT_IMPLEMENTED
@@ -126,7 +127,7 @@ public class ProcessDistributorResource {
 
     /**
      * Add a new worker family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param query the query describing the worker family to be created
@@ -143,7 +144,7 @@ public class ProcessDistributorResource {
 
     /**
      * Update a specific worker family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param query the query describing the worker family to be updated
@@ -160,7 +161,7 @@ public class ProcessDistributorResource {
 
     /**
      * Delete a specific worker family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param query the query describing the worker family to be deleted
@@ -178,7 +179,7 @@ public class ProcessDistributorResource {
 
     /**
      * Get the list of workers for a specific family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @return Response NOT_IMPLEMENTED
@@ -192,7 +193,7 @@ public class ProcessDistributorResource {
 
     /**
      * Delete workers for a specific family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param query the query describing the workers to be deleted
@@ -210,7 +211,7 @@ public class ProcessDistributorResource {
 
     /**
      * Get status of a specific worker
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param idWorker the id of the worker
@@ -226,7 +227,7 @@ public class ProcessDistributorResource {
 
     /**
      * Register a new worker
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param idWorker the id of the worker
@@ -244,21 +245,21 @@ public class ProcessDistributorResource {
             GlobalDatasParser.sanityRequestCheck(workerInformation);
             distributor.registerWorker(idFamily, idWorker, workerInformation);
 
-        } catch (ProcessingBadRequestException | InvalidParseOperationException exc) {            
+        } catch (ProcessingBadRequestException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
-        } catch (WorkerAlreadyExistsException exc) {
+        } catch (final WorkerAlreadyExistsException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         }
-        return Response.status(Status.OK).entity("{\"success\" :\"Worker "+ idWorker +" created \"}").build();
+        return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " created \"}").build();
     }
 
     /**
      * Update a specific worker
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param idWorker the id of the worker
@@ -276,7 +277,7 @@ public class ProcessDistributorResource {
 
     /**
      * Unregister a specific worker family
-     * 
+     *
      * @param headers http header
      * @param idFamily the id of the family
      * @param idWorker the id of the worker
@@ -294,7 +295,7 @@ public class ProcessDistributorResource {
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
         }
-        return Response.status(Status.OK).entity("{\"success\" :\"Worker "+ idWorker +" deleted \"}").build();
+        return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();
     }
 
 }

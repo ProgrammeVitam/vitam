@@ -55,7 +55,7 @@ public enum WorkerParameterName {
      */
     containerName,
     /**
-     *  Name/path of the object to be processed
+     * Name/path of the object to be processed
      */
     objectName,
     /**
@@ -67,11 +67,15 @@ public enum WorkerParameterName {
      */
     workerGUID,
     /**
-     *  Request to be executed by the metadata module (not used for now, except in test classes)
+     * Request to be executed by the metadata module (not used for now, except in test classes)
      */
     metadataRequest,
     /**
      * Current name of the step to be processed
      */
-    currentStep
+    currentStep,
+    /**
+     * If Current Workflow status is greater or equal ko 
+     */
+    workflowStatusKo
 }

@@ -165,6 +165,7 @@ public class Insert extends RequestMultiple {
     /**
      * @return the data
      */
+    @Override
     public final ObjectNode getData() {
         if (data == null) {
             return JsonHandler.createObjectNode();

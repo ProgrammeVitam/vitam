@@ -62,7 +62,7 @@ public class CheckObjectsNumberMessageTest {
             CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage());
 
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void valueOfCheckObjectsNumberError() {
         CheckObjectsNumberMessage.valueOf("test");

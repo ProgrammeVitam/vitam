@@ -30,14 +30,14 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
- * GUID Factory <br>
- * <br>
+ * GUID Factory <br> <br>
  * Usage:<br>
  * One should use the appropriate helper according to the type of the object for the GUID.<br>
  * For instance: for a Unit newUnitGUID(tenantId);<br>
  * <br>
  * <b>No one should not in general use directly newGUID helpers.</b><br>
  */
+
 public final class GUIDFactory {
     private static final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
 
@@ -180,9 +180,22 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    public static final GUID newOperationIdGUID(final int tenantId) {
-        final int type = GUIDObjectType.OPERATIONID_TYPE;
+    public static final GUID newEventGUID(final int tenantId) {
+        final int type = GUIDObjectType.EVENT_TYPE;
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
+    /**
+     * Create an Event GUID (within Operation or Lifecycle Logbooks)
+     *
+     * @param logbookGUID GUID of corresponding Logbook
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newEventGUID(final GUID logbookGUID) {
+        final int type = GUIDObjectType.EVENT_TYPE;
+        return new GUIDImplPrivate(type, logbookGUID.getTenantId(), serverIdentity.getPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
 
@@ -208,6 +221,19 @@ public final class GUIDFactory {
      */
     public static final GUID newManifestGUID(final int tenantId) {
         final int type = GUIDObjectType.MANIFEST_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
+    /**
+     * Create a Accession register summary GUID
+     *
+     * @param tenantId tenant id between 0 and 2^30-1
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newAccessionRegisterSummaryGUID(final int tenantId) {
+        final int type = GUIDObjectType.ACCESSION_REGISTER_SUMMARY_TYPE;
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }

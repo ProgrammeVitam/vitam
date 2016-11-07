@@ -51,24 +51,25 @@ public class WorkerParametersSerializerTest {
         final WorkerParametersSerializer workerParametersSerializer = new WorkerParametersSerializer();
         final WorkerParametersDeserializer workerParametersdeSerializer = new WorkerParametersDeserializer();
         final DefaultWorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         for (final WorkerParameterName value : WorkerParameterName.values()) {
             parameters.putParameterValue(value, value.name());
         }
-        
+
         assertNotNull(parameters);
 
-        StringWriter stringJson = new StringWriter();
-        JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
-        SerializerProvider serializerProvider = mapper.getSerializerProvider();
+        final StringWriter stringJson = new StringWriter();
+        final JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
+        final SerializerProvider serializerProvider = mapper.getSerializerProvider();
         workerParametersSerializer.serialize(parameters, generator, serializerProvider);
         generator.flush();
         assertNotNull(stringJson.toString());
-        
-        InputStream stream = new ByteArrayInputStream(stringJson.toString().getBytes(StandardCharsets.UTF_8));
-        JsonParser parser = mapper.getFactory().createParser(stream);
-        DeserializationContext ctxt = mapper.getDeserializationContext();
-        DefaultWorkerParameters parametersDeser = (DefaultWorkerParameters) workerParametersdeSerializer.deserialize(parser, ctxt);
+
+        final InputStream stream = new ByteArrayInputStream(stringJson.toString().getBytes(StandardCharsets.UTF_8));
+        final JsonParser parser = mapper.getFactory().createParser(stream);
+        final DeserializationContext ctxt = mapper.getDeserializationContext();
+        final DefaultWorkerParameters parametersDeser =
+            (DefaultWorkerParameters) workerParametersdeSerializer.deserialize(parser, ctxt);
         assertTrue(parametersDeser.getContainerName().equals(parameters.getContainerName()));
         assertTrue(parametersDeser.getCurrentStep().equals(parameters.getCurrentStep()));
         assertTrue(parametersDeser.getMetadataRequest().equals(parameters.getMetadataRequest()));

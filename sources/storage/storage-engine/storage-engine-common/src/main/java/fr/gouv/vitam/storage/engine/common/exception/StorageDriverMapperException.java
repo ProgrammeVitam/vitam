@@ -34,6 +34,11 @@ package fr.gouv.vitam.storage.engine.common.exception;
 public class StorageDriverMapperException extends StorageException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -2554398476938127836L;
+
+    /**
      * @param message associated message
      */
     public StorageDriverMapperException(String message) {
@@ -53,16 +58,5 @@ public class StorageDriverMapperException extends StorageException {
      */
     public StorageDriverMapperException(String messsage, Throwable cause) {
         super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageDriverMapperException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

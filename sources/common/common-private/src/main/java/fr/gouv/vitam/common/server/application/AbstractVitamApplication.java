@@ -26,7 +26,6 @@
  *******************************************************************************/
 
 package fr.gouv.vitam.common.server.application;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -49,7 +48,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
     private Handler applicationHandler;
     private final Class<A> applicationType;
     private final Class<C> configurationType;
-
+    
     /**
      * Protected constructor assigning application and configuration types Usage example in sub-implementation : class
      * MyApplication extends AbstractVitamApplication<MyApplication, MyApplicationConfiguration> { protected

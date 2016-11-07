@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * elasticsearch server package in vitam
+ * Elasticsearch server package in Vitam
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;

@@ -153,6 +153,7 @@ public class Update extends RequestMultiple {
     /**
      * @return the actions list
      */
+    @Override
     public final List<Action> getActions() {
         return actions;
     }

@@ -48,66 +48,114 @@ public class StoredInfoResult {
     @JsonProperty("last_modified_time")
     private String lastModifiedTime;
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * @return the info
+     */
     public String getInfo() {
         return info;
     }
 
+    /**
+     * @param info
+     */
     public void setInfo(String info) {
         this.info = info;
     }
 
+    /**
+     * @return the objectGroup Id
+     */
     public String getObjectGroupId() {
         return objectGroupId;
     }
 
+    /**
+     * @param objectGroupId
+     */
     public void setObjectGroupId(String objectGroupId) {
         this.objectGroupId = objectGroupId;
     }
 
+    /**
+     * @return the unitIds
+     */
     public List<String> getUnitIds() {
         return unitIds;
     }
 
+    /**
+     * @param unitIds
+     */
     public void setUnitIds(List<String> unitIds) {
         this.unitIds = unitIds;
     }
 
+    /**
+     * @return the creation Time
+     */
     public String getCreationTime() {
         return creationTime;
     }
 
+    /**
+     * @param creationTime
+     */
     public void setCreationTime(String creationTime) {
         this.creationTime = creationTime;
     }
 
+    /**
+     * @return the Last access Time
+     */
     public String getLastAccessTime() {
         return lastAccessTime;
     }
 
+    /**
+     * @param lastAccessTime
+     */
     public void setLastAccessTime(String lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
     }
 
+    /**
+     * @return the Last checked Time
+     */
     public String getLastCheckedTime() {
         return lastCheckedTime;
     }
 
+    /**
+     * @param lastCheckedTime
+     */
     public void setLastCheckedTime(String lastCheckedTime) {
         this.lastCheckedTime = lastCheckedTime;
     }
 
+    /**
+     * @return the Last modified Time
+     */
     public String getLastModifiedTime() {
         return lastModifiedTime;
     }
 
+    /**
+     * @param lastModifiedTime
+     */
     public void setLastModifiedTime(String lastModifiedTime) {
         this.lastModifiedTime = lastModifiedTime;
     }

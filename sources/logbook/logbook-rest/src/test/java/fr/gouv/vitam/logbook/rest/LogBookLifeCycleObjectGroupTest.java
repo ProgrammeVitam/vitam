@@ -30,6 +30,8 @@ import static com.jayway.restassured.RestAssured.given;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -45,18 +47,18 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -77,10 +79,11 @@ public class LogBookLifeCycleObjectGroupTest {
     private static MongodProcess mongod;
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
+    private static final String LIFE_OBJECT_GROUP_URI = "/operations/{id_op}/objectgrouplifecycles";
 
     private static int databasePort;
     private static int serverPort;
-
+    private static LogbookApplication application;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLCObjectGroupParametersAppend;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
@@ -93,7 +96,7 @@ public class LogBookLifeCycleObjectGroupTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -105,19 +108,21 @@ public class LogBookLifeCycleObjectGroupTest {
         mongod = mongodExecutable.start();
         serverPort = junitHelper.findAvailablePort();
 
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
 
         try {
-            LogbookConfiguration logbookConf = new LogbookConfiguration();
+            final LogbookConfiguration logbookConf = new LogbookConfiguration();
             logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
             logbookConf.setJettyConfig(JETTY_CONFIG);
-            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-            LogbookApplication.run(logbookConf);
+            application = new LogbookApplication(logbookConf);
+            application.start();
 
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
+            JunitHelper.unsetJettyPortSystemProperty();
+
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -132,7 +137,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         logbookLifeCyclesObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCyclesObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -159,7 +164,7 @@ public class LogBookLifeCycleObjectGroupTest {
         final GUID ioL2 = GUIDFactory.newUnitGUID(0);
         logbookLifeCyclesObjectGroupParametersUpdate =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCyclesObjectGroupParametersUpdate.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesObjectGroupParametersUpdate.setStatus(StatusCode.STARTED);
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifier,
             eip2.toString());
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -172,7 +177,7 @@ public class LogBookLifeCycleObjectGroupTest {
          */
 
         logbookLCObjectGroupParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLCObjectGroupParametersAppend.setStatus(LogbookOutcome.OK);
+        logbookLCObjectGroupParametersAppend.setStatus(StatusCode.OK);
         logbookLCObjectGroupParametersAppend.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             iop.toString());
         logbookLCObjectGroupParametersAppend.putParameterValue(LogbookParameterName.objectIdentifier,
@@ -184,7 +189,9 @@ public class LogBookLifeCycleObjectGroupTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -249,7 +256,7 @@ public class LogBookLifeCycleObjectGroupTest {
         // update ok
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
-        logbookLifeCyclesObjectGroupParametersStart.setStatus(LogbookOutcome.OK);
+        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
@@ -274,6 +281,25 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        // Test Iterator
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
+            .when()
+            .get(LIFE_OBJECT_GROUP_URI,
+                logbookLifeCyclesObjectGroupParametersStart
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
+
+                @Override
+                public boolean matches(Object item) {
+                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                }
+
+                @Override
+                public void describeTo(Description description) {}
+            });
     }
 
     @Test

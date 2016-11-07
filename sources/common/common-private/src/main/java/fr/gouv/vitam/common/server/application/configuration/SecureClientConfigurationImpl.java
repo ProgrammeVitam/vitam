@@ -57,39 +57,40 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
      * @throws IllegalArgumentException if serverHost is null or empty or serverPort <= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort) {
-        this(serverHost, serverPort, true, new SSLConfiguration(),true);
-   
+        this(serverHost, serverPort, true, new SSLConfiguration(), true);
+
     }
-    
+
     /**
      * ClientConfiguration constructor
      *
      * @param serverHost server IP address
      * @param serverPort server port
-     * @param secure  HTTP/HTTPS
+     * @param secure HTTP/HTTPS
      * @throws IllegalArgumentException if configuration param is null or empty or serverPort <= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure) {
         this(serverHost, serverPort, secure, new SSLConfiguration(), true);
-   
+
     }
-    
-    
+
+
     /**
      * ClientConfiguration constructor
      *
      * @param serverHost server IP address
      * @param serverPort server port
-     * @param secure  HTTP/HTTPS
+     * @param secure HTTP/HTTPS
      * @param SSLConfiguration
      * @throws IllegalArgumentException if configuration param is null or empty or serverPort <= 0
      */
-    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure, SSLConfiguration sslConfiguration) {
+    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
+        SSLConfiguration sslConfiguration) {
         this(serverHost, serverPort, secure, sslConfiguration, true);
-   
+
     }
-    
-    
+
+
     /**
      * ClientConfiguration constructor
      *
@@ -97,17 +98,18 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
      * @param serverPort server port
      * @throws IllegalArgumentException if any configuration param is null or empty or serverPort <= 0
      */
-    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure, SSLConfiguration sslConfiguration, boolean hostnameVerification) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, serverHost, secure, 
+    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
+        SSLConfiguration sslConfiguration, boolean hostnameVerification) {
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, serverHost, secure,
             sslConfiguration, hostnameVerification);
         if (serverPort <= 0) {
             throw new IllegalArgumentException("Port most be positive");
         }
         this.serverHost = serverHost;
         this.serverPort = serverPort;
-        this.secure=secure;
-        this.hostnameVerification=hostnameVerification;
-        this.sslConfiguration=sslConfiguration;
+        this.secure = secure;
+        this.hostnameVerification = hostnameVerification;
+        this.sslConfiguration = sslConfiguration;
     }
 
     @Override
@@ -119,7 +121,7 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
     public int getServerPort() {
         return serverPort;
     }
-    
+
     @Override
     public boolean isSecure() {
         return secure;
@@ -130,7 +132,7 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
     public boolean isHostnameVerification() {
         return hostnameVerification;
     }
-    
+
     @Override
     public SSLConfiguration getSslConfiguration() {
         return sslConfiguration;
@@ -159,7 +161,7 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
         this.serverPort = serverPort;
         return this;
     }
-    
+
     /**
      * @param hostnameVerification the hostnameVerification to set
      * @return this
@@ -170,7 +172,7 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
         this.hostnameVerification = hostnameVerification;
         return this;
     }
-    
+
 
     /**
      * @param secure the secure to set
@@ -193,7 +195,7 @@ public class SecureClientConfigurationImpl implements SecureClientConfiguration 
         this.sslConfiguration = sslConfiguration;
         return this;
     }
-    
-    
-    
+
+
+
 }

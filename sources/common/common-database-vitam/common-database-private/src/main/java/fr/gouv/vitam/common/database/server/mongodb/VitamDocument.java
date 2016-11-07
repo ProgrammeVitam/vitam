@@ -77,7 +77,7 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     * check if Id is valid 
+     * check if Id is valid
      *
      * @return this
      * @throws IllegalArgumentException if Id is not a GUID

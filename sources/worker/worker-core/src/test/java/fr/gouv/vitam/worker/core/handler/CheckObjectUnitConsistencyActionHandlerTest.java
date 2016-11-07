@@ -27,24 +27,29 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -54,23 +59,26 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
-
-@PrepareForTest({WorkspaceClientFactory.class})
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class})
 public class CheckObjectUnitConsistencyActionHandlerTest {
-    
+
     CheckObjectUnitConsistencyActionHandler handler;
-    private static final String HANDLER_ID = "CheckObjectUnitConsistency";
-    
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
+
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String OG_AU = "OG_TO_ARCHIVE_ID_MAP_obj.json";
-    
+
     private static final String EMPTY = "EMPTY_MAP.json";
-    
+
     private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
+    
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setContainerName(OBJ).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ)
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
     private HandlerIO action;
 
@@ -78,39 +86,49 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        PowerMockito.when(factory.getClient()).thenReturn(logbookLifeCyclesClient);
+        
         action = new HandlerIO("");
     }
 
     @Test
-    public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK() 
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, IOException, ProcessingException {
-        
-        action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
-        action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
-        
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-                
+    public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, IOException, ProcessingException {
+
+        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
+        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
+
+
+
         handler = new CheckObjectUnitConsistencyActionHandler();
-        
+
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(1);
     }
-    
+
     @Test
-    public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO() 
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, IOException, ProcessingException {
-        
-        action.addInput(PropertiesUtils.getResourcesFile(OG_AU));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-                
+    public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, IOException, ProcessingException {
+
+        action.addInput(PropertiesUtils.getResourceFile(OG_AU));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         handler = new CheckObjectUnitConsistencyActionHandler();
-        
+
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
     }
 
 }

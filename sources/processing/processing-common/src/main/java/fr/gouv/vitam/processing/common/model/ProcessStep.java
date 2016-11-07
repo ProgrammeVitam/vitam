@@ -26,28 +26,37 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Step Object in process workflow
  */
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessStep extends Step {
-
+    private String id;
     private long elementProcessed;
     private long elementToProcess;
     private StatusCode stepStatusCode;
-    
 
+    
     /**
      * Constructor to initalize a Process Step with a Step object
-     * 
-     * @param step the Step object 
+     *
+     * @param step the Step object
+     * @param containerName the container name concerned by the process
+     * @param workflowId the workflow ID concerned by the process
+     * @param position the position of the step
      * @param elementToProcess number of element to process
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, long elementToProcess, long elementProcessed) throws IllegalArgumentException {
+    public ProcessStep(Step step, long elementToProcess, long
+        elementProcessed) {
         ParametersChecker.checkParameter("Step could not be null", step);
         this.setActions(step.getActions());
         this.setDistribution(step.getDistribution());
@@ -56,11 +65,37 @@ public class ProcessStep extends Step {
         this.setWorkerGroupId(step.getWorkerGroupId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
-        
     }
-    
 
-    //Used for tests
+    /**
+     * Constructor to initalize a Process Step with a Step object
+     *
+     * @param step the Step object
+     * @param containerName the container name concerned by the process
+     * @param workflowId the workflow ID concerned by the process
+     * @param position the position of the step
+     * @param elementToProcess number of element to process
+     * @param elementProcessed number of element processed
+     * @throws IllegalArgumentException if the step is null
+     */
+    public ProcessStep(Step step, String containerName, String workflowId, int position, long elementToProcess, long
+        elementProcessed) {
+        ParametersChecker.checkParameter("containerName could not be null", containerName);
+        ParametersChecker.checkParameter("workflowId could not be null", workflowId);
+        ParametersChecker.checkParameter("position could not be null", position);
+        ParametersChecker.checkParameter("Step could not be null", step);
+        this.id = containerName + "_" + workflowId + "_" + position + "_" + step.getStepName();
+        this.setActions(step.getActions());
+        this.setDistribution(step.getDistribution());
+        this.setStepName(step.getStepName());
+        this.setBehavior(step.getBehavior());
+        this.setWorkerGroupId(step.getWorkerGroupId());
+        this.elementProcessed = elementProcessed;
+        this.elementToProcess = elementToProcess;
+    }
+
+
+    // Used for tests
     ProcessStep() {
 
     }
@@ -98,7 +133,7 @@ public class ProcessStep extends Step {
         this.elementToProcess = elementToProcess;
         return this;
     }
-    
+
     /**
      * @return the stepStatusCode
      */
@@ -116,4 +151,31 @@ public class ProcessStep extends Step {
         return this;
     }
 
+    /**
+     * @return process unique ID
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Considered equal two ProcessStep with the same id, step name and worker group id.
+     */
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof ProcessStep) {
+            ProcessStep processStep = (ProcessStep) object;
+            return this.id.equals(processStep.getId()) && this.getStepName().equals(processStep.getStepName()) &&
+                this.getWorkerGroupId().equals(processStep.getWorkerGroupId());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.id, this.getStepName(), this.getWorkerGroupId());
+    }
 }

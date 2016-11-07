@@ -62,7 +62,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * Integration driver offer tests
@@ -87,13 +87,14 @@ public class DriverToOfferTest {
 
     private static Connection connection;
     private static String guid;
+    private static DefaultOfferApplication application;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = 8784;
 
         RestAssured.port = serverPort;
@@ -102,18 +103,18 @@ public class DriverToOfferTest {
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final DefaultOfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
-        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            DefaultOfferApplication.startApplication(new String[] {
-                workspaceOffer.getAbsolutePath()});
-        } catch (VitamApplicationServerException e) {
+            application = new DefaultOfferApplication(realWorkspaceOffer);
+            application.start();
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
-                "Cannot start the Default Offer Application Server", e);
+                "Cannot start the Wokspace Offer Application Server", e);
         }
-
+        
         driver = new DriverImpl();
     }
 
@@ -124,14 +125,14 @@ public class DriverToOfferTest {
         }
         junitHelper.releasePort(serverPort);
 
-
-        DefaultOfferApplication.stop();
+        application.stop();
+        
         // delete files
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
-        File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
-        File object = new File(folder.getAbsolutePath(), guid);
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
+        final File container = new File(conf.getStoragePath() + "/1");
+        final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
+        final File object = new File(folder.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
         Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
@@ -145,22 +146,23 @@ public class DriverToOfferTest {
         PutObjectRequest request = null;
         guid = GUIDFactory.newObjectGUID(1).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
+            final MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
                 request = new PutObjectRequest("1", DigestType.SHA256.getName(), guid, digestInputStream,
                     DataCategory.UNIT.name());
-                PutObjectResult result = connection.putObject(request);
+                final PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                    StorageConfiguration.class);
-                File container = new File(conf.getStoragePath() + "/1");
+                final WorkspaceConfiguration conf =
+                    PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+                        WorkspaceConfiguration.class);
+                final File container = new File(conf.getStoragePath() + "/1");
                 assertNotNull(container);
-                File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
+                final File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
                 assertNotNull(object);
                 assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
 
-                String digestToCheck = result.getDigestHashBase16();
+                final String digestToCheck = result.getDigestHashBase16();
                 assertNotNull(digestToCheck);
                 assertEquals(digestToCheck, BaseXx.getBase16(messageDigest.digest()));
             }
@@ -170,11 +172,11 @@ public class DriverToOfferTest {
             request = new PutObjectRequest(null, DigestType.SHA256.getName(), guid, fin, DataCategory.UNIT.name());
             connection.putObject(request);
             fail("Should have an exception !");
-        } catch (StorageDriverException exc) {
+        } catch (final StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
 
-        GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
+        final GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
         connection.getObject(getRequest);
     }
 }

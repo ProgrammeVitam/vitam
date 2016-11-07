@@ -26,7 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.query;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.flt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.matchPhrase;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.wildcard;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -38,7 +64,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 

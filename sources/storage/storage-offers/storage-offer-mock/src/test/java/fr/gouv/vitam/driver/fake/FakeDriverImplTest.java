@@ -59,7 +59,7 @@ public class FakeDriverImplTest {
 
     @Test(expected = StorageDriverException.class)
     public void givenIncorrectPropertiesThenRaiseAnException() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
         props.setProperty("fail", "fail");
         driver.connect("props", props);
     }
@@ -67,8 +67,8 @@ public class FakeDriverImplTest {
 
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
-        Properties props = new Properties();
-        Connection connect = driver.connect("props", props);
+        final Properties props = new Properties();
+        final Connection connect = driver.connect("props", props);
         assertNotNull(connect);
         StorageCapacityResult storageCapacityResult = connect.getStorageCapacity("0");
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
@@ -81,17 +81,18 @@ public class FakeDriverImplTest {
 
         }
 
-        GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0", "guid", "folder"));
+        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0" + this, "guid", "folder"));
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getObject());
-        PutObjectRequest putObjectRequest =
-            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam test"),
+        final PutObjectRequest putObjectRequest =
+            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam" +
+                " test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
-            PutObjectRequest putObjectRequest2 =
-                new PutObjectRequest("tenantId", "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
+            final PutObjectRequest putObjectRequest2 =
+                new PutObjectRequest("tenantId" + this, "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
                     "type");
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
@@ -99,14 +100,14 @@ public class FakeDriverImplTest {
 
         }
 
-        PutObjectRequest putObjectRequest3 =
-            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "digest_bad_test",
+        final PutObjectRequest putObjectRequest3 =
+            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "digest_bad_test",
                 IOUtils.toInputStream("Vitam test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest3));
 
         assertNotNull(connect.removeObject(new RemoveObjectRequest()));
-        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0", "already_in_offer", "folder")));
+        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0" + this, "already_in_offer", "folder")));
 
         connect.close();
     }
@@ -118,13 +119,13 @@ public class FakeDriverImplTest {
 
     @Test
     public void isStorageOfferAvailableOK() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
         assertEquals(true, driver.isStorageOfferAvailable("s", props));
     }
 
     @Test(expected = StorageDriverException.class)
     public void isStorageOfferAvailableKO() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
         props.setProperty("fail", "fail");
         assertEquals(true, driver.isStorageOfferAvailable("s", props));
     }

@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 
 /**
  * All collections in functional admin module
@@ -46,14 +48,24 @@ public enum FunctionalAdminCollections {
     /**
      * Rules Collection
      */
-    RULES(FileRules.class);
+    RULES(FileRules.class),
+    
+    /**
+     * Accession Register summary Collection
+     */
+    ACCESSION_REGISTER_SUMMARY(AccessionRegisterSummary.class),
+    
+    /**
+     * Accession Register detail Collection
+     */
+    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class);
 
     private VitamCollection vitamCollection;
 
     private FunctionalAdminCollections(final Class<?> clasz) {
         vitamCollection = VitamCollectionHelper.getCollection(clasz);
     }
-
+    
     /**
      * Initialize the collection
      *
@@ -77,7 +89,7 @@ public enum FunctionalAdminCollections {
      * @return the associated MongoCollection
      */
     @SuppressWarnings("rawtypes")
-    protected MongoCollection getCollection() {
+    public MongoCollection getCollection() {
         return vitamCollection.getCollection();
     }
 
@@ -91,8 +103,8 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @return the count of associated MongoCollection
      */
 

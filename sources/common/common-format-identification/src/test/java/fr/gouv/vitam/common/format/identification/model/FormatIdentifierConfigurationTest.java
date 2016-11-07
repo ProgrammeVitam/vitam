@@ -10,7 +10,7 @@ public class FormatIdentifierConfigurationTest {
 
     @Test
     public void testFormatIdentifierConfiguration() throws Exception {
-        FormatIdentifierConfiguration configuration = new FormatIdentifierConfiguration();
+        final FormatIdentifierConfiguration configuration = new FormatIdentifierConfiguration();
         configuration.setType(FormatIdentifierType.MOCK);
         configuration.getConfigurationProperties().put("host", "localhost");
         configuration.getConfigurationProperties().put("port", "55800");

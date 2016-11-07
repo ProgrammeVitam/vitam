@@ -34,6 +34,7 @@ import java.util.Set;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
+ * Worker parameters factory </br>
  * Factory to get WorkerParameters object
  *
  * Example:
@@ -54,7 +55,8 @@ import fr.gouv.vitam.common.ParametersChecker;
  *     }
  * </pre>
  */
-// TODO: see LogbookParametersFactory and create a common factory
+
+// FIXME P0 : see LogbookParametersFactory and create a common factory
 // for all "vitam parameters" using generic (for example)
 public class WorkerParametersFactory {
 
@@ -96,7 +98,7 @@ public class WorkerParametersFactory {
      *
      * @param processId unique id (GUID) of the workflow to be executed (can be null)
      * @param stepUniqId unique id of a step. The pattern of the id is :
-     *                   {CONTAINER_NAME}_{WORKFLOW_ID}_{STEP_RANK_IN_THE_WORKFLOW}_{STEP_NAME}
+     *        {CONTAINER_NAME}_{WORKFLOW_ID}_{STEP_RANK_IN_THE_WORKFLOW}_{STEP_NAME}
      * @param containerName name of the container to be uploaded
      * @param currentStep current name of the step to be processed
      * @param objectName name/path of the object to be processed
@@ -105,8 +107,8 @@ public class WorkerParametersFactory {
      * @return the new instance of WorkerParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName, String
-        currentStep, String objectName, String urlMetadata,
+    public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName,
+        String currentStep, String objectName, String urlMetadata,
         String urlWorkspace) {
         ParametersChecker.checkParameter("Parameters cannot be null or empty", processId, stepUniqId, containerName,
             currentStep, objectName,

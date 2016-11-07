@@ -9,3 +9,5 @@ Architecture Technique
    GUID.rst
    jetty.rst
    certs-auth.rst
+   format-identifier.rst
+   messages.rst

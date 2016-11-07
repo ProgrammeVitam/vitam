@@ -38,16 +38,18 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
- * Property Utility class <br>
- * <br>
+ * Property Utility class 
+ * 
  * NOTE for developers: Do not add LOGGER there
  */
+
 public final class PropertiesUtils {
 
     private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";
@@ -56,7 +58,7 @@ public final class PropertiesUtils {
     private PropertiesUtils() {
         // Empty
     }
-
+    
     /**
      * Get the InputStream representation from the local path to the Resources directory
      *
@@ -64,7 +66,22 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException
      */
-    public static final InputStream getResourcesAsStream(String resourcesFile)throws FileNotFoundException {
+    public static final InputStream getConfigAsStream(String resourcesFile) throws FileNotFoundException {
+        File file = new File(resourcesFile);
+        if (!file.canRead()) {
+            file = PropertiesUtils.fileFromConfigFolder(resourcesFile);
+        }
+        return file.canRead() ? new FileInputStream(file) : getResourceAsStream(resourcesFile);
+    }
+
+    /**
+     * Get the InputStream representation from the Resources directory
+     *
+     * @param resourcesFile properties file from resources directory
+     * @return the associated File
+     * @throws FileNotFoundException
+     */
+    public static final InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -88,7 +105,7 @@ public final class PropertiesUtils {
         }
         return stream;
     }
-    
+
     /**
      * Get the File representation from the local path to the Resources directory
      *
@@ -96,7 +113,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException
      */
-    public static final File getResourcesFile(String resourcesFile) throws FileNotFoundException {
+    public static final File getResourceFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -134,8 +151,8 @@ public final class PropertiesUtils {
      * @return the associated Path
      * @throws FileNotFoundException
      */
-    public static final Path getResourcesPath(String resourcesFile) throws FileNotFoundException {
-        return getResourcesFile(resourcesFile).toPath();
+    public static final Path getResourcePath(String resourcesFile) throws FileNotFoundException {
+        return getResourceFile(resourcesFile).toPath();
     }
 
     /**
@@ -155,7 +172,7 @@ public final class PropertiesUtils {
                 file = fileFromConfigFolder(filename);
                 if (!file.exists()) {
                     // Third try using Resources
-                    file = getResourcesFile(filename);
+                    file = getResourceFile(filename);
                 }
 
             }
@@ -243,6 +260,28 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+        } catch (RuntimeException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     *
+     * @param yamlFile
+     * @param typeReference the type reference representing the target interface object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(File yamlFile, TypeReference<C> typeReference) throws IOException {
+        if (yamlFile == null || typeReference == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
+            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            return mapper.readValue(yamlFileReader, typeReference);
+        } catch (RuntimeException e) {
+            throw new IOException(e);
         }
     }
 
@@ -259,7 +298,11 @@ public final class PropertiesUtils {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return clasz.cast(mapper.readValue(yamlInputStream, clasz));
+        try {
+            return clasz.cast(mapper.readValue(yamlInputStream, clasz));
+        } catch (RuntimeException e) {
+            throw new IOException(e);
+        }
     }
 
     /**
@@ -280,7 +323,7 @@ public final class PropertiesUtils {
 
     /**
      * Write the Yaml file
-     * 
+     *
      * @param destination the destination file
      * @param config the configuration object to write using Yaml format
      * @throws IOException

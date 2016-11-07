@@ -36,7 +36,6 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
@@ -49,6 +48,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -59,6 +60,7 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 /**
  * Server application for ihm-demo
  */
+// FIXME P0 should be server V2 ???
 public class ServerApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
@@ -129,8 +131,8 @@ public class ServerApplication {
             throw new VitamApplicationServerException("Configuration not found");
         }
 
-        if (!StringUtils.isBlank(configuration.getJettyConfig())) {
-            String jettyConfig = configuration.getJettyConfig();
+        if (!Strings.isNullOrEmpty(configuration.getJettyConfig())) {
+            final String jettyConfig = configuration.getJettyConfig();
             vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         } else {
             throw new VitamApplicationServerException("jetty config is mandatory");
@@ -150,14 +152,14 @@ public class ServerApplication {
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
                 restResourceContext.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }
             restResourceContext.addEventListener(new EnvironmentLoaderListener());
             restResourceContext.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR));
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
 
         restResourceContext.setContextPath(configuration.getBaseUrl());
@@ -173,7 +175,7 @@ public class ServerApplication {
         staticContentHandler.setResourceBase(webAppDir.toURI().toString());
 
         // wrap to context handler
-        ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
+        final ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
         staticContext.setHandler(staticContentHandler);
 
         // Set Handlers (Static content and REST API)
@@ -205,6 +207,7 @@ public class ServerApplication {
 
     /**
      * Sets the WebApplicationConfig attribute
+     * @param webConfiguration 
      *
      */
     public static void setWebApplicationConfig(WebApplicationConfig webConfiguration) {

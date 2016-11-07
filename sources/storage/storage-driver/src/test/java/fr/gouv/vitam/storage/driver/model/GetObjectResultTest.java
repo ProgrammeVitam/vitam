@@ -50,7 +50,7 @@ public class GetObjectResultTest {
     public void testGetTenentId() {
         assertEquals("ti", getObjectResult.getTenantId());
     }
-    
+
     @Test
     public void testGetResultStream() {
         assertEquals(BYTES, getObjectResult.getObject());

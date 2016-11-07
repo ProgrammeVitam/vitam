@@ -43,7 +43,7 @@ public class CreateObjectDescription {
 
     /**
      * Constructor.
-     * 
+     *
      * @param workspaceContainerGUID workspace container id
      * @param workspaceObjectURI workspace object URI
      */
@@ -52,18 +52,30 @@ public class CreateObjectDescription {
         this.workspaceObjectURI = workspaceObjectURI;
     }
 
+    /**
+     * @return workspaceObjectURI
+     */
     public String getWorkspaceObjectURI() {
         return workspaceObjectURI;
     }
 
+    /**
+     * @param workspaceObjectURI
+     */
     public void setWorkspaceObjectURI(String workspaceObjectURI) {
         this.workspaceObjectURI = workspaceObjectURI;
     }
 
+    /**
+     * @return workspaceContainerGUID
+     */
     public String getWorkspaceContainerGUID() {
         return workspaceContainerGUID;
     }
 
+    /**
+     * @param workspaceContainerGUID
+     */
     public void setWorkspaceContainerGUID(String workspaceContainerGUID) {
         this.workspaceContainerGUID = workspaceContainerGUID;
     }

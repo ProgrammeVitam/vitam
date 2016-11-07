@@ -31,6 +31,8 @@ import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -47,19 +49,19 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -79,13 +81,14 @@ public class LogBookLifeCycleUnitTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogBookLifeCycleUnitTest.class);
 
     private static final String REST_URI = "/logbook/v1";
-    
+
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String SERVER_HOST = "localhost";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
 
     private static final String LIFE_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}";
+    private static final String LIFE_UNIT_URI = "/operations/{id_op}/unitlifecycles";
     private static final String LIFE_OG_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
     private static final String COMMIT_OG_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit";
     private static final String COMMIT_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}/commit";
@@ -101,6 +104,7 @@ public class LogBookLifeCycleUnitTest {
 
     private static int databasePort;
     private static int serverPort;
+    private static LogbookApplication application;
 
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersBAD;
@@ -114,9 +118,9 @@ public class LogBookLifeCycleUnitTest {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        
 
-        junitHelper = new JunitHelper();
+
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -124,23 +128,23 @@ public class LogBookLifeCycleUnitTest {
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
-        
+
         mongod = mongodExecutable.start();
         serverPort = junitHelper.findAvailablePort();
-        
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+
+        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         try {
-            LogbookConfiguration logbookConf = new LogbookConfiguration();
+            final LogbookConfiguration logbookConf = new LogbookConfiguration();
             logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
             logbookConf.setJettyConfig(JETTY_CONFIG);
-            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-            LogbookApplication.run(logbookConf);
-            
+            application = new LogbookApplication(logbookConf);
+            application.start();
+
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
-            
+            JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -153,7 +157,7 @@ public class LogBookLifeCycleUnitTest {
 
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -179,7 +183,7 @@ public class LogBookLifeCycleUnitTest {
         final GUID iop2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID ioL2 = GUIDFactory.newUnitGUID(0);
         logbookLifeCyclesUnitParametersUpdate = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersUpdate.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesUnitParametersUpdate.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifier,
             eip2.toString());
         logbookLifeCyclesUnitParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -196,7 +200,7 @@ public class LogBookLifeCycleUnitTest {
 
         LogbookLifeCycleObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        LogbookLifeCycleObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        LogbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         LogbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         LogbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -209,7 +213,9 @@ public class LogBookLifeCycleUnitTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -268,7 +274,7 @@ public class LogBookLifeCycleUnitTest {
         // update ok
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.OK);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.OK);
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersStart.toString())
@@ -289,7 +295,27 @@ public class LogBookLifeCycleUnitTest {
                 "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
+        
 
+        // Test Iterator
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
+            .when()
+            .get(LIFE_UNIT_URI,
+                logbookLifeCyclesUnitParametersStart
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
+
+                @Override
+                public boolean matches(Object item) {
+                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                }
+
+                @Override
+                public void describeTo(Description description) {}
+            });
     }
 
     @Test
@@ -483,8 +509,8 @@ public class LogBookLifeCycleUnitTest {
 
     @Test
     public void testGetUnitLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
-        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        LogbookLifeCycleUnit logbookLifecycleUnit = new LogbookLifeCycleUnit(LIFECYCLE_SAMPLE);
+        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        final LogbookLifeCycleUnit logbookLifecycleUnit = new LogbookLifeCycleUnit(LIFECYCLE_SAMPLE);
         when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenReturn(logbookLifecycleUnit);
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get(SELECT_UNIT_BY_ID_URI);
@@ -494,7 +520,7 @@ public class LogBookLifeCycleUnitTest {
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
-        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenThrow(LogbookNotFoundException.class);
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get(SELECT_UNIT_BY_ID_URI);
@@ -502,8 +528,9 @@ public class LogBookLifeCycleUnitTest {
 
     @Test
     public void testGetObjectGroupLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
-        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        LogbookLifeCycleObjectGroup logbookLifecycleObjectGroup = new LogbookLifeCycleObjectGroup(LIFECYCLE_SAMPLE);
+        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        final LogbookLifeCycleObjectGroup logbookLifecycleObjectGroup =
+            new LogbookLifeCycleObjectGroup(LIFECYCLE_SAMPLE);
         when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenReturn(logbookLifecycleObjectGroup);
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
@@ -513,7 +540,7 @@ public class LogBookLifeCycleUnitTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
-        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);

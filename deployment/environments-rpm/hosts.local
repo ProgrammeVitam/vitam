@@ -39,17 +39,21 @@ localhost
 
 [zone-access:children]
 hosts-ingest-external
+hosts-access-external
 
 [hosts-ingest-external]
+localhost
+
+[hosts-access-external]
 localhost
 
 ##### Zone applicative
 
 [zone-applicative:children]
-hosts-ingest
+hosts-ingest-internal
 hosts-processing
 hosts-worker
-hosts-access
+hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
@@ -62,10 +66,10 @@ localhost
 [hosts-workspace]
 localhost
 
-[hosts-ingest]
+[hosts-ingest-internal]
 localhost
 
-[hosts-access]
+[hosts-access-internal]
 localhost
 
 [hosts-metadata]
@@ -144,11 +148,11 @@ vitam_reverse_domain=
 
 consul_domain=consul
 vitam_ihm_demo_external_dns=localhost
-https_reverse_proxy=
-proxy_host=
-proxy_port=
 rpm_version=*
-days_to_delete=30
+days_to_delete=3
+days_to_close=2
+days_to_delete_topbeat=3
+days_to_delete_local=2
 dns_servers=["10.100.211.222","8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m" 

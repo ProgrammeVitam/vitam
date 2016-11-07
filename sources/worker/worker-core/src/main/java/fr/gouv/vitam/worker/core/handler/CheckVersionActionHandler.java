@@ -30,11 +30,10 @@ import java.util.List;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
@@ -45,12 +44,10 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckVersionActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckVersionActionHandler.class);
-    private static final String HANDLER_ID = "CheckVersion";
+    private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
-     * @param factory SedaUtils factory
      */
     public CheckVersionActionHandler() {
         // empty constructor
@@ -64,33 +61,32 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckVersionActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.CHECK_VERSION_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         try {
             checkMandatoryIOParameter(actionDefinition);
-            List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
+            final List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (!versionInvalidList.isEmpty()) {
-                response.setErrorNumber(versionInvalidList.size());
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setData("errorNumber", versionInvalidList.size());
+            } else {
+                itemStatus.increment(StatusCode.OK);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
+            itemStatus.increment(StatusCode.FATAL);
         }
-
-        LOGGER.debug("CheckVersionActionHandler response: " + response.getStatus().name());
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Add Workspace:SIP/manifest.xml and check it
+        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 
 }

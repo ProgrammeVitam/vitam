@@ -37,13 +37,13 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -51,7 +51,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 public class LogbookLifeCyclesImplTest {
 
     private LogbookLifeCyclesImpl logbookLifeCyclesImpl;
-    private MongoDbAccess mongoDbAccess;
+    private LogbookDbAccess mongoDbAccess;
     private LogbookLifeCycleUnitParameters logbookLCUnitParameters;
     private LogbookLifeCycleObjectGroupParameters logbookLCOGParameters;
     final static GUID eip = GUIDFactory.newWriteLogbookGUID(0);// event identifier
@@ -63,7 +63,7 @@ public class LogbookLifeCyclesImplTest {
 
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -91,7 +91,7 @@ public class LogbookLifeCyclesImplTest {
 
         logbookLifeCycleObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCycleObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -115,7 +115,7 @@ public class LogbookLifeCyclesImplTest {
 
     @Before
     public void setUp() {
-        mongoDbAccess = mock(MongoDbAccess.class);
+        mongoDbAccess = mock(LogbookDbAccess.class);
         logbookLCUnitParameters = getCompleteLifeCycleUnitParameters();
         logbookLCOGParameters = getCompleteLifeCycleObjectGroupParameters();
     }

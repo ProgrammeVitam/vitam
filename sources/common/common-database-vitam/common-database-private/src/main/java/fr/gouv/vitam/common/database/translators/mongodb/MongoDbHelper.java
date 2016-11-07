@@ -48,7 +48,6 @@ public class MongoDbHelper {
     /**
      *
      * @param bson Bson
-     * @param indent boolean
      * @param indent if True, output will be indented.
      * @return the String representation of the Bson
      */

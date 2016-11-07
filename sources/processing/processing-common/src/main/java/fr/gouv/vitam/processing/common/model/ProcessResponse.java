@@ -32,19 +32,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- *
- * Process Response class
- *
- * contains global process status, messages and list of action results <br>
- * TODO : should become a real POJO, extract all methods that should not be in a POJO (getGlobalProcessStatusCode, etc)
+ * Process Response class</br>
+ * Contains global process status, messages and list of action results <br>
  */
 
+//TODO P1 : should become a real POJO, extract all methods that should not be in a POJO (getGlobalProcessStatusCode, etc)
 public class ProcessResponse implements EngineResponse {
 
     /**
@@ -74,12 +71,12 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * List of steps 's responses <br>
-     * TODO : remove interface to use a real POJO
      *
      * key is stepName
      *
      * object is list of response 's action
      */
+    //TODO P1 : remove interface to use a real POJO
     private Map<String, List<EngineResponse>> stepResponses;
 
     /**
@@ -123,7 +120,7 @@ public class ProcessResponse implements EngineResponse {
         if (outcomeMessages == null) {
             outcomeMessages = new HashMap<String, OutcomeMessage>();
         }
-        this.outcomeMessages.put(handlerId, message);
+        outcomeMessages.put(handlerId, message);
         return this;
     }
 
@@ -157,7 +154,7 @@ public class ProcessResponse implements EngineResponse {
     /**
      * getGlobalProcessStatusCode, return the global status of workflow processing
      *
-     * @param responses, list of step response
+     * @param responses list of step response
      * @return the status of StatusCode type
      */
     public StatusCode getGlobalProcessStatusCode(List<EngineResponse> responses) {
@@ -181,46 +178,48 @@ public class ProcessResponse implements EngineResponse {
     /**
      * getGlobalProcessOutcomeMessage, return the all outcome message of workflow processing
      *
-     * @param responses, message list
+     * @param responses message list
      * @return the global message
      */
     public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
-        StringBuilder globalOutcomeMessage = new StringBuilder();
-        Map<String,Integer> histogramResponse = new LinkedHashMap<>();
+        final StringBuilder globalOutcomeMessage = new StringBuilder();
+        final Map<String, Integer> histogramResponse = new LinkedHashMap<>();
         if (responses != null) {
-            
-            int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
+
+            final int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
-                    String key = new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
-                    Integer nb = histogramResponse.get(key);
-                    if (nb == null){
+                    final String key =
+                        new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
+                    final Integer nb = histogramResponse.get(key);
+                    if (nb == null) {
                         histogramResponse.put(key, 1);
-                    }else{
-                        histogramResponse.put(key, nb+1);
+                    } else {
+                        histogramResponse.put(key, nb + 1);
                     }
                 }
             }
-            for (final Entry <String,Integer> histogramClass: histogramResponse.entrySet()){
-                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue()).append("\n");
+            for (final Entry<String, Integer> histogramClass : histogramResponse.entrySet()) {
+                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue())
+                    .append("\n");
             }
             if (totalStepError > 0) {
                 globalOutcomeMessage.append(". Nombre total d'erreurs : ").append(totalStepError);
             }
         }
 
-        if (StringUtils.isEmpty(globalOutcomeMessage)) {
+        if (globalOutcomeMessage.length() == 0) {
             globalOutcomeMessage.append("DefaultMessage");
         }
         return globalOutcomeMessage.toString();
-        
+
     }
 
 
 
     /**
      * getMessageFromResponse return message id from list of response
-     * 
+     *
      * @param responses list of step response
      * @return message id
      */

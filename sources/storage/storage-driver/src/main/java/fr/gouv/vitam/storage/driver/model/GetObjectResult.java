@@ -34,13 +34,13 @@ import java.io.InputStream;
  */
 public class GetObjectResult {
 
-    private String tenantId;
-    
-    private InputStream object;
+    private final String tenantId;
+
+    private final InputStream object;
 
     /**
      * Initialize the needed parameters for get results
-     * 
+     *
      * @param tenantId The request tenantId
      * @param object Datastream of the object in the offer
      */

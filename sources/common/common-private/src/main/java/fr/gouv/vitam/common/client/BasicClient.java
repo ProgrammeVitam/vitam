@@ -49,7 +49,7 @@ public interface BasicClient {
 
     /**
      * Get the resource path of the server.
-     * 
+     *
      * @return the resource path as string
      */
     String getResourcePath();

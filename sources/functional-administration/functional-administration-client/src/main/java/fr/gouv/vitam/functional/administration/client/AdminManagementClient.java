@@ -32,8 +32,11 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -41,15 +44,14 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * AdminManagementClient interface
  */
-public interface AdminManagementClient {
+public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream;
-     * @return
+     * @return status
      * @throws ReferentialException when check exception occurs
      */
     Status checkFormat(InputStream stream) throws ReferentialException;
-
 
     /**
      * @param stream as InputStream
@@ -62,20 +64,11 @@ public interface AdminManagementClient {
     /**
      * @throws ReferentialException when delete exception occurs
      */
-    // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
+    // FIXME P0 delete the collection without any check on legal to do so (does any object using this referential ?) ?
     // Il me semble que cette fonction devrait être interne et appelée par la méthode importFormat en interne de Vitam
     // et surtout pas en externe !!!
     // Fonctionnalité demandé par les POs pour la démo
     void deleteFormat() throws ReferentialException;
-
-    /**
-     * Get the status from the service
-     *
-     * @return the Message status
-     */
-
-    Status status();
-
 
     /**
      * @param id as String
@@ -98,47 +91,84 @@ public interface AdminManagementClient {
         IOException;
 
     /**
-     * 
+     *
      * @param stream
-     * @return
+     * @return status
      * @throws FileRulesException
+     * @throws AdminManagementClientServerException
      */
 
-    Status checkRulesFile(InputStream stream) throws FileRulesException;
+    Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
-     * 
+     *
      * @param stream
      * @throws FileRulesException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
+     * @throws AdminManagementClientServerException
      */
-    void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException;
+    void importRulesFile(InputStream stream)
+        throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**
-     * 
+     *
      * @throws FileRulesException
+     * @throws AdminManagementClientServerException
      */
 
-    void deleteRulesFile() throws FileRulesException;
+    void deleteRulesFile() throws FileRulesException, AdminManagementClientServerException;
 
     /**
-     * 
+     *
      * @param id ide de rule
-     * @return
+     * @return Rule in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws AdminManagementClientServerException
      */
-    JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException;
+    JsonNode getRuleByID(String id)
+        throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
-     * 
+     *
      * @param query
-     * @return
+     * @return Rules in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws IOException when IO Exception occurs
+     * @throws AdminManagementClientServerException
      */
     JsonNode getRule(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
-        IOException;
+        IOException, AdminManagementClientServerException;
+
+    /**
+     * @param register AccessionRegisterDetail 
+     * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
+     * @throws AdminManagementClientServerException 
+     */
+    void createorUpdateAccessionRegister(AccessionRegisterDetail register)
+        throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
+
+    /**
+     * Get the accession register summary matching the given query
+     * 
+     * @param query The DSL Query as Json Node
+     * @return The AccessionregisterSummary list as a response JsonNode
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    JsonNode getAccessionRegister(JsonNode query) throws InvalidParseOperationException, ReferentialException;
+
+    /**
+     * Get the accession register details matching the given query
+     * 
+     * @param query The DSL Query as a JSON Node
+     * @return The AccessionregisterDetails list as a response jsonNode
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    JsonNode getAccessionRegisterDetail(JsonNode query) throws InvalidParseOperationException, ReferentialException;
+
 }

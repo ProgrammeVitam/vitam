@@ -36,14 +36,19 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 
 /**
  * Elasticsearch Access
  */
-public class ElasticsearchAccess {
+public class ElasticsearchAccess implements DatabaseConnection {
+
+    private static final int TOSECOND = 1000;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
 
@@ -55,8 +60,7 @@ public class ElasticsearchAccess {
      * Create an ElasticSearch access
      *
      * @param clusterName the name of the Cluster
-     * @param hostName the elasticsearch addresse
-     * @param tcpPort the transport port
+     * @param nodes the elasticsearch nodes
      * @throws VitamException
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
@@ -71,23 +75,44 @@ public class ElasticsearchAccess {
         this.clusterName = clusterName;
         this.nodes = nodes;
 
-        Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName)
+        final Settings settings = getSettings();
+
+        client = getClient(settings);
+    }
+
+    /**
+     * Production settings, see Elasticsearch production settings
+     * https://www.elastic.co/guide/en/elasticsearch/guide/current/deploy.html.</br>
+     * </br>
+     * Additionnal on server side:</br>
+     * in sysctl "vm.swappiness = 1", "vm.max_map_count=262144"</br>
+     * in elasticsearch.yml "bootstrap.mlockall: true"
+     * 
+     * @return Settings for Elasticsearch client
+     */
+    private Settings getSettings() {
+        return Settings.settingsBuilder().put("cluster.name", clusterName)
+            .put("client.transport.sniff", true)
+            .put("client.transport.ping_timeout", "2s")
+            .put("transport.tcp.connect_timeout", "1s")
+            .put("transport.profiles.client.connect_timeout", "1s")
+            .put("transport.profiles.tcp.connect_timeout", "1s")
+            .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / TOSECOND) + "s")
             .build();
+    }
 
+    private TransportClient getClient(Settings settings) throws VitamException {
         try {
-
-            client = TransportClient.builder().settings(settings).build();
-
-            for (ElasticsearchNode node : nodes) {
-                client.addTransportAddress(
+            TransportClient clientNew = TransportClient.builder().settings(settings).build();
+            for (final ElasticsearchNode node : nodes) {
+                clientNew.addTransportAddress(
                     new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
             }
-
-        } catch (UnknownHostException e) {
+            return clientNew;
+        } catch (final UnknownHostException e) {
             LOGGER.error(e.getMessage(), e);
             throw new VitamException(e.getMessage());
         }
-
     }
 
     /**
@@ -98,7 +123,7 @@ public class ElasticsearchAccess {
     }
 
     /**
-     * 
+     *
      * @return the Cluster Name
      */
     public String getClusterName() {
@@ -117,5 +142,20 @@ public class ElasticsearchAccess {
      */
     public List<ElasticsearchNode> getNodes() {
         return nodes;
+    }
+
+    @Override
+    public boolean checkConnection() {
+        try (TransportClient clientCheck = getClient(getSettings())) {
+            return !clientCheck.connectedNodes().isEmpty();
+        } catch (VitamException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return clusterName;
     }
 }

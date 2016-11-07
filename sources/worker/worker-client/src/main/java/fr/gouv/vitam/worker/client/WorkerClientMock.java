@@ -26,15 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -42,26 +37,19 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * Mock client implementation for worker
  */
-class WorkerClientMock extends WorkerClientRest implements WorkerClient {
-    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
-
-    /**
-     * Constructor
-     */
-    WorkerClientMock() {
-        super(new ClientConfigurationImpl("mock", 1), "/", false);
-    }
+class WorkerClientMock extends AbstractMockClient implements WorkerClient {
 
     @Override
-    public StatusMessage getStatus() throws VitamClientException {
-        return new StatusMessage(SERVER_IDENTITY);
-    }
-
-    @Override
-    public List<EngineResponse> submitStep(String requestId, DescriptionStep data)
+    public CompositeItemStatus submitStep(String requestId, DescriptionStep data)
         throws WorkerNotFoundClientException, WorkerServerClientException {
-        List<EngineResponse> mockResponse = new ArrayList<>();
-        mockResponse.add(new ProcessResponse());
+        final CompositeItemStatus mockResponse = new CompositeItemStatus("StepId");
+
+        ItemStatus itemStatus = new ItemStatus("ItemId");
+        itemStatus.setMessage("message");
+        StatusCode status = StatusCode.OK;
+        itemStatus.increment(status);
+
+        mockResponse.setItemsStatus("ItemId", itemStatus);
         return mockResponse;
     }
 

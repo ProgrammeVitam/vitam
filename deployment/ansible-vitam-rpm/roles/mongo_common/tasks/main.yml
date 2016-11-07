@@ -1,23 +1,5 @@
 ---
 
-- name: Install mongodb-org rpm
-  yum:
-    name: mongodb-org
-    state: present
-    update_cache: yes
-
-- name: install vitam-user-vitamdb
-  yum:
-    name: vitam-user-vitamdb
-    state: latest
-    update_cache: yes
-
-- name: add syslog option
-  replace:
-    dest: /etc/sysconfig/mongod
-    regexp: '^# OPTIONS=.*$'
-    replace: 'OPTIONS=" -f /etc/mongod.conf --syslog "'
-
 # next steps in order to disable Transparent HugePages
 # cf https://docs.mongodb.com/manual/tutorial/transparent-huge-pages/
 
@@ -31,14 +13,14 @@
     path: "/etc/tuned/no-thp"
     state: directory
     owner: root
-    mode: 0640
+    mode: "{{vitam_folder_permission}}"
 
 - name: add the tuned conf file
   copy:
     src: tuned.conf
     dest: /etc/tuned/no-thp/tuned.conf
     owner: root
-    mode: 0640
+    mode: "{{vitam_conf_permission}}"
 
 - name: enable the new tuned profile
   command: tuned-adm profile no-thp

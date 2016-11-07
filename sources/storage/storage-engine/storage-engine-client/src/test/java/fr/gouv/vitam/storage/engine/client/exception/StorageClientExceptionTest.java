@@ -41,7 +41,6 @@ public class StorageClientExceptionTest {
         assertNotNull(new StorageAlreadyExistsClientException(MESSAGE));
         assertNotNull(new StorageAlreadyExistsClientException(exception));
         assertNotNull(new StorageAlreadyExistsClientException(MESSAGE, exception));
-        assertNotNull(new StorageAlreadyExistsClientException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -50,7 +49,6 @@ public class StorageClientExceptionTest {
         assertNotNull(new StorageServerClientException(MESSAGE));
         assertNotNull(new StorageServerClientException(exception));
         assertNotNull(new StorageServerClientException(MESSAGE, exception));
-        assertNotNull(new StorageServerClientException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -59,7 +57,6 @@ public class StorageClientExceptionTest {
         assertNotNull(new StorageClientException(MESSAGE));
         assertNotNull(new StorageClientException(exception));
         assertNotNull(new StorageClientException(MESSAGE, exception));
-        assertNotNull(new StorageClientException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -68,7 +65,6 @@ public class StorageClientExceptionTest {
         assertNotNull(new StorageNotFoundClientException(MESSAGE));
         assertNotNull(new StorageNotFoundClientException(exception));
         assertNotNull(new StorageNotFoundClientException(MESSAGE, exception));
-        assertNotNull(new StorageNotFoundClientException(MESSAGE, exception, true, true));
     }
 
 }

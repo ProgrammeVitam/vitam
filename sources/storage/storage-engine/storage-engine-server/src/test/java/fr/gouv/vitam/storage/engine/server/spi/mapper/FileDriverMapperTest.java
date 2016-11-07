@@ -45,8 +45,10 @@ import fr.gouv.vitam.common.exception.VitamException;
 
 public class FileDriverMapperTest {
 
-    private static final String DRIVER1 = "driver1";
-    private static final String DRIVER2 = "driver2";
+    private static final String OFFER2 = "FileDriverMapperTestoffer2";
+    private static final String OFFER1 = "FileDriverMapperTestoffer1";
+    private static final String DRIVER1 = "FileDriverMapperTestdriver1";
+    private static final String DRIVER2 = "FileDriverMapperTestdriver2";
 
     @After
     public void removeFiles() throws IOException {
@@ -56,11 +58,10 @@ public class FileDriverMapperTest {
 
     @Test
     public void configurationOkTest() {
-        FileDriverMapper fileDriverMapper= null;
+        FileDriverMapper fileDriverMapper = null;
         try {
             fileDriverMapper = FileDriverMapper.getInstance();
-        } catch (VitamException exc) {
-            System.out.println(exc.getCause());
+        } catch (final VitamException exc) {
             fail("should not raise an exception !");
         }
         assertNotNull(fileDriverMapper);
@@ -68,34 +69,34 @@ public class FileDriverMapperTest {
 
     @Test
     public void addGetRemoveTest() throws VitamException {
-        FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
+        final FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
         assertNotNull(fileDriverMapper);
 
-        fileDriverMapper.addOfferTo("offer1", DRIVER1);
+        fileDriverMapper.addOfferTo(OFFER1, DRIVER1);
 
         List<String> offers = fileDriverMapper.getOffersFor(DRIVER1);
         assertNotNull(offers);
         assertEquals(1, offers.size());
-        assertEquals("offer1", offers.get(0));
+        assertEquals(OFFER1, offers.get(0));
 
-        fileDriverMapper.addOfferTo("offer1", DRIVER1);
+        fileDriverMapper.addOfferTo(OFFER1, DRIVER1);
         offers = fileDriverMapper.getOffersFor(DRIVER1);
         assertNotNull(offers);
         assertEquals(1, offers.size());
-        assertEquals("offer1", offers.get(0));
+        assertEquals(OFFER1, offers.get(0));
 
-        fileDriverMapper.addOfferTo("offer2", DRIVER1);
+        fileDriverMapper.addOfferTo(OFFER2, DRIVER1);
         offers = fileDriverMapper.getOffersFor(DRIVER1);
         assertNotNull(offers);
         assertEquals(2, offers.size());
-        assertTrue(offers.contains("offer1"));
-        assertTrue(offers.contains("offer2"));
+        assertTrue(offers.contains(OFFER1));
+        assertTrue(offers.contains(OFFER2));
 
-        fileDriverMapper.removeOfferTo("offer1", DRIVER1);
+        fileDriverMapper.removeOfferTo(OFFER1, DRIVER1);
         offers = fileDriverMapper.getOffersFor(DRIVER1);
         assertNotNull(offers);
         assertEquals(1, offers.size());
-        assertEquals("offer2", offers.get(0));
+        assertEquals(OFFER2, offers.get(0));
 
         // remove offer that does not exist case
         fileDriverMapper.removeOfferTo("foo", DRIVER1);
@@ -107,13 +108,13 @@ public class FileDriverMapperTest {
 
     @Test
     public void addGetRemoveListTest() throws VitamException {
-        FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
+        final FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
         assertNotNull(fileDriverMapper);
 
-        List<String> offers = new ArrayList<>();
-        offers.add("offer1");
-        offers.add("offer2");
-        offers.add("offer3");
+        final List<String> offers = new ArrayList<>();
+        offers.add(OFFER1);
+        offers.add(OFFER2);
+        offers.add("FileDriverMapperTestoffer3");
 
         fileDriverMapper.addOffersTo(offers, DRIVER1);
         List<String> offersToCheck = fileDriverMapper.getOffersFor(DRIVER1);
@@ -121,11 +122,11 @@ public class FileDriverMapperTest {
         assertEquals(offers.size(), offersToCheck.size());
         assertTrue(offersToCheck.containsAll(offers));
 
-        offers.remove(offers.indexOf("offer2"));
+        offers.remove(offers.indexOf(OFFER2));
         fileDriverMapper.removeOffersTo(offers, DRIVER1);
         offersToCheck = fileDriverMapper.getOffersFor(DRIVER1);
         assertNotNull(offersToCheck);
         assertEquals(1, offersToCheck.size());
-        assertTrue(offersToCheck.contains("offer2"));
+        assertTrue(offersToCheck.contains(OFFER2));
     }
 }

@@ -44,16 +44,16 @@ public interface FormatIdentifier {
 
     /**
      * Get format identifier status
-     * 
+     *
      * @return The format identifier software information containing version
      * @throws FormatIdentifierNotFoundException if the given identifier could not responds
      * @throws FormatIdentifierTechnicalException for any other technical exception
      */
     FormatIdentifierInfo status() throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
-    
+
     /**
      * Identify the format of the file identified by its path
-     * 
+     *
      * @param pathToFile the path to the file to be identified
      * @return the FormatIdentifierResponse containing information about the format of the file
      * @throws FileFormatNotFoundException if a file format is not found by the identifier
@@ -61,7 +61,9 @@ public interface FormatIdentifier {
      * @throws FormatIdentifierNotFoundException if the given identifier could not responds
      * @throws FormatIdentifierTechnicalException for any other technical exception
      */
-    List<FormatIdentifierResponse> analysePath(Path pathToFile) throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException, FormatIdentifierNotFoundException;
+    List<FormatIdentifierResponse> analysePath(Path pathToFile)
+        throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException,
+        FormatIdentifierNotFoundException;
 
 }
 

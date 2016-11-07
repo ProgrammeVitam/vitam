@@ -93,7 +93,7 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     * 
+     *
      * @return the Json3 Stream
      */
     public InputStream getJsonTest3JsonInputStream() {
@@ -101,14 +101,14 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     * 
+     *
      * @return the Json empty Stream
      */
     public InputStream getJsonTestEmptyJsonInputStream() {
         return getTestResourcesInputStream(JSON_TEST_EMPTY_JSON);
     }
-    
-    
+
+
 
     /**
      *
@@ -121,7 +121,7 @@ public class ResourcesPublicUtilTest {
     private File getTestResourcesFile(String name) {
         File file;
         try {
-            file = PropertiesUtils.getResourcesFile(name);
+            file = PropertiesUtils.getResourceFile(name);
         } catch (final FileNotFoundException e) { // NOSONAR
             LOGGER.debug("Not able to load: " + name);
             return null;
@@ -136,7 +136,7 @@ public class ResourcesPublicUtilTest {
     private InputStream getTestResourcesInputStream(String name) {
         InputStream stream;
         try {
-            stream = PropertiesUtils.getResourcesAsStream(name);
+            stream = PropertiesUtils.getResourceAsStream(name);
         } catch (final FileNotFoundException e) { // NOSONAR
             LOGGER.debug("Not able to load: " + name);
             return null;

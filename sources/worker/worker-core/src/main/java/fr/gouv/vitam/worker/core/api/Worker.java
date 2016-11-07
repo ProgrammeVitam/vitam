@@ -26,19 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.api;
 
-import java.util.List;
-
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Worker Interface.
  */
-// TODO REVIEW improve comment form
 public interface Worker {
 
     /**
@@ -51,14 +50,15 @@ public interface Worker {
      * @throws IllegalArgumentException throws when arguments are null
      * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
+     * @throws ContentAddressableStorageServerException 
      */
-    List<EngineResponse> run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException;
+    CompositeItemStatus run(WorkerParameters workParams, Step step)
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, ContentAddressableStorageServerException;
 
 
     /**
      * Constructor for test.
-     * 
+     *
      * @param actionName action name
      * @param actionHandler action handler
      * @return the worker instance
@@ -68,7 +68,7 @@ public interface Worker {
 
     /**
      * get Worker Id
-     * 
+     *
      * @return id
      */
     public String getWorkerId();

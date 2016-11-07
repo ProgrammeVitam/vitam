@@ -4,10 +4,14 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.10.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-core</artifactId>
 	<name>Worker Core</name>
+
+	<properties>
+		<sonar.exclusions>file:**/generated-sources/**</sonar.exclusions>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -33,6 +37,11 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -65,6 +74,12 @@
 			<artifactId>powermock-module-junit4</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- FIXME : should be removed when REST cursors are implemented in logbook -->
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-common-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
@@ -75,6 +90,10 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.jsignature.io-tools</groupId>
+			<artifactId>easystream</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -83,6 +102,7 @@
 				<artifactId>maven-jaxb2-plugin</artifactId>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam.cat</catalog>
+					<strict>false</strict>
 					<plugins>
 						<plugin>
 							<groupId>org.jvnet.jaxb2_commons</groupId>

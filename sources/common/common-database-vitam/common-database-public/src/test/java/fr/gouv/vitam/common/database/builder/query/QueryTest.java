@@ -36,15 +36,30 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
 @SuppressWarnings("javadoc")
 public class QueryTest {
-
+    private int size;
+    private static final int fakeSize = 1000;
+    
+    @Before
+    public void setSize() {
+        size = GlobalDatas.getLimitValue();
+        GlobalDatas.setLimitValue(fakeSize);
+    }
+    
+    @After
+    public void resetSize() {
+        GlobalDatas.setLimitValue(size);
+    }
     @Test
     public void testRequestBoolean() {
         Query arg1, arg2, argIncomplete;
@@ -191,11 +206,11 @@ public class QueryTest {
 
     @Test
     public void testNoneQuery() throws Exception {
-        NopQuery query = new NopQuery();
+        final NopQuery query = new NopQuery();
         assertTrue(query.isReady());
         assertFalse(query.isFullText());
         assertEquals(QUERY.NOP, query.getQUERY());
-        assertEquals(1, query.getCurrentQuery().size());        
+        assertEquals(1, query.getCurrentQuery().size());
     }
 
     @Test
@@ -807,10 +822,9 @@ public class QueryTest {
     }
 
     protected String getStringWithLength() {
-        // TODO REVIEW Define the size using GlobalDatasXXX
-        final char[] array = new char[10000001];
+        final char[] array = new char[fakeSize + 1];
         int pos = 0;
-        while (pos < 10000001) {
+        while (pos < fakeSize + 1) {
             array[pos] = 'a';
             pos++;
         }

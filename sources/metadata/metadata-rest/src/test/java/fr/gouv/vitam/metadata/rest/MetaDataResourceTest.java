@@ -29,8 +29,8 @@ package fr.gouv.vitam.metadata.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,11 +38,11 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -61,20 +61,22 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataException;
-import fr.gouv.vitam.api.model.DatabaseCursor;
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.RequestResponseOK;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.model.DatabaseCursor;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
+import fr.gouv.vitam.metadata.api.model.VitamError;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -92,13 +94,9 @@ public class MetaDataResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static File elasticsearchHome;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static int TCP_PORT = 9300;
-    private static int HTTP_PORT = 9200;
-    private static Node node;
 
     private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
     private static final String QUERY_EXISTS = "{ $exists :  \"_id\"  }";
@@ -111,6 +109,74 @@ public class MetaDataResourceTest {
     private static JunitHelper junitHelper;
     private static int dataBasePort;
     private static int serverPort;
+
+    private static File newMetadataConf;
+    private static MetaDataApplication application;
+    private static ElasticsearchTestConfiguration config = null;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        // Identify overlapping in particular jsr311
+        new JHades().overlappingJarsReport();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+        junitHelper = JunitHelper.getInstance();
+
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+
+        dataBasePort = junitHelper.findAvailablePort();
+
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+        mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
+            .build());
+        mongod = mongodExecutable.start();
+
+        final MetaDataConfiguration configuration =
+            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
+        serverPort = junitHelper.findAvailablePort();
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+
+        application = new MetaDataApplication(configuration);
+        application.start();
+        JunitHelper.unsetJettyPortSystemProperty();
+
+        RestAssured.port = serverPort;
+        RestAssured.basePath = DATA_URI;
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        if (config == null) {
+            return;
+        }
+        JunitHelper.stopElasticsearchForTest(config);
+        try {
+            application.stop();
+        } catch (final Exception e) {
+            // ignore
+        }
+        mongod.stop();
+        mongodExecutable.stop();
+        junitHelper.releasePort(dataBasePort);
+        junitHelper.releasePort(serverPort);
+    }
+    
+    @Before
+    public void before() {
+        Assume.assumeTrue("Elasticsearch not started but should", config != null);
+    }
+
+    @After
+    public void tearDown() {
+        MetadataCollections.C_UNIT.getCollection().drop();
+    }
 
     private static final String buildDSLWithOptions(String query, String data) {
         return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
@@ -133,81 +199,6 @@ public class MetaDataResourceTest {
 
     private static String generateResponseOK(DatabaseCursor cursor, JsonNode query) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(new RequestResponseOK().setHits(cursor).setQuery(query));
-    }
-
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-        junitHelper = new JunitHelper();
-
-        // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
-        elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
-
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
-
-        node.start();
-
-        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-
-        dataBasePort = junitHelper.findAvailablePort();
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
-        final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
-        serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-        MetaDataApplication.run(configuration);
-        RestAssured.port = serverPort;
-        RestAssured.basePath = DATA_URI;
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        try {
-            MetaDataApplication.stop();
-        } catch (Exception e) {
-            // ignore
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(dataBasePort);
-        junitHelper.releasePort(serverPort);
-
-
-        if (node != null) {
-            node.close();
-        }
-
-        junitHelper.releasePort(TCP_PORT);
-        junitHelper.releasePort(HTTP_PORT);
-    }
-
-    @After
-    public void tearDown() {
-        MetadataCollections.C_UNIT.getCollection().drop();
     }
 
     /**
@@ -314,7 +305,7 @@ public class MetaDataResourceTest {
 
     @Test
     public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
-        int limitRequest = GlobalDatasParser.limitRequest;
+        final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
@@ -381,7 +372,7 @@ public class MetaDataResourceTest {
 
     @Test
     public void shouldReturnErrorRequestBadRequestWhenInsertGOIfDocumentIsTooLarge() throws Exception {
-        int limitRequest = GlobalDatasParser.limitRequest;
+        final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)

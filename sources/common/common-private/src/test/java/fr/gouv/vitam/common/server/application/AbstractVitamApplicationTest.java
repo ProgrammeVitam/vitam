@@ -76,7 +76,7 @@ public class AbstractVitamApplicationTest {
         assertTrue(filename1.equals(TEST_CONF_CONF));
         final Path path0 = testVitamApplication.computeConfigurationPathFromInputArguments();
         final Path path1 = testVitamApplication.computeConfigurationPathFromInputArguments(
-            PropertiesUtils.getResourcesFile(filename1).getAbsolutePath());
+            PropertiesUtils.getResourceFile(filename1).getAbsolutePath());
         System.out.println(path0);
         System.out.println(path1);
         assertTrue(path0.equals(path1));

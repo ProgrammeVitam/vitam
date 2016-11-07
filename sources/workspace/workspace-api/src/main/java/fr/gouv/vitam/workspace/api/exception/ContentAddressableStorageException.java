@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 /**
  * Top level Exception for all Workspace Exceptions
  */
-//
+
 public class ContentAddressableStorageException extends VitamException {
 
 

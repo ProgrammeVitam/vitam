@@ -36,32 +36,29 @@ public class StorageExceptionTest {
 
     private static final String MESSAGE = "message";
     private static final Exception exception = new Exception();
-    
+
     @Test
     public final void testStorageExceptionThrowable() {
         assertNotNull(new StorageException((String) null));
         assertNotNull(new StorageException(MESSAGE));
         assertNotNull(new StorageException(exception));
         assertNotNull(new StorageException(MESSAGE, exception));
-        assertNotNull(new StorageException(MESSAGE, exception, true, true));
     }
-    
+
     @Test
     public final void testStorageAlreadyExistsExceptionThrowable() {
         assertNotNull(new StorageAlreadyExistsException((String) null));
         assertNotNull(new StorageAlreadyExistsException(MESSAGE));
         assertNotNull(new StorageAlreadyExistsException(exception));
         assertNotNull(new StorageAlreadyExistsException(MESSAGE, exception));
-        assertNotNull(new StorageAlreadyExistsException(MESSAGE, exception, true, true));
     }
-    
+
     @Test
     public final void testStorageNotFoundExceptionThrowable() {
         assertNotNull(new StorageNotFoundException((String) null));
         assertNotNull(new StorageNotFoundException(MESSAGE));
         assertNotNull(new StorageNotFoundException(exception));
         assertNotNull(new StorageNotFoundException(MESSAGE, exception));
-        assertNotNull(new StorageNotFoundException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -70,7 +67,6 @@ public class StorageExceptionTest {
         assertNotNull(new StorageDriverMapperException(MESSAGE));
         assertNotNull(new StorageDriverMapperException(exception));
         assertNotNull(new StorageDriverMapperException(MESSAGE, exception));
-        assertNotNull(new StorageDriverMapperException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -79,7 +75,6 @@ public class StorageExceptionTest {
         assertNotNull(new StorageDriverNotFoundException(MESSAGE));
         assertNotNull(new StorageDriverNotFoundException(exception));
         assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception));
-        assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -94,10 +89,6 @@ public class StorageExceptionTest {
         assertEquals(exception, storageTechnicalException.getCause());
 
         storageTechnicalException = new StorageTechnicalException(MESSAGE, exception);
-        assertEquals(MESSAGE, storageTechnicalException.getMessage());
-        assertEquals(exception, storageTechnicalException.getCause());
-
-        storageTechnicalException = new StorageTechnicalException(MESSAGE, exception, true, true);
         assertEquals(MESSAGE, storageTechnicalException.getMessage());
         assertEquals(exception, storageTechnicalException.getCause());
     }

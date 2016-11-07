@@ -35,8 +35,6 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -52,6 +50,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -123,14 +122,14 @@ public class QueryToMongodbTest {
 
     @Test
     public void testNopCommand() {
-        SelectParserSingle request = new SelectParserSingle();
+        final SelectParserSingle request = new SelectParserSingle();
         try {
             request.parse(emptyQueryJson);
-            fr.gouv.vitam.common.database.builder.request.single.Select select = request.getRequest();
-            Bson command = QueryToMongodb.getCommand(select.getQuery());
+            final fr.gouv.vitam.common.database.builder.request.single.Select select = request.getRequest();
+            final Bson command = QueryToMongodb.getCommand(select.getQuery());
             assertEquals("{ }", command.toString());
 
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             fail("No exception should be thrown here");
         }
     }

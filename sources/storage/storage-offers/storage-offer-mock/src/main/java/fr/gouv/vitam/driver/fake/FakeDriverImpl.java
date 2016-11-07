@@ -47,10 +47,7 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 
 /**
- * Driver implementation for test only <br>
- * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile the
- * storage-offer-mock.jar from the this module and copy it in the src/test/resources folder of the storage-integration-test
- * module in place of the previous one.
+ * Driver implementation for test only
  */
 public class FakeDriverImpl implements Driver {
 
@@ -96,7 +93,7 @@ public class FakeDriverImpl implements Driver {
                 throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "ExceptionTest");
             }
-            StorageCapacityResult result = new StorageCapacityResult();
+            final StorageCapacityResult result = new StorageCapacityResult();
             result.setUsableSpace(1000000);
             result.setUsedSpace(99999);
             return result;
@@ -110,13 +107,13 @@ public class FakeDriverImpl implements Driver {
         @Override
         public PutObjectResult putObject(PutObjectRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0");
+                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0", 0);
             } else {
                 try {
-                    byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
-                    MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
+                    final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
+                    final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
                     return new PutObjectResult(objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        "0");
+                        "0", bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         e);

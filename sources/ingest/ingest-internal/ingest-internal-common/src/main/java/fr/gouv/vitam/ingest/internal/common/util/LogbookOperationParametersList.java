@@ -36,57 +36,60 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
-*
-* LogbookOperationParameters List
-*
-*/
+ *
+ * LogbookOperationParameters List
+ *
+ */
 
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
+// FIXME P0 utilisé ?
 public class LogbookOperationParametersList {
-	
-	private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
 
-	@JsonProperty("logbookOperationList")
-	private List<LogbookOperationParameters> logbookOperationList;
+    private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
+
+    @JsonProperty("logbookOperationList")
+    private List<LogbookOperationParameters> logbookOperationList;
 
 
     /**
      * LogbookOperationParametersList empty constructor
      */
-	public LogbookOperationParametersList() {
-	
-	}
-	
+    public LogbookOperationParametersList() {
+
+    }
+
     /**
      * LogbookOperationParametersList Json Creator
+     * @param logbookOperationList 
      */
     @JsonCreator
-	 public LogbookOperationParametersList(List<LogbookOperationParameters> logbookOperationList) {
-		super();
-		this.logbookOperationList = logbookOperationList;
-	}
+    public LogbookOperationParametersList(List<LogbookOperationParameters> logbookOperationList) {
+        super();
+        this.logbookOperationList = logbookOperationList;
+    }
 
-	/**
+    /**
      * Must return the value of a 'logbookOperationList'
      *
      * @return the logbookOperationList value
      */
-	public List<LogbookOperationParameters> getLogbookOperationList() {
-		return logbookOperationList;
-	}
+    public List<LogbookOperationParameters> getLogbookOperationList() {
+        return logbookOperationList;
+    }
 
-	/**
+    /**
      * @param logbookOperationList the operation List to set
      * @return this
      * @throws IllegalArgumentException if logbookOperationList is null or empty
      */
-	public LogbookOperationParametersList setLogbookOperationList(List<LogbookOperationParameters> logbookOperationList) {
-		 ParametersChecker.checkParameter("logbookOperationList" +IS_A_MANDATORY_PARAMETER,
-				 logbookOperationList);
-		this.logbookOperationList = logbookOperationList;
-		return this;
-	}
-	
-	
+    public LogbookOperationParametersList setLogbookOperationList(
+        List<LogbookOperationParameters> logbookOperationList) {
+        ParametersChecker.checkParameter("logbookOperationList" + IS_A_MANDATORY_PARAMETER,
+            logbookOperationList);
+        this.logbookOperationList = logbookOperationList;
+        return this;
+    }
+
+
 
 }

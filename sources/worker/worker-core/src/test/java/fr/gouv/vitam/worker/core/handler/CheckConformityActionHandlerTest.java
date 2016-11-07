@@ -28,11 +28,14 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
+import java.io.InputStream;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,12 +45,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.StatusCode;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -57,72 +59,57 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class })
 public class CheckConformityActionHandlerTest {
-    private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
-    private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "BDO_TO_OBJECT_GROUP_ID_MAP_obj.json";
-    private static final String SRC_TEST_RESOURCE = "src/test/resource";
-    private static final String MESSAGE_DIGEST = "ZGVmYXVsdA==";
-    CheckConformityActionHandler conformityHandler;
-    private static final String HANDLER_ID = "CheckConformity";
-    private static final String SIP = "sip.xml";
-    private SedaUtils sedaUtils;
-    private HandlerIO action;
+    CheckConformityActionHandler handler;
     private WorkspaceClient workspaceClient;
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-        ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-        ("containerName");
-
+    private WorkspaceClientFactory workspaceClientFactory;
+    private static final String HANDLER_ID = "CHECK_DIGEST";
+    
+    private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
+    private InputStream objectGroup;
+    private static final String bdo1 = "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp";
+    private static final String bdo2 = "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4.txt";
+    private static final String bdo3 = "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0.png";
+    private static final String bdo4 = "f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954.pdf";
+    
     @Before
-    public void setUp() throws Exception {
-        PowerMockito.mockStatic(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
-
-        workspaceClient = mock(WorkspaceClient.class);
+    public void setUp(){
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
-        action = new HandlerIO("containerName");
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
     }
 
-    @Test
-    public void givenConformityCheckWhenTrueThenResponseOK()
-        throws Exception {
-        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(MESSAGE_DIGEST);
-
-        action.addInput(PropertiesUtils.getResourcesFile(SIP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        conformityHandler = new CheckConformityActionHandler();
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = conformityHandler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_OK, response.getOutcomeMessages().get("CheckConformity"));
+    @After
+    public void setDown() {
     }
     
     @Test
-    public void givenConformityCheckWhenWrongDigestThenKO()
-        throws Exception {
-        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn("Wrong digest");
-        action.addInput(PropertiesUtils.getResourcesFile(SIP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        conformityHandler = new CheckConformityActionHandler();
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
+    public void getNonStandardDigestUpdate() throws Exception{
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objName"))).thenReturn(objectGroup);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo1)))
+        .thenReturn(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo1));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo2)))
+        .thenReturn(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo2));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo3)))
+        .thenReturn(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo3));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo4)))
+        .thenReturn(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo4));
         
-        final EngineResponse response = conformityHandler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
+        //assertNotNull(objectGroup);
+        handler = new CheckConformityActionHandler();
+        WorkerParameters params = getDefaultWorkerParameters();
+        HandlerIO handlerIO = new HandlerIO("");
+        handlerIO.addInput("SHA-512");
+        
+        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
     
-    @Test
-    public void givenConformityCheckWhenWorkspaceErrorThenKO()
-        throws Exception {
-        action.addInput(new File(SRC_TEST_RESOURCE + SIP));
-        action.addInput(new File(SRC_TEST_RESOURCE + "BDO_TO_OBJECT_GROUP_ID_MAP_obj.jsons"));
-        action.addInput(new File(SRC_TEST_RESOURCE + OBJECT_GROUP_ID_TO_GUID_MAP));
-        conformityHandler = new CheckConformityActionHandler();
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = conformityHandler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.KO);
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
+    private DefaultWorkerParameters getDefaultWorkerParameters() {
+        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", "containerName",
+            "currentStep", "objName", "metadataURL", "workspaceURL");
     }
 }

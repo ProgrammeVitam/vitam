@@ -48,12 +48,10 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 /**
  * WARNING:
  *
- * This tests are using two drivers implementations.
- * These drivers are implemented in two externals projects, with maven packaging to jar.
- * They only implements the driver interface (and they absolutely do nothing, as fake driver
- * {@link fr.gouv.vitam.storage.engine.server.spi.OfferDriverInfoTest.TheDriver} in
- * {@link OfferDriverInfoTest}).
- * Also don't forget to make the file to declare the implementation to the {@link java.util.ServiceLoader} in the
+ * This tests are using two drivers implementations. These drivers are implemented in two externals projects, with maven
+ * packaging to jar. They only implements the driver interface (and they absolutely do nothing, as fake driver
+ * {@link fr.gouv.vitam.storage.engine.server.spi.OfferDriverInfoTest.TheDriver} in {@link OfferDriverInfoTest}). Also
+ * don't forget to make the file to declare the implementation to the {@link java.util.ServiceLoader} in the
  * META-INF/services directory.
  *
  * So, if the driver implementation change, do not forget to change the jars for the two implementations in this way.
@@ -63,9 +61,9 @@ public class DriverManagerTest {
 
     private static final String MON_MODULE_DRIVER_MON_DRIVER = "mon.module.driver.MonDriver";
     private static final String THE_DRIVER_THE_DRIVER = "the.driver.TheDriver";
-    private static final String OFFER_1 = "offer1";
-    private static final String OFFER_3 = "offer3";
-    private static final String OFFER_4 = "offer4";
+    private static final String OFFER_1 = "DriverManagerTestoffer1";
+    private static final String OFFER_3 = "DriverManagerTestoffer3";
+    private static final String OFFER_4 = "DriverManagerTestoffer4";
 
     @After
     public void removePersistFiles() throws IOException {
@@ -88,14 +86,14 @@ public class DriverManagerTest {
 
     @Test
     public void addOffersAndretriveDriverTest() throws Exception {
-        List<String> offers = new ArrayList<>();
+        final List<String> offers = new ArrayList<>();
         offers.add(OFFER_1);
-        offers.add("offer2");
+        offers.add("DriverManagerTestoffer2");
         offers.add(OFFER_3);
         offers.add(OFFER_4);
         DriverManager.addOffersToDriver(MON_MODULE_DRIVER_MON_DRIVER, offers);
 
-        Driver driver = DriverManager.getDriverFor(OFFER_4);
+        final Driver driver = DriverManager.getDriverFor(OFFER_4);
         assertNotNull(driver);
     }
 
@@ -115,7 +113,7 @@ public class DriverManagerTest {
         try {
             driver = DriverManager.getDriverFor(OFFER_3);
             fail("Excepted Storage Driver Not Found Exception");
-        } catch (StorageDriverNotFoundException exc) {
+        } catch (final StorageDriverNotFoundException exc) {
             // Nothing, it's ok
         }
     }
@@ -142,7 +140,8 @@ public class DriverManagerTest {
             // Nothing
         }
 
-        @Override public void addOffersTo(List<String> offersIdsToAdd, String driverName)
+        @Override
+        public void addOffersTo(List<String> offersIdsToAdd, String driverName)
             throws StorageDriverMapperException {
             // Nothing
         }

@@ -30,15 +30,16 @@ import fr.gouv.vitam.common.ParametersChecker;
 
 /**
  * Storage Logbook Factory
+ *
+ * Example of a lot addition:
  * 
- * Example for adding a log:
  * <pre>
  * {
  *     &#64;code
- *     // Retrieve default storage logbook
+ *     // Retrieves default storage logbook
  *     StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
  *
- *     // Instanciate a new storage logbook parameters
+ *     // Instantiates a new storage logbook parameters
  *     StorageLogbookParameters parameters = new StorageLogbookParameters();
  *
  *     // set properties
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * }
  * </pre>
  */
+
 public final class StorageLogbookFactory {
 
     /**
@@ -58,11 +60,11 @@ public final class StorageLogbookFactory {
     private static StorageLogbookType defaultStorageLogbookType;
     private static final StorageLogbookFactory STORAGE_LOGBOOK_FACTORY = new StorageLogbookFactory();
 
-    
+
     private StorageLogbookFactory() {
         changeDefaultStorageLogbookType(StorageLogbookType.MOCK);
     }
-    
+
     /**
      * Get the StorageLogbookFactory instance
      *
@@ -85,7 +87,7 @@ public final class StorageLogbookFactory {
                 break;
             default:
                 throw new IllegalArgumentException("Storage Log type unknown");
-        }        
+        }
         return storageLogbook;
     }
 

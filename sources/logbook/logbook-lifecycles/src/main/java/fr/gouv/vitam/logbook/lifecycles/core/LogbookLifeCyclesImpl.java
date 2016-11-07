@@ -28,41 +28,52 @@ package fr.gouv.vitam.logbook.lifecycles.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
 
-
 /**
  * Logbook LifeCycles implementation base class
  */
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
-    private final MongoDbAccess mongoDbAccess;
 
+    /**
+     * This is valid as Static final since this has to be shared among all requests and Concurrent for Thread safety
+     */
+    private static final Map<String, MongoCursor<?>> mapXCursor = new ConcurrentHashMap<>();
+    private final LogbookDbAccess mongoDbAccess;
 
     /**
      * Constructor
      *
      * @param mongoDbAccess
      */
-    public LogbookLifeCyclesImpl(MongoDbAccess mongoDbAccess) {
+    public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
     }
 
@@ -111,29 +122,123 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public List<LogbookLifeCycleUnit> selectUnit(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select);
-        final List<LogbookLifeCycleUnit> result = new ArrayList<>();
-        if (!logbook.hasNext()) {
-            throw new LogbookNotFoundException("Logbook entry not found");
+        try (final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select)) {
+            final List<LogbookLifeCycleUnit> result = new ArrayList<>();
+            if (!logbook.hasNext()) {
+                throw new LogbookNotFoundException("Logbook entry not found");
+            }
+            while (logbook.hasNext()) {
+                result.add(logbook.next());
+            }
+            return result;
         }
-        while (logbook.hasNext()) {
-            result.add(logbook.next());
+    }
+
+    @Override
+    public String createCursorUnit(String operationId, JsonNode select)
+        throws LogbookDatabaseException {
+        String newxcursorid;
+        // First time call
+        newxcursorid = GUIDFactory.newGUID().toString();
+        MongoCursor<LogbookLifeCycleUnit> cursor;
+        try {
+            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            parser.parse(select);
+            parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
+            Select selectRequest = parser.getRequest();
+            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(selectRequest);
+            mapXCursor.put(newxcursorid, cursor);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new LogbookDatabaseException(e);
         }
-        return result;
+        return newxcursorid;
+    }
+
+    @Override
+    public LogbookLifeCycleUnit getCursorUnitNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        try {
+            @SuppressWarnings("unchecked")
+            MongoCursor<LogbookLifeCycleUnit> cursor = (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
+            if (cursor != null) {
+                if (cursor.hasNext()) {
+                    return cursor.next();
+                }
+                cursor.close();
+                mapXCursor.remove(cursorId);
+                throw new LogbookNotFoundException("No more entries");
+            }
+        } catch (ClassCastException e) {
+            throw new LogbookDatabaseException("Cursor not linked to Unit", e);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
+    }
+
+    @Override
+    public String createCursorObjectGroup(String operationId, JsonNode select)
+        throws LogbookDatabaseException {
+        String newxcursorid;
+        // First time call
+        newxcursorid = GUIDFactory.newGUID().toString();
+        MongoCursor<LogbookLifeCycleObjectGroup> cursor;
+        try {
+            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            parser.parse(select);
+            parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
+            Select selectRequest = parser.getRequest();
+            cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(selectRequest);
+            mapXCursor.put(newxcursorid, cursor);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            throw new LogbookDatabaseException(e);
+        }
+        return newxcursorid;
+    }
+
+    @Override
+    public LogbookLifeCycleObjectGroup getCursorObjectGroupNext(String cursorId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        try {
+            @SuppressWarnings("unchecked")
+            MongoCursor<LogbookLifeCycleObjectGroup> cursor =
+                (MongoCursor<LogbookLifeCycleObjectGroup>) mapXCursor.get(cursorId);
+            if (cursor != null) {
+                if (cursor.hasNext()) {
+                    return cursor.next();
+                }
+                cursor.close();
+                mapXCursor.remove(cursorId);
+                throw new LogbookNotFoundException("No more entries");
+            }
+        } catch (ClassCastException e) {
+            throw new LogbookDatabaseException("Cursor not linked to ObjectGroup", e);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
+    }
+
+    @Override
+    public void finalizeCursor(String cursorId) throws LogbookDatabaseException {
+        MongoCursor<?> cursor = mapXCursor.get(cursorId);
+        if (cursor != null) {
+            cursor.close();
+            mapXCursor.remove(cursorId);
+        }
+        throw new LogbookDatabaseException("Cursor already closed");
     }
 
     @Override
     public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final MongoCursor<LogbookLifeCycleObjectGroup> logbook = mongoDbAccess.getLogbookLifeCycleObjectGroups(select);
-        final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
-        if (!logbook.hasNext()) {
-            throw new LogbookNotFoundException("Logbook entry not found");
+        try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook =
+            mongoDbAccess.getLogbookLifeCycleObjectGroups(select)) {
+            final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
+            if (!logbook.hasNext()) {
+                throw new LogbookNotFoundException("Logbook entry not found");
+            }
+            while (logbook.hasNext()) {
+                result.add(logbook.next());
+            }
+            return result;
         }
-        while (logbook.hasNext()) {
-            result.add(logbook.next());
-        }
-        return result;
     }
 
     @Override

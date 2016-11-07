@@ -41,12 +41,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -55,7 +56,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class })
+@PrepareForTest({WorkspaceClientFactory.class})
 public class ExtractObjectNumSedaTest {
 
     @Rule
@@ -63,25 +64,31 @@ public class ExtractObjectNumSedaTest {
 
     private static final String SIP = "sip1.xml";
     private WorkspaceClient client;
-    private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private WorkspaceClientFactory workspaceClientFactory;
+    private final InputStream seda;
     private SedaUtils utils;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
-        .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL");
+        .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083");
 
+    public ExtractObjectNumSedaTest() throws FileNotFoundException {
+        seda = PropertiesUtils.getResourceAsStream(SIP);
+    }
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         client = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(client);
+        
     }
 
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
-
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(client);
         utils = SedaUtilsFactory.create();
-
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 
         assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();

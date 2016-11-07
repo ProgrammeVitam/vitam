@@ -65,7 +65,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     @Override
     public StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException {
-        // TODO : only 1 strategy for now, need to use this id in later implementation
+        // TODO P1 : only 1 strategy for now, need to use this id in later implementation
         if (storageStrategy != null) {
             return storageStrategy;
         }
@@ -80,7 +80,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     @Override
     public StorageOffer getStorageOffer(String idOffer) throws StorageTechnicalException {
-        // TODO : only 1 offer for now, need to use this id in later implementation
+        // TODO P1 : only 1 offer for now, need to use this id in later implementation
         if (storageOffer != null) {
             return storageOffer;
         }
@@ -96,16 +96,16 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     private void initReferentials() {
         try {
             loadReferential(ReferentialType.STRATEGY);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.warn("Couldn't load " + STRATEGY_FILENAME + " file", exc);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + STRATEGY_FILENAME + " file", exc);
         }
         try {
             loadReferential(ReferentialType.OFFER);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.warn("Couldn't load " + OFFER_FILENAME + " file", exc);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + OFFER_FILENAME + " file", exc);
         }
     }

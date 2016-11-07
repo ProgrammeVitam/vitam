@@ -26,17 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.junit;
 
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.elasticsearch.transport.BindTransportException;
 import org.junit.rules.ExternalResource;
+import org.junit.rules.TemporaryFolder;
 
 import com.google.common.testing.GcFinalization;
 
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -45,48 +58,101 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * This class allows to get an available port during Junit execution
  */
 public class JunitHelper extends ExternalResource {
+    private static final int WAIT_BETWEEN_TRY = 10;
     private static final int WAIT_AFTER_FULL_GC = 100;
+    private static final int MAX_PORT = 65535;
     private static final int BUFFER_SIZE = 65536;
     private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
         "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
 
-    private static final Set<Integer> PORT_ALREADY_USED = new HashSet<>();
+    private final Set<Integer> portAlreadyUsed = new HashSet<>();
+    /**
+     * Jetty port SystemProperty
+     */
+    private static final String PARAMETER_JETTY_SERVER_PORT = "jetty.port";
+    private static final JunitHelper JUNIT_HELPER = new JunitHelper();
 
     /**
      * Empty constructor
      */
-    public JunitHelper() {
-        // Empty constructor
+    private JunitHelper() {
+        // Empty
+    }
+
+    /**
+     *
+     * @return the unique instance
+     */
+    public static final JunitHelper getInstance() {
+        return JUNIT_HELPER;
     }
 
     /**
      * @return an available port if it exists
      * @throws IllegalStateException if no port available
      */
-    public final int findAvailablePort() {
-        synchronized (PORT_ALREADY_USED) {
-            do {
-                final Integer port = getPort();
-                if (!PORT_ALREADY_USED.contains(port)) {
-                    PORT_ALREADY_USED.add(port);
-                    LOGGER.debug("Available port: " + port);
-                    return port.intValue();
-                }
-            } while (true);
+    public final synchronized int findAvailablePort() {
+        return getAvailablePort();
+    }
+
+    /**
+     * Find an available port, set the Property jetty.port and call the factory to start the application in one
+     * synchronized step.
+     *
+     * @param testFactory the {@link VitamApplicationTestFactory} to use
+     * @return the available and used port if it exists and the started application
+     * @throws IllegalStateException if no port available
+     */
+    public final synchronized StartApplicationResponse<?> findAvailablePortSetToApplication(
+        VitamApplicationTestFactory<?> testFactory) {
+        if (testFactory == null) {
+            throw new IllegalStateException("Factory must not be null");
         }
+        final int port = getAvailablePort();
+        try {
+            final StartApplicationResponse<?> response = testFactory.startVitamApplication(port);
+            final int realPort = response.getServerPort();
+            if (realPort <= 0) {
+                portAlreadyUsed.remove(Integer.valueOf(port));
+                throw new IllegalStateException(COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON);
+            }
+            if (realPort != port) {
+                portAlreadyUsed.add(Integer.valueOf(realPort));
+                portAlreadyUsed.remove(Integer.valueOf(port));
+            }
+            return response;
+        } finally {
+            unsetJettyPortSystemProperty();
+        }
+    }
+
+    private final int getAvailablePort() {
+        do {
+            final Integer port = getPort();
+            if (!portAlreadyUsed.contains(port)) {
+                portAlreadyUsed.add(port);
+                LOGGER.debug("Available port: " + port);
+                setJettyPortSystemProperty(port);
+                return port.intValue();
+            }
+            try {
+                Thread.sleep(WAIT_BETWEEN_TRY);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        } while (true);
     }
 
     /**
      * Remove the used port
-     * 
+     *
      * @param port
      */
-    public final void releasePort(int port) {
-        synchronized (PORT_ALREADY_USED) {
-            LOGGER.debug("Relaese port: " + port);
-            PORT_ALREADY_USED.remove(Integer.valueOf(port));
-        }
+    public final synchronized void releasePort(int port) {
+        LOGGER.debug("Relaese port: " + port);
+        portAlreadyUsed.remove(Integer.valueOf(port));
+        unsetJettyPortSystemProperty();
     }
 
     private final int getPort() {
@@ -115,7 +181,7 @@ public class JunitHelper extends ExternalResource {
      * @throws IllegalArgumentException if the port is not between 1 and 65535
      */
     public final boolean isListeningOn(String host, int port) {
-        if (port < 1 || port > 65535) {
+        if (port < 1 || port > MAX_PORT) {
             throw new IllegalArgumentException("Port must be between 1 and 65535");
         }
         try (Socket socket = new Socket(host, port)) {
@@ -137,18 +203,18 @@ public class JunitHelper extends ExternalResource {
         if (inputStream == null) {
             return read;
         }
-        byte[] buffer = new byte[BUFFER_SIZE];
+        final byte[] buffer = new byte[BUFFER_SIZE];
         try {
             int len = 0;
             while ((len = inputStream.read(buffer)) >= 0) {
                 read += len;
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         try {
             inputStream.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         return read;
@@ -169,12 +235,12 @@ public class JunitHelper extends ExternalResource {
             while (inputStream.read() >= 0) {
                 read++;
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         try {
             inputStream.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         return read;
@@ -194,8 +260,191 @@ public class JunitHelper extends ExternalResource {
         GcFinalization.awaitFullGc();
         try {
             Thread.sleep(WAIT_AFTER_FULL_GC);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+    }
+
+    /**
+     * Set JettyPort System Property
+     *
+     * @param port
+     */
+    public static final void setJettyPortSystemProperty(int port) {
+        SystemPropertyUtil.set(PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+    }
+
+    /**
+     * Unset JettyPort System Property
+     */
+    public static final void unsetJettyPortSystemProperty() {
+        SystemPropertyUtil.clear(PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    /**
+     * Utility to check empty private constructor
+     *
+     * @param clasz
+     */
+    public static final void testPrivateConstructor(Class<?> clasz) {
+        // Get the empty constructor
+        Constructor<?> c;
+        try {
+            c = clasz.getDeclaredConstructor();
+            // Set it accessible
+            c.setAccessible(true);
+            // finally call the constructor
+            c.newInstance();
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
+            IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+    }
+
+    /**
+     * Class to help to build and stop an Elasticsearch server
+     */
+    public static class ElasticsearchTestConfiguration {
+        int tcpPort;
+        int httpPort;
+        File elasticsearchHome;
+        Node node;
+
+        /**
+         * 
+         * @return the associated TCP PORT
+         */
+        public int getTcpPort() {
+            return tcpPort;
+        }
+
+        /**
+         * 
+         * @return the associated HTTP PORT
+         */
+        public int getHttpPort() {
+            return httpPort;
+        }
+
+        /**
+         * 
+         * @return the associated Home
+         */
+        public File getElasticsearchHome() {
+            return elasticsearchHome;
+        }
+
+        /**
+         * 
+         * @return the associated Node
+         */
+        public Node getNode() {
+            return node;
+        }
+    }
+
+    private static final void tryStartElasticsearch(ElasticsearchTestConfiguration config, TemporaryFolder tempFolder,
+        String clusterName) {
+        try {
+            config.elasticsearchHome = tempFolder.newFolder();
+            final Settings settings = Settings.settingsBuilder()
+                .put("http.enabled", true)
+                .put("discovery.zen.ping.multicast.enabled", false)
+                .put("transport.tcp.port", config.tcpPort)
+                .put("http.port", config.httpPort)
+                .put("path.home", config.elasticsearchHome.getCanonicalPath())
+                .put("transport.tcp.connect_timeout", "1s")
+                .put("transport.profiles.tcp.connect_timeout", "1s")
+                .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / 1000) + "s")
+                .build();
+
+            config.node = nodeBuilder()
+                .settings(settings)
+                .client(false)
+                .clusterName(clusterName)
+                .node();
+
+            config.node.start();
+        } catch (BindTransportException | IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            config.node = null;
+            try {
+                Thread.sleep(WAIT_BETWEEN_TRY);
+            } catch (InterruptedException e1) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+            }
+        }
+        if (config.node != null) {
+            return;
+        }
+    }
+
+    /**
+     * 
+     * Helper to start an Elasticsearch server
+     * 
+     * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
+     * @param clusterName the cluster name
+     * @param tcpPort the given TcpPort
+     * @param httpPort the given HttpPort
+     * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
+     * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
+     */
+    public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
+        String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
+        ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
+        config.httpPort = httpPort;
+        config.tcpPort = tcpPort;
+        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+            tryStartElasticsearch(config, tempFolder, clusterName);
+            if (config.node != null) {
+                return config;
+            }
+        }
+        throw new VitamApplicationServerException("Cannot start Elasticsearch");
+    }
+
+    /**
+     * Helper to start an Elasticsearch server
+     * 
+     * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
+     * @param clusterName the cluster name
+     * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
+     * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
+     */
+    public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
+        String clusterName) throws VitamApplicationServerException {
+        JunitHelper junitHelper = getInstance();
+        ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
+        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+            config.tcpPort = junitHelper.findAvailablePort();
+            config.httpPort = junitHelper.findAvailablePort();
+            tryStartElasticsearch(config, tempFolder, clusterName);
+            if (config.node == null) {
+                junitHelper.releasePort(config.tcpPort);
+                junitHelper.releasePort(config.httpPort);
+                config.node = null;
+            } else {
+                return config;
+            }
+        }
+        throw new VitamApplicationServerException("Cannot start Elasticsearch");
+    }
+
+    /**
+     * Stop the Elasticsearch server started through start ElasticsearchForTest
+     * 
+     * @param config the ElasticsearchTestConfiguration
+     */
+    public static final void stopElasticsearchForTest(ElasticsearchTestConfiguration config) {
+        if (config != null) {
+            JunitHelper junitHelper = getInstance();
+            if (config.node != null) {
+                config.node.close();
+            }
+
+            junitHelper.releasePort(config.tcpPort);
+            junitHelper.releasePort(config.httpPort);
         }
     }
 }

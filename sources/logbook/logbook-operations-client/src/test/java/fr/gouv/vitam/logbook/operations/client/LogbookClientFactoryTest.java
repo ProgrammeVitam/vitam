@@ -35,7 +35,8 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 /**
  * Test class for client (and parameters) factory
@@ -44,37 +45,32 @@ public class LogbookClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        LogbookClientFactory.getInstance().changeConfigurationFile("logbook-client-test.conf");
+        LogbookOperationsClientFactory.changeMode(
+            LogbookOperationsClientFactory.changeConfigurationFile("logbook-client-test.conf"));
     }
 
     @Test
     public void getClientInstanceTest() {
         try {
-            LogbookClientFactory.setConfiguration(LogbookClientType.OPERATIONS, null, 10);
+            LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookClientFactory.setConfiguration(LogbookClientType.OPERATIONS, "localhost", -10);
+            LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-        try {
-            LogbookClientFactory.setConfiguration(null, null, 10);
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, -1);
+        LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookClient client2 =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client2 =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -82,46 +78,39 @@ public class LogbookClientFactoryTest {
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookOperationsClientRest);
-        final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookClientType.OPERATIONS, type);
+        assertEquals(VitamClientType.PRODUCTION, LogbookOperationsClientFactory.getInstance().getVitamClientType());
 
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
-        final LogbookClient client2 = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClientFactory.changeMode(null);
+        final LogbookOperationsClient client2 =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof LogbookOperationsClientMock);
-        final LogbookClientFactory.LogbookClientType type2 = LogbookClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type2);
-        assertEquals(LogbookClientType.MOCK_OPERATIONS, type2);
+        assertEquals(VitamClientType.MOCK, LogbookOperationsClientFactory.getInstance().getVitamClientType());
 
-        LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, "server", 1025);
-        final LogbookClient client3 = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
+        final LogbookOperationsClient client3 =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof LogbookOperationsClientRest);
-        final LogbookClientFactory.LogbookClientType type3 = LogbookClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type3);
-        assertEquals(LogbookClientType.OPERATIONS, type3);
+        assertEquals(VitamClientType.PRODUCTION, LogbookOperationsClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        LogbookClientFactory.getInstance().changeConfigurationFile("tmp");
-        final LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClientFactory.changeMode(
+            LogbookOperationsClientFactory.changeConfigurationFile("tmp"));
+        final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookOperationsClientMock);
-        final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookClientType.MOCK_OPERATIONS, type);
+        assertEquals(VitamClientType.MOCK, LogbookOperationsClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookOperationsClientRest);
-        final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookClientType.OPERATIONS, type);
+        assertEquals(VitamClientType.PRODUCTION, LogbookOperationsClientFactory.getInstance().getVitamClientType());
     }
 }

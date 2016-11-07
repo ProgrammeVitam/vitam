@@ -55,7 +55,7 @@ path.logs: {{elasticsearch_log_dir}}
 {% if inventory_hostname == "localhost" %}
 network.host: 0.0.0.0
 {% else %}
-network.host: {{ansible_hostname}}
+network.host: {{inventory_hostname}}
 {% endif %}#
 # Set a custom port for HTTP:
 #

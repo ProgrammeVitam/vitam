@@ -27,10 +27,11 @@
 
 package fr.gouv.vitam.storage.engine.common.model;
 
-import fr.gouv.vitam.common.digest.DigestType;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import fr.gouv.vitam.common.digest.DigestType;
 
 /**
  * ObjectInit Test
@@ -39,7 +40,7 @@ public class ObjectInitTest {
 
     @Test
     public void testPojo() throws Exception {
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setId("id");
         objectInit.setDigestAlgorithm(DigestType.MD5);
         objectInit.setSize(1);

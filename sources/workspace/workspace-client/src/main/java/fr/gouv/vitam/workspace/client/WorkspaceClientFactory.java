@@ -26,18 +26,57 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
+import java.net.URI;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 /**
  * WorkspaceClient factory for creating workspace client
  */
-public class WorkspaceClientFactory {
-    // FIXME REVIEW handle internally the configuration (see Logbook Client)
+public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClientFactory.class);
+    private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory();
+    private static final String RESOURCE_PATH = "/workspace/v1";
+
+    private WorkspaceClientFactory() {
+        super(null, RESOURCE_PATH, true, false, true);
+    }
+
     /**
-     * Create workspace client with server URL
      *
-     * @param serviceUrl workspace server Url
-     * @return WorkspaceClient
+     * @return the instance
      */
-    public static WorkspaceClient create(String serviceUrl) {
-        return new WorkspaceClient(serviceUrl);
+    public static final WorkspaceClientFactory getInstance() {
+        return WORKSPACE_CLIENT_FACTORY;
+    }
+
+    @Override
+    public WorkspaceClient getClient() {
+        return new WorkspaceClient(this);
+    }
+
+    /**
+     * change mode client by serveur url
+     * 
+     * @param configuration as String
+     */
+    public static final void changeMode(String serviceUrl) {
+        ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);
+        final URI uri = URI.create(serviceUrl);
+        final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
+        changeMode(configuration);
+    }
+
+    /**
+     *
+     * @param configuration null for MOCK
+     */
+    static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

@@ -43,7 +43,7 @@ public class ObjectInitTest {
 
     @Test
     public void objectInitTest() {
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setId("id");
         objectInit.setSize(1024);
         objectInit.setType(DataCategory.UNIT);

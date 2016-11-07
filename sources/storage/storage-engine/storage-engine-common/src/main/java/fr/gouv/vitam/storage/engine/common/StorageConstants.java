@@ -32,9 +32,9 @@ package fr.gouv.vitam.storage.engine.common;
  */
 public final class StorageConstants {
 
-    //TODO: move to common public VITAM
+    // TODO P1 : move to common public VITAM
     public static final String APPLICATION_ZIP = "application/zip";
-    
+
     /**
      * X-Command header INIT value
      */
@@ -49,9 +49,9 @@ public final class StorageConstants {
      * X-Command header END value
      */
     public static final String COMMAND_END = "END";
-    
+
     private StorageConstants() {
         // Just hiding empty constructor
     }
-    
+
 }

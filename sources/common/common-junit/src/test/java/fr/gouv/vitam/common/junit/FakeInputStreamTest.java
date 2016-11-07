@@ -44,7 +44,7 @@ public class FakeInputStreamTest {
 
     @Test
     public void testAvailable() {
-        int len = 100;
+        final int len = 100;
         try (FakeInputStream fakeInputStream = new FakeInputStream(len, true)) {
             assertEquals(len, fakeInputStream.available());
             fakeInputStream.read();

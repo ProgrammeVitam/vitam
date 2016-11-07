@@ -16,16 +16,16 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>{{entryCtrl.detail.evType}}</td>
+            <tr class="logbookProcess">
+                <td>{{entryCtrl.detail.evType | translate}}</td>
                 <td>{{entryCtrl.detail.evDateTime}}</td>
                 <td>{{entryCtrl.detail.outcome}}</td>
                 <td>{{entryCtrl.detail.outMessg}}</td>
             </tr>
             </tbody>
             <tbody ng-repeat="event in entryCtrl.detail.events">
-            <tr>
-                <td>{{event.evType}}</td>
+            <tr ng-class="$last ? 'logbookProcess': ''">
+                <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))">{{event.evType | translate}}</td>
                 <td>{{event.evDateTime}}</td>
                 <td>{{event.outcome}}</td>
                 <td>{{event.outMessg}}</td>

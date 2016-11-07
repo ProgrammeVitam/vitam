@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * ingest external common util package
+ * Ingest external common util package
  */
 package fr.gouv.vitam.ingest.external.common.util;

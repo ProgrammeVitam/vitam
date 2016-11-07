@@ -29,19 +29,19 @@ package fr.gouv.vitam.ingest.external.common.config;
 /**
  * IngestInternalConfiguration contains access informations of ingest
  */
-// FIXME bad package situation for this class
+// FIXME P1 should use standard configuration
 public class IngestInternalConfiguration {
 
     private String host;
-    private int port; 
-    
+    private int port;
+
     /**
      * IngestInternalConfiguration empty constructor for YAMLFactory
      */
     public IngestInternalConfiguration() {
         // Empty constructor
     }
-    
+
     /**
      * @return host
      */

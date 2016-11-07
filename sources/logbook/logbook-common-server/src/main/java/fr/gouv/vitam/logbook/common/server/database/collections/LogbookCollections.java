@@ -50,7 +50,7 @@ enum LogbookCollections {
      * LifeCycle object group Collection
      */
     LIFECYCLE_OBJECTGROUP(LogbookLifeCycleObjectGroup.class);
-    
+
     private VitamCollection vitamCollection;
 
     private LogbookCollections(final Class<?> clasz) {

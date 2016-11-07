@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,16 +44,18 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 
 public class FileSystemTest {
@@ -69,12 +72,16 @@ public class FileSystemTest {
     private static final String SIP_CONTAINER = "sipContainer";
     private static final String SIP_FOLDER = "SIP";
     private static final String CONTENT_FOLDER = "Content";
-    private static final String MANIFEST_NAME = "manifest.xml";
     private static final DigestType ALGO = DigestType.MD5;
+    private static final String MANIFEST = "manifest.xml";
+    private static final String SIP_TAR_GZ = "sip.tar.gz";
+    private static final String SIP_TAR = "sip.tar";
+
+
 
     @Before
     public void setup() throws IOException {
-        final StorageConfiguration configuration = new StorageConfiguration();
+        final WorkspaceConfiguration configuration = new WorkspaceConfiguration();
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         workspace = new FileSystem(configuration);
@@ -151,7 +158,6 @@ public class FileSystemTest {
     }
 
     // Folder
-
     @Test
     public void givenFolderNotFoundWhenCheckContainerExistenceThenRetunFalse() {
         assertFalse(workspace.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
@@ -215,7 +221,6 @@ public class FileSystemTest {
     }
 
     // Object
-
     @Test
     public void givenObjectNotFoundWhenCheckObjectExistenceThenRetunFalse() {
         assertFalse(workspace.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
@@ -247,7 +252,7 @@ public class FileSystemTest {
         throws IOException, ContentAddressableStorageException {
         workspace.createContainer(CONTAINER_NAME);
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
-        JsonNode jsonNode = workspace.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+        final JsonNode jsonNode = workspace.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("size"));
         assertNotNull(jsonNode.get("object_name"));
@@ -341,8 +346,8 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
-        String messageDigest = workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
-        Digest digest = new Digest(ALGO);
+        final String messageDigest = workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        final Digest digest = new Digest(ALGO);
         digest.update(getInputStream("file1.pdf"));
 
         assertTrue(messageDigest.equals(digest.toString()));
@@ -370,7 +375,7 @@ public class FileSystemTest {
     }
 
     private InputStream getInputStream(String file) throws IOException {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
+        return PropertiesUtils.getResourceAsStream(file);
     }
 
     // Uri List of Digital Object from Content folder
@@ -384,8 +389,8 @@ public class FileSystemTest {
 
         // Given a root folder "SIP_FOLDER", add manifest.xml to this root folder
         final String manifestName =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append("manifest.xml").toString();
-        workspace.putObject(SIP_CONTAINER, manifestName, getInputStream("manifest.xml"));
+            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
+        workspace.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
         // Given a sub folder "CONTENT_FOLDER" add digital objects
         final String contentSubFolder =
@@ -414,8 +419,7 @@ public class FileSystemTest {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException()
         throws IOException, Exception {
-
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
@@ -423,60 +427,78 @@ public class FileSystemTest {
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
         workspace.createFolder(CONTAINER_NAME, SIP_FOLDER);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
 
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
     public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, null);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, null);
     }
 
     @Test
     public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
+
     }
 
-    @Test(expected = ContentAddressableStorageZipException.class)
+    @Test(expected = ContentAddressableStorageCompressedFileException.class)
     public void givenContainerAlreadyExisitsWhenUnzipObjectEmptyThenZipException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("empty_zip.zip"));
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("empty_zip.zip"));
     }
 
-    @Test(expected = ContentAddressableStorageZipException.class)
+    @Test(expected = ContentAddressableStorageCompressedFileException.class)
     public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("SIP_mauvais_format.pdf"));
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("SIP_mauvais_format.pdf"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyContainerNameParamWhenUnzipSipThenRaiseAnException() throws Exception {
-        workspace.unzipObject(null, null, null);
+        workspace.uncompressObject(null, null, null, null);
     }
 
-    @Test(expected = ContentAddressableStorageZipException.class)
-    public void givenTarGzSIPWhenUnzipObjectThenRaiseAnException()
+    @Test(expected = ContentAddressableStorageCompressedFileException.class)
+    public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("SIP.tar.gz"));
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream(SIP_TAR_GZ));
+    }
+
+    @Test
+    public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
+        assertTrue(workspace.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, "unsupported", getInputStream(SIP_TAR_GZ));
     }
 
     @Test
     public void getContainerInformationOK() throws Exception {
         workspace.createContainer(CONTAINER_NAME);
-        ContainerInformation containerInformation = workspace.getContainerInformation(CONTAINER_NAME);
+        final ContainerInformation containerInformation = workspace.getContainerInformation(CONTAINER_NAME);
         assertNotNull(containerInformation);
     }
 
     @Test
     public void getContainerInformationContainerNameNull() throws Exception {
-        ContainerInformation containerInformation = workspace.getContainerInformation(null);
+        final ContainerInformation containerInformation = workspace.getContainerInformation(null);
         assertNotNull(containerInformation);
     }
 
@@ -484,4 +506,23 @@ public class FileSystemTest {
     public void getContainerInformationStorageNotFoundException() throws Exception {
         workspace.getContainerInformation(CONTAINER_NAME);
     }
+
+    @Test
+    public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
+        assertTrue(workspace.isExistingFolder(CONTAINER_NAME, SIP_FOLDER));
+    }
+
+    @Test
+    public void givenTarArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
+        assertTrue(workspace.isExistingFolder(CONTAINER_NAME, SIP_FOLDER));
+    }
+
 }

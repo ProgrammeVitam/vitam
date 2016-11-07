@@ -30,10 +30,7 @@ package fr.gouv.vitam.logbook.common.model.response;
 /**
  * DatabaseCursor class Show database position of request response
  */
-/*
- * TODO ; refactor to the common vitam
- * 
- * */
+//TODO P1 ; refactor to the common vitam
 public class DatabaseCursor {
     private int total;
     private int offset;
@@ -41,7 +38,7 @@ public class DatabaseCursor {
 
     /**
      * DatabaseCursor constructor
-     * 
+     *
      * @param total total of units inserted/modified
      * @param offset the offset of unit in database
      * @param limit number limit of unit per response

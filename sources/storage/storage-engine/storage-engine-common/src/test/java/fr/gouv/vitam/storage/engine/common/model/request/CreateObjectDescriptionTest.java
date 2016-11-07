@@ -27,9 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.common.model.request;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -38,21 +38,22 @@ public class CreateObjectDescriptionTest {
 
     @Test
     public void testGetSetWorkspaceObjectURI() throws Exception {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("aa");
         assertEquals("aa", createObjectDescription.getWorkspaceObjectURI());
     }
 
     @Test
     public void testGetSetWorkspaceContainerGUID() throws Exception {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("GUID");
         assertEquals("GUID", createObjectDescription.getWorkspaceContainerGUID());
     }
 
     @Test
     public void testConstructorWithParam() throws Exception {
-        CreateObjectDescription createObjectDescription = new CreateObjectDescription("containerGUID", "objectURI");
+        final CreateObjectDescription createObjectDescription =
+            new CreateObjectDescription("containerGUID", "objectURI");
         assertEquals("containerGUID", createObjectDescription.getWorkspaceContainerGUID());
         assertEquals("objectURI", createObjectDescription.getWorkspaceObjectURI());
     }

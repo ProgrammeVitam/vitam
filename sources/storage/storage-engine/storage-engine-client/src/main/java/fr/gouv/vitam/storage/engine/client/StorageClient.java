@@ -28,9 +28,11 @@ package fr.gouv.vitam.storage.engine.client;
 
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -43,11 +45,9 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
  */
 public interface StorageClient extends BasicClient {
 
-    String RESOURCE_PATH = "/storage/v1";
-
     /**
      * Check if the storage of objects could be done, knowing a required size
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return the capacity of the storage
@@ -59,7 +59,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Store an object available in workspace by its vitam guid
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
@@ -76,7 +76,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check the existance of a tenant container in storage by its id
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if exist
@@ -86,7 +86,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check the existence of an object in storage by its id and type {@link StorageCollectionType}.
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
@@ -98,9 +98,8 @@ public interface StorageClient extends BasicClient {
         throws StorageServerClientException;
 
     /**
-     * Delete a container in the storage offer strategy
-     * A non-empty container CANNOT be deleted !
-     * 
+     * Delete a container in the storage offer strategy A non-empty container CANNOT be deleted !
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if deleted
@@ -110,7 +109,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Delete an object of given type in the storage offer strategy
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
@@ -128,6 +127,7 @@ public interface StorageClient extends BasicClient {
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param guid vitam guid of the object to be returned
+     * @param type 
      * @return the object requested
      * @throws StorageServerClientException if the Server got an internal error
      * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
@@ -136,5 +136,20 @@ public interface StorageClient extends BasicClient {
     InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException;
 
+
+    /**
+     * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
+     *
+     * @param tenantId the tenant id
+     * @param strategyId the storage strategy id
+     * @param guid vitam guid of the object to be returned
+     * @param type 
+     * @return the object requested
+     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
+     *         exist
+     */
+    Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+        throws StorageServerClientException, StorageNotFoundException;
 
 }

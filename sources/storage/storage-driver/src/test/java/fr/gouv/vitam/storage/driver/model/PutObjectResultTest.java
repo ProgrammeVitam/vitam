@@ -40,7 +40,7 @@ public class PutObjectResultTest {
 
     @BeforeClass
     public static void init() {
-        putObjectResult = new PutObjectResult("doi", "dhb16", "ti");
+        putObjectResult = new PutObjectResult("doi", "dhb16", "ti", 10);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class PutObjectResultTest {
     public void testGetDigestHashBase16() {
         assertEquals("dhb16", putObjectResult.getDigestHashBase16());
     }
-    
+
     @Test
     public void testGetTenantId() {
         assertEquals("ti", putObjectResult.getTenantId());

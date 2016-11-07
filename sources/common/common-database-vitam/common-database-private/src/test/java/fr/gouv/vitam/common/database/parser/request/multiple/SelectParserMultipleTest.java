@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.flt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -86,30 +88,37 @@ public class SelectParserMultipleTest {
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
-        exampleBothEsMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, { " +
-            "$ne : { 'mavar9' : 'ab' } }, { " + "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
-            "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
-            "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
-            "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," + "{ $and : [ " +
-            "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " + "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
-            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
-            "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
-            "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
-            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
-            "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }");
-        
+        exampleBothEsMd =
+            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
+                "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+                "{ $or : [ " +
+                "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+                "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
+                "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, { " +
+                "$ne : { 'mavar9' : 'ab' } }, { " +
+                "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
+                "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
+                "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
+                "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," +
+                "{ $and : [ " +
+                "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " +
+                "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
+                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
+                "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
+                "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
+                "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
+                "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
+                "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
+                "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }");
+
         exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
+            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+            "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
             "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
             "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-            "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $ne : { 'mavar9' : 'ab' } }, " +
+            "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
             "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
@@ -378,6 +387,28 @@ public class SelectParserMultipleTest {
         final String ex = "{}";
         request.parseQueryOnly(ex);
         assertNotNull(request);
+    }
+
+    @Test
+    public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserMultiple request = new SelectParserMultiple();
+        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        Select select = new Select();
+        select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
+        select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
+        select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
+            .addUnusedProjection("var4");
+        request.parse(select.getFinalSelect());
+        assertNotNull(request.getRequest());
+        request.addCondition(eq("var5", "value"));
+        assertEquals(
+            "{\"$roots\":[]," +
+            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "{\"$eq\":{\"var5\":\"value\"}}]}," +
+                "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+                "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
+            request.getRootNode().toString());
     }
 
     @Test

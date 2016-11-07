@@ -26,9 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import java.util.List;
-
-import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -37,20 +36,18 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * Worker Client interface
  */
-public interface WorkerClient extends BasicClient {
-
-    String RESOURCE_PATH = "/worker/v1";
+public interface WorkerClient extends MockOrRestClient {
 
     /**
      * add a step to the worker
-     * 
+     *
      * @param requestId unique request id
      * @param step the new step
      * @return List of EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      * @throws WorkerNotFoundClientException if the Server got a NotFound result
      * @throws WorkerServerClientException if the Server got an internal error
      */
-    List<EngineResponse> submitStep(String requestId, DescriptionStep step)
+    CompositeItemStatus submitStep(String requestId, DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException;
 
 }

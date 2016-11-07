@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * functional administration client package
+ * Functional administration client package
  */
 package fr.gouv.vitam.functional.administration.client;

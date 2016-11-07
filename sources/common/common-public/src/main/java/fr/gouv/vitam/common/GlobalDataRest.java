@@ -37,9 +37,24 @@ public class GlobalDataRest {
     public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
 
     /**
+     * Header Parameter X_APPLICATION_ID
+     */
+    public static final String X_APPLICATION_ID = "X-APPLICATION-ID";
+
+    /**
      * Header Parameter X_REQUEST_ID
      */
     public static final String X_REQUEST_ID = "X-REQUEST-ID";
+
+    /**
+     * Header Parameter X_REQUEST_TRACE which contains at first X-Request-ID then adding the X-REQUESTER
+     */
+    public static final String X_REQUEST_TRACE = "X-REQUEST-TRACE";
+
+    /**
+     * Header Parameter X_REQUESTER which contains the service and host name
+     */
+    public static final String X_REQUESTER = "X-REQUESTER";
 
     /**
      * X-Command header used on storage resources
@@ -64,8 +79,31 @@ public class GlobalDataRest {
      */
     public static final String X_STRATEGY_ID = "X-Strategy-Id";
     
+    /**
+     * The X_PLATFORM_ID header
+     */
+    public static final String X_PLATFORM_ID = "X-Platform-Id";
+    
+    /**
+     * The X_TIMESTAMP header
+     */
+    public static final String X_TIMESTAMP = "X-Timestamp";
+
+    /**
+     * Ask to request using a http based cursor
+     */
+    public static final String X_CURSOR = "X-Cursor";
+    /**
+     * Identifier for a Http based cursor
+     */
+    public static final String X_CURSOR_ID = "X-Cursor-Id";
+    /**
+     * Timeout (in epoch) for Http based cursor
+     */
+    public static final String X_CURSOR_TIMEOUT = "X-Cursor-Timeout";
+    
     private GlobalDataRest() {
         // empty
     }
-    
+
 }

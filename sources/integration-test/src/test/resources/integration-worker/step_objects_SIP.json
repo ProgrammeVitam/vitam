@@ -1,0 +1,23 @@
+{
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OG_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }

@@ -27,13 +27,14 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+
 /**
  * Storage configuration class mapping
  */
-public final class StorageConfiguration {
+public final class StorageConfiguration extends DefaultVitamApplicationConfiguration{
 
     private String urlWorkspace;
-    private String jettyConfig;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -58,27 +59,5 @@ public final class StorageConfiguration {
         this.urlWorkspace = urlWorkspace;
         return this;
     }
-
-    /**
-     * getter jettyConfig
-     *
-     * @return return the jettyConfiguartion file name
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-
-    /**
-     * setter jettyConfig file name
-     *
-     * @param jettyConfig the jetty config file name
-     * @return StorageConfiguration
-     */
-    public StorageConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
-
 
 }
