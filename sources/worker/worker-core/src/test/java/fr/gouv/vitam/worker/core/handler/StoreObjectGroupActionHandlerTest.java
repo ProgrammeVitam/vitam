@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -86,8 +87,7 @@ public class StoreObjectGroupActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
-        action = new HandlerIO("");
-        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP));
+        action = new HandlerIO(CONTAINER_NAME, "workerId");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);
@@ -96,6 +96,11 @@ public class StoreObjectGroupActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
+    @After
+    public void clean() {
+        action.close();
+    }
+    
     @Test
     public void givenWorkspaceErrorWhenExecuteThenReturnResponseKO() throws Exception {
         final StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);

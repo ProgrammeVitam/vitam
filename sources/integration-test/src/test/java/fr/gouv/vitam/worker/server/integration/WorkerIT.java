@@ -60,6 +60,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -70,6 +71,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
@@ -178,6 +181,9 @@ public class WorkerIT {
             .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
         lgbapplication.start();
+        ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
+        LogbookLifeCyclesClientFactory.changeMode(configuration);
+        LogbookOperationsClientFactory.changeMode(configuration);
 
         // launch workspace
         SystemPropertyUtil

@@ -53,9 +53,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -81,7 +81,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public void create(LogbookParameters parameters)
+    public void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -120,7 +120,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     }
 
-    private String getServiceUrl(LogbookParameters parameters, String eip, String oid) {
+    private String getServiceUrl(LogbookLifeCycleParameters parameters, String eip, String oid) {
         String logBookLifeCycleUrl;
         if (parameters instanceof LogbookLifeCycleObjectGroupParameters) {
             logBookLifeCycleUrl = OBJECT_GROUP_LIFECYCLES_URL;
@@ -133,7 +133,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public void update(LogbookParameters parameters)
+    public void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -172,7 +172,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public void commit(LogbookParameters parameters)
+    public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -211,7 +211,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public void rollback(LogbookParameters parameters)
+    public void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());

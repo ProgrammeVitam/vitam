@@ -73,8 +73,10 @@ La structuration du HandlerIO est la suivante :
 
 - des paramètres d'entrées (in) :
 
+
    - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
    - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
+
 
       - WORKSPACE:path indique le chemin relatif sur le workspace
       - MEMORY:path indique le nom de la clef de valeur
@@ -117,6 +119,7 @@ La structuration du HandlerIO est la suivante :
 
    - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
 
+
       - WORKSPACE : implicitement un File local
 
 .. code-block:: java
@@ -128,7 +131,6 @@ La structuration du HandlerIO est la suivante :
    File newFile = handlerIO.getNewLocalFile(filename);
    // write it
    ...
-
    // Now give it back to handlerIO as ouput result,
    // specifying if you want to delete it right after or not
    handlerIO.addOuputResult(rank, newFile, true);
@@ -223,8 +225,10 @@ Si nécessaire et si compatible, il est possible de passer par un mode MEMORY po
       handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP));
       handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
 
+
       // Reset the handlerIo in order to remove all In and Out parameters
       handlerIO.reset();
+
 
       // And now declares the In parameter list, that will use the MEMORY default values
       handlerIO.addInIOParameters(in);
@@ -254,6 +258,7 @@ Celui ci sert de clé pour :
     - les fichiers json de définition des workflows json (exemple : DefaultIngestWorkflow.json)
 
 cf. workflow.rst
+
 
 4. Details des Handlers
 ***********************
@@ -392,7 +397,9 @@ Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le n
 4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
 ---------------------------------------------------------------
 
+
 Ce handler permet de contrôler la cohérence entre l'object/object group et l'ArchiveUnit.
+
 Pour ce but, on détecte les groupes d'object qui ne sont pas référé par au moins d'un ArchiveUnit.
 Ce tache prend deux maps de données qui ont été crée dans l'étape précédente de workflow comme input :
 objectGroupIdToUnitId
@@ -572,7 +579,6 @@ Persistence des objets dans l'offre de stockage depuis le workspace.
 
 TODO
 
-
 4.10 Détail du handler : FormatIdentificationActionHandler
 ----------------------------------------------------------
 
@@ -700,14 +706,18 @@ Cependant aucune mise à jour est effectuée lors de l'exécution de ce handler.
 
 4.11.5 modules utilisés
 =======================
+
 Le Handler utilise les modules suivants :
+
  - Workspace (récupération / copie de fichiers)
  - Logbook (partie server) : pour le moment la partie server du logbook est utilisée pour récupérer les différents journaux (opérations et cycles de vie).
  - Storage : permettant de stocker l'ATR.
 
 4.11.6 cas d'erreur
 ===================
+
 Les différentes exceptions pouvant être rencontrées :
+
  - Logbook*Exception : si un problème est rencontré lors de l'interrogation du logbook
  - Content*Exception : si un problème est rencontré lors de l'interrogation du workspace
  - XML*Exception : si un souci est rencontré sur la génération du XML
@@ -719,7 +729,9 @@ Les différentes exceptions pouvant être rencontrées :
 
 4.12.1 Description
 ==================
+
 AccessionRegisterActionHandler permet de fournir une vue globale et dynamique des archives
+
 sous la responsabilité du service d'archives, pour chaque tenant.
 
 4.12.2 Détail des maps utilisées
@@ -733,9 +745,11 @@ Map<String, String> archiveUnitIdToGuid
 Map<String, Object> bdoToBdoInfo
 	contenu         : cette map contient l'id du binary data object relié à son information
 
+
 4.12.3 exécution
 ================
 L'alimentation du registre des fonds a lieu pendant la phase de finalisation de l'entrée,
+
 une fois que les objets et les units sont rangés. ("stepName": "STP_INGEST_FINALISATION")
 
 Le Registre des Fonds est alimenté de la manière suivante:
@@ -751,7 +765,6 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- volumétrie des objets (Object Size)
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
-
 
 5. Worker-common
 ****************

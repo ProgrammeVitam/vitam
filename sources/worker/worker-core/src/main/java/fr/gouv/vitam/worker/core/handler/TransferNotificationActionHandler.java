@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,7 +53,6 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -101,6 +101,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class TransferNotificationActionHandler extends ActionHandler {
 
+    private static final int ATR_RESULT_OUT_RANK = 0;
+    private static final int SEDA_PARAMETERS_RANK = 4;
+    private static final int BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK = 3;
+    private static final int BDO_OG_STORED_MAP_RANK = 2;
+    private static final int BINARY_DATAOBJECT_MAP_RANK = 1;
+    private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final String XML = ".xml";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
@@ -110,15 +116,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String PREMIS_URI = "info:lc/xmlns/premis-v2";
     private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String XSD_VERSION = " seda-2.0-main.xsd";
-    public static final String JSON_EXTENSION = ".json";
 
-    private static final String ATR_FILE_NAME = "responseReply.xml";
     private HandlerIO handlerIO;
     private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
-    private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
+    private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     public static final int HANDLER_IO_PARAMETER_NUMBER = 5;
 
@@ -134,7 +138,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     public TransferNotificationActionHandler(LogbookDbAccess mongoDbAccess) {
         storageClientFactory = StorageClientFactory.getInstance();
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
-            handlerInitialIOList.addInput(File.class);
+            handlerInitialIOList.add(File.class);
         }
         this.mongoDbAccess = mongoDbAccess;
     }
@@ -170,17 +174,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
             // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
             try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-                HandlerIO.transferFileFromTmpIntoWorkspace(
-                    workspaceClient,
-                    params.getContainerName() + ATR_FILE_NAME,
-                    IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME,
-                    params.getContainerName(),
-                    true);
+                handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
             }
             // store binary data object
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME);
+            description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
                     DEFAULT_TENANT,
@@ -246,25 +245,26 @@ public class TransferNotificationActionHandler extends ActionHandler {
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final String atrPath = params.getContainerName() + ATR_FILE_NAME;
-        final File atrTmpFile = PropertiesUtils.fileFromTmpFolder(atrPath);
+        final File atrTmpFile = handlerIO.getNewLocalFile(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
 
         // Pre-actions
-        final InputStream archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(0));
+        final InputStream archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
         final Map<String, Object> archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
-        final InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
+        final InputStream binaryDataObjectMapTmpFile =
+            new FileInputStream((File) handlerIO.getInput(BINARY_DATAOBJECT_MAP_RANK));
         final Map<String, Object> binaryDataObjectSystemGuid =
             JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
-        final InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
+        final InputStream bdoObjectGroupStoredMapTmpFile =
+            new FileInputStream((File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK));
         final Map<String, Object> bdoObjectGroupSystemGuid =
             JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
         final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
-            new FileInputStream((File) handlerIO.getInput().get(3));
+            new FileInputStream((File) handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK));
         final Map<String, Object> bdoVersionDataObject =
             JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-        final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(4));
+        final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         JsonNode infoATR =
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
         String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
@@ -322,7 +322,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END ARCHIVE_UNIT_LIST
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
             // Set to known which DOGIG has already be used in the XML
-            final Set<String> usedDataObjectGroup = new HashSet<String>();
+            final Set<String> usedDataObjectGroup = new HashSet<>();
             if (binaryDataObjectSystemGuid != null) {
                 for (final Map.Entry<String, Object> entry : binaryDataObjectSystemGuid.entrySet()) {
                     final String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
@@ -392,16 +392,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        String atrPath = params.getContainerName() + ATR_FILE_NAME;
-        File atrTmpFile = PropertiesUtils.fileFromTmpFolder(atrPath);
+        File atrTmpFile = handlerIO.getNewLocalFile(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
 
         // Pre-actions
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         JsonNode infoATR = null;
         String messageIdentifier = null;
-        if (handlerIO.getInput().get(4) != null) {
-            final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(4));
+        if (handlerIO.getInput(SEDA_PARAMETERS_RANK) != null) {
+            final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
             infoATR =
                 sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             if (infoATR != null && infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
@@ -521,8 +520,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             try (MongoCursor<LogbookLifeCycleUnit> logbookLifeCycleUnits = getLogbookLifecycleUnits(containerName)) {
                 if (logbookLifeCycleUnits != null) {
                     InputStream archiveUnitMapTmpFile = null;
-                    if (handlerIO.getInput().get(0) != null) {
-                        archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(0));
+                    File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
+                    if (file != null) {
+                        archiveUnitMapTmpFile = new FileInputStream(file);
                     }
                     Map<String, Object> archiveUnitSystemGuid = null;
                     Map<String, String> systemGuidArchiveUnitId = null;
@@ -568,10 +568,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (logbookLifeCycleObjectGroups != null) {
                 Map<String, Object> binaryDataObjectSystemGuid = null;
                 Map<String, Object> bdoObjectGroupSystemGuid = null;
-                if (handlerIO.getInput().get(1) != null && handlerIO.getInput().get(2) != null) {
-                    InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
+                File file1 = (File) handlerIO.getInput(BINARY_DATAOBJECT_MAP_RANK);
+                File file2 = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
+                if (file1 != null && file2 != null) {
+                    InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
                     InputStream bdoObjectGroupStoredMapTmpFile =
-                        new FileInputStream((File) handlerIO.getInput().get(2));
+                        new FileInputStream(file2);
                     binaryDataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
                     bdoObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
                 }
@@ -720,9 +722,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, handlerInitialIOList)) {
+        if (!handler.checkHandlerIO(1, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
         }
     }

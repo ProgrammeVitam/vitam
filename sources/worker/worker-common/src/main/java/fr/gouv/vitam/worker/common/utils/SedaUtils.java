@@ -46,7 +46,6 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
@@ -55,21 +54,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -87,19 +76,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 // If you absolutely need to check values in handler's methods, also use the ParameterCheker.
 public class SedaUtils {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
+    static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
-    public static final String JSON_EXTENSION = ".json";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
-    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
-        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
-    private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
-    private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
@@ -179,7 +161,7 @@ public class SedaUtils {
         String messageId = "";
         XMLEventReader reader = null;
         InputStream xmlFile = null;
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO P0 : whould use worker configuration instead of the processing configuration
             try {
@@ -225,109 +207,6 @@ public class SedaUtils {
     }
 
     /**
-     * @param logbookLifecycleParameters
-     * @param params the parameters
-     * @throws ProcessingException
-     */
-    public static void updateLifeCycleByStep(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters, WorkerParameters params)
-        throws ProcessingException {
-
-        try {
-            final String extension = FilenameUtils.getExtension(params.getObjectName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                params.getObjectName().replace("." + extension, ""));
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newEventGUID(0).toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                LIFE_CYCLE_EVENT_TYPE_PROCESS);
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventType, params.getCurrentStep());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome,
-                StatusCode.STARTED.toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                StatusCode.STARTED.toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(
-                    logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), StatusCode.STARTED));
-
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientNotFoundException e) {
-            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        }
-    }
-
-    /**
-     * @param logbookLifecycleParameters
-     * @param params the parameters
-     * @throws ProcessingException
-     */
-    public static void updateLifeCycleForBegining(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters, WorkerParameters params)
-        throws ProcessingException {
-
-        try {
-            String extension = FilenameUtils.getExtension(params.getObjectName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                params.getObjectName().replace("." + extension, ""));
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                LIFE_CYCLE_EVENT_TYPE_PROCESS);
-
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientNotFoundException e) {
-            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        }
-    }
-
-    /**
-     * 
-     * 
-     * @param logbookLifecycleParameters logbook LC parameters
-     * @param stepStatus the status code
-     * @throws ProcessingException
-     */
-    public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClient logbooklifeCyclesClient,LogbookParameters logbookLifecycleParameters,
-        StatusCode stepStatus)
-        throws ProcessingException {
-
-        try {
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome, stepStatus.toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                stepStatus.toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(
-                    logbookLifecycleParameters.getParameterValue(LogbookParameterName.eventType), stepStatus));
-
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientNotFoundException e) {
-            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        }
-    }
-
-
-    /**
      * The method is used to validate SEDA by XSD
      *
      * @param params worker parameter
@@ -338,7 +217,7 @@ public class SedaUtils {
         final String containerId = params.getContainerName();
         // TODO P0 : whould use worker configuration instead of the processing configuration
         final InputStream input;
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             input = checkExistenceManifest(client, containerId);
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
@@ -391,7 +270,7 @@ public class SedaUtils {
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
         throws ProcessingException {
         final String guid = params.getContainerName();
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO P0 : whould use worker configuration instead of the processing configuration
             return parsingUriSEDAWithWorkspaceClient(workspaceClient, guid);
@@ -517,7 +396,7 @@ public class SedaUtils {
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO P0 : whould use worker configuration instead of the processing configuration
             return isSedaVersionValid(client, containerId);
@@ -687,8 +566,7 @@ public class SedaUtils {
         for (final String version : manifestVersionList) {
             if (version != null) {
                 String versionParts[] = version.split("_");
-                if (versionParts.length > 2
-                    || !fileVersionList.contains(versionParts[VERSION_POSITION])) {
+                if (versionParts.length > 2 || !fileVersionList.contains(versionParts[VERSION_POSITION])) {
                     invalidVersionList.add(version);
                 }
             }
@@ -753,7 +631,7 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO P0 : whould use worker configuration instead of the processing configuration
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
             return computeBinaryObjectsSizeFromManifest(client, containerId);
@@ -794,7 +672,7 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // TODO P0 : whould use worker configuration instead of the processing configuration
             final JsonNode jsonSeda = getObjectInformation(client, containerId,
@@ -817,7 +695,8 @@ public class SedaUtils {
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */
-    private static JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId, String pathToObject)
+    private static JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId,
+        String pathToObject)
         throws ProcessingException {
         try {
             return workspaceClient.getObjectInformation(containerId, pathToObject);

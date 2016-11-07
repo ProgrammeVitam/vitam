@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -52,11 +55,19 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     CheckStorageAvailabilityActionHandler handler = new CheckStorageAvailabilityActionHandler();
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
-    private final HandlerIO handlerIO = new HandlerIO("");
+    private GUID guid;
+    private HandlerIO handlerIO;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtils.class);
+        guid = GUIDFactory.newGUID();
+        handlerIO = new HandlerIO(guid.getId(), "workerId");
+    }
+
+    @After
+    public void end() {
+        handlerIO.close();
     }
 
     @Test
@@ -65,7 +76,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -77,7 +88,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -91,7 +102,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }

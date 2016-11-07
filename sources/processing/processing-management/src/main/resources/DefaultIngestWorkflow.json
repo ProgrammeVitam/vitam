@@ -31,7 +31,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY",
+            "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -71,7 +71,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY_POST",
+            "actionKey": "CHECK_CONSISTENCY",
             "behavior": "NOBLOCKING",
             "in": [
               {
@@ -225,27 +225,33 @@
               {
                 "name": "mapsUnits.file",
                 "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
-                "optional": "true"
+                "optional": true
               },
               {
                 "name": "mapsBDO.file",
                 "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
-                "optional": "true"
+                "optional": true
               },
               {
                 "name": "mapsBDOtoOG.file",
                 "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
-                "optional": "true"
+                "optional": true
               },
               {
                 "name": "mapsBDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
-                "optional": "true"
+                "optional": true
               },
               {
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
-                "optional": "true"
+                "optional": true
+              }
+            ],
+            "out": [
+              {
+                "name": "atr.file",
+                "uri": "WORKSPACE:ATR/responseReply.xml"
               }
             ]
           }

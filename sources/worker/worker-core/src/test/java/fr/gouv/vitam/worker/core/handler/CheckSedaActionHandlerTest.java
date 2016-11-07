@@ -33,9 +33,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,9 +49,14 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -63,13 +72,22 @@ public class CheckSedaActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_SEDA";
     private HandlerIO action;
     private SedaUtils sedaUtils;
+    private List<IOParameter> in;
+    private GUID guid;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
-        action = new HandlerIO("");
+        guid = GUIDFactory.newGUID();
+        action = new HandlerIO(guid.getId(), "workerId");
+        in = new ArrayList<>();
+    }
+
+    @After
+    public void clean() {
+        action.close();
     }
 
     @Test
@@ -81,9 +99,10 @@ public class CheckSedaActionHandlerTest {
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        action.close();
     }
 
     @Test
@@ -92,9 +111,10 @@ public class CheckSedaActionHandlerTest {
         Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(anyObject());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        action.close();
     }
 
     @Test
@@ -103,9 +123,10 @@ public class CheckSedaActionHandlerTest {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(anyObject());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        action.close();
     }
 
     @Test
@@ -114,9 +135,10 @@ public class CheckSedaActionHandlerTest {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XML_FILE).when(sedaUtils).checkSedaValidation(anyObject());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        action.close();
     }
 
     @Test
@@ -125,9 +147,10 @@ public class CheckSedaActionHandlerTest {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        action.close();
     }
 
 }

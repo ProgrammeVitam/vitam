@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +55,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -70,7 +72,8 @@ public class IndexObjectGroupActionHandlerTest {
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
     private WorkspaceClientFactory workspaceClientFactory;        
-    
+    final HandlerIO handlerIO = new HandlerIO("IndexObjectGroupActionHandlerTest", "workerId");
+
     public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
     }
@@ -83,6 +86,11 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         metadataClient = mock(MetaDataClientRest.class);
+    }
+
+    @After
+    public void clean() {
+        handlerIO.close();
     }
 
     @Test
@@ -98,8 +106,8 @@ public class IndexObjectGroupActionHandlerTest {
         assertEquals(IndexObjectGroupActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final CompositeItemStatus response = handler.execute(params, null);
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -117,8 +125,8 @@ public class IndexObjectGroupActionHandlerTest {
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final CompositeItemStatus response = handler.execute(params, null);
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -137,8 +145,8 @@ public class IndexObjectGroupActionHandlerTest {
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final CompositeItemStatus response = handler.execute(params, null);
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -157,8 +165,8 @@ public class IndexObjectGroupActionHandlerTest {
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final CompositeItemStatus response = handler.execute(params, null);
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -178,8 +186,8 @@ public class IndexObjectGroupActionHandlerTest {
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final CompositeItemStatus response = handler.execute(params, null);
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 }

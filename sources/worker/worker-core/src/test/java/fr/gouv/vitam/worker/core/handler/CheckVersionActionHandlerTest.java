@@ -62,8 +62,8 @@ public class CheckVersionActionHandlerTest {
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-    private final HandlerIO handlerIO = new HandlerIO("");
+            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckVersionActionHandlerTest");
+    private final HandlerIO handlerIO = new HandlerIO("CheckVersionActionHandlerTest", "workerId");
 
     @Before
     public void setUp() throws Exception {
@@ -80,6 +80,7 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        handlerIO.close();
     }
 
     @Test
@@ -91,6 +92,7 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        handlerIO.close();
     }
 
     @Test
@@ -100,5 +102,6 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        handlerIO.close();
     }
 }

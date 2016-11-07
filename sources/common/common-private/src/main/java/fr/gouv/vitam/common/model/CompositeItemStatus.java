@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public class CompositeItemStatus extends ItemStatus {
 
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
+    // FIXME P0 should be Map of CompositeItemStatus
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
 

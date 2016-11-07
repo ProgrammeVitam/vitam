@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * Parameters for the logbook life cycles object group
  */
 @JsonSerialize(using = LogbookParametersSerializer.class)
-public class LogbookLifeCycleObjectGroupParameters extends AbstractParameters {
+public class LogbookLifeCycleObjectGroupParameters extends LogbookLifeCycleParameters {
 
 
     /**

@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -63,6 +65,8 @@ public class FormatIdentificationActionHandlerTest {
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
     private WorkspaceClientFactory workspaceClientFactory;    
+    private HandlerIO handlerIO;
+    private GUID guid;
 
     public FormatIdentificationActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -76,6 +80,8 @@ public class FormatIdentificationActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        guid = GUIDFactory.newGUID();
+        handlerIO = new HandlerIO(guid.getId(), "workerId");
         deleteFiles();
     }
 
@@ -92,7 +98,6 @@ public class FormatIdentificationActionHandlerTest {
             .thenThrow(new FormatIdentifierNotFoundException(""));
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -104,7 +109,6 @@ public class FormatIdentificationActionHandlerTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
         final CompositeItemStatus response = handler.execute(params, handlerIO);
@@ -117,7 +121,6 @@ public class FormatIdentificationActionHandlerTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
@@ -135,7 +138,6 @@ public class FormatIdentificationActionHandlerTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -159,7 +161,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -195,7 +196,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
@@ -220,7 +220,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
@@ -240,7 +239,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -265,7 +263,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -284,7 +281,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -303,7 +299,6 @@ public class FormatIdentificationActionHandlerTest {
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIO handlerIO = new HandlerIO("");
 
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -319,7 +314,7 @@ public class FormatIdentificationActionHandlerTest {
     }
 
     private DefaultWorkerParameters getDefaultWorkerParameters() {
-        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", "containerName",
+        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", guid.getId(),
             "currentStep", "objName", "metadataURL", "workspaceURL");
     }
 
@@ -367,5 +362,6 @@ public class FormatIdentificationActionHandlerTest {
         if (file.exists()) {
             file.delete();
         }
+        handlerIO.close();
     }
 }
