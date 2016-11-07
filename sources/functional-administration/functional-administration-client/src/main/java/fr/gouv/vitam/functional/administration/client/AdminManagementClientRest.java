@@ -52,7 +52,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * AdminManagement client
  */
-public class AdminManagementClientRest extends DefaultClient implements AdminManagementClient {
+class AdminManagementClientRest extends DefaultClient implements AdminManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientRest.class);
     private static final String FORMAT_CHECK_URL = "/format/check";
     private static final String FORMAT_IMPORT_URL = "/format/import";

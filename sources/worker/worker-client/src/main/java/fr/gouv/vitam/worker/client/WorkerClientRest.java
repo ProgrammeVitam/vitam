@@ -48,7 +48,7 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * WorkerClient implementation for production environment using REST API.
  */
-public class WorkerClientRest extends DefaultClient implements WorkerClient {
+class WorkerClientRest extends DefaultClient implements WorkerClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String REQUEST_ID_MUST_HAVE_A_VALID_VALUE = "request id must have a valid value";
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";

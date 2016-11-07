@@ -237,7 +237,6 @@ public interface LogbookLifeCycles {
      * Finalize the cursor
      * 
      * @param cursorId
-     * @throws LogbookDatabaseException
      */
-    public void finalizeCursor(String cursorId) throws LogbookDatabaseException;
+    public void finalizeCursor(String cursorId);
 }

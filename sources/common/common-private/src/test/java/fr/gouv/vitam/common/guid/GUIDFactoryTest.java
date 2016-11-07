@@ -62,6 +62,10 @@ public class GUIDFactoryTest {
             GUIDFactory.newRequestIdGUID(0).getObjectId());
         assertEquals(GUIDObjectType.MANIFEST_TYPE,
             GUIDFactory.newManifestGUID(0).getObjectId());
+        assertEquals(GUIDObjectType.EVENT_TYPE,
+            GUIDFactory.newEventGUID(0).getObjectId());
+        assertEquals(GUIDObjectType.ACCESSION_REGISTER_SUMMARY_TYPE,
+            GUIDFactory.newAccessionRegisterSummaryGUID(0).getObjectId());
 
         assertEquals(true,
             GUIDFactory.isWorm(GUIDFactory.newStorageOperationGUID(0, true)));

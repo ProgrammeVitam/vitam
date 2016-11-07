@@ -216,13 +216,13 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void finalizeCursor(String cursorId) throws LogbookDatabaseException {
+    public void finalizeCursor(String cursorId) {
         MongoCursor<?> cursor = mapXCursor.get(cursorId);
         if (cursor != null) {
             cursor.close();
             mapXCursor.remove(cursorId);
+            return;
         }
-        throw new LogbookDatabaseException("Cursor already closed");
     }
 
     @Override

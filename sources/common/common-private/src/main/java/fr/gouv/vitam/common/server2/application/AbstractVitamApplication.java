@@ -74,19 +74,16 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private static final String CANNOT_START_THE = "Cannot start the ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplication.class);
     protected static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument for ";
-    private static final String CONF_FILE_NAME = "vitam.conf";
+    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String METRICS_CONF_FILE_NAME = "vitam.metrics.conf";
-    private static final Map<VitamMetricsType, VitamMetrics> METRICS;
+    private static final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
 
     private C configuration;
     private Handler applicationHandler;
     private final Class<C> configurationType;
     private final String configurationFilename;
     private VitamServer vitamServer;
-
-    static {
-        METRICS = configureMetrics();
-    }
+    private final String role = ServerIdentity.getInstance().getRole();
 
     /**
      * Protected constructor assigning application and configuration types </br>
@@ -142,7 +139,6 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      * @throws IllegalStateException
      */
     protected final void configure(String configurationFile) {
-        final String role = ServerIdentity.getInstance().getRole();
         try {
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
                 final C buildConfiguration = PropertiesUtils.readYaml(yamlIS,
@@ -156,27 +152,31 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     }
 
     /**
+     * To allow override on non Vitam platform such as IHM
+     */
+    protected void platformSecretConfiguration() {
+        // Load Platform secret from vitam.conf file
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
+            final VitamConfigurationParameters vitamConfigurationParameters =
+                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+
+            VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
+            VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
+
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
+        }
+    }
+    /**
      * Used in Junit test
      *
      * @param configuration
      * @throws IllegalStateException
      */
     private final void configure(C configuration) {
-        final String role = ServerIdentity.getInstance().getRole();
         try {
-            // Load Platform secret from vitam.conf file
-            try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(CONF_FILE_NAME)) {
-                final VitamConfigurationParameters vitamConfigurationParameters =
-                    PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
-
-                VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
-                VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
-
-            } catch (final IOException e) {
-                LOGGER.error(e);
-                throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
-            }
-
+            platformSecretConfiguration();
             setConfiguration(configuration);
             applicationHandler = buildApplicationHandler();
             final String jettyConfig = getConfiguration().getJettyConfig();
@@ -192,8 +192,21 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         }
     }
 
-    private static final Map<VitamMetricsType, VitamMetrics> configureMetrics() {
-        final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
+    /**
+     * Start the reporting of every metrics
+     */
+    protected final void startMetrics() {
+        for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
+            entry.getValue().start();
+        }
+    }
+
+    /**
+     * Clear the metrics map from any existing {@code VitamMetrics} and reload the configuration from the
+     * {@code AbstractVitamApplication#METRICS_CONF_FILE_NAME}
+     */
+    protected static final void clearAndconfigureMetrics() {
+        metrics.clear();
 
         // Load default business metrics
         // TODO P1 find a better way to have a default BUSINESS VitamMetrics
@@ -210,16 +223,16 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
                 final VitamMetrics metric = new VitamMetrics(metricConfiguration);
                 metrics.put(metric.getType(), metric);
             }
-
-            // Start the reporting of every metrics
-            for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
-                entry.getValue().start();
-            }
         } catch (final IOException e) {
             LOGGER.warn(e);
         }
+    }
 
-        return metrics;
+    protected void checkJerseyMetrics(final ResourceConfig resourceConfig) {
+        if (metrics.containsKey(VitamMetricsType.JERSEY)) {
+            resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
+                metrics.get(VitamMetricsType.JERSEY).getRegistry()));
+        }
     }
 
     /**
@@ -263,10 +276,8 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
         // Register Jersey Metrics Listener
-        if (METRICS.containsKey(VitamMetricsType.JERSEY)) {
-            resourceConfig.register(new VitamInstrumentedResourceMethodApplicationListener(
-                METRICS.get(VitamMetricsType.JERSEY).getRegistry()));
-        }
+        clearAndconfigureMetrics();
+        checkJerseyMetrics(resourceConfig);
         // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
         // Not supported MultiPartFeature.class
@@ -326,6 +337,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     @Override
     public final void run() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
+            startMetrics();
             vitamServer.startAndJoin();
         } else if (vitamServer == null) {
             throw new VitamApplicationServerException("VitamServer is not ready to be started");
@@ -349,13 +361,13 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     }
 
     /**
-     * Return the {@code VitamMetricsType#BUSINESS} {@link VitamMetrics} object. This {@code VitamMetrics} can be used
-     * to register custom metrics wherever in the application.
+     * Return the {@link VitamMetricRegistry} of {@link VitamMetricsType#BUSINESS} type. This
+     * {@code VitamMetricRegistry} can be used to register custom metrics wherever in the application.
      *
      * @return {@link VitamMetrics} BUSINESS VitamMetrics
      */
-    public static final VitamMetrics getBusinessVitamMetrics() {
-        return METRICS.get(VitamMetricsType.BUSINESS);
+    public static final VitamMetricRegistry getBusinessMetricsRegistry() {
+        return metrics.get(VitamMetricsType.BUSINESS).getRegistry();
     }
 
     /**
@@ -368,7 +380,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     public static final VitamMetrics getVitamMetrics(VitamMetricsType type) {
         ParametersChecker.checkParameter("VitamMetricsType", type);
 
-        return METRICS.get(type);
+        return metrics.get(type);
     }
 
 }

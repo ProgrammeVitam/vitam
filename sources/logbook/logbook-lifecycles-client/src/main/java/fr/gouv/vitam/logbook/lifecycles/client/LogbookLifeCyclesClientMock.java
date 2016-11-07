@@ -152,7 +152,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
@@ -160,8 +160,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectObjectGroupLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
@@ -170,14 +169,14 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
                 "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
     }
 
     @Override
     public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
             "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
     }

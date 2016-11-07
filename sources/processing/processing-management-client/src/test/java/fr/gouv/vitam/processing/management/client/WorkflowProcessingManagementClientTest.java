@@ -37,56 +37,69 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
-public class WorkflowProcessingManagementClientTest extends JerseyTest {
-    private static String url;
+public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     private static ProcessingManagementClient client;
     Supplier<Response> mock;
-    private static JunitHelper junitHelper;
-    private static int port;
     private static final String WORKFLOWID = "json1";
     private static final String CONTAINER = "c1";
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        url = "http://localhost:" + port;
-        client = new ProcessingManagementClient(url);
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        junitHelper.releasePort(port);
+    public WorkflowProcessingManagementClientTest() {
+        super(ProcessingManagementClientFactory.getInstance());
     }
 
     @Override
-    protected Application configure() {
-        // enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(Supplier.class);
-        return new ResourceConfig().registerInstances(new ProcessingResource(mock));
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (ProcessingManagementClient) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            mock = mock(Supplier.class);
+            resourceConfig.registerInstances(new ProcessingResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     @Path("/processing/v1")

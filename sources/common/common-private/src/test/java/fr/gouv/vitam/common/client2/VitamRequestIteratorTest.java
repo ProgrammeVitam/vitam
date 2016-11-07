@@ -34,7 +34,10 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
@@ -42,8 +45,11 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -54,6 +60,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -323,6 +330,150 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             iterator.close();
             assertFalse(iterator.hasNext());
         }
+        startup = true;
+        try (VitamRequestIterator iterator =
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            RequestResponseOK response = new RequestResponseOK();
+            ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setQuery(JsonHandler.createObjectNode());
+            response.setHits(response.getResults().size(), 0, response.getResults().size());
+            ResponseBuilder builder = Response.status(Status.PARTIAL_CONTENT);
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            for (int i = 0; i < 3; i++) {
+                assertTrue(iterator.hasNext());
+                JsonNode node = iterator.next();
+                assertNotNull(node);
+                assertEquals(i + 1, node.get("val").asInt());
+            }
+            when(mock.get())
+                .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
+            iterator.close();
+            assertFalse(iterator.hasNext());
+        }
+    }
+    
+    @Test
+    public void testStaticMethod() {
+        assertTrue(VitamRequestIterator.isEndOfCursor(false, "test"));
+        assertFalse(VitamRequestIterator.isEndOfCursor(true, "test"));
+        assertFalse(VitamRequestIterator.isEndOfCursor(false, ""));
+        assertFalse(VitamRequestIterator.isEndOfCursor(true, ""));
+        
+        assertTrue(VitamRequestIterator.isNewCursor(true, ""));
+        assertFalse(VitamRequestIterator.isNewCursor(true, "test"));
+        assertFalse(VitamRequestIterator.isNewCursor(false, ""));
+        assertFalse(VitamRequestIterator.isNewCursor(false, "test"));
+        
+        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        
+        HttpHeaders headers = new HttpHeaders() {
+            
+            @Override
+            public MultivaluedMap<String, String> getRequestHeaders() {
+                return map;
+            }
+            
+            @Override
+            public List<String> getRequestHeader(String name) {
+                return map.get(name);
+            }
+            
+            @Override
+            public MediaType getMediaType() {
+                return null;
+            }
+            
+            @Override
+            public int getLength() {
+                return 0;
+            }
+            
+            @Override
+            public Locale getLanguage() {
+                return null;
+            }
+            
+            @Override
+            public String getHeaderString(String name) {
+                return map.get(name).get(0);
+            }
+            
+            @Override
+            public Date getDate() {
+                return null;
+            }
+            
+            @Override
+            public Map<String, Cookie> getCookies() {
+                return null;
+            }
+            
+            @Override
+            public List<MediaType> getAcceptableMediaTypes() {
+                return null;
+            }
+            
+            @Override
+            public List<Locale> getAcceptableLanguages() {
+                return null;
+            }
+        };
+        
+        // empty
+        try {
+            VitamRequestIterator.isEndOfCursor(headers);
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            VitamRequestIterator.isNewCursor(headers);
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+        }
+        map.add(GlobalDataRest.X_CURSOR, "");
+        try {
+            VitamRequestIterator.isEndOfCursor(headers);
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            VitamRequestIterator.isNewCursor(headers);
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+        }
+        map.clear();
+        map.add(GlobalDataRest.X_CURSOR, "true");
+        assertTrue(VitamRequestIterator.isNewCursor(headers));
+        assertFalse(VitamRequestIterator.isEndOfCursor(headers));
+        map.clear();
+        map.add(GlobalDataRest.X_CURSOR, "true");
+        map.add(GlobalDataRest.X_CURSOR_ID, "value");
+        assertFalse(VitamRequestIterator.isNewCursor(headers));
+        assertFalse(VitamRequestIterator.isEndOfCursor(headers));
+        map.clear();
+        map.add(GlobalDataRest.X_CURSOR, "false");
+        try {
+            VitamRequestIterator.isNewCursor(headers);
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            assertTrue(VitamRequestIterator.isEndOfCursor(headers));
+        } catch (IllegalStateException e) {
+        }
+        map.clear();
+        map.add(GlobalDataRest.X_CURSOR, "false");
+        map.add(GlobalDataRest.X_CURSOR_ID, "value");
+        assertFalse(VitamRequestIterator.isNewCursor(headers));
+        assertTrue(VitamRequestIterator.isEndOfCursor(headers));
     }
 
 }

@@ -35,12 +35,20 @@ import static org.junit.Assert.fail;
 
 import java.net.ServerSocket;
 
+import org.elasticsearch.bootstrap.Elasticsearch;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 
 public class JunitHelperTest {
 
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    
     @Test
     public void testArgumentError() throws Throwable {
         final JunitHelper junitFindAvailablePort0 = JunitHelper.getInstance();
@@ -144,5 +152,21 @@ public class JunitHelperTest {
         assertEquals(0, JunitHelper.consumeInputStreamPerByte(null));
         // Just check by running
         JunitHelper.awaitFullGc();
+    }
+    
+    @Test
+    public void testLaunchElasticsearch() throws VitamApplicationServerException {
+        ElasticsearchTestConfiguration config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test");
+        JunitHelper.stopElasticsearchForTest(config);
+        int tcpPort = JunitHelper.getInstance().findAvailablePort();
+        int httpPort = JunitHelper.getInstance().findAvailablePort();
+        config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
+        try {
+            JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
+            fail("Should raized an exception");
+        } catch (VitamApplicationServerException e) {
+            
+        }
+        JunitHelper.stopElasticsearchForTest(config);
     }
 }

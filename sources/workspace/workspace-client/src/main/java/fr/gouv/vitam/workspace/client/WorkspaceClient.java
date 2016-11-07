@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -67,7 +68,7 @@ import fr.gouv.vitam.workspace.common.ErrorMessage;
  * Workspace client which calls rest services
  */
 // FIXME P0 REVIEW Since Factory => class and constructors as package protected
-public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage, AutoCloseable {
+public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage {
 
     private static final String INTERNAL_SERVER_ERROR2 = "Internal Server Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);

@@ -27,8 +27,20 @@
 package fr.gouv.vitam.common.client2;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.annotation.Annotation;
+
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.common.client2.AbstractMockClient.FakeInboundResponse;
 
 /**
  *
@@ -46,5 +58,24 @@ public class AbstractMockClientTest {
         assertEquals("http://localhost:8080", client.getServiceUrl());
         client.consumeAnyEntityAndClose(null);
         client.close();
+    }
+    
+    @Test
+    public void testFakeInboundResponse() {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add("test", "test");        
+        FakeInboundResponse fakeInboundResponse = new FakeInboundResponse(Status.OK, "test", MediaType.APPLICATION_JSON_TYPE, headers);
+        assertEquals(Status.OK.getStatusCode(), fakeInboundResponse.getStatus());
+        assertNotNull(fakeInboundResponse.getStatusInfo());
+        assertNotNull(fakeInboundResponse.getEntity());
+        assertNotNull(fakeInboundResponse.readEntity(String.class));
+        assertNotNull(fakeInboundResponse.readEntity(GenericType.class));
+        assertNotNull(fakeInboundResponse.readEntity(String.class, (Annotation[]) null));
+        assertNotNull(fakeInboundResponse.readEntity(GenericType.class, (Annotation[]) null));
+        assertTrue(fakeInboundResponse.hasEntity());
+        assertFalse(fakeInboundResponse.bufferEntity());
+        assertEquals(MediaType.APPLICATION_JSON_TYPE, fakeInboundResponse.getMediaType());
+        assertFalse(fakeInboundResponse.getLength() > 0);
+        assertNotNull(fakeInboundResponse.getHeaders());
     }
 }

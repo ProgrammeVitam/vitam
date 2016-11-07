@@ -55,7 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 // TODO P1 : tenantId should be determined otherwise with a config or so
 
-public class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
+class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientRest.class);
 
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";

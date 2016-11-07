@@ -29,31 +29,24 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
+import java.util.Properties;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -66,24 +59,19 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFactory;
 
 /**
  * Workspace Connection Implementation
  */
 // FIXME P0: always close javax.ws.rs.core.Response (because can make problems)
-// FIXME P0 should be clientV2/serverV2
-public class ConnectionImpl implements Connection {
+public class ConnectionImpl extends DefaultClient implements Connection {
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
-    // TODO P0: RESSOURCE_PATH came from driver initalisation
-    private static final String RESOURCE_PATH = "/offer/v1";
-    private static final String STATUS_PATH = "/status";
     private static final String OBJECTS_PATH = "/objects";
 
-    private static final String INTERNAL_SERVER_ERROR =
-        "Internal Server Error, could not connect to the distant offer service.";
     private static final String NOT_YET_IMPLEMENTED =
         "Not yet implemented";
 
@@ -96,26 +84,19 @@ public class ConnectionImpl implements Connection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
-    private final Client client;
-    private final String serviceUrl;
     private final String driverName;
+    private final Properties parameters;
 
     /**
-     * Constructor for the ConnectionImpl class
-     *
-     * @param url the url
-     * @param driverName the name of the driver
+     * Constructor
+     * 
+     * @param factory
+     * @param parameters
      */
-    public ConnectionImpl(String url, String driverName) {
-        serviceUrl = url + RESOURCE_PATH;
-        this.driverName = driverName;
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        // FIXME P0 : multipart ?
-        config.register(MultiPartFeature.class);
-        client = ClientBuilder.newClient(config);
-        client.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+    public ConnectionImpl(InternalDriverFactory factory, Properties parameters) {
+        super(factory);
+        driverName = factory.getName();
+        this.parameters = parameters;
     }
 
     @Override
@@ -123,17 +104,19 @@ public class ConnectionImpl implements Connection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
-            response = getClient().target(getServiceUrl()).path(OBJECTS_PATH).request(MediaType.APPLICATION_JSON)
-                .header(GlobalDataRest.X_TENANT_ID, tenantId).method(HttpMethod.GET);
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH, getDefaultHeaders(tenantId, null),
+                MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                final StorageCapacityResult storageCapacityResult =
-                    handleResponseStatus(response, StorageCapacityResult.class);
-                return storageCapacityResult;
+                return handleResponseStatus(response, StorageCapacityResult.class);
             }
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 response.getStatusInfo().getReasonPhrase());
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -148,15 +131,14 @@ public class ConnectionImpl implements Connection {
         InputStream stream;
         try {
             response =
-                getClient().target(getServiceUrl())
-                    .path(OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid()).request()
-                    .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
-                    .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.GET);
+                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    // FIXME P0 : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                    // FIXME P0 : this is ugly but necessarily in order to close the response and avoid concurrent
+                    // issues
                     // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
                     // remove the IOUtils.toByteArray after correction of concurrent problem
                     final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
@@ -180,8 +162,12 @@ public class ConnectionImpl implements Connection {
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         INTERNAL_SERVER_ERROR);
             }
+        } catch (VitamClientInternalException e1) {
+            LOGGER.error(e1);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e1.getMessage());
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -202,22 +188,22 @@ public class ConnectionImpl implements Connection {
             final ObjectInit objectInit = new ObjectInit();
             objectInit.setDigestAlgorithm(DigestType.fromValue(request.getDigestAlgorithm()));
             objectInit.setType(DataCategory.valueOf(request.getType()));
-
             response =
-                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid())
-                    .request(MediaType.APPLICATION_JSON)
-                    .headers(getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT))
-                    .accept(MediaType.APPLICATION_JSON).method(HttpMethod.POST, Entity.json(objectInit));
+                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            final PutObjectResult finalResult =
-                performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
-            return finalResult;
+            return performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
                 .getMessage());
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -234,9 +220,8 @@ public class ConnectionImpl implements Connection {
         Response response = null;
         try {
             response =
-                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid()).request()
-                    .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
-                    .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.HEAD);
+                performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -253,56 +238,13 @@ public class ConnectionImpl implements Connection {
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         INTERNAL_SERVER_ERROR);
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
-    }
-
-    /**
-     * Get The status of the service
-     *
-     * @return response the response
-     * @throws StorageDriverException if the status is not OK
-     */
-    public Response getStatus() throws StorageDriverException {
-        Response response = null;
-        try {
-            response = getClient().target(serviceUrl).path(STATUS_PATH).request().get();
-            if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
-                return response;
-            } else {
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    INTERNAL_SERVER_ERROR);
-            }
-        } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
-        }
-
-    }
-
-    @Override
-    public void close() throws StorageDriverException {
-        if (getClient() != null) {
-            getClient().close();
-        }
-    }
-
-    /**
-     * Get the service Url
-     *
-     * @return the serviceUrl
-     */
-    public String getServiceUrl() {
-        return serviceUrl;
-    }
-
-    /**
-     * Get The client
-     *
-     * @return the client
-     */
-    protected Client getClient() {
-        return client;
     }
 
     /**
@@ -373,44 +315,25 @@ public class ConnectionImpl implements Connection {
         PutObjectResult finalResult = null;
         Response response = null;
         try {
-            final Entity<InputStream> entity = Entity.entity(stream, MediaType.APPLICATION_OCTET_STREAM);
-            response = getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
-                .request(MediaType.APPLICATION_OCTET_STREAM)
-                .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
-                .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
+            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getId(),
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END),
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
-            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId, Long.valueOf(json.get
-                ("size").textValue()));
+            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId,
+                Long.valueOf(json.get("size").textValue()));
             LOGGER.error("response: " + response.getStatus());
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "Error to perfom put object");
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
         return finalResult;
-
-        /*
-         * byte[] bytes = new byte[CHUNK_SIZE]; Response response = null; try { int read; while ((read =
-         * stream.read(bytes)) >= 0) { if (read == 0) { continue; } Entity<InputStream> entity = Entity.entity(new
-         * ByteArrayInputStream(bytes), MediaType.APPLICATION_OCTET_STREAM); try { response =
-         * getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
-         * .request(MediaType.APPLICATION_OCTET_STREAM) .headers(getDefaultHeaders(tenantId,
-         * StorageConstants.COMMAND_WRITE)) .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
-         * LOGGER.error("response: " + response.getStatus()); if (Response.Status.CREATED.getStatusCode() !=
-         * response.getStatus()) { throw new StorageDriverException(driverName, StorageDriverException.ErrorCode
-         * .INTERNAL_SERVER_ERROR, "Error to perfom put object"); } } finally {
-         * Optional.ofNullable(response).ifPresent(Response::close); } } } catch (IOException e) { throw new
-         * StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, e); } try { // As
-         * it's the end of the file, END command is sent response =
-         * getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
-         * .request(MediaType.APPLICATION_OCTET_STREAM) .headers(getDefaultHeaders(tenantId,
-         * StorageConstants.COMMAND_END)) .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT); LOGGER.error(
-         * "response: " + response.getStatus()); JsonNode json = handleResponseStatus(response, JsonNode.class);
-         * finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId); } finally {
-         * Optional.ofNullable(response).ifPresent(Response::close); } return finalResult;
-         */
     }
 
 }

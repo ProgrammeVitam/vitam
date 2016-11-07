@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
@@ -52,7 +53,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 /**
  * Referential Accession Register Implement
  */
-public class ReferentialAccessionRegisterImpl implements AutoCloseable {
+public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -159,7 +160,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         // Empty
     }
 

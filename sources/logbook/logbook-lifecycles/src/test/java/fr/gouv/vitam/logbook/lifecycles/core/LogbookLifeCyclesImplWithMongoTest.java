@@ -44,6 +44,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -368,4 +369,52 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl.getObjectGroupById("notExist");
     }
 
+    @Test
+    public void testIterator()
+        throws LogbookDatabaseException, InvalidParseOperationException, LogbookNotFoundException {
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
+        logbookLifeCyclesImpl.finalizeCursor(result);
+        result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
+        logbookLifeCyclesImpl.finalizeCursor(result);
+
+        result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        while (true) {
+            try {
+                logbookLifeCyclesImpl.getCursorUnitNext(result);
+            } catch (LogbookNotFoundException e) {
+                break;
+            }
+        }
+        try {
+            logbookLifeCyclesImpl.getCursorUnitNext(result);
+            fail("Should raized an exception");
+        } catch (LogbookDatabaseException e) {
+        }
+        logbookLifeCyclesImpl.finalizeCursor(result);
+        result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        while (true) {
+            try {
+                logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
+            } catch (LogbookNotFoundException e) {
+                break;
+            }
+        }
+        try {
+            logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
+            fail("Should raized an exception");
+        } catch (LogbookDatabaseException e) {
+        }
+        logbookLifeCyclesImpl.finalizeCursor(result);
+}
 }

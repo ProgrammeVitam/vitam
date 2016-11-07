@@ -61,7 +61,8 @@ public class ProcessManagementResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static JunitHelper junitHelper;
     private static int port;
-
+    private static ProcessManagementApplication application = null;
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -74,7 +75,8 @@ public class ProcessManagementResourceTest {
         configuration.setUrlMetadata(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         configuration.setJettyConfig(JETTY_CONFIG);
-        ProcessManagementApplication.run(configuration);
+        application = new ProcessManagementApplication(configuration);
+        application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
     }
@@ -82,7 +84,9 @@ public class ProcessManagementResourceTest {
     @AfterClass
     public static void shutdownAfterClass() {
         try {
-            ProcessManagementApplication.stop();
+            if (application != null) {
+                application.stop();
+            }
         } catch (final Exception e) {
         }
         junitHelper.releasePort(port);

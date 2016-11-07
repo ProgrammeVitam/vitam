@@ -45,31 +45,50 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
+import fr.gouv.vitam.common.server2.application.GenericExceptionMapper;
 
 /**
  * Server application for ihm-demo
  */
-// FIXME P0 should be server V2 ???
-public class ServerApplication {
+public class ServerApplication extends AbstractVitamApplication<ServerApplication, WebApplicationConfig> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
-    private static VitamServer vitamServer;
     private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = "ihm-demo";
     private static final String SHIRO_FILE = "shiro.ini";
-    private static WebApplicationConfig configuration = null;
 
+    /**
+     * ServerApplication constructor
+     * 
+     * @param configuration
+     */
+    public ServerApplication(String configuration) {
+        super(WebApplicationConfig.class, configuration);
+    }
+
+    /**
+     * ServerApplication constructor
+     * 
+     * @param configuration
+     */
+    ServerApplication(WebApplicationConfig configuration) {
+        super(WebApplicationConfig.class, configuration);
+    }
 
     /**
      * Start a service of IHM Web Application with the args as config
@@ -84,95 +103,84 @@ public class ServerApplication {
                 throw new IllegalArgumentException(
                     format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             }
-            ServerApplication.configure(args[0]);
-
-            if (vitamServer != null && vitamServer.isStarted()) {
-                vitamServer.getServer().join();
-            }
+            final ServerApplication application = new ServerApplication(args[0]);
+            application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    protected static void configure(String configFile) throws Exception {
-        try {
+    @Override
+    protected int getSession() {
+        return ServletContextHandler.SESSIONS;
+    }
 
-            configuration = new WebApplicationConfig();
-
-            if (configFile != null) {
-                // Get configuration parameters from Configuration File
-                final File yamlFile = PropertiesUtils.findFile(configFile);
-                configuration = PropertiesUtils.readYaml(yamlFile, WebApplicationConfig.class);
-            } else {
-                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(
-                    format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-            }
-
-            run(configuration);
-
-        } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.CAN_CONFIGURE_SERVER, MODULE_NAME) + e.getMessage(), e);
-            throw e;
-        }
+    @Override
+    protected void platformSecretConfiguration() {
+        // No PlatformSecretConfiguration for IHM
     }
 
     /**
-     * run a server instance with the configuration the configuration is never null at this time. It is already
-     * instantiate before.
-     *
-     * @param configuration as WebApplicationConfig
-     * @param configuration as WebApplicationConfig
-     * @throws Exception the server could not be started
+     * replace original implementation to fit specific IHM configuration
      */
-    public static void run(WebApplicationConfig configuration) throws Exception {
-        if (configuration == null) {
-            throw new VitamApplicationServerException("Configuration not found");
-        }
-
-        if (!Strings.isNullOrEmpty(configuration.getJettyConfig())) {
-            final String jettyConfig = configuration.getJettyConfig();
-            vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-        } else {
-            throw new VitamApplicationServerException("jetty config is mandatory");
-        }
-
-        // Servlet Container (REST resource)
+    @Override
+    protected Handler buildApplicationHandler() throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(new WebApplicationResource());
+        resourceConfig.register(JacksonJsonProvider.class)
+            .register(JacksonFeature.class)
+            // Register a Generic Exception Mapper
+            .register(new GenericExceptionMapper());
+        // Register Jersey Metrics Listener
+        clearAndconfigureMetrics();
+        checkJerseyMetrics(resourceConfig);
+        // Use chunk size also in response
+        resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
+        // Not supported MultiPartFeature.class
+        registerInResourceConfig(resourceConfig);
+
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder restResourceHolder = new ServletHolder(servletContainer);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(getSession());
+        // Removed setContextPath to be set later on for IHM
+        context.addServlet(sh, "/*");
 
-        final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        // Cleaner filter
+        context.addFilter(ConsumeAllAfterResponseFilter.class, "/*", EnumSet.of(
+            DispatcherType.INCLUDE, DispatcherType.REQUEST,
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        // No Authorization Filter
 
-        if (configuration.isSecure()) {
+        // Replace here setFilter by adapted one for IHM
+        if (getConfiguration().isSecure()) {
             File shiroFile = null;
 
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-                restResourceContext.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
             } catch (final FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }
-            restResourceContext.addEventListener(new EnvironmentLoaderListener());
-            restResourceContext.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
+            context.addEventListener(new EnvironmentLoaderListener());
+            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
-
-        restResourceContext.setContextPath(configuration.getBaseUrl());
-        restResourceContext.setVirtualHosts(new String[] {configuration.getServerHost()});
-        restResourceContext.addServlet(restResourceHolder, "/*");
+        context.setContextPath(getConfiguration().getBaseUrl());
+        context.setVirtualHosts(new String[] {getConfiguration().getServerHost()});
 
         // Static Content
         final ResourceHandler staticContentHandler = new ResourceHandler();
         staticContentHandler.setDirectoriesListed(true);
         staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
         final URL webAppDir = Thread.currentThread().getContextClassLoader()
-            .getResource(configuration.getStaticContent());
-        staticContentHandler.setResourceBase(webAppDir.toURI().toString());
+            .getResource(getConfiguration().getStaticContent());
+        try {
+            staticContentHandler.setResourceBase(webAppDir.toURI().toString());
+        } catch (URISyntaxException e) {
+            throw new VitamApplicationServerException("Web App Dir incorrect", e);
+        }
 
         // wrap to context handler
         final ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
@@ -180,37 +188,12 @@ public class ServerApplication {
 
         // Set Handlers (Static content and REST API)
         final HandlerList handlerList = new HandlerList();
-        handlerList.setHandlers(new Handler[] {staticContext, restResourceContext, new DefaultHandler()});
-
-        vitamServer.getServer().setHandler(handlerList);
-        vitamServer.start();
+        handlerList.setHandlers(new Handler[] {staticContext, context, new DefaultHandler()});
+        return handlerList;
     }
 
-    /**
-     * stop a workspace server
-     *
-     * @throws Exception the server could not be stopped
-     */
-
-    public static void stop() throws Exception {
-        if (vitamServer != null && vitamServer.isStarted()) {
-            vitamServer.stop();
-        }
-    }
-
-    /**
-     * @return the WebApplicationConfig object
-     */
-    public static WebApplicationConfig getWebApplicationConfig() {
-        return configuration;
-    }
-
-    /**
-     * Sets the WebApplicationConfig attribute
-     * @param webConfiguration 
-     *
-     */
-    public static void setWebApplicationConfig(WebApplicationConfig webConfiguration) {
-        configuration = webConfiguration;
+    @Override
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new WebApplicationResource(getConfiguration()));
     }
 }

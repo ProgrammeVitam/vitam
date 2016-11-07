@@ -39,7 +39,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -207,5 +216,72 @@ public class SanityCheckerTest {
     public void givenStringNotPrintable() throws InvalidParseOperationException {
         String bad = "aa\u0003bb";
         SanityChecker.checkParameter(bad);
+    }
+    
+    @Test(expected = InvalidParseOperationException.class)
+    public void testHeaders() throws InvalidParseOperationException {
+        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        
+        HttpHeaders headers = new HttpHeaders() {
+            
+            @Override
+            public MultivaluedMap<String, String> getRequestHeaders() {
+                return map;
+            }
+            
+            @Override
+            public List<String> getRequestHeader(String name) {
+                return map.get(name);
+            }
+            
+            @Override
+            public MediaType getMediaType() {
+                return null;
+            }
+            
+            @Override
+            public int getLength() {
+                return 0;
+            }
+            
+            @Override
+            public Locale getLanguage() {
+                return null;
+            }
+            
+            @Override
+            public String getHeaderString(String name) {
+                return map.get(name).get(0);
+            }
+            
+            @Override
+            public Date getDate() {
+                return null;
+            }
+            
+            @Override
+            public Map<String, Cookie> getCookies() {
+                return null;
+            }
+            
+            @Override
+            public List<MediaType> getAcceptableMediaTypes() {
+                return null;
+            }
+            
+            @Override
+            public List<Locale> getAcceptableLanguages() {
+                return null;
+            }
+        };
+        map.add("test", "ok");
+        try {
+            SanityChecker.checkHeaders(headers);
+        } catch (InvalidParseOperationException e) {
+            fail("Should not raized an exception");
+        }
+        String bad = "aa<![CDATA[bb";
+        map.add("test", bad);
+        SanityChecker.checkHeaders(headers);
     }
 }

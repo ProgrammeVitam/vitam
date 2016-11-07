@@ -124,7 +124,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleUnitParameters, params);
+            SedaUtils.updateLifeCycleByStep(logbookClient, logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -134,7 +134,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         try {
             logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleUnitParameters,
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient, logbookLifecycleUnitParameters,
                 itemStatus.getGlobalStatus());
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -203,7 +203,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+        final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
+            .namespaceDeclarations(false).build();
 
         JsonNode data = null;
         String parentsList = null;
@@ -296,7 +297,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             // Add operation to OPS
-            ((ObjectNode)data.get("ArchiveUnit")).putArray(SedaConstants.PREFIX_OPS).add(containerId);
+            ((ObjectNode) data.get("ArchiveUnit")).putArray(SedaConstants.PREFIX_OPS).add(containerId);
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }

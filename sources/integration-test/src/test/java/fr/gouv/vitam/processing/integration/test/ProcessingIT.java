@@ -83,6 +83,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -136,6 +137,7 @@ public class ProcessingIT {
     private static AdminManagementApplication adminApplication;
     private static LogbookApplication lgbapplication;
     private static WorkspaceApplication workspaceApplication;
+    private static ProcessManagementApplication processManagementApplication;
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
@@ -219,7 +221,8 @@ public class ProcessingIT {
         // launch processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication.start();
         SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
 
         // launch worker
@@ -259,7 +262,7 @@ public class ProcessingIT {
             workspaceApplication.stop();
             wkrapplication.stop();
             lgbapplication.stop();
-            ProcessManagementApplication.stop();
+            processManagementApplication.stop();
             medtadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -316,7 +319,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // check conformity in warning state
@@ -352,7 +356,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // format file warning state
@@ -388,7 +393,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // File format warning state
@@ -424,7 +430,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // File format in warning state
@@ -459,7 +466,8 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
         // format file warning state
@@ -487,7 +495,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // format file warning state
@@ -523,9 +532,10 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
-        assertNotNull(ret);
+	assertNotNull(ret);
         assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
@@ -550,7 +560,8 @@ public class ProcessingIT {
             // call processing
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
-            processingClient = new ProcessingManagementClient(PROCESSING_URL);
+	    ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+	    processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
             assertNotNull(ret);
             // format file ko state
@@ -587,7 +598,8 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         // An action returns KO => the step is in KO => the workflow is OK
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
@@ -615,7 +627,8 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
         // format file warning state
@@ -644,7 +657,8 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          processingClient = new ProcessingManagementClient(PROCESSING_URL);
+          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
+          processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
           // File formar warning state

@@ -80,6 +80,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -100,7 +101,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  * Web Application Resource class
  */
 @Path("/v1/api")
-public class WebApplicationResource {
+public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
@@ -113,7 +114,7 @@ public class WebApplicationResource {
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
 
     private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
-    private static final WebApplicationConfig webApplicationConfig = ServerApplication.getWebApplicationConfig();
+    private final WebApplicationConfig webApplicationConfig;
     private static final String FILE_NAME_KEY = "fileName";
     private static final String FILE_SIZE_KEY = "fileSize";
     private static final String ZIP_EXTENSION = ".ZIP";
@@ -124,7 +125,14 @@ public class WebApplicationResource {
     @Context
     private HttpServletRequest request;
 
-
+    /**
+     * Constructor
+     * 
+     * @param webApplicationConfig
+     */
+    public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
+        this.webApplicationConfig = webApplicationConfig;
+    }
     /**
      * Retrieve all the messages for logbook 
      * @return Response

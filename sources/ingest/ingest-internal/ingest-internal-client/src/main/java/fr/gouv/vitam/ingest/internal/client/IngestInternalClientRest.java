@@ -53,7 +53,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 /**
  * Rest client implementation for Ingest Internal
  */
-public class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
+class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
     private static final String UPLOAD_URL = "/upload";

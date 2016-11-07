@@ -66,9 +66,9 @@ class VitamMetrics {
     private boolean isReporting = false;
 
     /**
-     * A constructor to instanciate an empty {@see VitamMetrics} without any reporter.
+     * A constructor to instantiate an empty {@see VitamMetrics} without any reporter.
      *
-     * @param {@link VitamMetricsType} type
+     * @param type {@link VitamMetricsType}
      */
     public VitamMetrics(VitamMetricsType type) {
         ParametersChecker.checkParameter("VitamMetricsType", type);
@@ -78,11 +78,11 @@ class VitamMetrics {
     }
 
     /**
-     * A constructor to instanciate a {@see VitamMetrics} with the configuration object
+     * A constructor to instantiate a {@see VitamMetrics} with the configuration object
      * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
      *
-     * @param {@link VitamMetricConfiguration} configuration
+     * @param configuration {@link VitamMetricConfiguration} 
      */
     public VitamMetrics(VitamMetricConfiguration configuration) {
         ParametersChecker.checkParameter("VitamMetricConfiguration", configuration);

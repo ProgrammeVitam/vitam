@@ -44,10 +44,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.VitamInstrumentedResourceMethodApplicationListener;
-import fr.gouv.vitam.common.server2.application.VitamMetrics;
-import fr.gouv.vitam.common.server2.application.VitamMetricsType;
 
 public class VitamInstrumentedResourceMethodApplicationListenerTest {
     private static final String TEST_CONF = "test.conf";
@@ -153,7 +149,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
             SimpleJerseyMetricsResource.expectedNames.size() +
                 AdvancedJerseyMetricsResource.expectedNames.size() +
                 ShouldNotWorkJerseyMetricsResource.expectedNames.size() +
-                MediaTypeJerseyMetricsResource.expectedNames.size();
+                MediaTypeJerseyMetricsResource.expectedNames.size(); // Default in test
         final VitamMetrics metrics = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JERSEY);
 
         assertNotNull("VitamMetrics", metrics);

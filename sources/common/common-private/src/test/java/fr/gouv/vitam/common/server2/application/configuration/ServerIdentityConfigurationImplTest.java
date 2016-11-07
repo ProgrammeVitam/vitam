@@ -93,5 +93,9 @@ public class ServerIdentityConfigurationImplTest {
         assertNull(string0);
         assertNull(siConf0.getIdentityRole());
         assertEquals(0, siConf0.getIdentityPlatformId());
+        siConf0.setIdentityName("id1").setIdentityPlatformId(1).setIdentityRole("role1");
+        assertEquals("id1", siConf0.getIdentityName());
+        assertEquals(1, siConf0.getIdentityPlatformId());
+        assertEquals("role1", siConf0.getIdentityRole());
     }
 }
