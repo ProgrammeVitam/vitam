@@ -25,10 +25,9 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server2.application;
+package fr.gouv.vitam.common.metrics;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfigurationImpl;
 
 /**
  * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
@@ -36,21 +35,23 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfig
  */
 public enum VitamMetricsType {
 
-    JERSEY("JERSEY"),
+    JERSEY("JERSEY", "metrics-vitam-jersey"),
 
-    JVM("JVM"),
+    JVM("JVM", "metrics-vitam-jvm"),
 
-    BUSINESS("BUSINESS");
+    BUSINESS("BUSINESS", "metrics-vitam-business");
 
     private final String name;
+    private final String elasticsearchIndex;
 
     /**
      * Constructor
      *
      * @param String name
      */
-    VitamMetricsType(final String name) {
+    VitamMetricsType(final String name, final String elasticsearchIndex) {
         this.name = name;
+        this.elasticsearchIndex = elasticsearchIndex;
     }
 
     /**
@@ -60,6 +61,15 @@ public enum VitamMetricsType {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Return the elasticsearch index of this metric type
+     *
+     * @return String
+     */
+    public String getElasticsearchIndex() {
+        return elasticsearchIndex;
     }
 
     /**

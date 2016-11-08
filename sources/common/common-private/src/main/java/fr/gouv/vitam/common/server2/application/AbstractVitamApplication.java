@@ -55,12 +55,15 @@ import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamInstrumentedResourceMethodApplicationListener;
+import fr.gouv.vitam.common.metrics.VitamMetricRegistry;
+import fr.gouv.vitam.common.metrics.VitamMetrics;
+import fr.gouv.vitam.common.metrics.VitamMetricsType;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamApplicationConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfiguration;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
@@ -196,7 +199,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     /**
      * Start the reporting of every metrics
      */
-    protected final void startMetrics() {
+    public final void startMetrics() {
         for (final Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
             entry.getValue().start();
         }
@@ -207,26 +210,23 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      * {@code AbstractVitamApplication#METRICS_CONF_FILE_NAME}
      */
     protected static final void clearAndconfigureMetrics() {
+        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
+
         metrics.clear();
-
-        // Load default business metrics
-        // TODO P2 find a better way to have a default BUSINESS VitamMetrics
-        if (!metrics.containsKey(VitamMetricsType.BUSINESS)) {
-            metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
-        }
-        // Load the metrics configuration
+        // Throws a JsonMappingException when the vitam.metrics.conf file is empty
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
-            final VitamMetricsConfigurationImpl metricsConfigurations =
-                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfigurationImpl.class);
-
-            for (final VitamMetricConfiguration metricConfiguration : metricsConfigurations
-                .getMetricsConfigurations()) {
-                final VitamMetrics metric = new VitamMetrics(metricConfiguration);
-                metrics.put(metric.getType(), metric);
-            }
+            metricsConfiguration = PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
         } catch (final IOException e) {
             LOGGER.warn(e);
         }
+
+        if (metricsConfiguration.hasMetricsJersey()) {
+            metrics.put(VitamMetricsType.JERSEY, new VitamMetrics(VitamMetricsType.JERSEY, metricsConfiguration));
+        }
+        if (metricsConfiguration.hasMetricsJVM()) {
+            metrics.put(VitamMetricsType.JVM, new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration));
+        }
+        metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS, metricsConfiguration));
     }
 
     protected void checkJerseyMetrics(final ResourceConfig resourceConfig) {

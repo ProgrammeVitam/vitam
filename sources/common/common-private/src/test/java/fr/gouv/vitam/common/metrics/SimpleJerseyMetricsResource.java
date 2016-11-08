@@ -25,57 +25,59 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server2.application;
+package fr.gouv.vitam.common.metrics;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfigurationImpl;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
- *
- */
-public enum VitamMetricsReporterType {
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 
-    ELASTICSEARCH("ELASTICSEARCH"),
+@Path("/home")
+public class SimpleJerseyMetricsResource {
 
-    CONSOLE("CONSOLE");
+    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
+        "/home:GET:*:*",
+        "/home:PUT:*:*",
+        "/home:POST:*:*",
+        "/home:DELETE:*:*",
+        "/home:HEAD:*:*",
+        "/home:OPTIONS:*:*"));
 
-    private final String name;
-
-    /**
-     * Constructor
-     *
-     * @param String name
-     */
-    VitamMetricsReporterType(final String name) {
-        this.name = name;
+    @GET
+    public Response simpleGet() {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
-    /**
-     * Return the name of the enum as a String
-     *
-     * @return String
-     */
-    public String getName() {
-        return name;
+    @PUT
+    public Response simplePut() {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
-    /**
-     * Retrieve an {@link VitamMetricsReporterType} given a name. Throws an {@code IllegalArgumentException} if the name
-     * doesn't exists.
-     *
-     * @param metricReporterTypeName
-     * @return VitamMetricsReporterType
-     * @throws IllegalArgumentException
-     */
-    public static VitamMetricsReporterType get(String metricReporterTypeName) throws IllegalArgumentException {
-        ParametersChecker.checkParameterNullOnly("VitamMetricsReporterType name", metricReporterTypeName);
+    @POST
+    public Response simplePost() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-        for (final VitamMetricsReporterType v : values()) {
-            if (v.getName().equals(metricReporterTypeName)) {
-                return v;
-            }
-        }
-        throw new IllegalArgumentException("Invalid VitamMetricsReporterType name");
+    @DELETE
+    public Response simpleDelete() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @HEAD
+    public Response simpleHead() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @OPTIONS
+    public Response simpleOptions() {
+        throw new UnsupportedOperationException("Not implemented");
     }
 }

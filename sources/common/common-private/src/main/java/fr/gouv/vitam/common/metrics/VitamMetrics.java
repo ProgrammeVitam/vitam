@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common.server2.application;
+package fr.gouv.vitam.common.metrics;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -50,7 +50,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfiguration;
 
 /**
  * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This
@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamMetricConfigu
  */
 public class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
+    private static final String ELASTICSEARCH_DATE_FORMAT = "YY.MM.dd";
 
     private final VitamMetricsType type;
     private final int interval;
@@ -68,39 +69,31 @@ public class VitamMetrics {
     private boolean isReporting = false;
 
     /**
-     * A constructor to instantiate an empty {@see VitamMetrics} without any reporter.
-     *
-     * @param type {@link VitamMetricsType}
-     */
-    public VitamMetrics(VitamMetricsType type) {
-        ParametersChecker.checkParameter("VitamMetricsType", type);
-        this.type = type;
-        interval = 1;
-        intervalUnit = TimeUnit.MINUTES;
-    }
-
-    /**
      * A constructor to instantiate a {@see VitamMetrics} with the configuration object
      * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
      *
      * @param configuration {@link VitamMetricConfiguration}
      */
-    public VitamMetrics(VitamMetricConfiguration configuration) {
+    public VitamMetrics(VitamMetricsType type, VitamMetricsConfiguration configuration) {
+        ParametersChecker.checkParameter("VitamMetricsType", type);
         ParametersChecker.checkParameter("VitamMetricConfiguration", configuration);
-        type = configuration.getType();
-        interval = configuration.getInterval();
-        intervalUnit = configuration.getIntervalUnit();
+        this.type = type;
+        interval = configuration.getMetricReporterInterval();
+        intervalUnit = configuration.getMetricReporterIntervalUnit();
 
         if (type.equals(VitamMetricsType.JVM)) {
             configureJVMMetrics();
         }
-        switch (configuration.getReporterType()) {
+        switch (configuration.getMetricReporter()) {
             case CONSOLE:
-                configureConsoleReporter(configuration);
+                configureConsoleReporter();
                 break;
             case ELASTICSEARCH:
                 configureElasticsearchReporter(configuration);
+                break;
+            case LOGBACK:
+                configureLogbackReporter(configuration);
                 break;
             default:
                 LOGGER.warn("VitamMetrics instanciated without reporter.");
@@ -135,21 +128,25 @@ public class VitamMetrics {
         return isReporting;
     }
 
-    private void configureConsoleReporter(VitamMetricConfiguration configuration) {
+    private void configureConsoleReporter() {
         reporter = ConsoleReporter.forRegistry(registry).build();
     }
 
-    private void configureElasticsearchReporter(VitamMetricConfiguration configuration) {
+    private void configureLogbackReporter(VitamMetricsConfiguration configuration) {
+        reporter = LogbackReporter.forRegistry(registry).build();
+    }
+
+    private void configureElasticsearchReporter(VitamMetricsConfiguration configuration) {
         final Map<String, Object> additionalFields = new HashMap<>();
 
         additionalFields.put("hostname", ServerIdentity.getInstance().getName());
         additionalFields.put("role", ServerIdentity.getInstance().getRole());
         try {
-            checkElasticsearchConnection(configuration.getElasticsearchHost(), configuration.getElasticSearchPort());
+            checkElasticsearchConnection(configuration.getMetricReporterHost(), configuration.getMetricReporterPort());
             reporter = ElasticsearchReporter.forRegistry(registry)
-                .hosts(configuration.getElasticsearchHost() + ":" + configuration.getElasticSearchPort())
-                .index(configuration.getElasticsearchIndex())
-                .indexDateFormat(configuration.getElasticsearchIndexDateFormat())
+                .hosts(configuration.getMetricReporterHost() + ":" + configuration.getMetricReporterPort())
+                .index(type.getElasticsearchIndex())
+                .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
                 .additionalFields(additionalFields)
                 .build();
         } catch (final IOException e) {
