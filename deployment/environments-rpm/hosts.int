@@ -166,13 +166,9 @@ vitam-iaas-dblog-03.int
 [hosts:vars]
 ansible_ssh_user=centos
 ansible_become=true
-vitam_folder_permission=0750
-vitam_conf_permission=0640
-local_user=vitam
 environnement=int
-vitam_reverse_domain=int
 consul_domain=consul
-vitam_ihm_demo_external_dns=int.env.programmevitam.fr
+vitam_reverse_external_dns=int.env.programmevitam.fr
 rpm_version=0.10.0-SNAPSHOT*
 days_to_delete=365
 days_to_close=20

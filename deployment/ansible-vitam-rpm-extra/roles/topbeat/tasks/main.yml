@@ -45,6 +45,7 @@
     state: restarted
     enabled: true
 
+  # TODO: change : virtualization_type is wrong here, we should assert if curator was indeed installed
 - name: apply configuration files for curator
   when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   template:
@@ -55,6 +56,7 @@
     - "delete_index_topbeat.yml"
   delegate_to: "{{groups['hosts-log-server'][0]}}"
   run_once: true
+  when: ansible_virtualization_type != 'docker'
 
 - name: create root crontab entry
   when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
@@ -66,3 +68,5 @@
     hour="0"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_topbeat.yml"
+  when: ansible_virtualization_type != 'docker'
+
