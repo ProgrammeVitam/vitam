@@ -163,17 +163,38 @@
                       {% for b in method.body %}
                         <p><strong>Media type</strong>: {{ b.key }}</p>
 
-                        {% if b.type.length %}
-                          {% for type in b.type %}
-                            {% if isStandardType(type) %}
-                              <p><strong>Type</strong>: {{ type }}</p>
-                            {% endif %}
+                        {% if b.type %}
+                          {% if isStandardType(b.type) %}
+                            <p><strong>Type</strong>: {{ b.type }}</p>
+                          {% endif %}
 
-                            {% if not isStandardType(type) %}
-                              <p><strong>Type</strong>:</p>
-                              <pre><code>{{ type | escape }}</code></pre>
+                          {% if not isStandardType(b.type) %}
+                            <p><strong>Type</strong>:</p>
+                            <pre><code>{{ b.type | escape }}</code></pre>
+                          {% endif %}
+                        {% endif %}
+
+                        {% if b.content %}
+                          <p><strong>Content</strong>:</p>
+                          <pre><code>{{ b.content | escape }}</code></pre>
+                        {% endif %}
+
+                        {% if b.items and b.items.properties %}
+                          {% if isStandardType(b.items) %}
+                            <p><strong>Items</strong>: {{ b.items }}</p>
+                          {% endif %}
+
+                          {% if not isStandardType(b.items) %}
+                            <p><strong>Items</strong>: {{ b.items.displayName }}</p>
+
+                            {% if b.items.properties %}
+                              <ul class="items">
+                                {% for item in b.items.properties %}
+                                  {% include "./item.nunjucks" %}
+                                {% endfor %}
+                              </ul>
                             {% endif %}
-                          {% endfor %}
+                          {% endif %}
                         {% endif %}
 
                         {% if b.properties.length %}
@@ -224,17 +245,38 @@
                         {% for b in response.body %}
                           <p><strong>Media type</strong>: {{ b.key }}</p>
 
-                          {% if b.type.length %}
-                            {% for type in b.type %}
-                              {% if isStandardType(type) %}
-                                <p><strong>Type</strong>: {{ type }}</p>
-                              {% endif %}
+                          {% if b.type %}
+                            {% if isStandardType(b.type) %}
+                              <p><strong>Type</strong>: {{ b.type }}</p>
+                            {% endif %}
 
-                              {% if not isStandardType(type) %}
-                                <p><strong>Type</strong>:</p>
-                                <pre><code>{{ type | escape }}</code></pre>
+                            {% if not isStandardType(b.type) %}
+                              <p><strong>Type</strong>:</p>
+                              <pre><code>{{ b.type | escape }}</code></pre>
+                            {% endif %}
+                          {% endif %}
+
+                          {% if b.content %}
+                            <p><strong>Content</strong>:</p>
+                            <pre><code>{{ b.content | escape }}</code></pre>
+                          {% endif %}
+
+                          {% if b.items and b.items.properties %}
+                            {% if isStandardType(b.items) %}
+                              <p><strong>Items</strong>: {{ b.items }}</p>
+                            {% endif %}
+
+                            {% if not isStandardType(b.items) %}
+                              <p><strong>Items</strong>: {{ b.items.displayName }}</p>
+
+                              {% if b.items.properties %}
+                                <ul class="items">
+                                  {% for item in b.items.properties %}
+                                    {% include "./item.nunjucks" %}
+                                  {% endfor %}
+                                </ul>
                               {% endif %}
-                            {% endfor %}
+                            {% endif %}
                           {% endif %}
 
                           {% if b.properties.length %}

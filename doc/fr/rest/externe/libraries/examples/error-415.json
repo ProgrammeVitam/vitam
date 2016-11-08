@@ -1,6 +1,6 @@
 {
   "httpCode": 415,
-  "code" : 123457,
+  "code" : "vitamcode",
   "context": "ingest",
   "state": "Unsupported_Media_Type",
   "message": "Unsupported media type detected",

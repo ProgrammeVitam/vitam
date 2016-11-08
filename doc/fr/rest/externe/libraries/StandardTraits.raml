@@ -10,7 +10,7 @@ traits:
     headers:
       Accept:
         description: |
-          Allow to specify if a result must contain only Metadata ('_application/json_'), or a complete DIP (one ZIP or TAR containing both Metadata and Binary object) ('_application/zip_' or '_application/x-tar_') or only the _Objects_ with a binary content ('_application/octet-stream_').
+          Allow to specify if a result must contain only Metadata ('_application/json_'), or a complete DIP (**UNSUPPORTED**) (one ZIP or TAR containing both Metadata and Binary object) ('_application/zip_' or '_application/x-tar_') or only the _Objects_ with a binary content ('_application/octet-stream_').
         type: string
         enum: [ "application/json", "application/zip", "application/octet-stream" ]
 
@@ -26,34 +26,38 @@ traits:
     headers:
       X-Valid:
         description: |
-          Allow to check if the item is valid (exists and digest is correct)
+          **UNSUPPORTED** Allow to check if the item is valid (exists and digest is correct)
         type: boolean
         required: false
 
   AsynchronousHeader:
     headers:
       X-Callback?:
-        description: Callback uri when the operation will be done
+        description: |
+          **UNSUPPORTED** Callback uri when the operation will be done
         type: string
         example: https://callback-host:port/uri/idcallback?status={status}&id={id}
     responses:
       202:
         headers:
           X-Callback?:
-            description: Callback uri when the operation will be done
+            description: |
+              **UNSUPPORTED** Callback uri when the operation will be done
             type: string
             example: https://callback-host:port/uri/idcallback?status={status}&id={id}
 
   PaginationRequestHeader:
     headers:
       X-Cursor?:
-        description: If present and true means the query could use a cursor as response if necessary
+        description: |
+          **UNSUPPORTED** If present and true means the query could use a cursor as response if necessary
         type: boolean
 
   PaginationNextHeader:
     headers: &pagination
       X-Cursor-Id?:
-        description: If present, means the query could continue with the next set of response, according to current position of the Cursor Id
+        description: |
+          **UNSUPPORTED** If present, means the query could continue with the next set of response, according to current position of the Cursor Id
         type: string
 
   PaginationResponseHeader:
@@ -61,10 +65,12 @@ traits:
       206:
         headers:
           X-Cursor-Id?:
-            description: If present, means the query could continue with the next set of response, according to current position of the Cursor Id
+            description: |
+              **UNSUPPORTED** If present, means the query could continue with the next set of response, according to current position of the Cursor Id
             type: string
           X-Cursor-Timeout?:
-            description: When X-Cursor-Id is present, it specifies the date and time limit of the availability of this cursor Id
+            description: |
+              **UNSUPPORTED** When X-Cursor-Id is present, it specifies the date and time limit of the availability of this cursor Id
             type: datetime
 
   StandardHeader200:
@@ -100,7 +106,7 @@ traits:
   StandardHeader204:
     responses:
       204:
-        description: No Content, Used to test existence
+        description: No Content, Used to test existence or for Status
         headers: *standardheader
   StandardHeader206:
     responses:
@@ -166,13 +172,6 @@ traits:
         type: string
         enum:
           - PUT
-  OverridePatch:
-    description: For HTTP clients that do not support PATCH Request
-    headers:
-      X-Http-Method-Override?:
-        type: string
-        enum:
-          - PATCH
   OverrideHead:
     description: For HTTP clients that do not support HEAD Request
     headers:
@@ -194,16 +193,6 @@ traits:
         type: string
         enum:
           - DELETE
-
-  Status:
-    responses:
-      200:
-        body:
-          application/json:
-            description: External module status
-            type: StandardTypes.ServiceStatus
-            example: !include examples/status.json
-
 
   StandardErrors:
     responses:

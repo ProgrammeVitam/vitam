@@ -11,12 +11,6 @@ uses:
   LogbookTraits: libraries/LogbookTraits.raml
   DslTypes: libraries/DslTypes.raml
 
-securitySchemes:
-  Vitam: !include securitySchemes/SecuritySchemeVitam.raml
-  VitamMock: !include securitySchemes/SecuritySchemeVitamMock.raml
-
-securedBy: [Vitam, VitamMock]
-
 mediaType: application/json
 
 types:
@@ -24,14 +18,11 @@ types:
     type: string
 
 documentation:
+  - title: Avertissements
+    content: !include docs-fr/avertissement.md
+
   - title: API Logbook
     content: !include docs-fr/logbook.md
-
-  - title: Conventions REST Générales
-    content: !include docs-fr/standard.md
-
-  - title: DSL Vitam
-    content: !include docs-fr/dsl.md
 
 /operations:
   displayName: Operations Logbooks
@@ -173,5 +164,5 @@ documentation:
 
 /status:
   get:
-    is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
+    is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
