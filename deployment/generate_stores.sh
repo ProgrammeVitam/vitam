@@ -7,10 +7,12 @@ ENVIRONNEMENT=${1}
 
 . $(dirname $0)/functions.sh
 
-echo "Sourcer les informations nécessaires dans vault.yml"
-eval $(ansible-vault view $(dirname $0)/environments-rpm/group_vars/all/vault.yml | sed -e 's/: /=/')
+check_password_file
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo --ask-vault-pass| sed "1 d"); do
+echo "Sourcer les informations nécessaires dans vault.yml"
+eval $(ansible-vault view $(dirname $0)/environments-rpm/group_vars/all/vault.yml ${ANSIBLE_VAULT_PASSWD} | sed -e 's/: /=/')
+
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	echo "Génération du keystore de ihm-demo"
 	echo "	Génération pour ${i}..."
 	echo "Génération du truststore de ihm-demo..."
@@ -34,7 +36,7 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 	echo "------------------------------------------------"
 done
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette --ask-vault-pass| sed "1 d"); do
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	echo "Génération du keystore de ihm-recette"
 	echo "	Génération pour ${i}..."
 	echo "Génération du truststore de ihm-recette..."
@@ -55,7 +57,7 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 done
 
 for j in ingest access; do
-	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external --ask-vault-pass| sed "1 d"); do
+	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 		echo "Génération du keystore de access-external"
 		echo "	Génération pour ${i}..."
 		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_ingest-external.jks keystore_ingest-external ${KeyStorePassword_ingest_external}
