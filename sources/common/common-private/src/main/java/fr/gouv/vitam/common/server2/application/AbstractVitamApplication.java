@@ -168,6 +168,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
         }
     }
+
     /**
      * Used in Junit test
      *
@@ -209,7 +210,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         metrics.clear();
 
         // Load default business metrics
-        // TODO P1 find a better way to have a default BUSINESS VitamMetrics
+        // TODO P2 find a better way to have a default BUSINESS VitamMetrics
         if (!metrics.containsKey(VitamMetricsType.BUSINESS)) {
             metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS));
         }
@@ -367,7 +368,12 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
      * @return {@link VitamMetrics} BUSINESS VitamMetrics
      */
     public static final VitamMetricRegistry getBusinessMetricsRegistry() {
-        return metrics.get(VitamMetricsType.BUSINESS).getRegistry();
+        if (metrics.containsKey(VitamMetricsType.BUSINESS)) {
+            return metrics.get(VitamMetricsType.BUSINESS).getRegistry();
+        } else {
+            LOGGER.warn("AbstractVitamApplication#getBusinessMetricRegistry: empty VitamMetricRegistry.");
+            return new VitamMetricRegistry();
+        }
     }
 
     /**

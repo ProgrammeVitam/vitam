@@ -40,6 +40,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -163,14 +164,14 @@ public class VitamMetricsConfigurationImplTest {
     @Test
     public final void testBusinessMetrics() {
         testVitamMetrics(VitamMetricsType.BUSINESS);
-        testBusinessGaugeValue();
     }
 
     @SuppressWarnings("rawtypes")
-    private void testBusinessGaugeValue() {
+    @Test
+    public final void testBusinessGaugeValue() {
         final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessMetricsRegistry().getGauges();
-        final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_RESOURCE_URI);
+        final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET, TEST_RESOURCE_URI);
 
         assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(0));
@@ -183,6 +184,16 @@ public class VitamMetricsConfigurationImplTest {
             .then()
             .statusCode(Status.OK.getStatusCode());
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(1));
+    }
+
+    @Before
+    public void beforeTestBusinessGaugeValue() {
+        final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET, TEST_RESOURCE_URI);
+        final boolean headersOK = headersMap.containsKey(GlobalDataRest.X_TIMESTAMP) &&
+            headersMap.containsKey(GlobalDataRest.X_PLATFORM_ID);
+
+        org.junit.Assume.assumeTrue(headersOK);
     }
 
     private void testVitamMetrics(VitamMetricsType type) {

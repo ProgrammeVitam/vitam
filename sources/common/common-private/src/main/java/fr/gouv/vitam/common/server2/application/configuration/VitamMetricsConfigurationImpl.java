@@ -83,7 +83,7 @@ public final class VitamMetricsConfigurationImpl {
         private String elasticsearchIndex = "metrics-vitam-";
         private int elasticsearchPort = 9201;
         private String elasticsearchIndexDateFormat = "YYYY.MM.dd";
-        private VitamMetricsReporterType reporterType = VitamMetricsReporterType.CONSOLE;
+        private VitamMetricsReporterType reporterType = null;
         private TimeUnit intervalUnit = TimeUnit.MINUTES;
 
         /**
@@ -169,7 +169,12 @@ public final class VitamMetricsConfigurationImpl {
 
         @Override
         public String getElasticsearchHost() {
-            return elasticsearchHost + ":" + elasticsearchPort;
+            return elasticsearchHost;
+        }
+        
+        @Override
+        public int getElasticSearchPort() {
+            return elasticsearchPort;
         }
 
         @Override

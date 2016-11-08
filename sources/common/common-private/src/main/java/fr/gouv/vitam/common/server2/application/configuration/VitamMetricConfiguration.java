@@ -50,6 +50,13 @@ public interface VitamMetricConfiguration {
     String getElasticsearchHost();
 
     /**
+     * Must return the value of a 'elasticsearchPort' attribute
+     *
+     * @return the elasticsearch port value
+     */
+    int getElasticSearchPort();
+    
+    /**
      * Must return the value of a 'elasticsearchIndex' attribute
      *
      * @return the elasticsearch index value

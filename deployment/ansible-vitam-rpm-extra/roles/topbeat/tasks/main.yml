@@ -16,8 +16,8 @@
 # OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
 # OMA added ignore_errors due to stange things sometimes when redeploying
 - name: force use topbeat index
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
-  ignore_errors: true
   notify:
     - restart kibana
   delegate_to: "{{groups['hosts-log-server'][0]}}"
@@ -46,6 +46,7 @@
     enabled: true
 
 - name: apply configuration files for curator
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   template:
     src: "{{item}}.j2"
     dest: "{{curator_conf_dir}}/{{item}}"
@@ -56,6 +57,7 @@
   run_once: true
 
 - name: create root crontab entry
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
   run_once: true
   delegate_to : "{{groups['hosts-log-server'][0]}}"
   cron:

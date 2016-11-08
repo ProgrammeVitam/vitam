@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 /**
  * A class extending the MetricRegistry to expose safe functions to register metrics.
  */
-final class VitamMetricRegistry extends MetricRegistry {
+public final class VitamMetricRegistry extends MetricRegistry {
     private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
 
     /**
