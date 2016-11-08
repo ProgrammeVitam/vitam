@@ -35,9 +35,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -64,32 +61,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         super(factory);
     }
 
-    @Override
-    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
-        InputStream inputStream,
-        String archiveMimeType) throws VitamException {
-        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        final FormDataMultiPart multiPart = new FormDataMultiPart();
-        multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
-        if (inputStream != null) {
-            multiPart.bodyPart(
-                new StreamDataBodyPart("part", inputStream, "SIP", CommonMediaType.valueOf(archiveMimeType)));
-        }
-
-        Response response =
-            performRequest(HttpMethod.POST, UPLOAD_URL, getDefaultHeaders(guid.getId()),
-                multiPart, MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
-        if (Status.OK.getStatusCode() == response.getStatus()) {
-            LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
-        } else {
-            LOGGER.error("SIP Upload Error");
-        }
-
-        return response;
-    }
-
-    // FIXME P0 replace the above command by this one
     /**
      * Same as upload but using async service and 2 queries (delegated logbook and upload)
      * 
@@ -101,11 +72,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
      *         body)
      * @throws VitamException
      */
-    public Response uploadAsync(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
+    @Override
+    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
         InputStream inputStream,
-        String archiveMimeType) throws VitamException {
+        String archiveMimeType) throws VitamException {        
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
+        
         Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, headers,
             logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
