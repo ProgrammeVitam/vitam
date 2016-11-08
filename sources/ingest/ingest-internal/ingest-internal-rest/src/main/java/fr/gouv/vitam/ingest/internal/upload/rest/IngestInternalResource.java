@@ -366,9 +366,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
             ingestGuid);
 
-        LOGGER.debug("call journal...");
-        client.create(parameters);
-
         return client;
 
     }
