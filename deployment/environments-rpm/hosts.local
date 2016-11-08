@@ -155,3 +155,4 @@ memory_opts="-Xms32m -Xmx256m"
 # Overrides
 vitam_folder_permission=0775
 vitam_conf_permission=0775
+log_level=WARN

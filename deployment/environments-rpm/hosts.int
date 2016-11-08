@@ -175,3 +175,4 @@ days_to_close=20
 days_to_delete_topbeat=20
 days_to_delete_local=30
 dns_servers=["172.16.1.21"]
+log_level=WARN
