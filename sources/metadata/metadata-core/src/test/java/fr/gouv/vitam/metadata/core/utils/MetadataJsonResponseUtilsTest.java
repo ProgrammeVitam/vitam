@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
 public class MetadataJsonResponseUtilsTest {
 

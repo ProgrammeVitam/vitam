@@ -38,11 +38,14 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FORMAT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBUNITS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBOBJECTS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SIZE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TENANT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALLUNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OPERATIONS;
 
 
@@ -71,6 +74,13 @@ public class VitamFieldsHelper {
     }
 
     /**
+     * @return #nbunits
+     */
+    public static final String nbobjects() {
+        return NBOBJECTS.exactToken();
+    }
+
+    /**
      * @return #all
      */
     public static final String all() {
@@ -80,14 +90,16 @@ public class VitamFieldsHelper {
     /**
      * @return #size
      */
-    public static final String size() {
+    // FIXME P2 not valid
+    static final String size() {
         return SIZE.exactToken();
     }
 
     /**
      * @return #format
      */
-    public static final String format() {
+    // FIXME P2 not valid
+    static final String format() {
         return FORMAT.exactToken();
     }
 
@@ -96,6 +108,13 @@ public class VitamFieldsHelper {
      */
     public static final String type() {
         return TYPE.exactToken();
+    }
+
+    /**
+     * @return #tenant
+     */
+    public static final String tenant() {
+        return TENANT.exactToken();
     }
 
     /**
@@ -152,6 +171,13 @@ public class VitamFieldsHelper {
      */
     public static final String unitups() {
         return UNITUPS.exactToken();
+    }
+
+    /**
+     * @return #up
+     */
+    public static final String allunitups() {
+        return ALLUNITUPS.exactToken();
     }
 
     /**

@@ -79,7 +79,9 @@ public class MetaDataImplTest {
     private static final String DATA_INSERT = "{ \"data\": \"test\" }";
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+    private static final String SAMPLE_OBJECTGROUP_FILTERED_FILENAME = "sample_objectGroup_document_filtered.json";
     private static JsonNode sampleObjectGroup;
+    private static JsonNode sampleObjectGroupFiltered;
 
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
@@ -123,6 +125,7 @@ public class MetaDataImplTest {
     @BeforeClass
     public static void loadStaticResources() throws Exception {
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
+        sampleObjectGroupFiltered = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME));
     }
 
     @Before
@@ -384,12 +387,9 @@ public class MetaDataImplTest {
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final ArrayNode arrayNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
-        assertEquals(1, arrayNode.size());
-        final ObjectNode objectGroupDocument = (ObjectNode) arrayNode.get(0);
-        final String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
-        final String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
-        assertEquals(expectedObjectGroup, resultedObjectGroup);
+        final ArrayNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
+        final ObjectNode objectGroupDocument = (ObjectNode) jsonNode.get(0);
+        assertEquals(sampleObjectGroupFiltered, objectGroupDocument);
     }
 
     @Test
