@@ -95,7 +95,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 /**
  * Worker integration test TODO P1 : do a "worker-integration" module
  */
-public class WorkerIT {
+public class WorkerIT { 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;

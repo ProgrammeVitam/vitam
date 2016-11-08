@@ -57,7 +57,7 @@ public class MetaDataApplicationAuthenticationTest {
 
         metadata = PropertiesUtils.findFile(METADATA_CONF);
         metadataConfig = PropertiesUtils.readYaml(metadata, MetaDataConfiguration.class);
-        metadataConfig.setDbPort(port);
+        metadataConfig.getMongoDbNodes().get(0).setDbPort(port);
         metadataConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
         
         final int metadataPort = junitHelper.findAvailablePort();

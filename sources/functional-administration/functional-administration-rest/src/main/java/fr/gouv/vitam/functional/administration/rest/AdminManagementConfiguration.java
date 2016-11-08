@@ -27,7 +27,10 @@
 
 package fr.gouv.vitam.functional.administration.rest;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 
 /**
  * AdminManagementConfiguration inherated from DbConfigurationImpl
@@ -46,7 +49,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      * @param dbPort the database port
      * @param dbName the database name
      */
-    public AdminManagementConfiguration(String dbHost, int dbPort, String dbName) {
-        super(dbHost, dbPort, dbName);
+    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName) {
+        super(mongoDbNodes, dbName);
     }
 }

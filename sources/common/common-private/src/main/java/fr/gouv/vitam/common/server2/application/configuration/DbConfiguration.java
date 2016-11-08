@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.common.server2.application.configuration;
 
+import java.util.List;
+
 /**
  * Defines minimal common configurations for database configuration properties.
  *
@@ -36,19 +38,13 @@ package fr.gouv.vitam.common.server2.application.configuration;
  *
  */
 public interface DbConfiguration extends VitamApplicationConfiguration {
+    
     /**
-     * Must return the value of a 'dbHost' attribute
-     *
-     * @return the database host value
+     * Must return the value of a 'mongoDbNodes' attribute
+     * 
+     *  @retrun the list of mongodb node which contains the dbHost and dbPort
      */
-    String getDbHost();
-
-    /**
-     * Must return the value of a 'dbPort' attribute
-     *
-     * @return the database port value
-     */
-    int getDbPort();
+    List<MongoDbNode> getMongoDbNodes();
 
     /**
      * Must return the value of a 'dbName' attribute

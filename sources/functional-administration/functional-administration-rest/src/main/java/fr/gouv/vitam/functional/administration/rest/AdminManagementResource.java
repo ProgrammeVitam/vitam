@@ -100,11 +100,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(),
+                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
                     true, configuration.getDbUserName(), configuration.getDbPassword());
         } else {
             adminConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);

@@ -40,7 +40,7 @@ public class LogbookApplicationAuthenticationTest {
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.setDbPort(port);
+        realLogbook.getMongoDbNodes().get(0).setDbPort(port);
         
     }
 

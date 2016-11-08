@@ -53,6 +53,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
@@ -95,7 +97,9 @@ public class MetaDataApplicationTest {
             .build());
         mongod = mongodExecutable.start();
 
-        config = new MetaDataConfiguration("localhost", port, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG);
+        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        mongo_nodes.add(new MongoDbNode("localhost", port));
+        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG);
     }
 
     @AfterClass

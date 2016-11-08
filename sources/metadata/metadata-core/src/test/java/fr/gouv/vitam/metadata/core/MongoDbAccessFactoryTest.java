@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
@@ -115,8 +116,10 @@ public class MongoDbAccessFactoryTest {
 
     @Test
     public void testCreateFn() {
+        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = new MongoDbAccessMetadataFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG));
+            .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

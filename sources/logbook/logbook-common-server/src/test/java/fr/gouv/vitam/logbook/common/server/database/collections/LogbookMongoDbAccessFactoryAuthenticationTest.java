@@ -3,13 +3,17 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -46,8 +50,10 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
     
     @Test
     public void testCreateLogbook() throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = new LogbookMongoDbAccessFactory().create(
-            new DbConfigurationImpl(DATABASE_HOST, port, databaseName, true, user, pwd));
+            new DbConfigurationImpl(nodes, databaseName, true, user, pwd));
         assertNotNull(mongoDbAccess);
         assertEquals("db-logbook", mongoDbAccess.getMongoDatabase().getName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();

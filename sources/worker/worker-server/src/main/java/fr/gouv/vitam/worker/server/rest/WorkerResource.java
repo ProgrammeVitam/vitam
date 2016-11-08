@@ -83,11 +83,11 @@ public class WorkerResource extends ApplicationStatusResource {
         DbConfigurationImpl databaseConfiguration;
         if (configuration.isDbAuthentication()) {
             databaseConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+                new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName(),
                     true, configuration.getDbUserName(), configuration.getDbPassword());
         } else {
-            databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
+            databaseConfiguration = new DbConfigurationImpl(configuration.getMongoDbNodes(),
                 configuration.getDbName());
         }
         this.worker =

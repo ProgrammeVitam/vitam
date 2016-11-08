@@ -3,12 +3,16 @@ package fr.gouv.vitam.functional.administration.common.server;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import ru.yandex.qatools.embed.service.MongoEmbeddedService;
 
 public class MongoDbAccessAdminFactoryTest {
@@ -40,8 +44,10 @@ public class MongoDbAccessAdminFactoryTest {
     
     @Test
     public void testCreateAdmin(){
+        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = MongoDbAccessAdminFactory.create(
-            new DbConfigurationImpl(DATABASE_HOST, port, databaseName, true, user, pwd));
+            new DbConfigurationImpl(nodes, databaseName, true, user, pwd));
         assertNotNull(mongoDbAccess);
         assertEquals("db-functional-administration", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();
