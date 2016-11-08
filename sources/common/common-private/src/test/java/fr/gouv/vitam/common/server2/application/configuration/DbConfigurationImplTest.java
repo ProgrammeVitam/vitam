@@ -131,9 +131,9 @@ public class DbConfigurationImplTest {
         assertEquals(394, dbConfiguration1.getMongoDbNodes().get(0).getDbPort());
         assertEquals("AAA", dbConfiguration1.getMongoDbNodes().get(0).getDbHost());
         assertEquals("BBB", dbConfiguration1.getDbName());
-        final DbConfigurationImpl dbConfiguration2 = new DbConfigurationImpl("AAA", 394, "BBB", true, "user", "pwd");
-        assertEquals(394, dbConfiguration2.getDbPort());
-        assertEquals("AAA", dbConfiguration2.getDbHost());
+        final DbConfigurationImpl dbConfiguration2 = new DbConfigurationImpl(nodes, "BBB", true, "user", "pwd");
+        assertEquals(394, dbConfiguration2.getMongoDbNodes().get(0).getDbPort());
+        assertEquals("AAA", dbConfiguration2.getMongoDbNodes().get(0).getDbHost());
         assertEquals("BBB", dbConfiguration2.getDbName());
         assertEquals("user", dbConfiguration2.getDbUserName());
         assertEquals("pwd", dbConfiguration2.getDbPassword());
