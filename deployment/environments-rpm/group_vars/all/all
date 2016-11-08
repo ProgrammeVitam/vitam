@@ -4,7 +4,7 @@
 vitam_folder_root: /vitam
 docker_registry_httponly: yes
 vitam_docker_tag: latest
-port_http_timeout: 99999999
+port_http_timeout: 86400
 
 syslog_facility: local0
 
