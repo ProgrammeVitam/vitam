@@ -1,2 +1,5 @@
 ---
-# handlers file for reverse
+- name: reload apache httpd
+  service:
+    name: "httpd"
+    state: reloaded

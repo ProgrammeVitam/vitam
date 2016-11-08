@@ -1,38 +1,46 @@
 ---
+# Ensure apache httpd is installed 
+- name: install httpd
+  yum:
+    name: httpd
+    state: latest
+
 - name: create DocumentRoot directory
   file:
-    path: /var/www/html-{{vitam_reverse_domain}}
+    path: /var/www/html-{{environnement}}
     state: directory
     owner: root
     mode: 0755
-
-# tasks file for reverse
-- name: copy template
-  template:
-    src: httpd_config
-    dest: /etc/httpd/conf.d/zz_{{vitam_reverse_domain}}.env.programmevitam.fr.conf
-    owner: root
-    mode: 0644
+  notify:
+     - reload apache httpd
 
 - name: copy index resources
   copy:
     src: "{{item}}"
-    dest: /var/www/html-{{vitam_reverse_domain}}/
+    dest: /var/www/html-{{environnement}}/
     owner: root
     mode: 0644
   with_items:
       - css
       - images
       - js
+  notify:
+     - reload apache httpd
 
 - name: copy index default page
   template:
     src: index.html.j2
-    dest: /var/www/html-{{vitam_reverse_domain}}/index.html
+    dest: /var/www/html-{{environnement}}/index.html
     owner: root
     mode: 0644
+  notify:
+     - reload apache httpd
 
-- name: restart httpd reverse
-  service:
-    name: httpd
-    state: restarted
+- name: copy httpd configuration template
+  template:
+    src: httpd_config
+    dest: /etc/httpd/conf.d/zz_{{vitam_reverse_external_dns}}.conf
+    owner: root
+    mode: 0644
+  notify:
+     - reload apache httpd

@@ -1,9 +1,9 @@
-<VirtualHost *:8080>
-  DocumentRoot "/var/www/html-{{vitam_reverse_domain}}"
+<VirtualHost *>
+  DocumentRoot "/var/www/html-{{environnement}}"
   ProxyPreserveHost Off
-  ServerName {{vitam_reverse_domain}}.env.programmevitam.fr
+  ServerName {{vitam_reverse_external_dns}}
 
-<Directory "/var/www/html-{{vitam_reverse_domain}}">
+<Directory "/var/www/html-{{environnement}}">
     #
     # Possible values for the Options directive are "None", "All",
     # or any combination of:

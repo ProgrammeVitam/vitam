@@ -5,7 +5,7 @@
 	<meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
 	<meta name="format-detection" content="telephone=no">
 
-	<title>VITAM - environnement : {{vitam_reverse_domain}}</title>
+	<title>VITAM - environnement : {{environnement}}</title>
 	<link rel="icon" type="image/png" href="favicon.png" />
 	<link rel="stylesheet" href="css/app.css" />
 
@@ -43,7 +43,19 @@
 					<li>
 						<a href="#">
 							<i class="material-icons pull-left">search</i>
-							<span class="pull-left m-l-10">Environnement : {{vitam_reverse_domain}}</span>
+							<span class="pull-left m-l-10">Environnement : {{environnement}}</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<i class="material-icons pull-left">search</i>
+							<span class="pull-left m-l-10">Déployé : {{ansible_date_time.date}} {{ansible_date_time.time}} ({{ansible_date_time.tz}})</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<i class="material-icons pull-left">search</i>
+							<span class="pull-left m-l-10">Version cible : {{rpm_version}}</span>
 						</a>
 					</li>
 				</ul>
@@ -107,8 +119,8 @@
 						<div class="col-md-3">Elasticsearch</div>
 						<div class="col-md-9">
 							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Visualisation HEAD</a>
-							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_domain}}.env.programmevitam.fr/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-log</a>
-							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_domain}}.env.programmevitam.fr/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-data</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-log</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-data</a>
 							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Elasticsearch logs</a>
 							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé Elasticsearch logs</a>
 							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Elasticsearch data</a>
@@ -123,13 +135,12 @@
 				<h2>Debug</h2>
 			</a>
 			<div class="panel-body">
-				
-						{% for item in groups['vitam'] %}
-						<p class="row" style="vertical-align: middle"><div class="col-md-3">{{item}}</div>
-						<div class="col-md-2">
-							<a href="/nodes/{{item}}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
-						</div></p>
-						{% endfor %}
+				{% for item in groups['vitam'] %}
+				<p class="row" style="vertical-align: middle"><div class="col-md-3">{{item}}</div>
+				<div class="col-md-2">
+					<a href="/nodes/{{item}}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
+				</div></p>
+				{% endfor %}
 			</div>
 		</div>
 	</div>

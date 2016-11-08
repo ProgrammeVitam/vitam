@@ -15,11 +15,11 @@
 
 - hosts: hosts-mongo-express
   roles:
-    - mongo-express
+    - {role: mongo-express, when: "ansible_virtualization_type != 'docker'"}
 
 - hosts: library
   roles:
-    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" } 
+    - {role: vitam, vitam_component: library, java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" } 
 
 - hosts: reverse
   roles:
