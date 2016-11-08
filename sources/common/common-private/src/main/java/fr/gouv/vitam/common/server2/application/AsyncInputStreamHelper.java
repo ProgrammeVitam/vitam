@@ -35,8 +35,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
-import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -61,8 +59,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
             public void run() {
                 File file = new File(...)
                 FileInputStream inputStream = new FileInputStream(file);
-                long size = file.length();
-                new AsyncInputStreamHelper(asyncResponse, inputStream, size)
+                new AsyncInputStreamHelper(asyncResponse, inputStream)
                     .writeResponse(Response.ok());
             }
         });
@@ -102,11 +99,9 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  * </pre>
  */
 public class AsyncInputStreamHelper implements StreamingOutput {
-    private static final String CONTENT_LENGTH = "Content-Length";
     private final AsyncResponse asyncResponse;
     private final Response receivedResponse;
     private InputStream inputStream;
-    private final Long size;
     private final AsyncInputStreamHelper self = this;
 
     /**
@@ -114,14 +109,12 @@ public class AsyncInputStreamHelper implements StreamingOutput {
      * 
      * @param asyncResponse the AsyncReponse from the Resource API
      * @param inputStream the native InputStream to send (not from a Client response)
-     * @param size the native size, could be null (no size will be set into the header but recommended)
      */
-    public AsyncInputStreamHelper(AsyncResponse asyncResponse, InputStream inputStream, Long size) {
+    public AsyncInputStreamHelper(AsyncResponse asyncResponse, InputStream inputStream) {
         ParametersChecker.checkParameter("Parameters should not be null", asyncResponse, inputStream);
         this.asyncResponse = asyncResponse;
         this.receivedResponse = null;
         this.inputStream = inputStream;
-        this.size = size;
     }
 
     /**
@@ -134,7 +127,6 @@ public class AsyncInputStreamHelper implements StreamingOutput {
         ParametersChecker.checkParameter("Parameters should not be null", asyncResponse, receivedResponse);
         this.asyncResponse = asyncResponse;
         this.receivedResponse = receivedResponse;
-        this.size = null;
     }
 
     /**

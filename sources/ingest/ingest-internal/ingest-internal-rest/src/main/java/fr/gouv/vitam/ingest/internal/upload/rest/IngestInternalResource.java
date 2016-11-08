@@ -215,7 +215,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @POST
     @Path("/ingests")
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
+    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+        CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void uploadSipAsStream(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
         @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream,
@@ -273,7 +274,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         storageClient.getContainer(DEFAULT_TENANT, DEFAULT_STRATEGY, containerGUID.getId() + XML,
                             StorageCollectionType.REPORTS);
                     // FIXME P0 when storage in Async mode use response instead
-                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
+                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream);
                     Status finalStatus = Status.OK;
                     if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
                         if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
@@ -348,7 +349,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
         }
     }
-
 
     private LogbookOperationParameters logbookInitialisation(LogbookOperationsClient client, final GUID ingestGuid,
         final GUID containerGUID)

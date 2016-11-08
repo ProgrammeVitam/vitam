@@ -123,6 +123,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getInstance();
     SSLConfiguration sslConfiguration = null;
+    private boolean useAuthorizationFilter = true;
 
     /**
      * Constructor with standard configuration
@@ -191,6 +192,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         initialisation(configuration, resourcePath);
         this.givenClient = client;
         idleMonitor = new ExpiredConnectionMonitorThread(this);
+    }
+
+    protected void disableUseAuthorizationFilter() {
+        useAuthorizationFilter = false;
+    }
+    
+    boolean useAuthorizationFilter() {
+        return useAuthorizationFilter;
     }
 
     protected final void initialisation(ClientConfiguration configuration, String resourcePath) {

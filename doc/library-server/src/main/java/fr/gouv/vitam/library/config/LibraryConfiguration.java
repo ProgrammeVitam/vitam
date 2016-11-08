@@ -28,13 +28,13 @@
  */
 package fr.gouv.vitam.library.config;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * LibraryConfiguration contains library app configuration
  */
-public class LibraryConfiguration {
+public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String jettyConfig;
     private String directoryPath;
 
     /**
@@ -42,26 +42,6 @@ public class LibraryConfiguration {
      */
     public LibraryConfiguration() {
         // Empty constructor
-    }
-
-    /**
-     * getter jettyConfig
-     * 
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     * 
-     * @param jettyConfig the jetty config
-     * @return this
-     */
-    public LibraryConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
     }
 
     /**

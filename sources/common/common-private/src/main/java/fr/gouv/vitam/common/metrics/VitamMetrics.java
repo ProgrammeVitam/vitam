@@ -67,9 +67,11 @@ public class VitamMetrics {
     private boolean isReporting = false;
 
     /**
-     * A constructor to instantiate a {@see VitamMetrics} with the configuration object
-     * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
+     * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricConfiguration}
+     * . The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
+     * 
+     * @param type
      *
      * @param configuration {@link VitamMetricConfiguration}
      */

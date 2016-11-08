@@ -97,7 +97,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             final int port = (Integer) configurationProperties.get("port");
 
             factory.changeConfiguration(host, port);
-            client = factory.getSiegfriedClient();
+            client = factory.getClient();
             rootPath = Paths.get(root);
             versionPath = Paths.get(version);
 
@@ -115,7 +115,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             // Mock configuration
             LOGGER.info("Bad value of client. Use mock");
             factory.changeConfiguration(null, 0);
-            client = factory.getSiegfriedClient();
+            client = factory.getClient();
             rootPath = Paths.get(root);
             versionPath = Paths.get(version);
         }

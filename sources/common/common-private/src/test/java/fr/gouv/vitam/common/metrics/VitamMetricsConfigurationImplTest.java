@@ -30,8 +30,17 @@ package fr.gouv.vitam.common.metrics;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
+import javax.management.RuntimeErrorException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -40,17 +49,27 @@ import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Reservoir;
+import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Timer;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.ValidatableResponse;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.metrics.LogbackReporter.Builder;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
@@ -65,6 +84,8 @@ public class VitamMetricsConfigurationImplTest {
     private static final String TEST_CONF = "test.conf";
     private static int serverPort;
     private static TestVitamApplication application;
+    private static final PrintStream out = System.out; // NOSONAR since Logger test
+    private static final StringBuilder buf = new StringBuilder();
 
     /**
      * The test application that will load a test resource.
@@ -168,6 +189,51 @@ public class VitamMetricsConfigurationImplTest {
         testVitamMetrics(VitamMetricsType.BUSINESS);
     }
 
+    @Test
+    public void testDummyLogbackReporter() {
+        try {
+            System.setOut(new PrintStream(new OutputStream() {
+                @Override
+                public void write(final int b) {
+                    buf.append((char) b);
+                }
+            }, true, "UTF-8"));
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeErrorException(new Error(e));
+        }
+
+        final VitamMetrics metric = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JVM);
+        Builder builder = LogbackReporter.forRegistry(metric.getRegistry());
+        builder.convertDurationsTo(TimeUnit.SECONDS).convertRatesTo(TimeUnit.SECONDS).formattedFor(Locale.FRENCH)
+            .formattedFor(TimeZone.getDefault()).logLevel(VitamLogLevel.INFO);
+        LogbackReporter reporter = builder.build();
+        reporter.report();
+        assertTrue(buf.length() > 0);
+        buf.setLength(0);
+        SortedMap<String, Gauge> gauges = new TreeMap<>();
+        gauges.put("keyGauge", new Gauge<Long>() {
+
+            @Override
+            public Long getValue() {
+                return 1L;
+            }});
+        SortedMap<String, Counter> counters = new TreeMap<>();
+        Counter counter = new Counter();
+        counter.inc();
+        counters.put("keyCounter", counter);
+        SortedMap<String, Histogram> histograms = new TreeMap<>();
+        SortedMap<String, Meter> meters = new TreeMap<>();
+        Meter meter = new Meter();
+        meters.put("keyMeter", meter);
+        SortedMap<String, Timer> timers = new TreeMap<>();
+        Timer timer = new Timer();
+        timer.update(10, TimeUnit.SECONDS);
+        timers.put("keyTimer", timer);
+        reporter.report(gauges, counters, histograms, meters, timers);
+        assertTrue(buf.length() > 0);
+        System.setErr(out);
+    }
+
     @SuppressWarnings("rawtypes")
     @Test
     public final void testBusinessGaugeValue() {
@@ -175,16 +241,18 @@ public class VitamMetricsConfigurationImplTest {
         final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
             HttpMethod.GET, TEST_RESOURCE_URI);
 
+        Assume.assumeFalse("Should be using Secret", headersMap.isEmpty());
         assertTrue(TEST_GAUGE_NAME, gauges.containsKey(TEST_GAUGE_NAME));
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(0));
         // Calling the resource should and increment the counter
-        RestAssured.given()
+        ValidatableResponse valResp = RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
             .get(TEST_RESOURCE_URI)
-            .then()
-            .statusCode(Status.OK.getStatusCode());
+            .then().log().ifStatusCodeIsEqualTo(Status.UNAUTHORIZED.getStatusCode());
+            //.statusCode(Status.OK.getStatusCode());
+        Assume.assumeFalse("Should be using Secret", headersMap.isEmpty());
         assertTrue(TEST_GAUGE_NAME + " value", gauges.get(TEST_GAUGE_NAME).getValue().equals(1));
     }
 

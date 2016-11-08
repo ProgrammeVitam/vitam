@@ -378,12 +378,13 @@ abstract class AbstractCommonClient implements BasicClient {
         }
 
         // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
-        Map<String,String> authorizationHeaders = AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,baseUri);
-        if(authorizationHeaders.size()==2){
-            builder.header(GlobalDataRest.X_TIMESTAMP,authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
-            builder.header(GlobalDataRest.X_PLATFORM_ID,authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
+        if (clientFactory.useAuthorizationFilter()) {
+            Map<String,String> authorizationHeaders = AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,baseUri);
+            if(authorizationHeaders.size()==2){
+                builder.header(GlobalDataRest.X_TIMESTAMP,authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
+                builder.header(GlobalDataRest.X_PLATFORM_ID,authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
+            }
         }
-
         return builder;
     }
 

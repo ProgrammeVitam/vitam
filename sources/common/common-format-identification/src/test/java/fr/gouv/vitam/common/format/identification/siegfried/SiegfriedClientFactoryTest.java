@@ -36,6 +36,8 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+
 /**
  * Test class for client (and parameters) factory
  */
@@ -49,34 +51,25 @@ public class SiegfriedClientFactoryTest {
     @Test
     public void getClientInstanceTest() {
         try {
-            SiegfriedClientFactory.setConfiguration(SiegfriedClientFactory.SiegfriedClientType.NORMAL,
-                null, 10);
+            SiegfriedClientFactory.changeMode(null, 10);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            SiegfriedClientFactory.setConfiguration(SiegfriedClientFactory.SiegfriedClientType.NORMAL,
-                "localhost", -10);
+            SiegfriedClientFactory.changeMode("localhost", -10);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-        try {
-            SiegfriedClientFactory.setConfiguration(null, null, 10);
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-        SiegfriedClientFactory
-            .setConfiguration(SiegfriedClientFactory.SiegfriedClientType.MOCK, null, -1);
+        SiegfriedClientFactory.changeMode(null);
 
         final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final SiegfriedClient client2 =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -85,55 +78,38 @@ public class SiegfriedClientFactoryTest {
     @Test
     public void changeDefaultClientTypeTest() {
         final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client instanceof SiegfriedClientRest);
-        final SiegfriedClientFactory.SiegfriedClientType type =
-            SiegfriedClientFactory.getDefaultSiegfriedClientType();
-        assertNotNull(type);
-        assertEquals(SiegfriedClientFactory.SiegfriedClientType.NORMAL, type);
+        assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
 
-        SiegfriedClientFactory
-            .setConfiguration(SiegfriedClientFactory.SiegfriedClientType.MOCK, "", 0);
+        SiegfriedClientFactory.changeMode(null);
         final SiegfriedClient client2 =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof SiegfriedClientMock);
-        final SiegfriedClientFactory.SiegfriedClientType type2 =
-            SiegfriedClientFactory.getDefaultSiegfriedClientType();
-        assertNotNull(type2);
-        assertEquals(SiegfriedClientFactory.SiegfriedClientType.MOCK, type2);
+        assertEquals(VitamClientType.MOCK, SiegfriedClientFactory.getInstance().getVitamClientType());
 
-        SiegfriedClientFactory.setConfiguration(SiegfriedClientFactory.SiegfriedClientType.NORMAL,
-            "server", 1025);
+        SiegfriedClientFactory.changeMode("server", 1025);
         final SiegfriedClient client3 =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof SiegfriedClientRest);
-        final SiegfriedClientFactory.SiegfriedClientType type3 =
-            SiegfriedClientFactory.getDefaultSiegfriedClientType();
-        assertNotNull(type3);
-        assertEquals(SiegfriedClientFactory.SiegfriedClientType.NORMAL, type3);
+        assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
         SiegfriedClientFactory.getInstance().changeConfiguration(null, 0);
-        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getSiegfriedClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client instanceof SiegfriedClientMock);
-        final SiegfriedClientFactory.SiegfriedClientType type =
-            SiegfriedClientFactory.getDefaultSiegfriedClientType();
-        assertNotNull(type);
-        assertEquals(SiegfriedClientFactory.SiegfriedClientType.MOCK, type);
+        assertEquals(VitamClientType.MOCK, SiegfriedClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client instanceof SiegfriedClientRest);
-        final SiegfriedClientFactory.SiegfriedClientType type =
-            SiegfriedClientFactory.getDefaultSiegfriedClientType();
-        assertNotNull(type);
-        assertEquals(SiegfriedClientFactory.SiegfriedClientType.NORMAL, type);
+        assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
     }
 
 }

@@ -33,6 +33,8 @@ import javax.ws.rs.core.MediaType;
  */
 public class CommonMediaType extends MediaType {
 
+    private static final String APPLICATION = "application";
+
     /**
      * A {@code String} constant representing {@value #ZIP} media type.
      */
@@ -41,7 +43,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@link MediaType} constant representing {@value #ZIP} media type.
      */
-    public static final MediaType ZIP_TYPE = new MediaType("application", "zip");
+    public static final MediaType ZIP_TYPE = new MediaType(APPLICATION, "zip");
     /**
      * A {@code String} constant representing {@value #TAR} media type.
      */
@@ -49,7 +51,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@link MediaType} constant representing {@value #TAR} media type.
      */
-    public static final MediaType TAR_TYPE = new MediaType("application", "x-tar");
+    public static final MediaType TAR_TYPE = new MediaType(APPLICATION, "x-tar");
 
     /**
      * A {@code String} constant representing {@value #GZIP} media type.
@@ -58,7 +60,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@link MediaType} constant representing {@value #GZIP} media type.
      */
-    public static final MediaType GZIP_TYPE = new MediaType("application", "x-gzip");
+    public static final MediaType GZIP_TYPE = new MediaType(APPLICATION, "x-gzip");
 
     /**
      * A {@code String} constant representing {@value #BZIP2} media type.
@@ -69,7 +71,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@link MediaType} constant representing {@value #BZIP2} media type.
      */
-    public static final MediaType BZIP2_TYPE = new MediaType("application", "x-gzip");
+    public static final MediaType BZIP2_TYPE = new MediaType(APPLICATION, "x-bzip2");
 
     /**
      * Creates an instance of {@code MediaType} by the supplied string.
@@ -92,13 +94,12 @@ public class CommonMediaType extends MediaType {
         switch (newMimeType) {
             case ZIP:
                 return ZIP_TYPE;
-
             case GZIP:
                 return GZIP_TYPE;
             case TAR:
                 return TAR_TYPE;
             case BZIP2:
-                return TAR_TYPE;
+                return BZIP2_TYPE;
 
             default:
                 throw new IllegalArgumentException("Unsupported media type:" + archivetype);
@@ -132,11 +133,8 @@ public class CommonMediaType extends MediaType {
 
         switch (mimeType) {
             case CommonMediaType.ZIP:
-                return true;
             case CommonMediaType.GZIP:
-                return true;
             case CommonMediaType.TAR:
-                return true;
             case CommonMediaType.BZIP2:
                 return true;
             default:

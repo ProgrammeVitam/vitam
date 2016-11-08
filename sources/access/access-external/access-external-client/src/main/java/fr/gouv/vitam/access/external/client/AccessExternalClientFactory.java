@@ -55,6 +55,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
 
     private AccessExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        disableUseAuthorizationFilter();
     }
 
     /**

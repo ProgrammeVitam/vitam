@@ -309,7 +309,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/folders/{folderName}")
     @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
     public Response uncompressObject(InputStream stream,
         @PathParam("containerName") String containerName,
@@ -576,7 +576,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(containerName, objectName);
             stream = workspace.getObject(containerName, objectName);
 
-            helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
+            helper = new AsyncInputStreamHelper(asyncResponse, stream);
             ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
 
