@@ -31,13 +31,15 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * A class extending the MetricRegistry to expose safe functions to register metrics.
  */
 public final class VitamMetricRegistry extends MetricRegistry {
     private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetricRegistry.class);
     /**
      * VitamMetricRegistry constructor
      */
@@ -58,6 +60,11 @@ public final class VitamMetricRegistry extends MetricRegistry {
         ParametersChecker.checkParameter(VITAM_METRIC_REGISTRY_PARAMS, name, metric);
 
         if (!super.getMetrics().containsKey(name)) {
+            super.register(name, metric);
+        } else {
+            // Erase previous metric, warn the user and register the new metric.
+            LOGGER.warn("Metric " + name + " already exists. Erasing and replacing with the new one.");
+            super.remove(name);
             super.register(name, metric);
         }
 

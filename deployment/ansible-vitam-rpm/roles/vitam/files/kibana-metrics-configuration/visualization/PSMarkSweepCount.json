@@ -1,5 +1,5 @@
 {
-  "title": "PSMarkSweepCount",
+  "title": "Nombre d'appels au GC PSMarkSweep",
   "visState": "{\"title\":\"PSScavengeTime\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-MarkSweep count\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",

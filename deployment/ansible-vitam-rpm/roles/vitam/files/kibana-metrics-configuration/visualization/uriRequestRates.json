@@ -1,5 +1,5 @@
 {
-  "title": "uriRequestRates",
+  "title": "Nombre de requêtes par seconde lissé sur la 1ère et la 5ème dernière minute",
   "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"m1_rate\",\"customLabel\":\"average M1 rate\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"m5_rate\",\"customLabel\":\"average M5 rate\"}}],\"listeners\":{}}",
   "uiStateJSON": "{\"vis\":{\"colors\":{\"average M1 rate\":\"#447EBC\",\"average M5 rate\":\"#E0752D\"}}}",
   "description": "",

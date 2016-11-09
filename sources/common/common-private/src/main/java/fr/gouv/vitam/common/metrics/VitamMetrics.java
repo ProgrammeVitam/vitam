@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.metrics;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -142,7 +140,6 @@ public class VitamMetrics {
         additionalFields.put("hostname", ServerIdentity.getInstance().getName());
         additionalFields.put("role", ServerIdentity.getInstance().getRole());
         try {
-            checkElasticsearchConnection(configuration.getMetricReporterHost(), configuration.getMetricReporterPort());
             reporter = ElasticsearchReporter.forRegistry(registry)
                 .hosts(configuration.getMetricReporterHost() + ":" + configuration.getMetricReporterPort())
                 .index(type.getElasticsearchIndex())
@@ -152,18 +149,6 @@ public class VitamMetrics {
         } catch (final IOException e) {
             LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
         }
-    }
-
-    private void checkElasticsearchConnection(final String host, final int port) throws IOException {
-        final URL templateUrl = new URL("http://" + host + ":" + port + "/");
-        final HttpURLConnection connection = (HttpURLConnection) templateUrl.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(200);
-        connection.connect();
-        // Only by calling getResponseCode causes the connection to throw an exception if the host does not exists.
-        connection.getResponseCode();
-        connection.disconnect();
     }
 
     private void configureJVMMetrics() {
