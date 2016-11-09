@@ -93,7 +93,7 @@ Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et
 Les métadonnées (excepté l'ID) peuvent être modifiées en cliquant sur le bouton "Modifier", chaque ligne pouvant ainsi être éditée.
 Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegarde celles-ci et met à jour les métadonnées.
 
-.. image:: images_detail_modification.jpg
+.. image:: images/detail_modification.jpg
 
 .. image:: images/detail_v2.jpg
 
