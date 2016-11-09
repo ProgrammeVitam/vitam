@@ -9,7 +9,10 @@
 #  metricReporterInterval: int > 0					défini l'interval entre chaque reporting
 #  metricReporterIntervalUnit: TimeUnit (ex: SECONDS, MINUTES...)	défini le type d'interval
 #
-#  Si le repoter est de type ELASTICSEARCH, la clé suivante est obligatoire :
+#  Si le reporter est de type LOGBACK, la clé suivante est configurable:
+#  metricLogLevel: DEBUG | INFO | WARN | ERROR ... 			défini le niveau de log Logback
+#
+#  Si le reporter est de type ELASTICSEARCH, la clé suivante est obligatoire :
 #
 #  (un tableau avec les différentes adresses des bases ElasticSearch)
 #  metricReporterHosts:
@@ -22,8 +25,11 @@ metricsJersey: true
 metricsJVM: true
 
 metricReporter: ELASTICSEARCH
-metricReporterHost: {{ elasticsearch_log_host }}
-metricReporterPort: {{ elasticsearch_log_http_port }}
+metricReporterHosts:
+{% for host in groups['hosts-elasticsearch-log'] %}
+   - {{ host }}
+{% endfor %}
+metricLogLevel: DEBUG
 metricReporterInterval: 1
 metricReporterIntervalUnit: MINUTES
 {% endif %}

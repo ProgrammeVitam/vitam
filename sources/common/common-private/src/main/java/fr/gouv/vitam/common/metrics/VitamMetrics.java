@@ -57,7 +57,7 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfig
  */
 public class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
-    private static final String ELASTICSEARCH_DATE_FORMAT = "YY.MM.dd";
+    private static final String ELASTICSEARCH_DATE_FORMAT = "YYYY.MM.dd";
 
     private final VitamMetricsType type;
     private final int interval;
@@ -131,23 +131,30 @@ public class VitamMetrics {
     }
 
     private void configureLogbackReporter(VitamMetricsConfiguration configuration) {
-        reporter = LogbackReporter.forRegistry(registry).build();
+        reporter = LogbackReporter.forRegistry(registry)
+            .logLevel(configuration.getMetricLogLevel())
+            .build();
     }
 
     private void configureElasticsearchReporter(VitamMetricsConfiguration configuration) {
         final Map<String, Object> additionalFields = new HashMap<>();
 
-        additionalFields.put("hostname", ServerIdentity.getInstance().getName());
-        additionalFields.put("role", ServerIdentity.getInstance().getRole());
-        try {
-            reporter = ElasticsearchReporter.forRegistry(registry)
-                .hosts(configuration.getMetricReporterHost() + ":" + configuration.getMetricReporterPort())
-                .index(type.getElasticsearchIndex())
-                .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
-                .additionalFields(additionalFields)
-                .build();
-        } catch (final IOException e) {
-            LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
+        if (configuration.getMetricReporterHosts().length == 0) {
+            LOGGER.warn("Empty list of ElasticSearch hosts");
+        }
+        else {
+            additionalFields.put("hostname", ServerIdentity.getInstance().getName());
+            additionalFields.put("role", ServerIdentity.getInstance().getRole());
+            try {
+                reporter = ElasticsearchReporter.forRegistry(registry)
+                    .hosts(configuration.getMetricReporterHosts())
+                    .index(type.getElasticsearchIndex())
+                    .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
+                    .additionalFields(additionalFields)
+                    .build();
+            } catch (final IOException e) {
+                LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
+            }
         }
     }
 
