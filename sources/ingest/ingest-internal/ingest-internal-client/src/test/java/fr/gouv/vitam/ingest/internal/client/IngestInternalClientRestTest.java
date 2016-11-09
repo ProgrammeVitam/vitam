@@ -199,7 +199,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
@@ -238,7 +238,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
@@ -277,7 +277,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertNotNull(response.readEntity(String.class));
     }
 
-    @Test(expected = VitamException.class)
+    @Test
     public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
 
         final List<LogbookOperationParameters> operationList = new ArrayList<>();

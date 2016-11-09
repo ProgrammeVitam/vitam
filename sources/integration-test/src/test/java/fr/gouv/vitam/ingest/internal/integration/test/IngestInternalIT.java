@@ -28,6 +28,7 @@ package fr.gouv.vitam.ingest.internal.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.InputStream;
@@ -318,7 +319,7 @@ public class IngestInternalIT {
     }
 
 
-    @Test(expected = VitamException.class)
+    @Test
     public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
@@ -340,7 +341,10 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.upload(operationGuid, params, zipInputStreamSipObject, CommonMediaType.ZIP);
+        Response response = client.upload(operationGuid, params, zipInputStreamSipObject, CommonMediaType.ZIP);
+        assertNotNull(response);
+        assertEquals(500, response.getStatus());
+        assertNotNull(response.getEntity());
     }
 
 }
