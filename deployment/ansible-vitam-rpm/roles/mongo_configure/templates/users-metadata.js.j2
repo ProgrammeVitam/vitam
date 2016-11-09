@@ -1,0 +1,12 @@
+
+// Create metadata user
+
+db.createUser(
+    {
+        user: "{{mongoMetadataUser}}",
+        pwd: "{{mongoMetadataPassword}}",
+        roles: [
+            { role: "readWrite", db: "metadata" }
+        ]
+    }
+)

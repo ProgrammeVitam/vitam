@@ -4,6 +4,6 @@ db.createUser(
     {
         user: "{{mongoAdminUser}}",
         pwd: "{{mongoAdminPassword}}",
-        roles: [ { role: "root", db: "admin" } ]
+        roles: [ "root" ]
     }
 )
