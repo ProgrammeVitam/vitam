@@ -216,11 +216,11 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, deux cas sont 
 
 - En cas d'erreur : Le système détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
 
-.. image:: images/import_rf_gestion_KO.jpg
+.. image:: images/Import_rf_gestion_KO.jpg
 
 - En cas de succès : Le système indique à l'utilisateur que son fichier est admissibile et lui propose l'import définitif du fichier. L'utilisateur accepte l'import définitif, le référentiel des règles de gestion est créé à partir des informations contenues dans le fichier CSV soumis.
 
-.. image:: images/import_rf_gestion_OK.jpg
+.. image:: images/Import_rf_gestion_OK.jpg
 
 Recherche d'une règle de gestion
 --------------------------------
