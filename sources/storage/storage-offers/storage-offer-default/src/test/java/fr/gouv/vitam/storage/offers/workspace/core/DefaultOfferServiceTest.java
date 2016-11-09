@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -137,6 +138,46 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createObjectTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+
+        // container
+        ObjectInit objectInit = getObjectInit(false);
+        objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
+        // check
+        assertEquals(OBJECT_ID, objectInit.getId());
+        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            WorkspaceConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        assertTrue(container.exists());
+        assertTrue(container.isDirectory());
+
+        String computedDigest = null;
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
+                in, true);
+        }
+        // check
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, DigestType.SHA256);
+        assertEquals(computedDigest, digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
+                DigestType.SHA256),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
+    }
+
+    @Test
+    @Ignore
+    public void createObjectChunkTest() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 

@@ -27,20 +27,14 @@
 
 package fr.gouv.vitam.storage.offers.workspace.core;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.io.ByteStreams;
 
-import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -143,53 +137,26 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (!defaultStorage.isExistingFolder(containerName, objectTypeFor.get(objectId))) {
             throw new ContentAddressableStorageException("Container's folder does not exist");
         }
-        final String path = TMP_DIRECTORY + objectId;
-        Digest messageDigest;
+
+        // TODO No chunk mode (should be added in the future)
+        // TODO the objectPart should contain the full object.
         try {
-            messageDigest = new Digest(getDigestAlgoFor(objectId));
-        } catch (final IllegalArgumentException exc) {
-            LOGGER.error("Wrong digest algorithm " + getDigestAlgoFor(objectId).getName());
-            throw new ContentAddressableStorageException(exc);
-        }
-        try (final InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
-            FileOutputStream fOut = new FileOutputStream(path, true)) {
-            // FIXME P0 très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
-            fOut.write(ByteStreams.toByteArray(digestObjectPart));
-            fOut.flush();
-        } catch (final IOException exc) {
-            LOGGER.error("Error on temporary file to transfert", exc);
+            defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, objectPart);
+            // FIXME P0: to optimize (big file case) !
+            final String digest = defaultStorage.computeObjectDigest(containerName,
+                objectTypeFor.get(objectId) + "/" + objectId, getDigestAlgoFor(objectId));
+            // remove digest algo
+            digestTypeFor.remove(objectId);
+            return digest;
+        } catch (final ContentAddressableStorageException exc) {
+            LOGGER.error("Error with storage service", exc);
             throw exc;
-        }
-        // ending remove it
-        if (ending) {
-            // FIXME P0 double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre
-            // de putObject
-            // ou mieux : faire une écriture par bloc (buffer) et mettre à jour le Digest au fur et à mesure ainsi
-            try (InputStream in = new FileInputStream(path)) {
-                defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, in);
-                // do we validate the transfer before remove temp file ?
-                Files.deleteIfExists(Paths.get(path));
-                // FIXME P0: to optimize (big file case) !
-                final String digest = defaultStorage.computeObjectDigest(containerName,
-                    objectTypeFor.get(objectId) + "/" + objectId, messageDigest.type());
-                // remove digest algo
-                digestTypeFor.remove(objectId);
-                return digest;
-            } catch (final IOException exc) {
-                LOGGER.error("Error on temporary file to transfert", exc);
-                throw exc;
-            } catch (final ContentAddressableStorageException exc) {
-                LOGGER.error("Error with storage service", exc);
-                throw exc;
-            }
-        } else {
-            // FIXME P0 : to optimize (big file case) !
-            return BaseXx.getBase16(messageDigest.digest());
         }
     }
 
     @Override
-    public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException {
+    public boolean isObjectExist(String containerName, String objectId)
+        throws ContentAddressableStorageServerException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
@@ -214,10 +181,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return result;
     }
 
-    // FIXME P0 : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce
+    // FIXME P0 : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu,
+    // ce
     // qui rend alors
     // le calcul faux sémantiquement ici (aurait dans ce cas dû générer une exception)
     private DigestType getDigestAlgoFor(String id) {
-        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : DigestType.SHA256;
+        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : DigestType.SHA512;
     }
 }

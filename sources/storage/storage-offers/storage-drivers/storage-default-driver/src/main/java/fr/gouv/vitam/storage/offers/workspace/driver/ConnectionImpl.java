@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -35,8 +33,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.io.IOUtils;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -128,7 +125,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getFolder());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getFolder()));
         Response response = null;
-        InputStream stream;
         try {
             response =
                 performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid(),
@@ -137,19 +133,9 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    // FIXME P0 : this is ugly but necessarily in order to close the response and avoid concurrent
-                    // issues
-                    // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
-                    // remove the IOUtils.toByteArray after correction of concurrent problem
                     final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
-                    try {
-                        stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
-                    } catch (final IOException e) {
-                        LOGGER.error(e);
-                        throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND,
-                            e.getMessage());
-                    }
-                    final GetObjectResult result = new GetObjectResult(request.getTenantId(), stream);
+                    final GetObjectResult result =
+                        new GetObjectResult(request.getTenantId(), streamClosedAutomatically);
                     return result;
                 case NOT_FOUND:
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
@@ -167,7 +153,9 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e1.getMessage());
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 

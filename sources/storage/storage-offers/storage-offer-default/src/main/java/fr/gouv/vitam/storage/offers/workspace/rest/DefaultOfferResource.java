@@ -39,10 +39,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,8 +54,10 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
@@ -115,32 +120,24 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      * @param objectId object id
      * @param headers http header
-     * @return object data or digest
+     * @param asyncResponse async response
      * @throws IOException when there is an error of get object
      */
     @GET
     @Path("/objects/{id:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
-    public Response getObject(@PathParam("id") String objectId, @Context HttpHeaders headers) throws IOException {
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
-        }
-        InputStream stream = null;
-        try {
-            stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
-            return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
-                .build();
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND).entity(objectId).build();
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build();
-        }
+    public void getObject(@PathParam("id") String objectId, @Context HttpHeaders headers,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                getObjectAsync(objectId, headers, asyncResponse);
+            }
+        });
     }
+
 
     /**
      * Initialise a new object.
@@ -257,12 +254,42 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         try {
             if (DefaultOfferServiceImpl.getInstance().isObjectExist(xTenantId, idObject)) {
                 return Response.status(Response.Status.NO_CONTENT).build();
-            } else{
-                return Response.status(Response.Status.NOT_FOUND).build();                
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private void getObjectAsync(String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
+
+        InputStream stream = null;
+        AsyncInputStreamHelper helper = null;
+        try {
+
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.PRECONDITION_FAILED).build());
+            }
+            stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
+
+            helper = new AsyncInputStreamHelper(asyncResponse, stream);
+            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            helper.writeResponse(responseBuilder);
+
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.NOT_FOUND).entity(objectId).build());
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build());
+        }
+
     }
 }
