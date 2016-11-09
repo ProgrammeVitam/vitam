@@ -206,3 +206,6 @@ days_to_delete_topbeat=
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
 dns_servers=
+
+#	LOG level defined in logback files ; can be a value in "ERROR","WARN","INFO","DEBUG","TRACE". Recommended value is "WARN"
+log_level=
