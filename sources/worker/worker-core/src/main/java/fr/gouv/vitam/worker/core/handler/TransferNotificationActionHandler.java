@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -218,7 +219,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * Serialize a Jaxb POJO object in the current XML stream
      *
      * @param jaxbPOJO
-     * @throws VitamSedaException
+     * @throws ProcessingException
      */
     private void writeXMLFragment(Object jaxbPOJO, XMLStreamWriter xmlsw) throws ProcessingException {
         try {
@@ -694,7 +695,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * Retrieve the logbook lifecycle object groups of the current operation <br>
      * 
-     * @param containerName operation identifier
+     * @param idProc operation identifier
      * @return mongo cursor on the lifecycle object groups
      * @throws ProcessingException thrown when an error occured wile retrieving the logbook lifecycle object groups in
      *         mongo
@@ -751,8 +752,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
      */
     private void writeEvent(XMLStreamWriter xmlsw, Document event, String eventType, String eventIdentifierManifest)
         throws XMLStreamException {
-        // TODO P0 : NOT_IMPLEMENTED_YET to be replaced everywhere its used
-        final String NOT_IMPLEMENTED_YET = "TO_BE_FILLED_AFTER_WF_TF";
         if (event.get(LogbookMongoDbName.outcome.getDbname()) != null &&
             (StatusCode.FATAL.toString().equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) ||
                 StatusCode.KO.toString()
@@ -764,13 +763,23 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             xmlsw.writeStartElement(SedaConstants.TAG_EVENT);
 
+            // == eventtypecode
             if (event.get(LogbookMongoDbName.eventType.getDbname()) != null) {
-                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE,
-                    event.get(LogbookMongoDbName.eventType.getDbname()).toString());
+                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE_CODE, event.get(LogbookMongoDbName.eventType.getDbname()).toString());
+                if (SedaConstants.TAG_OPERATION.equals(eventType)) {
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages.getLabelOp(event.get
+                        (LogbookMongoDbName.eventType.getDbname()).toString()));
+                } else if (SedaConstants.TAG_ARCHIVE_UNIT.equals(eventType) || SedaConstants.TAG_DATA_OBJECT_GROUP
+                    .equals(eventType)) {
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages.getLabelLfc(event.get
+                        (LogbookMongoDbName.eventType.getDbname()).toString()));
+                }
             }
-            if (NOT_IMPLEMENTED_YET != null) { // FIXME P0
-                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE_CODE, NOT_IMPLEMENTED_YET);
-            }
+            // == eventtype
+
+                // fichier properties
+
+
             if (event.get(LogbookMongoDbName.eventDateTime.getDbname()) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_DATE_TIME,
                     event.get(LogbookMongoDbName.eventDateTime.getDbname()).toString());
