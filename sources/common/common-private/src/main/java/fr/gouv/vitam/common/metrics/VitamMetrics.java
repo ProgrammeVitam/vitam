@@ -166,6 +166,7 @@ public class VitamMetrics {
         registry.registerAll(classLoading);
         registry.registerAll(garbageCollector);
         registry.registerAll(memoryGauges);
+        registry.register("customGarbadgeCollectorRatioGauge", new VitamGarbageCollectorGauge());
         // ThreadStatesGaugeSet not working because duplicate metrics names.
         // TODO P2 open a github issue demanding a fix
     }
