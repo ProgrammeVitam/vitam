@@ -1,3 +1,5 @@
+
+
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -28,20 +30,17 @@ package fr.gouv.vitam.common.server2.application;
 
 import java.io.IOException;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Try to consume all remaining items before responding to prevent broken pipe
  */
-public class ConsumeAllAfterResponseFilter implements Filter {
+public class ConsumeAllAfterResponseFilter implements ContainerResponseFilter {
 
     /**
      * Empty constructor
@@ -51,23 +50,14 @@ public class ConsumeAllAfterResponseFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        // Nothing
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
         try {
-            chain.doFilter(request, response);
-        } finally {
-            StreamUtils.closeSilently(((HttpServletRequest) request).getInputStream());
+            StreamUtils.closeSilently(requestContext.getEntityStream());
+        } catch (IllegalStateException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
-    @Override
-    public void destroy() {
-        // Nothing
-    }
-
 }
+

@@ -62,7 +62,7 @@ public class FormatIdentifierResponse {
      */
     public FormatIdentifierResponse(String formatLiteral, String mimeType, String puid, String matchedNamespace) {
         this.formatLiteral = formatLiteral;
-        mimetype = mimeType;
+        this.mimetype = mimeType;
         this.puid = puid;
         this.matchedNamespace = matchedNamespace;
     }
