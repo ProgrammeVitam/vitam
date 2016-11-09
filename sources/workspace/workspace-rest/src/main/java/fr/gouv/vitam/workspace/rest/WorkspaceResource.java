@@ -42,9 +42,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,8 +59,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -457,33 +462,22 @@ public class WorkspaceResource extends ApplicationStatusResource {
      *
      * @param containerName name of container
      * @param objectName name of object
-     * @return Response
+     * @param asyncResponse response async
      * @throws IOException when there is an error of get object
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObject(@PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName) throws IOException {
-        InputStream stream = null;
-        try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
-            stream = workspace.getObject(containerName, objectName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
-        }
+    public void getObject(@PathParam("containerName") String containerName,
+        @PathParam("objectName") String objectName,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
-        return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
-            .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"").build();
+            @Override
+            public void run() {
+                getObjectAsync(containerName, objectName, asyncResponse);
+            }
+        });
     }
 
     /**
@@ -570,6 +564,36 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 return Response.status(Status.NOT_FOUND).build();
             }
         }
+    }
+    
+    private void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse) {
+
+        InputStream stream = null;
+        AsyncInputStreamHelper helper = null;
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            SanityChecker.checkParameter(containerName, objectName);
+            stream = workspace.getObject(containerName, objectName);
+
+            helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
+            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            helper.writeResponse(responseBuilder);
+
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.NOT_FOUND).entity(containerName).build());
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build());
+        }
+
     }
 
 }
