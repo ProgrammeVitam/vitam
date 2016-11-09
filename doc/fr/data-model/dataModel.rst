@@ -1601,7 +1601,7 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
     - "MessageDigest": empreinte du fichier. La valeur est calculé par Vitam.
     - "Algorithm": ce champ contient le nom de l'algorithme utilisé pour réaliser l'empreinte du document.
 
-- "_up" (#up): [] : tableau d'identifiant des units parentes
+- "_up" (#unitup): [] : tableau d'identifiant des units parentes
 - "_tenant" (#tenant): identifiant du tenant
 - "_nbc" (#nbobjects): nombre d'objets dans ce groupe d'objet
 - "_ops" (#operations): [] tableau des identifiants d'opérations pour lesquelles ce GOT a participé
