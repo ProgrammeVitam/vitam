@@ -28,13 +28,16 @@ traits:
             schema: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
           application/zip:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/x-tar:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
             description: Binary object
       206:
-        description: Returns the list of Units results using Cursor
+        description: |
+          **UNSUPPORTED** Returns the list of Units results using Cursor
         body:
           application/json:
             description: Metadata
@@ -61,13 +64,16 @@ traits:
             schema: AccessTypes.AccessResponse
             example: !include examples/accessObjectResponse.json
           application/zip:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/x-tar:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
             description: Binary object
       206:
-        description: Returns the list of Objects matching the DSL query, using Cursor
+        description: |
+          **UNSUPPORTED** Returns the list of Objects matching the DSL query, using Cursor
         body:
           application/json:
             description: Metadata
@@ -82,7 +88,7 @@ traits:
       X-Qualifier?:
         type: AccessTypes.Qualifiers
         description: |
-         The requested qualifier only when used with Accept: application/octet-stream or application/zip or application/x-tar.
+         The requested qualifier only when used with Accept: application/octet-stream or application/zip or application/x-tar or application/.
          If the qualifier is missing, it means the Dissemination.
          Extra qualifier "All" means all Qualifiers in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
          **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
@@ -134,9 +140,11 @@ traits:
               **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
         body:
           application/zip:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/x-tar:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
             description: Binary object
 
@@ -159,9 +167,11 @@ traits:
             schema: AccessTypes.AccessResponse
             example: !include examples/access1ObjectResponse.json
           application/zip:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/x-tar:
-            description: Metadata and Binary object(s)
+            description: |
+              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
             description: Binary object
 

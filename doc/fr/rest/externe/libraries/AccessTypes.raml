@@ -24,7 +24,8 @@ types:
           description: Contains projection to apply (for GET only)
           type: StandardTypes.Projection
         $facetQuery?:
-          description: Contains facet to apply (for GET only)
+          description: |
+            **UNSUPPORTED** Contains facet to apply (for GET only)
           type: StandardTypes.FacetQuery
         $action?:
           description: Contains actions to apply as update (for PUT only)
@@ -59,7 +60,8 @@ types:
             description: Number of currently returned answears
             type: integer
           time_out?:
-            description: True means the request was too long and so only partial result could be retrieved
+            description: |
+              **UNSUPPORTED** True means the request was too long and so only partial result could be retrieved
             type: boolean
       $context:
         required: true
@@ -71,7 +73,8 @@ types:
         description: Contains list of items
         type: object[]
       $facet?:
-          description: Contains facet if requested
+          description: |
+            **UNSUPPORTED** Contains facet if requested
           type: StandardTypes.FacetResponse
 
     example: {
@@ -102,4 +105,4 @@ types:
       - Dissemination
       - Thumbnail
       - TextContent
-      - All
+      - All (**UNSUPPORTED**)
