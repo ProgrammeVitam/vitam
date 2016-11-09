@@ -78,7 +78,7 @@ public class WorkerResourceTest {
     private static WorkerApplication application;
 
     private static Worker worker;
-    
+
     private static final String BODY_TEST_NOT_JSON = "body_test";
 
     private static final String WORKER_CONF = "worker-test.conf";
@@ -176,10 +176,10 @@ public class WorkerResourceTest {
     public final void testSubmitStepOK()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
-        
-        ItemStatus itemStatus= new ItemStatus("ID");
+
+        ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
-        StatusCode status= StatusCode.OK;
+        StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
         final CompositeItemStatus responses = new CompositeItemStatus("ID");
         Mockito.reset(worker);
@@ -223,6 +223,7 @@ public class WorkerResourceTest {
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
+
 
 }
 

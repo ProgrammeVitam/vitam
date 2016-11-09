@@ -127,5 +127,4 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
         return headers;
     }
-
 }

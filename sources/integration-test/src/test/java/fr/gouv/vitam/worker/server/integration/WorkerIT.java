@@ -129,7 +129,7 @@ public class WorkerIT {
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
 
-    private static MetaDataApplication medtadataApplication;
+    private static MetaDataApplication metadataApplication;
     private static WorkerApplication wkrapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -171,8 +171,8 @@ public class WorkerIT {
 
         // launch metadata
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
-        medtadataApplication.start();
+        metadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        metadataApplication.start();
         SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
@@ -223,7 +223,7 @@ public class WorkerIT {
             wkrapplication.stop();
             lgbapplication.stop();
             processManagementApplication.stop();
-            medtadataApplication.stop();
+            metadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
         }
@@ -425,7 +425,7 @@ public class WorkerIT {
           assertNotNull(retStepControl);
           assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
-          workspaceClient.deleteContainer(CONTAINER_NAME);
+          workspaceClient.deleteContainer(CONTAINER_NAME);          
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
