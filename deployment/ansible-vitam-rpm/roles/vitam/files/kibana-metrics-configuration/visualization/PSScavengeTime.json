@@ -1,5 +1,5 @@
 {
-  "title": "PSScavengeTime",
+  "title": "Temps passé dans le GC PSScavenge",
   "visState": "{\"title\":\"PSMarksweepTime\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Scavenge time (ms)\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",

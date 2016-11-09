@@ -1,9 +1,26 @@
+#  Fichier de configuration des métriques
+#
+#  Les différents clés disponibles pour ce fichier de configuration sont les suivantes :
+#
+#  metricsJersey: true / false	Active ou non les métriques Jersey
+#  metricsJVM: true / false	Active ou non les métriques JVM
+#
+#  metricReporter: ELASTICSEARCH | LOGBACK | NONE			défini le type de reporter
+#  metricReporterInterval: int > 0					défini l'interval entre chaque reporting
+#  metricReporterIntervalUnit: TimeUnit (ex: SECONDS, MINUTES...)	défini le type d'interval
+#
+#  Si le repoter est de type ELASTICSEARCH, la clé suivante est obligatoire :
+#
+#  (un tableau avec les différentes adresses des bases ElasticSearch)
+#  metricReporterHosts:
+#  	- 127.0.0.1:9201
+#  	- 0.0.0.0:80
+#  	- 8.8.8.8:22
+
 {% if (groups['hosts-log-server'] | length) > 0  %}
-# Metrics on/off
 metricsJersey: true
 metricsJVM: true
 
-# Metrics reporting, possible reporters: "console" or "elasticsearch"
 metricReporter: ELASTICSEARCH
 metricReporterHost: {{ elasticsearch_log_host }}
 metricReporterPort: {{ elasticsearch_log_http_port }}
