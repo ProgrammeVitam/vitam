@@ -1,0 +1,59 @@
+{
+    "_id": "aeaaaaaaaaaam7mxaaijcakyj2tcx7qaaaaq",
+    "evId": "aedqaaaaacaam7mxaaijcakyj2tcyaaaaaaq",
+    "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
+    "evDateTime": "2016-11-10T14:31:02.912",
+    "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
+    "evTypeProc": "INGEST",
+    "outcome": "STARTED",
+    "outDetail": "CHECK_MANIFEST.LFC.STARTED",
+    "outMessg": "!CHECK_MANIFEST.LFC.STARTED!",
+    "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
+    "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcx7qaaaaq",
+    "evDetData": null,
+    "events": [
+        {
+            "evId": "aedqaaaaacaam7mxaaijcakyj2tcyaaaaaaq",
+            "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
+            "evDateTime": "2016-11-10T14:31:03.658",
+            "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units.LFC.OK",
+            "outMessg": "!CHECK_MANIFEST.LFC.OK!",
+            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
+            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcx7qaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        },
+        {
+            "evId": "aedqaaaaacaam7mxaaijcakyj2thglyaaaaq",
+            "evType": "STP_UNIT_STORING",
+            "evDateTime": "2016-11-10T14:31:21.135",
+            "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "STARTED",
+            "outDetail": "STP_UNIT_STORING.LFC.STARTED",
+            "outMessg": "Début de lindex unit.",
+            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
+            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcx7qaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        },
+        {
+            "evId": "aedqaaaaacaam7mxaaijcakyj2thglyaaaaq",
+            "evType": "UNIT_METADATA_INDEXATION",
+            "evDateTime": "2016-11-10T14:31:21.214",
+            "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "UNIT_METADATA_INDEXATION.LFC.OK",
+            "outMessg": "Index unit réalisé avec succès.",
+            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
+            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcx7qaaaaq",
+            "evDetData": null,
+            "_tenant": 0
+        }
+    ],
+    "_tenant": 0
+}
