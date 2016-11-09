@@ -81,11 +81,15 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
-    - "vitam-logbook-messages_fr.properties"
+
+- name: ensure external messages file is absent
+  file:
+    path: "{{ vitam_folder_conf }}/vitam-logbook-messages_fr.properties"
+    state: absent
 
 - name: Ensure that the sysconfig sub-directory exists
   file:
-    path: "{{vitam_folder_root}}/conf/{{ vitam_component }}/sysconfig"
+    path: "{{ vitam_folder_conf }}/sysconfig"
     state: directory
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
