@@ -52,7 +52,6 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -77,8 +76,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -107,7 +106,9 @@ public class IndexUnitActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      *
      */
-    public IndexUnitActionHandler() {}
+    public IndexUnitActionHandler() {
+        // Empty
+    }
 
     /**
      * @return HANDLER_ID
@@ -124,7 +125,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            SedaUtils.updateLifeCycleByStep(logbookClient, logbookLifecycleUnitParameters, params);
+            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -134,8 +135,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         try {
             logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient, logbookLifecycleUnitParameters,
-                itemStatus.getGlobalStatus());
+            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient, logbookLifecycleUnitParameters,
+                itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -200,7 +201,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
+        final File tmpFile = handlerIO.getNewLocalFile(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
@@ -208,7 +209,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        final List<Object> archiveUnitDetails = new ArrayList<Object>();
+        final List<Object> archiveUnitDetails = new ArrayList<>();
         XMLEventReader reader = null;
 
         try {
@@ -224,7 +225,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
                     final String tag = startElement.getName().getLocalPart();
-                    if (it.hasNext() && tag != TAG_CONTENT && contentWritable) {
+                    if (it.hasNext() && !TAG_CONTENT.equals(tag) && contentWritable) {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
                         if (ARCHIVE_UNIT.equals(tag)) {
@@ -235,32 +236,29 @@ public class IndexUnitActionHandler extends ActionHandler {
                         eventWritable = false;
                     }
 
-                    if (TAG_CONTENT.equals(tag)) {
-                        eventWritable = false;
-                    }
-
-                    if (TAG_MANAGEMENT.equals(tag)) {
-                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
-                        eventWritable = false;
-                    }
-
-                    if (SedaConstants.PREFIX_OG.equals(tag)) {
-                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
-                        writer.add(eventFactory.createCharacters(reader.getElementText()));
-                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
-                        eventWritable = false;
-                    }
-
-                    if (IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        final XMLEvent upsEvent = reader.nextEvent();
-                        if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
-                            parentsList = upsEvent.asCharacters().getData();
-                        }
-                    }
-
-                    if (IngestWorkflowConstants.ROOT_TAG.equals(tag) || IngestWorkflowConstants.WORK_TAG.equals(tag) ||
-                        IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        eventWritable = false;
+                    switch (tag) {
+                        case TAG_MANAGEMENT:
+                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
+                            eventWritable = false;
+                            break;
+                        case SedaConstants.PREFIX_OG:
+                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
+                            writer.add(eventFactory.createCharacters(reader.getElementText()));
+                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
+                            eventWritable = false;
+                            break;
+                        case IngestWorkflowConstants.UP_FIELD:
+                            final XMLEvent upsEvent = reader.nextEvent();
+                            if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
+                                parentsList = upsEvent.asCharacters().getData();
+                            }
+                            eventWritable = false;
+                            break;
+                        case TAG_CONTENT:
+                        case IngestWorkflowConstants.ROOT_TAG:
+                        case IngestWorkflowConstants.WORK_TAG:
+                            eventWritable = false;
+                            break;
                     }
                 }
 
@@ -268,20 +266,21 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final EndElement endElement = event.asEndElement();
                     final String tag = endElement.getName().getLocalPart();
 
-
-                    if (ARCHIVE_UNIT.equals(tag) || IngestWorkflowConstants.ROOT_TAG.equals(tag) ||
-                        IngestWorkflowConstants.WORK_TAG.equals(tag) || IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        eventWritable = false;
-                    }
-
-                    if (TAG_CONTENT.equals(tag)) {
-                        eventWritable = false;
-                        contentWritable = false;
-                    }
-
-                    if (TAG_MANAGEMENT.equals(tag)) {
-                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
-                        eventWritable = false;
+                    switch (tag) {
+                        case ARCHIVE_UNIT:
+                        case IngestWorkflowConstants.ROOT_TAG:
+                        case IngestWorkflowConstants.WORK_TAG:
+                        case IngestWorkflowConstants.UP_FIELD:
+                            eventWritable = false;
+                            break;
+                        case TAG_CONTENT:
+                            eventWritable = false;
+                            contentWritable = false;
+                            break;
+                        case TAG_MANAGEMENT:
+                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
+                            eventWritable = false;
+                            break;
                     }
                 }
 
@@ -297,7 +296,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             // Add operation to OPS
-            ((ObjectNode) data.get("ArchiveUnit")).putArray(SedaConstants.PREFIX_OPS).add(containerId);
+            ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(SedaConstants.PREFIX_OPS).add(containerId);
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }

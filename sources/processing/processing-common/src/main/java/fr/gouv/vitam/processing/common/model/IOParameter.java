@@ -27,8 +27,6 @@
 package fr.gouv.vitam.processing.common.model;
 
 
-import java.net.URISyntaxException;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -44,7 +42,7 @@ public class IOParameter {
     @JsonProperty("uri")
     private ProcessingUri uri;
     @JsonProperty("optional")
-    private String optional;
+    private boolean optional;
     private String value;
 
     /**
@@ -82,16 +80,15 @@ public class IOParameter {
      * 
      * @return optional
      */
-    public String getOptional() {
+    public boolean getOptional() {
         return optional;
     }
 
     /**
      * @param uri the value to set
      * @return this
-     * @throws URISyntaxException when uri is malformed
      */
-    public IOParameter setUri(ProcessingUri uri) throws URISyntaxException {
+    public IOParameter setUri(ProcessingUri uri) {
         ParametersChecker.checkParameter("Uri is a mandatory parameter", uri);
         this.uri = uri;
         return this;
@@ -109,18 +106,14 @@ public class IOParameter {
     }
 
     /**
-     * Set the optional. Sets "false" if value is different of "true".
+     * Set the optional.
      * 
      * @param optional the optional to set
      *
      * @return this
      */
-    public IOParameter setOptional(String optional) {
-        if (!"true".equals(optional)) {
-            this.optional = "false";
-        } else {
-            this.optional = optional;
-        }
+    public IOParameter setOptional(boolean optional) {
+        this.optional = optional;
         return this;
     }
 }

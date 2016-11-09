@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -62,8 +61,8 @@ import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -83,8 +82,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
     private final StorageClientFactory storageClientFactory;
-    // FIXME P0 ne devrait pas être static
-    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
+    private final LogbookLifeCyclesClient logbookLifecycleClient = LogbookLifeCyclesClientFactory.getInstance()
         .getClient();
 
     private static final String DEFAULT_TENANT = "0";
@@ -133,8 +131,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(actionDefinition);
             // Update lifecycle of object group : STARTED
-            updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
-            updateLifeCycle();
+            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifecycleClient,
+                logbookLifecycleObjectGroupParameters, params);
 
             // get list of object group's objects
             final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
@@ -156,16 +154,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
         // Update lifecycle of object group : OK/KO
         try {
-            updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                itemStatus.getGlobalStatus().name());
-            // TODO P0 WORKFLOW message ok :LOGBOOK_LF_STORAGE_OK_MSG
-            // TODO P0 WORKFLOW message ko :LOGBOOK_LF_STORAGE_KO_MSG
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                itemStatus.getGlobalStatus().name());
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            updateLifeCycle();
+            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifecycleClient,
+                logbookLifecycleObjectGroupParameters, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -188,10 +178,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         LOGGER.debug("Storing object with guid: " + objectGUID);
         ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
         try {
-            // update lifecycle of objectGroup with detail of object : STARTED
-            updateLifeCycleParametersLogbookForBdo(params, objectGUID);
-            updateLifeCycle();
-
             // store binary data object
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
@@ -203,10 +189,11 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             }
 
             // update lifecycle of objectGroup with detail of object : OK
+            updateLifeCycleParametersLogbookForBdo(params, objectGUID);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 StatusCode.OK.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                StatusCode.OK.toString());
+                VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.OK));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
             updateLifeCycle();
@@ -217,7 +204,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 StatusCode.KO.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                StatusCode.KO.toString());
+                VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.KO));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
             updateLifeCycle();
@@ -239,7 +226,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         final JsonNode jsonOG;
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup objects ids
             jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
@@ -303,7 +290,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private void updateLifeCycle() throws ProcessingException {
 
         try {
-            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
+            logbookLifecycleClient.update(logbookLifecycleObjectGroupParameters);
         } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
@@ -314,32 +301,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
         }
-    }
-
-    /**
-     * Update current lifecycle parameters with ObjectGroup lifecycle parameters. <br>
-     *
-     * @param params worker parameters
-     * @param typeProcess type process event
-     */
-    private void updateLifeCycleParametersLogbookByStep(WorkerParameters params, String typeProcess) {
-        final String extension = FilenameUtils.getExtension(params.getObjectName());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-            params.getObjectName().replace("." + extension, ""));
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            params.getContainerName());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(TENANT).toString());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess, typeProcess);
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-            params.getCurrentStep());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-            StatusCode.STARTED.toString());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            StatusCode.STARTED.toString());
-        // TODO P0 WORKFLOW add message LOGBOOK_LF_STORAGE_MSG for started status STEP.
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeLfc(params.getCurrentStep(), StatusCode.STARTED));
     }
 
     /**
@@ -358,7 +319,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
             StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            StatusCode.STARTED.toString());
+            VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, StatusCode.STARTED));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
     }

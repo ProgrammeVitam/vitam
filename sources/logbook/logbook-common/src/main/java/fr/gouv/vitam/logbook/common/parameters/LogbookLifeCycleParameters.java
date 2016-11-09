@@ -32,45 +32,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.logbook.common.parameters;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import java.util.Set;
 
 /**
- * Handler Utils class
+ * Common abstract class for LogbookLifeCycle Units and ObjectGroups Parameters
  */
-public class HandlerUtils {
+public abstract class LogbookLifeCycleParameters extends AbstractParameters {
 
-    private HandlerUtils() {
-        //private constructor
+    /**
+     * @param mandatory
+     */
+    public LogbookLifeCycleParameters(Set<LogbookParameterName> mandatory) {
+        super(mandatory);
     }
 
     /**
-     * Save the given map as specified by the rank output argument
-     * 
-     * @param handlerIO 
      * @param map
-     * @param rank 
-     * @param removeTmpFile
-     * @throws IOException
-     * @throws ProcessingException
      */
-    public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile)
-        throws IOException, ProcessingException {
-        final String tmpFilePath = handlerIO.getOutput(rank).getPath();
-        final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
-        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(JsonHandler.prettyPrint(map));
-        firstMapTmpFileWriter.flush();
-        firstMapTmpFileWriter.close();
-
-        handlerIO.addOuputResult(rank, firstMapTmpFile, removeTmpFile);
+    public LogbookLifeCycleParameters(Map<String, String> map) {
+        super(map);
     }
+
 }

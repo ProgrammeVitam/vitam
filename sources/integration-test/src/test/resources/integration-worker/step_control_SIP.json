@@ -27,7 +27,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY",
+            "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -67,7 +67,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY_POST",
+            "actionKey": "CHECK_CONSISTENCY",
             "behavior": "NOBLOCKING",
             "in": [
               {

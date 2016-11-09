@@ -27,6 +27,9 @@ Séparation des tests TDD et tests d'intégration
 	WorkerIT : test d'intégration pour les services : workspace, worker, metadata, logbook, processing
 	
 	Ces tests d'intégration sont en mode séquentiel. Pour cela, nous indiquons dans le pom.xml de ce module de test-integration 
+   
+.. code-block:: xml
+
 			<build>
 				<pluginManagement>
 					<plugins>
@@ -50,11 +53,14 @@ Séparation des tests TDD et tests d'intégration
 				</pluginManagement>
 			</build>	
 
-###############################################
+##################################
 Parallélisation de tests unitaires
-###############################################
+##################################
 Les tests unitaires de chaque module sont configurés pour être lancé en mode parallèle.
 Pour cela, nous indiquons dans le pom.xml parent pour la phrase de build  
+
+.. code-block:: xml
+
 		<build>
 			<plugins>
 				<plugin>
@@ -85,6 +91,9 @@ Configuration de build avec les options de tests
 	
 	- mvn clean test ou mvn clean install -DskipITs: pour ignorer les tests d'intégration
 	 Pour cela, nous ajoutons le code suivant dans le pom parent.
+
+.. code-block:: xml
+
 				<plugin>
 					<executions>
 						<execution>
@@ -105,9 +114,13 @@ Configuration de build avec les options de tests
 						</execution>
 					</executions>
 				</plugin>
-	
+
+
 	- mvn clean test-compile failsafe:integration-test: pour exécuter uniquement les tests d'intégration.
 	 Pour cela, nous ajoutons le code suivant dans le pom parent.  
+
+.. code-block:: xml
+
 			<build>
 				<plugin>
 					<!-- Run the Junit integration tests in an isolated classloader. -->

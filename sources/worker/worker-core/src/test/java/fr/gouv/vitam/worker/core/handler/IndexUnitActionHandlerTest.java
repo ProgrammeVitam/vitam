@@ -39,6 +39,7 @@ import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -72,10 +75,9 @@ public class IndexUnitActionHandlerTest {
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
-    private static final String INGEST_TREE = "INGEST_TREE.json";
-    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.json";
     private final InputStream archiveUnit;
     private HandlerIO action;
+    private GUID guid;
 
     public IndexUnitActionHandlerTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
@@ -90,9 +92,13 @@ public class IndexUnitActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);  
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         metadataClient = mock(MetaDataClientRest.class);
-        action = new HandlerIO("");
-        action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourceFile(INGEST_TREE));
+        guid = GUIDFactory.newGUID();
+        action = new HandlerIO(guid.getId(), "workerId");
+    }
+
+    @After
+    public void clean() {
+        action.close();
     }
 
     @Test
@@ -108,7 +114,7 @@ public class IndexUnitActionHandlerTest {
         PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
 
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
@@ -123,7 +129,7 @@ public class IndexUnitActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -137,7 +143,7 @@ public class IndexUnitActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -152,7 +158,7 @@ public class IndexUnitActionHandlerTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }

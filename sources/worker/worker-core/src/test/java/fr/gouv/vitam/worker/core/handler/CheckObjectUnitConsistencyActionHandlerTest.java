@@ -32,6 +32,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +53,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -64,7 +70,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckObjectUnitConsistencyActionHandlerTest {
 
     CheckObjectUnitConsistencyActionHandler handler;
-    private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
 
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String OG_AU = "OG_TO_ARCHIVE_ID_MAP_obj.json";
@@ -80,8 +86,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
-    private HandlerIO action;
-
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -94,41 +99,58 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         PowerMockito.when(factory.getClient()).thenReturn(logbookLifeCyclesClient);
-        
-        action = new HandlerIO("");
     }
 
     @Test
     public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, IOException, ProcessingException {
-
-        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
-        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
-
-
-
+        final HandlerIO action;
+        final List<IOParameter> in;
+        action = new HandlerIO(OBJ, "workerId");
+        in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OG_TO_ARCHIVE_ID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        action.reset();
+        action.addOutIOParameters(in);
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(EMPTY));
+        action.addOuputResult(1, PropertiesUtils.getResourceFile(EMPTY));
+        action.reset();
+        action.addInIOParameters(in);
+        
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(1);
+        action.close();
     }
 
     @Test
     public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, IOException, ProcessingException {
+        final HandlerIO action;
+        final List<IOParameter> in;
+        action = new HandlerIO(OBJ, "workerId");
+        in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file1")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file2")));
+        action.reset();
+        action.addOutIOParameters(in);
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(OG_AU));
+        action.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        action.reset();
+        action.addInIOParameters(in);
 
-        action.addInput(PropertiesUtils.getResourceFile(OG_AU));
-        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        action.close();
     }
 
 }

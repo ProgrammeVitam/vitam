@@ -64,6 +64,8 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
+    private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
+    private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
     // TODO P0 WORKFLOW will be in vitam-logbook file
     private static final String ERROR_MESSAGE =
         "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
@@ -74,19 +76,18 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     // FIXME P0 ne devrait pas être static
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getClient();
-    private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final int TENANT = 0;
 
     private HandlerIO handlerIO;
-    private final HandlerIO handlerInitialIOList;
+    private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
 
     /**
      * Empty constructor
      */
     public CheckObjectUnitConsistencyActionHandler() {
-        handlerInitialIOList = new HandlerIO("");
-        handlerInitialIOList.addInput(File.class);
-        handlerInitialIOList.addInput(File.class);
+        handlerInitialIOList.add(File.class);
+        handlerInitialIOList.add(File.class);
     }
 
     /**
@@ -135,12 +136,12 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         final List<String> ogList = new ArrayList<>();
 
         // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
+        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK));
         final Map<String, Object> objectGroupToUnitStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
 
         // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));
+        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK));
         final Map<String, Object> objectGroupToGuidStoredMap =
             JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);
 
@@ -177,9 +178,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handler, handlerInitialIOList)) {
+        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
         }
     }

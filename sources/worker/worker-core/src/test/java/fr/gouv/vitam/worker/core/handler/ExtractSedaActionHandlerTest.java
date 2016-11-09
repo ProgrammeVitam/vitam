@@ -38,9 +38,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +56,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -67,16 +73,14 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class ExtractSedaActionHandlerTest {
     private static final String TMP_TESTS = "/tmp/tests";
     ExtractSedaActionHandler handler = new ExtractSedaActionHandler();
-    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
+    private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;    
-    private final InputStream seda_arborescence;
     private HandlerIO action;
+    private List<IOParameter> out;
 
     public ExtractSedaActionHandlerTest() throws FileNotFoundException {
-        seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
     }
 
     @Before
@@ -86,12 +90,23 @@ public class ExtractSedaActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
-        action = new HandlerIO("");
-        for (int i = 0; i < ExtractSedaActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
-            action.addOutput(TMP_TESTS);
-        }
+        action = new HandlerIO("ExtractSedaActionHandlerTest", "workerId");
+        out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OG_TO_ARCHIVE_ID_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_VERSION_BDO_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
     }
 
+    @After
+    public void clean() {
+        action.close();
+    }
+    
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
@@ -99,10 +114,10 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
@@ -110,12 +125,14 @@ public class ExtractSedaActionHandlerTest {
         assertNotNull(ExtractSedaActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
+        action.addOutIOParameters(out);
 
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -125,11 +142,12 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -141,10 +159,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -156,10 +175,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -171,10 +191,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -186,10 +207,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -201,10 +223,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -216,10 +239,11 @@ public class ExtractSedaActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

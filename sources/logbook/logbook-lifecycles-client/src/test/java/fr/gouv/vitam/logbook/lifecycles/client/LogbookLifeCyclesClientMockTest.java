@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -55,7 +57,7 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -88,7 +90,7 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -121,7 +123,7 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -154,7 +156,7 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();

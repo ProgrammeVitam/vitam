@@ -118,6 +118,48 @@ public class VitamLogbookMessages {
     }
 
     /**
+     * 
+     * @param stepOrHandler
+     * @param code
+     * @return the code to place within outcomeDetail (Logbooks)
+     */
+    public static final String getOutcomeDetail(String stepOrHandler, StatusCode code) {
+        return stepOrHandler + SEPARATOR + code;
+    }
+
+    /**
+     * 
+     * @param stepOrHandler
+     * @param code
+     * @return the code to place within outcomeDetail (Logbooks)
+     */
+    public static final String getOutcomeDetailLfc(String stepOrHandler, StatusCode code) {
+        return stepOrHandler + LIFECYCLE + SEPARATOR + code;
+    }
+
+    /**
+     * 
+     * @param stepOrHandler
+     * @param transaction
+     * @param code
+     * @return the code to place within outcomeDetail (Logbooks)
+     */
+    public static final String getOutcomeDetail(String stepOrHandler, String transaction, StatusCode code) {
+        return stepOrHandler + SEPARATOR + transaction + SEPARATOR + code;
+    }
+
+    /**
+     * 
+     * @param stepOrHandler
+     * @param transaction
+     * @param code
+     * @return the code to place within outcomeDetail (Logbooks)
+     */
+    public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, StatusCode code) {
+        return stepOrHandler + LIFECYCLE + SEPARATOR + transaction + SEPARATOR + code;
+    }
+
+    /**
      * Operation Logbook context
      * 
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
@@ -125,7 +167,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named
      */
     public static final String getCodeOp(String stepOrHandler, StatusCode code) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + code);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetail(stepOrHandler, code));
     }
 
     /**
@@ -136,7 +178,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named
      */
     public static final String getCodeLfc(String stepOrHandler, StatusCode code) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + code);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, code));
     }
 
     /**
@@ -148,7 +190,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named with sub transaction
      */
     public static final String getCodeOp(String stepOrHandler, String transaction, StatusCode code) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + transaction + SEPARATOR + code);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetail(stepOrHandler, transaction, code));
     }
 
     /**
@@ -161,7 +203,7 @@ public class VitamLogbookMessages {
      */
     public static final String getCodeLfc(String stepOrHandler, String transaction, StatusCode code) {
         return VITAM_MESSAGES.messages
-            .getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + transaction + SEPARATOR + code);
+            .getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, code));
     }
 
     /**
@@ -173,7 +215,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named
      */
     public static final String getCodeOp(String stepOrHandler, StatusCode code, Object... args) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + code, args);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetail(stepOrHandler, code), args);
     }
 
     /**
@@ -185,7 +227,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named
      */
     public static final String getCodeLfc(String stepOrHandler, StatusCode code, Object... args) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + code, args);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, code), args);
     }
 
     /**
@@ -198,8 +240,7 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named with sub transaction
      */
     public static final String getCodeOp(String stepOrHandler, String transaction, StatusCode code, Object... args) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + SEPARATOR + transaction + SEPARATOR + code,
-            args);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetail(stepOrHandler, transaction, code), args);
     }
 
     /**
@@ -212,8 +253,6 @@ public class VitamLogbookMessages {
      * @return the code label of this step or handler or full named with sub transaction
      */
     public static final String getCodeLfc(String stepOrHandler, String transaction, StatusCode code, Object... args) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(
-            stepOrHandler + LIFECYCLE + SEPARATOR + transaction + SEPARATOR + code,
-            args);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, code), args);
     }
 }

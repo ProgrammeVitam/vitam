@@ -60,6 +60,7 @@ import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -94,13 +95,14 @@ public class CheckObjectsNumberActionHandlerTest {
     private ExtractUriResponse extractOutNumberUriResponseKO;
 
     private final List<String> messages = new ArrayList<>();
+    HandlerIO handlerIO = new HandlerIO("CheckObjectsNumberActionHandlerTest", "workerId");
 
 
     @Before
     public void setUp() throws Exception {
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckObjectsNumberActionHandlerTest");
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
         PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
@@ -158,9 +160,10 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        handlerIO.close();
     }
 
     @Test
@@ -172,10 +175,11 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1);
+        handlerIO.close();
     }
 
     @Test
@@ -193,10 +197,11 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
 
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        handlerIO.close();
     }
 
     @Test
@@ -213,10 +218,11 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        handlerIO.close();
     }
 
 
@@ -235,12 +241,13 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getItemsStatus().get(HANDLER_ID).getData().get("errorNumber")).isEqualTo(1);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        handlerIO.close();
     }
 
     @Test
@@ -258,11 +265,12 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        handlerIO.close();
     }
 
     @Test
@@ -280,10 +288,11 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        handlerIO.close();
     }
 }

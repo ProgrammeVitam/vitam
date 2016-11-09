@@ -74,6 +74,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
@@ -146,7 +147,6 @@ public class ProcessingIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
-    private static String CONTAINER_NAME;
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
 
@@ -190,8 +190,6 @@ public class ProcessingIT {
             .build());
         mongod = mongodExecutable.start();
 
-        // AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
-
         // launch metadata
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
@@ -207,6 +205,7 @@ public class ProcessingIT {
         workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
         workspaceApplication .start();
         SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch logbook
@@ -217,6 +216,7 @@ public class ProcessingIT {
         SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
         // launch processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
@@ -224,6 +224,8 @@ public class ProcessingIT {
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
         SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        
+        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
@@ -245,8 +247,6 @@ public class ProcessingIT {
             .importFormat(PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"));
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
-
-        CONTAINER_NAME = GUIDFactory.newGUID().toString();
 
     }
 
@@ -319,7 +319,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
@@ -356,7 +355,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
@@ -393,7 +391,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
@@ -430,7 +427,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
@@ -466,7 +462,6 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
@@ -495,7 +490,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);
@@ -532,7 +526,6 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
 	assertNotNull(ret);
@@ -560,7 +553,6 @@ public class ProcessingIT {
             // call processing
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
-	    ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
 	    processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
             assertNotNull(ret);
@@ -598,7 +590,6 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         // An action returns KO => the step is in KO => the workflow is OK
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
@@ -627,7 +618,6 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
@@ -657,7 +647,6 @@ public class ProcessingIT {
           // call processing
           RestAssured.port = PORT_SERVICE_PROCESSING;
           RestAssured.basePath = PROCESSING_PATH;
-          ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
           processingClient = ProcessingManagementClientFactory.getInstance().getClient();
           final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
           assertNotNull(ret);

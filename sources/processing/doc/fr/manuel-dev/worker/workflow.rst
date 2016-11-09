@@ -4,13 +4,16 @@ Workflow
 DefaultIngestWorkflow
 *********************
 
+
 Un Workflow est défini en JSON avec la structure suivante :
+
 
 - un identifiant (id)
 - une liste de Steps :
 
    - un identifiant de famille de Workers (workerGroupId)
    - un identifiant de Step (stepName)
+
    - un modèle d'exécution (behavior) pouvant être :
      BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow
      NOBLOCKING : le traitement peut continuer malgrée les erreurs
@@ -22,12 +25,14 @@ Un Workflow est défini en JSON avec la structure suivante :
 
    - une liste d'Actions :
 
+
       - un nom d'action (actionKey)
       - un modèle d'exécution (behavior) pouvant être BLOCKING ou NOBLOCKING
       - des paramètres d'entrées (in) :
 
          - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
          - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
+
 
             - WORKSPACE:path indique le chemin relatif sur le workspace
             - MEMORY:path indique le nom de la clef de valeur
@@ -48,6 +53,7 @@ Un Workflow est défini en JSON avec la structure suivante :
             - MEMORY:path indique le nom de la clef de valeur
 
          - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
+
 
             - WORKSPACE : implicitement un File local
             - MEMORY : implicitement un objet mémoire
