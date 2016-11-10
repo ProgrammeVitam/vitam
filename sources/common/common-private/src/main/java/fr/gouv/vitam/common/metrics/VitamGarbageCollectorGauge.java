@@ -13,11 +13,9 @@ import com.codahale.metrics.Gauge;
 public class VitamGarbageCollectorGauge implements Gauge<Double> {
 
     private static final Clock clock = Clock.defaultClock();
-    private static final int INTERVAL = 5;
-    private static final TimeUnit INTERVAL_UNIT = TimeUnit.MINUTES;
     private final List<GarbageCollectorMXBean> garbageCollectors;
-    private long tick;
-    private long gcDelta;
+    private long lastTick;
+    private long lastGcElapsedTime;
 
     /**
      * Creates a new gauge for all discoverable garbage collectors.
@@ -34,8 +32,8 @@ public class VitamGarbageCollectorGauge implements Gauge<Double> {
     public VitamGarbageCollectorGauge(Collection<GarbageCollectorMXBean> garbageCollectors) {
         this.garbageCollectors = new ArrayList<>(garbageCollectors);
 
-        tick = clock.getTick();
-        gcDelta = getElapsedGCTime();
+        lastTick = clock.getTick();
+        lastGcElapsedTime = getElapsedGCTime();
     }
 
     private long getElapsedGCTime() {
@@ -56,19 +54,16 @@ public class VitamGarbageCollectorGauge implements Gauge<Double> {
     @Override
     public Double getValue() {
         final long currentTick = clock.getTick();
-        final long gcElaspedTime = getElapsedGCTime();
+        final long currentGcElapsedTime = getElapsedGCTime();
         Double value =
-            (double) (gcElaspedTime - gcDelta) / (double) TimeUnit.NANOSECONDS.toMillis(currentTick - tick);
+            (double) (currentGcElapsedTime - lastGcElapsedTime) / (double) TimeUnit.NANOSECONDS.toMillis(currentTick - lastTick);
 
         if (value.isNaN()) {
             value = (double) 0;
-            // System.out.println("GC elapsed time since last call: " + (gcElaspedTime - gcDelta));
-            // System.out.println("Elapsed time since last call: " + TimeUnit.NANOSECONDS.toMillis((currentTick -
-            // tick)));
         }
 
-        tick = currentTick;
-        gcDelta = gcElaspedTime;
+        lastTick = currentTick;
+        lastGcElapsedTime = currentGcElapsedTime;
 
         return value;
     }
