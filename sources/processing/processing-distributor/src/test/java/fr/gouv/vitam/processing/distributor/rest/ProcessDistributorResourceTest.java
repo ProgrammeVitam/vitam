@@ -267,6 +267,11 @@ public class ProcessDistributorResourceTest {
         public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
             return new CompositeItemStatus("itemId");
         }
+
+        @Override
+        public void close() {
+            // Nothing
+        }
     }
 
 }

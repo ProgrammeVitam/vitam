@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -84,8 +86,8 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
     private final Map<String, WorkFlow> poolWorkflows;
-    // FIXME P0 allocate a new ProcessDistributor for each Step
-    private final ProcessDistributor processDistributor;
+
+    private final ProcessDistributor processDistributorMock;
     private Map<String, String> messageIdentifierMap =new HashMap<>();
 
 
@@ -104,7 +106,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
     protected ProcessEngineImpl() {
-        processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        processDistributorMock = null;
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -119,7 +121,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param processDistributor the wanted process distributor
      */
     ProcessEngineImpl(ProcessDistributor processDistributor) {
-        this.processDistributor = processDistributor;
+        this.processDistributorMock = processDistributor;
         poolWorkflows = new HashMap<>();
     }
 
@@ -228,9 +230,14 @@ public class ProcessEngineImpl implements ProcessEngine {
             StatusCode.STARTED);
 
         workParams.setCurrentStep(step.getStepName());
+        ProcessDistributor processDistributor = processDistributorMock;
+        try {
+            if (processDistributor == null) {
+                processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+            }
+            final CompositeItemStatus stepResponse =
+                processDistributor.distribute(workParams, step, workflowId);
 
-        final CompositeItemStatus stepResponse =
-            processDistributor.distribute(workParams, step, workflowId);
 
         // update workflow Status
         workflowStatus.increment(stepResponse.getGlobalStatus());
@@ -323,6 +330,15 @@ public class ProcessEngineImpl implements ProcessEngine {
         // THEN PAUSE
         // }
         return stepResponse;
+        } finally {
+            if (processDistributorMock == null) {
+                try {
+                    processDistributor.close();
+                } catch (Exception exc) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+                }
+            }
+        }
     }
 
 }

@@ -41,7 +41,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * improves a availability and scalability </br>
  * Various methods Distributor engine
  */
-public interface ProcessDistributor {
+public interface ProcessDistributor extends AutoCloseable {
 
     /**
      * Distribute different steps (execute a workflow actions step by step)

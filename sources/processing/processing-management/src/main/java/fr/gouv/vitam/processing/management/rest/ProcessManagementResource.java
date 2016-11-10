@@ -101,9 +101,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         ProcessManagement processManagement = processManagementMock;
         try {
             if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config);
+                processManagement = new ProcessManagementImpl(config); // NOSONAR mock management
             }
-            resp = (ItemStatus) processManagement.submitWorkflow(workParam, process.getWorkflow());
+            resp = processManagement.submitWorkflow(workParam, process.getWorkflow());
         } catch (WorkflowNotFoundException | HandlerNotFoundException e) {
             // if workflow or handler not found
             LOGGER.error(e);
