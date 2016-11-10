@@ -336,4 +336,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return new ItemStatus(label).increment(statusCode);
 
     }
+
+    @Override
+    public void close() {
+        // Nothing
+    }
 }
