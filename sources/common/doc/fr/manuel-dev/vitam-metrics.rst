@@ -30,7 +30,7 @@ qui elle même appelle la fonction :
 de la classe *AbstractVitamApplication*.
 
 .. note::
-   Les *VitamMetrics* de type JERSEY ou JVM n'ont pas à être modifiés épendant l'execution d'une application VITAM.
+   Les *VitamMetrics* de type JERSEY ou JVM n'ont pas à être modifiés pendant l'execution d'une application VITAM.
 
 Configuration
 *************
@@ -50,16 +50,24 @@ Les métriques métiers permettent aux développeurs d'enregistrer des métrique
            }
        });
 
+.. warning::
+   Avec la fonction *register*, si une métrique avec un nom identique est déjà enregistrée, alors l'ancienne métrique sera ecrasée par la nouvelle avec un avertissement dans les logs. En revanche, avec les fonctions de création de métrique comme *timer*, *meter*..., une exception sera soulevée. 
+
 Reporters
 *********
 2 reporters sont disponibles, un reporter Logback (toutes les métriques sont dumpées dans Logback) ou bien un reporter ElasticSearch (toutes les métriques sont dumpées dans la base ElasticSearch Log). Le reporter est configurable avec un interval de temps entre chaque reporting.
 
 .. warning::
    Les index ElasticSearch ne sont pas configurables pour les métriques. Ils se nomment respectivement :
-   
    * ``metrics-vitam-jersey-YYYY.MM.dd`` pour les métriques JERSEY
    * ``metrics-vitam-jvm-YYYY.MM.dd`` pour les métriques JVM
    * ``metrics-vitam-business-YYYY.MM.dd`` pour les métriques métier
 
    
+Legacy
+******
+Pour celui ou celle qui souhaiterais continuer le développement du système de métriques au sein de VITAM, voici quelques points qui peuvent être intéressants à développer :
+
+* Pour un reporter ElasticSearch, vérifier l'état de la connexion à chaque reporting et augmenter progressivement le temps de reporting si la base de données n'est pas accessible.
+* Permettre le chargement de reporters de manière générique, en se passant du *switch* dans *VitamMetrics* et abstraire tout ce qui concerne le reporting.
 

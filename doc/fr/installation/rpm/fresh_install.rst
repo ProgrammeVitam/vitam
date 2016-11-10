@@ -6,7 +6,6 @@ Première installation
 .. |repertoire_inventory| replace:: ``environments-rpm``
 .. |repertoire_playbook ansible| replace:: ``ansible-vitam-rpm``
 
-
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le sous-répertoire |repertoire_deploiement| . Ils consistent en 2 parties :
  
  * le playbook ansible, présent dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer
@@ -107,3 +106,22 @@ ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventor
 
 Il sera alors demandé le mot de passe correspondant au fichier ``vault.yml``.
 
+Import automatique d'objets dans Kibana
+---------------------------------------
+
+Il peut être utile de vouloir automatiquement importer dans l'outil de visualisation Kibana des dashboards préalablement crées. Cela ce fait simplement avec le système d'import automatique mis en place. Il suffit de suivre les différentes étapes :
+
+1. Ouvrir l'outil Kibana dans son navigateur.
+2. Créer ses dashboards puis sauvegarder.
+3. Aller dans l'onglets **Settings** puis **Objects**.
+4. Sélectionner les composants à exporter puis cliquer sur le bouton **Export**. (ou bien cliquer sur **Export Everything** pour tout exporter).
+5. Copier le/les fichier(s) *.json* téléchargés à l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
+6. Les composants sont prêts à être importés automatique lors du prochain déploiement.
+
+Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Settings** de Kibana, ceux-ci aussi sont pris en charge par le système de déploiement automatique. En revanche ils ne sont pas exportables, il est donc nécessaire de créer à la main le fichier *.json* correspondant. Pour ce faire :
+
+1. Faire une requête GET sur l'url suivante ``http://<ip-elasticsearch-log>/.kibana/index-pattern/_search``.
+2. Récupérer le contenu au format JSON et extraire le contenu de la clé **hits.hits** (qui doit être un tableau).
+3. Copier ce tableau dans un fichier.
+4. Copier le fichier crée à l'étape 3 dans l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
+5. Les index-pattern sont prêts à être importés.
