@@ -36,7 +36,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 
 /**
  * Logbook client interface
@@ -55,7 +55,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      * @throws LogbookClientException if client received an error from server
      */
-    void create(LogbookParameters parameters)
+    void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
@@ -69,7 +69,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void update(LogbookParameters parameters)
+    void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
 
@@ -84,7 +84,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commit(LogbookParameters parameters)
+    void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     /**
@@ -98,7 +98,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void rollback(LogbookParameters parameters)
+    void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     /**

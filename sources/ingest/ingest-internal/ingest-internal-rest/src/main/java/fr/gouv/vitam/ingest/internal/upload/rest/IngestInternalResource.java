@@ -28,7 +28,6 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Queue;
 
 import javax.ws.rs.Consumes;
@@ -45,9 +44,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -63,9 +59,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
-import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -105,7 +99,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 @Path("/ingest/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class IngestInternalResource extends ApplicationStatusResource implements UploadService {
+public class IngestInternalResource extends ApplicationStatusResource {
 
     private static VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
@@ -117,11 +111,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
 
-    // FIXME P0 équivalent static pour tout ce qui est ci-dessous!!! A supprimer
-    private final IngestInternalConfiguration configuration;
-    private LogbookOperationParameters parameters;
-    private final ProcessingManagementClient processingClient;
     private final WorkspaceClient workspaceClientMock;
+    private final ProcessingManagementClient processingManagementClientMock;
 
     /**
      * IngestInternalResource constructor
@@ -130,26 +121,23 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      *
      */
     public IngestInternalResource(IngestInternalConfiguration configuration) {
-        this.configuration = configuration;
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
-        workspaceClientMock = null;
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        workspaceClientMock = null;
+        processingManagementClientMock = null;
     }
 
     /**
      * IngestInternalResource constructor for tests
      *
      * @param configuration ingest configuration, internal values are not used.
+     * @param processingManagementClient processing management client instance
      * @param workspaceClient workspace client instance
-     * @param processingClient processing client instance
      *
      */
-    IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient,
-        ProcessingManagementClient processingClient) {
-        this.configuration = configuration;
-        this.workspaceClientMock = workspaceClient;
-        this.processingClient = processingClient;
+    IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient, ProcessingManagementClient processingManagementClient) {
+        workspaceClientMock = workspaceClient;
+        processingManagementClientMock = processingManagementClient;
     }
 
     /**
@@ -227,7 +215,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      */
     @POST
     @Path("/ingests")
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
+    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+        CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void uploadSipAsStream(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
         @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream,
@@ -244,6 +233,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private void ingestAsync(final AsyncResponse asyncResponse, String xRequestId, String contentType,
         InputStream uploadedInputStream) {
         String fileName = "";
+        LogbookOperationParameters parameters = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
 
@@ -253,7 +243,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
                 final GUID containerGUID = GUIDReader.getGUID(xRequestId);
 
-                logbookInitialisation(logbookOperationsClient, containerGUID, containerGUID);
+                parameters = logbookInitialisation(logbookOperationsClient, containerGUID, containerGUID);
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                 if (parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) != null) {
                     fileName = parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome);
@@ -269,7 +259,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.STARTED));
                 // push uploaded sip as stream
-                pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), archiveMimeType,
+                pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType,
                     uploadedInputStream,
                     parameters);
                 final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
@@ -284,7 +274,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                         storageClient.getContainer(DEFAULT_TENANT, DEFAULT_STRATEGY, containerGUID.getId() + XML,
                             StorageCollectionType.REPORTS);
                     // FIXME P0 when storage in Async mode use response instead
-                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream, null);
+                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, stream);
                     Status finalStatus = Status.OK;
                     if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
                         if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
@@ -360,189 +350,18 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         }
     }
 
-    // FIXME P0 to be removed
-    /**
-     * Upload compressed SIP as Stream, will be uncompressed in workspace
-     * 
-     * @param xRequestId
-     * @param partList
-     * @return {@link Response}
-     */
-    @Override
-    @POST
-    @Path("/upload")
-    @Consumes({MediaType.MULTIPART_FORM_DATA, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadSipAsStream(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
-        @FormDataParam("part") List<FormDataBodyPart> partList) {
-
-        Response response;
-        String fileName = "";
-        try (LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
-
-            try {
-                ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
-
-                final LogbookOperationParametersList logbookOperationParametersList =
-                    partList.get(0).getValueAs(LogbookOperationParametersList.class);
-
-                ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter",
-                    logbookOperationParametersList);
-
-                ParametersChecker.checkParameter("xRequestId is a Mandatory parameter", xRequestId);
-
-                final GUID containerGUID = GUIDReader.getGUID(xRequestId);
-
-                logbookInitialisation(logbookOperationsClient, containerGUID, containerGUID);
-                // Log Ingest External operations
-                LOGGER.debug("Log Ingest External operations");
-
-                for (final LogbookOperationParameters logbookParameters : logbookOperationParametersList
-                    .getLogbookOperationList()) {
-                    callLogbookUpdate(logbookOperationsClient, logbookParameters);
-                }
-
-                parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                if (parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) != null) {
-                    fileName = parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome);
-                }
-
-                InputStream uploadedInputStream;
-
-                if (partList.size() == 2) {
-                    uploadedInputStream = partList.get(1).getValueAs(InputStream.class);
-
-                    MediaType mediaType = partList.get(1).getMediaType();
-
-                    String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
-
-                    ParametersChecker.checkParameter("HTTP Request must contains 2 multiparts part",
-                        uploadedInputStream);
-
-                    // Save sip file
-                    LOGGER.debug("Starting up the save file sip");
-                    // workspace
-                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
-                        VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.STARTED));
-                    // push uploaded sip as stream
-                    pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), archiveMimeType,
-                        uploadedInputStream,
-                        parameters);
-                    final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
-
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
-                    // processing
-                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                    final ItemStatus processingOk =
-                        callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
-                    Status finalStatus = Status.OK;
-                    if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
-                        if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
-                            finalStatus = Status.ACCEPTED;
-                        } else {
-                            finalStatus = Status.BAD_REQUEST;
-                        }
-                    }
-
-                    response = Response.status(finalStatus)
-                        .entity(getAtrFromStorage(containerGUID.getId()))
-                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                        .build();
-
-                } else {
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                        OutcomeMessage.WORKFLOW_INGEST_KO.value());
-                    response = Response.status(Status.INTERNAL_SERVER_ERROR)
-                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
-                        .build();
-                }
-
-            } catch (final ContentAddressableStorageCompressedFileException e) {
-
-                if (parameters != null) {
-                    try {
-                        final String errorMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
-                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                            OutcomeMessage.WORKFLOW_INGEST_KO.value());
-                    } catch (final LogbookClientException e1) {
-                        LOGGER.error(e1);
-                    }
-                }
-
-                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
-            } catch (final ContentAddressableStorageException e) {
-
-                if (parameters != null) {
-                    try {
-                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error workspace");
-                    } catch (final LogbookClientException e1) {
-                        LOGGER.error(e1);
-                    }
-                }
-
-                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
-            } catch (final IngestInternalException | ProcessingException |
-                LogbookClientException | StorageClientException | StorageNotFoundException | IOException |
-                InvalidGuidOperationException e) {
-
-                if (parameters != null) {
-                    try {
-                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error ingest");
-                    } catch (final LogbookClientException e1) {
-                        LOGGER.error(e1);
-                    }
-                }
-
-                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
-            } catch (XMLStreamException e) {
-                if (parameters != null) {
-                    try {
-                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_ATR_FORWARD);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error ATR forward");
-                    } catch (final LogbookClientException e1) {
-                        LOGGER.error(e1);
-                    }
-                }
-                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } finally {
-                if (logbookOperationsClient != null) {
-                    logbookOperationsClient.close();
-                }
-            }
-
-            return response;
-        }
-    }
-
-
-    private LogbookOperationsClient logbookInitialisation(LogbookOperationsClient client, final GUID ingestGuid,
+    private LogbookOperationParameters logbookInitialisation(LogbookOperationsClient client, final GUID ingestGuid,
         final GUID containerGUID)
         throws LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
-        parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             ingestGuid, INGEST_WORKFLOW, containerGUID,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
             ingestGuid);
 
-        LOGGER.debug("call journal...");
-        client.create(parameters);
-
-        return client;
+        return parameters;
 
     }
 
@@ -555,20 +374,14 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         client.update(parameters);
     }
 
-    private void callLogbookUpdate(LogbookOperationsClient client, LogbookOperationParameters logbookParameters)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        client.update(logbookParameters);
-    }
-
     /**
      *
-     * @param urlWorkspace
      * @param containerName
      * @param uploadedInputStream
      * @param archiveMimeType
      * @throws ContentAddressableStorageException
      */
-    private void pushSipStreamToWorkspace(final String urlWorkspace, final String containerName,
+    private void pushSipStreamToWorkspace(final String containerName,
         final String archiveMimeType,
         final InputStream uploadedInputStream, final LogbookOperationParameters parameters)
         throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
@@ -608,8 +421,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to call processing...");
         final String workflowId = "DefaultIngestWorkflow";
-        try {
-            ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
+        if (processingManagementClientMock != null) {
+            ItemStatus itemStatus = processingManagementClientMock.executeVitamProcess(containerName, workflowId);
             if (StatusCode.OK.equals(itemStatus.getGlobalStatus()) ||
                 StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
                 callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
@@ -619,11 +432,25 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     OutcomeMessage.WORKFLOW_INGEST_KO.value());
             }
             return itemStatus;
-        } catch (WorkflowNotFoundException | ProcessingInternalServerException | IllegalArgumentException |
-            ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
-            LOGGER.error(exc);
-            callLogbookUpdate(client, parameters, StatusCode.FATAL, OutcomeMessage.WORKFLOW_INGEST_KO.value());
-            throw new IngestInternalException(exc);
+        } else {
+            try (final ProcessingManagementClient processingClient =
+                ProcessingManagementClientFactory.getInstance().getClient()) {
+                ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
+                if (StatusCode.OK.equals(itemStatus.getGlobalStatus()) ||
+                    StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
+                    callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                        OutcomeMessage.WORKFLOW_INGEST_OK.value());
+                } else {
+                    callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                        OutcomeMessage.WORKFLOW_INGEST_KO.value());
+                }
+                return itemStatus;
+            } catch (WorkflowNotFoundException | ProcessingInternalServerException | IllegalArgumentException |
+                ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
+                LOGGER.error(exc);
+                callLogbookUpdate(client, parameters, StatusCode.FATAL, OutcomeMessage.WORKFLOW_INGEST_KO.value());
+                throw new IngestInternalException(exc);
+            }
         }
 
     }

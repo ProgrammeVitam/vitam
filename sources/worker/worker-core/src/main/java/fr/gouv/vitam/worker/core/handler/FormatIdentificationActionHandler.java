@@ -84,8 +84,8 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -141,7 +141,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
-            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
+            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleObjectGroupParameters,
+                params);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -166,7 +167,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
         String filename = null;
-        //WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             // Get objectGroup metadatas
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
@@ -279,8 +279,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
-        SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
-            itemStatus.getGlobalStatus());
+        LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+            logbookLifecycleObjectGroupParameters, itemStatus);
     }
 
     @Override
@@ -318,10 +318,10 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus("FILE_FORMAT_PUID_NOT_FOUND");
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    objectCheckFormatResult.getSubStatus());
+                    // FIXME P0 should use the message associated with substatus
+                    VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, objectCheckFormatResult.getStatus()));
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    "PUID " +
-                        "trouvé : " + formatId);
+                    "PUID trouvé : " + formatId);
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                     objectCheckFormatResult.getStatus().name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
@@ -354,7 +354,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             objectCheckFormatResult.setSubStatus("FILE_FORMAT_NOT_FOUND");
             // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                objectCheckFormatResult.getSubStatus());
+                VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, objectCheckFormatResult.getStatus()));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 objectCheckFormatResult.getStatus().name());
             try {
@@ -441,7 +441,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             objectCheckFormatResult.setSubStatus("FILE_FORMAT_METADATA_UPDATE");
             // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                objectCheckFormatResult.getSubStatus());
+                VitamLogbookMessages.getOutcomeDetailLfc(
+                    logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
+                    objectCheckFormatResult.getStatus()));
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 // TODO P0 WORKFLOW : "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
                 VitamLogbookMessages.getCodeLfc(

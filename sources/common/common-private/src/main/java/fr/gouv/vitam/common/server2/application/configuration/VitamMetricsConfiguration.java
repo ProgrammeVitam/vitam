@@ -27,8 +27,10 @@
 
 package fr.gouv.vitam.common.server2.application.configuration;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.metrics.VitamMetricsReporterType;
 
 /**
@@ -39,11 +41,10 @@ public final class VitamMetricsConfiguration {
     private boolean metricsJersey = false;
     private boolean metricsJVM = false;
     private VitamMetricsReporterType metricReporter = VitamMetricsReporterType.NONE;
-    private String metricReporterHost = null;
-    private int metricReporterPort = 0;
     private int metricReporterInterval = 1;
     private TimeUnit metricReporterIntervalUnit = TimeUnit.MINUTES;
-    // TODO add LogBack log level
+    private String[] metricReporterHosts = {};
+    private VitamLogLevel metricLogLevel = VitamLogLevel.INFO;
 
     /**
      * DbConfiguration empty constructor for YAMLFactory
@@ -115,40 +116,40 @@ public final class VitamMetricsConfiguration {
     /**
      * Get the metric reporter host
      *
-     * @return String
+     * @return String[]
      */
-    public String getMetricReporterHost() {
-        return metricReporterHost;
+    public String[] getMetricReporterHosts() {
+        return metricReporterHosts;
     }
 
     /**
-     * Set the metric reporter host
+     * Set the metric reporter hosts
      *
-     * @param metricReporterHost
+     * @param metricReporterHosts
      * @return VitamMetricsConfiguration
      */
-    public VitamMetricsConfiguration setMetricReporterHost(String metricReporterHost) {
-        this.metricReporterHost = metricReporterHost;
+    public VitamMetricsConfiguration setMetricReporterHosts(List<String> metricReporterHosts) {
+        this.metricReporterHosts = metricReporterHosts.toArray(this.metricReporterHosts);
         return this;
     }
 
     /**
-     * Get the metric reporter port
+     * Get the metric log level
      *
-     * @return int
+     * @return VitamLogLevel
      */
-    public int getMetricReporterPort() {
-        return metricReporterPort;
+    public VitamLogLevel getMetricLogLevel() {
+        return metricLogLevel;
     }
 
     /**
-     * Set the metric reporter port
+     * Set the metric log level
      *
-     * @param metricReporterPort
+     * @param metricLogLevel
      * @return VitamMetricsConfiguration
      */
-    public VitamMetricsConfiguration setMetricReporterPort(int metricReporterPort) {
-        this.metricReporterPort = metricReporterPort;
+    public VitamMetricsConfiguration setMetricLogLevel(VitamLogLevel metricLogLevel) {
+        this.metricLogLevel = metricLogLevel;
         return this;
     }
 

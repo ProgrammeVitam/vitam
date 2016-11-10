@@ -41,11 +41,10 @@ public class SiegfriedClientMockTest {
 
     @Test
     public void statusTest() {
-        SiegfriedClientFactory
-            .setConfiguration(SiegfriedClientFactory.SiegfriedClientType.MOCK, null, 0);
+        SiegfriedClientFactory.changeMode(null);
 
         final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         Boolean catchException = false;
@@ -62,11 +61,10 @@ public class SiegfriedClientMockTest {
 
     @Test
     public void analysePathTest() {
-        SiegfriedClientFactory
-            .setConfiguration(SiegfriedClientFactory.SiegfriedClientType.MOCK, null, 0);
+        SiegfriedClientFactory.changeMode(null);
 
         final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getSiegfriedClient();
+            SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         Boolean catchException = false;

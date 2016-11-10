@@ -17,7 +17,7 @@ public class IOParameterTest {
         final IOParameter param = new IOParameter();
         param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST);
 
-        param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST).setOptional("true");
+        param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST).setOptional(true);
         assertEquals(param.getUri().getPath(),"file");
         assertEquals(param.getUri().getPrefix(),UriPrefix.WORKSPACE);
         assertEquals(param.getName(),IN);

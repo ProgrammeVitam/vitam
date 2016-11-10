@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -282,23 +281,11 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         Response response = null;
-        InputStream stream = null;
         try {
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
-
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                // FIXME P0 : this is ugly but necessarily in order to close the response and avoid concurrent issues
-                // to be improved
-                // FIXME utiliser async pour retourner le stream
-                final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
-                try {
-                    stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
-                } catch (final IOException e) {
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                    throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-                }
-                return stream;
+                return response.readEntity(InputStream.class);
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
@@ -311,7 +298,9 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             throw new ContentAddressableStorageServerException(e);
 
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 

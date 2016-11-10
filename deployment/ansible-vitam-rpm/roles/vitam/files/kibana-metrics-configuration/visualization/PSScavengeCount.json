@@ -1,5 +1,5 @@
 {
-  "title": "PSScavengeCount",
+  "title": "Nombre d'appels au GC PSScavenge",
   "visState": "{\"title\":\"PSScavengeCoun\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Scavenge count\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",

@@ -117,27 +117,23 @@ public class LogbookOperationsImplWithMongoTest {
             "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip.getId(),
-            "eventType", eip.getId(), LogbookTypeProcess.INGEST,
+            eip, "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newEventGUID(0).getId(),
-            "eventType", GUIDFactory.newEventGUID(0).getId(), LogbookTypeProcess.INGEST,
+            GUIDFactory.newEventGUID(0),
+            "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "x-request-id");
 
         logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
-            eip1.getId(),
-            "eventType", eip1.getId(), LogbookTypeProcess.INGEST,
+            eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
         logbookParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
-            eip2.getId(),
-            "eventType", eip2.getId(), LogbookTypeProcess.INGEST,
+            eip2, "eventType", eip2, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
         logbookParameters3 = LogbookParametersFactory.newLogbookOperationParameters(
-            eip3.getId(),
-            "eventType", eip3.getId(), LogbookTypeProcess.INGEST,
+            eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
     }

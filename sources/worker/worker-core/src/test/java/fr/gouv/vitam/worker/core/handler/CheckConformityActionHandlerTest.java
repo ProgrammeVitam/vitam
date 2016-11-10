@@ -34,6 +34,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +49,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -100,16 +105,18 @@ public class CheckConformityActionHandlerTest {
         //assertNotNull(objectGroup);
         handler = new CheckConformityActionHandler();
         WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
-        handlerIO.addInput("SHA-512");
-        
+        HandlerIO handlerIO = new HandlerIO("CheckConformityActionHandlerTest", "workerId");
+        List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
+        handlerIO.addInIOParameters(in);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        handlerIO.close();
     }
     
     private DefaultWorkerParameters getDefaultWorkerParameters() {
-        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", "containerName",
+        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", "CheckConformityActionHandlerTest",
             "currentStep", "objName", "metadataURL", "workspaceURL");
     }
 }

@@ -52,8 +52,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -67,12 +67,9 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
     private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
 
-    public static final String JSON_EXTENSION = ".json";
     private static final String OBJECT_GROUP = "ObjectGroup";
-    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    public static final String TXT_EXTENSION = ".txt";
     private LogbookLifeCyclesClient logbookClient =
         LogbookLifeCyclesClientFactory.getInstance().getClient();
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
@@ -101,7 +98,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(actionDefinition);
-            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
+            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
             indexObjectGroup(params, itemStatus);
         } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
@@ -114,8 +111,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         try {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
-                itemStatus.getGlobalStatus());
+            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
+                itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);

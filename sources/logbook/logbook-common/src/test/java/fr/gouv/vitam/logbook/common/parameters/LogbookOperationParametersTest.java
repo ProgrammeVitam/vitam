@@ -156,42 +156,6 @@ public class LogbookOperationParametersTest {
     }
 
     @Test
-    public void deprecatedMethod() {
-
-        LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
-            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
-        try {
-            LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "",
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-        try {
-            LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-        try {
-            LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
-                LogbookTypeProcess.AUDIT, null, "bb", "cc");
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-        try {
-            LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
-                null, StatusCode.STARTED, "bb", "cc");
-            fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-            // ignore
-        }
-
-    }
-
-    @Test
     public void getEventDateTime() {
         final LogbookOperationParameters params = LogbookParametersFactory.newLogbookOperationParameters();
         assertNotNull(params);
@@ -204,6 +168,19 @@ public class LogbookOperationParametersTest {
     public void testConstructorWithEmptyParameters() {
         final LogbookOperationParameters lop = new LogbookOperationParameters(new HashMap());
         assertEquals(true, lop.getMapParameters().isEmpty());
+    }
+
+    @Test
+    public void testConstructorAndFinalMessage() {
+        final LogbookOperationParameters lop = LogbookParametersFactory.newLogbookOperationParameters();
+        lop.setFinalStatus("handler", "subtask", StatusCode.STARTED, null, null);
+        assertEquals(StatusCode.STARTED, lop.getStatus());
+        lop.setFinalStatus("handler", "subtask", StatusCode.OK, " Detail=", "test");
+        assertEquals(StatusCode.OK, lop.getStatus());
+        lop.setFinalStatus("handler", null, StatusCode.KO, null, null);
+        assertEquals(StatusCode.KO, lop.getStatus());
+        lop.setFinalStatus("handler", null, StatusCode.FATAL, " Detail=", "test");
+        assertEquals(StatusCode.FATAL, lop.getStatus());
     }
 
 }

@@ -26,18 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server2.application.configuration;
 
+/**
+ * MongoDbNode class defining a mongo db node
+ */
 public class MongoDbNode {
 
     private String dbHost;
     private int dbPort;
-    
+
     /**
      * MongodbNode empty constructor for YAMLFactory
      */
     public MongoDbNode() {
         // empty
     }
-    
+
     /**
      * MongodbNode constructor with parameters
      * 
@@ -48,7 +51,7 @@ public class MongoDbNode {
         this.dbHost = dbHost;
         this.dbPort = dbPort;
     }
-    
+
     /**
      * @return the dbHost
      */

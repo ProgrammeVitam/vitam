@@ -27,46 +27,21 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 /**
  * Siegfield Client factory
  */
-public final class SiegfriedClientFactory {
-
-    /**
-     * Default client operation type
-     */
-    private static SiegfriedClientType defaultClientType;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SiegfriedClientFactory.class);
+public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> {
     private static final SiegfriedClientFactory Siegfried_CLIENT_FACTORY = new SiegfriedClientFactory();
-
-    private String server = "localhost";
-    private int port = VitamServerFactory.getDefaultPort();
+    private static final String RESOURCE_PATH = "/identify";
 
     private SiegfriedClientFactory() {
-        changeConfiguration(null, 0);
-    }
-
-    /**
-     * Set the SiegfriedClientFactory configuration
-     *
-     * @param type
-     * @param server hostname
-     * @param port port to use
-     * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
-     */
-    static final void setConfiguration(SiegfriedClientType type, String server, int port) {
-        changeDefaultClientType(type);
-        if (type == SiegfriedClientType.NORMAL) {
-            ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
-            ParametersChecker.checkValue("port", port, 1);
-        }
-        Siegfried_CLIENT_FACTORY.server = server;
-        Siegfried_CLIENT_FACTORY.port = port;
+        super(null, RESOURCE_PATH, true, false, false);
+        disableUseAuthorizationFilter();
     }
 
     /**
@@ -83,14 +58,14 @@ public final class SiegfriedClientFactory {
      *
      * @return the default Siegfried client
      */
-    public SiegfriedClient getSiegfriedClient() {
+    public SiegfriedClient getClient() {
         SiegfriedClient client;
-        switch (defaultClientType) {
+        switch (getVitamClientType()) {
             case MOCK:
                 client = new SiegfriedClientMock();
                 break;
-            case NORMAL:
-                client = new SiegfriedClientRest(server, port);
+            case PRODUCTION:
+                client = new SiegfriedClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Log type unknown");
@@ -99,56 +74,36 @@ public final class SiegfriedClientFactory {
     }
 
     /**
-     * Get the default Siegfried client type
-     *
-     * @return the default Siegfried client type
-     */
-    public static SiegfriedClientType getDefaultSiegfriedClientType() {
-        return defaultClientType;
-    }
-
-    /**
-     * Modify the default Siegfried client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(SiegfriedClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultClientType = type;
-    }
-
-    /**
      * Change client configuration from server/host params
      *
      * @param server the server param
      * @param port the port params
      */
-    public final void changeConfiguration(String server, int port) {
-        changeDefaultClientType(SiegfriedClientType.MOCK);
-
-        if (server == null) {
-            LOGGER.info("No configuration - use mock");
-        } else {
-            Siegfried_CLIENT_FACTORY.server = server;
-            Siegfried_CLIENT_FACTORY.port = port;
-            changeDefaultClientType(SiegfriedClientType.NORMAL);
+    final void changeConfiguration(String server, int port) {
+        if (server == null || server.isEmpty() || port <= 0) {
+            initialisation(null, getResourcePath());
+            return;
         }
+        initialisation(new ClientConfigurationImpl(server, port), getResourcePath());
     }
 
     /**
-     * enum to define client type
+     *
+     * @param server
+     * @param port
      */
-    public enum SiegfriedClientType {
-        /**
-         * To use only in MOCK: READ operations are not supported (default)
-         */
-        MOCK,
-        /**
-         * Use real service (need server to be set)
-         */
-        NORMAL
+    // TODO P2 should not be public (but IT test)
+    public static final void changeMode(String server, int port) {
+        getInstance().initialisation(new ClientConfigurationImpl(server, port), getInstance().getResourcePath());
     }
+
+    /**
+     *
+     * @param configuration null for MOCK
+     */
+    // TODO P2 should not be public (but IT test)
+    public static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
 }

@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * Parameters for the logbook operation
  */
 @JsonSerialize(using = LogbookParametersSerializer.class)
-public class LogbookLifeCycleUnitParameters extends AbstractParameters {
+public class LogbookLifeCycleUnitParameters extends LogbookLifeCycleParameters {
 
     /**
      * Constructor use by the factory to initialize the set of mandatories

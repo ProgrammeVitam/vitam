@@ -33,8 +33,11 @@ import static org.mockito.Mockito.mock;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +50,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -54,6 +59,10 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -80,13 +89,19 @@ public class TransferNotificationActionHandlerTest {
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;    
     private HandlerIO action;
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-            .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("containerName").setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
+    private List<IOParameter> in;
+    private List<IOParameter> out;
+    private GUID guid;
+    private WorkerParameters params;
 
     @Before
-    public void setUp() throws URISyntaxException, FileNotFoundException {
+    public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
+        guid = GUIDFactory.newGUID();
+        params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
+                .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
+        action = new HandlerIO(guid.getId(), "workerId");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -94,15 +109,26 @@ public class TransferNotificationActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
         mongoDbAccess = mock(LogbookDbAccess.class);
-        action = new HandlerIO("containerName");
-        action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourceFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_VERSION_BDO_MAP));
-        action.addInput(PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
+        in = new ArrayList<>();
+        for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
+            in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file" + i)));
+        }
+        action.addOutIOParameters(in);
+        action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
+        action.addOuputResult(1, PropertiesUtils.getResourceFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
+        action.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addOuputResult(3, PropertiesUtils.getResourceFile(BDO_TO_VERSION_BDO_MAP));
+        action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
+        action.reset();
+        out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/responseReply.xml")));
     }
 
-
+    @After
+    public void clean() {
+        action.close();
+    }
+    
     @Test
     public void givenXMLCreationWhenValidThenResponseOK()
         throws Exception {
@@ -121,8 +147,11 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doReturn(lifecycleAUCursor).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
@@ -143,9 +172,12 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doReturn(lifecycleAUCursor).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
 
@@ -159,9 +191,12 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doReturn(null).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     
@@ -175,9 +210,12 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doReturn(null).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
     
     @Test
@@ -190,9 +228,12 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doThrow(new LogbookDatabaseException("")).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
@@ -205,9 +246,12 @@ public class TransferNotificationActionHandlerTest {
         Mockito.doReturn(null).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+        action.reset();
+        action.addInIOParameters(in);
+        action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
     
     private static LogbookOperation getLogbookOperation() throws FileNotFoundException, IOException {

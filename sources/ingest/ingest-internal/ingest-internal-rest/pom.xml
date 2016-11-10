@@ -191,49 +191,6 @@
         <version>${project.version}</version>
     </dependency>
 
-    <dependency>
-        <groupId>org.glassfish.jersey</groupId>
-        <artifactId>jersey-bom</artifactId>
-        <version>${jersey.version}</version>
-        <type>pom</type>
-        <scope>provided</scope>
-    </dependency>
-    <dependency>
-        <groupId>javax.inject</groupId>
-        <artifactId>javax.inject</artifactId>
-        <version>${javax.inject.version}</version>
-    </dependency>
-    <!-- jetty -->
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <scope>compile</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-    </dependency>
-    <!-- jersey -->
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <scope>compile</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.core</groupId>
-        <artifactId>jersey-server</artifactId>
-        <version>${jersey.version}</version>
-    </dependency>
-
-    <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.simpleframework</groupId>
-        <artifactId>simple</artifactId>
-    </dependency>
-
     <!-- test -->
     <dependency>
         <groupId>org.assertj</groupId>
@@ -251,47 +208,8 @@
         <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.glassfish.jersey.test-framework</groupId>
-        <artifactId>jersey-test-framework-core</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-        <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-        <artifactId>jersey-test-framework-provider-jetty</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-http-server</artifactId>
-        <version>${grizzly.version}</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-http-server-core</artifactId>
-        <version>${grizzly.version}</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-rcm</artifactId>
-        <version>${grizzly.rcm.version}</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.grizzly</groupId>
-        <artifactId>grizzly-utils</artifactId>
-        <version>${grizzly.utils.version}</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
+        <artifactId>mockito-core</artifactId>
         <scope>test</scope>
     </dependency>
     <dependency>

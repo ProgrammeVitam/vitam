@@ -174,40 +174,6 @@ public class LogbookParametersFactory {
      *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
-     * @deprecated Use the other using more constrained values
-     */
-    @Deprecated
-    public static LogbookOperationParameters newLogbookOperationParameters(String eventIdentifier,
-        String eventType, String eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetailMessage,
-        String eventIdentifierRequest) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, outcome, eventTypeProcess);
-        final LogbookOperationParameters parameters = newLogbookOperationParameters();
-        return (LogbookOperationParameters) parameters
-            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier)
-            .putParameterValue(LogbookParameterName.eventType, eventType)
-            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess)
-            .setTypeProcess(eventTypeProcess)
-            .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
-    }
-
-    /**
-     * Get a new LogbookOperationParameters object
-     *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetailMessage
-     * @param eventIdentifierRequest
-     *
-     * @return the LogbookOperationParameters
-     * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,

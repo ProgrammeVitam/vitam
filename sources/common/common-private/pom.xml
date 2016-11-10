@@ -8,12 +8,6 @@
 	</parent>
 	<artifactId>common-private</artifactId>
 	<name>common-private</name>
-	<properties>
-		<metrics.version>3.1.2</metrics.version>
-		<metrics.jersey.version>3.1.2</metrics.jersey.version>
-		<metrics.jvm.version>3.1.2</metrics.jvm.version>
-		<metrics.elastic.version>2.2.0</metrics.elastic.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -59,11 +53,6 @@
 					<artifactId>jetty-util</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.connectors</groupId>
-			<artifactId>jersey-jetty-connector</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
@@ -130,7 +119,7 @@
 
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -153,11 +142,6 @@
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito-common</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>cglib</groupId>
-			<artifactId>cglib</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -202,11 +186,10 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
+		<!-- Keep for test case -->
 		<dependency>
-			<!-- Keep for test case -->
 			<groupId>org.glassfish.jersey.connectors</groupId>
 			<artifactId>jersey-jetty-connector</artifactId>
-			<!-- <scope>test</scope> -->
 		</dependency>
 		<dependency>
 			<!-- Keep for test case -->
@@ -231,27 +214,22 @@
         <dependency>
         	<groupId>io.dropwizard.metrics</groupId>
         	<artifactId>metrics-core</artifactId>
-        	<version>${metrics.version}</version>
     	</dependency>
     	<dependency>
     		<groupId>io.dropwizard.metrics</groupId>
     		<artifactId>metrics-jersey2</artifactId>
-        	<version>${metrics.jersey.version}</version>
     	</dependency>
     	<dependency>
     		<groupId>io.dropwizard.metrics</groupId>
     		<artifactId>metrics-jvm</artifactId>
-    		<version>${metrics.jvm.version}</version>
 		</dependency>
     	<dependency>
     		<groupId>org.elasticsearch</groupId>
     		<artifactId>metrics-elasticsearch-reporter</artifactId>
-    		<version>${metrics.elastic.version}</version>
     	</dependency>
     	<dependency>
     		<groupId>org.glassfish.jersey.test-framework.providers</groupId>
     		<artifactId>jersey-test-framework-provider-jetty</artifactId>
-    		<version>2.23.2</version>
     	</dependency>
 		
 	</dependencies>

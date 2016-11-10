@@ -48,6 +48,7 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les vale
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
    "days_to_delete_local","Période de grâce des log VITAM - logback (valeur en jours)",""
    "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
+   "log_level","Niveau de log de logback","WARN"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :

@@ -60,8 +60,10 @@
   when:
     - "authent_enabled.stderr == 'exception: login failed'"
   with_items:
-    - Vitam
     - admin
+    - logbook
+    - masterdata
+    - metadata
 
 # Activate securite on mongo instances
 
@@ -155,8 +157,11 @@
   # become_user: "{{ mongo_user}}"
   run_once: true
   with_items:
-    - Vitam
     - admin
+    - logbook
+    - masterdata
+    - metadata
+  no_log: true
 
 # Delete the mongodb scripts
 

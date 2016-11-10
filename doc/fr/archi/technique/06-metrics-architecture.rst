@@ -18,28 +18,8 @@ On peut noter les composants suivants :
 * Stockage des métriques : il s'agit du composant stockant les métriques (de manière plus ou moins requêtable).
 * Visualisation des métriques : il s'agit du composant (souvent IHM) qui permet la recherche et la visualisation des métriques. 
 
-.. L'architecture générique peut être vue de la manière suivante : 
-
-.. .figure:: images/gestion_logs.png
-    :align: center
-
-..    Architecture générique d'un système de gestion de logs.
-
-..    VITAM n'implémente qu'une sous partie de cette architecture générique (la centralisation / stockage / visualisation), mais permet l'intégration d'un composant externe de gestion de logs.
-
-
 Choix des implémentations
 =========================
-
-.. De manière générale, l'implémentation s'appuie fortement sur une architecture syslog.
-
-.. .figure:: images/technical-architecture-exploitation.*
-    :align: center
-    :height: 15 cm
-
-..    Architecture du sous-système de centralisation des logs
-
-
 
 Enregistreur de métriques
 -------------------------
@@ -66,10 +46,10 @@ Reporters de métriques
 
 Dans le système VITAM, un ou plusieurs reporters de métriques peuvent être utilisés. A ce jour, il existe deux reporters différents :
 
-* Un reporter Console Java (sortie standard de l'application).
+* Un reporter LogBack
 * Un reporter ElasticSearch issue de la librairie `metrics elasticsearch reporter <https://github.com/elastic/elasticsearch-metrics-reporter-java>`_.
 
-Les reporters sont utilisés dans les composants logiciel Java. Ils sont en charge de récupérer les valeurs de toutes les métriques enregistrées et de les transmettre sur différents canaux; ici la Console Java ou une base de donnée ElasticSearch. 
+Les reporters sont utilisés dans les composants logiciel Java. Ils sont en charge de récupérer les valeurs de toutes les métriques enregistrées et de les transmettre sur différents canaux; ici la LogBack ou une base de donnée ElasticSearch. 
 
 
 Stockage des métriques

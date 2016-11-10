@@ -238,35 +238,6 @@ public class IngestInternalResourceTest {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
-    // FIXME P0 to be removed
-    @Test
-    public void givenAllServicesAvailableAndNoVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
-        reset(workspaceClient);
-        reset(processingClient);
-
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.anyObject(),
-            Mockito.anyObject());
-
-        final GUID processId = GUIDFactory.newGUID();
-        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
-        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject());
-
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI);
-
-        inputStream.close();
-    }
-
     @Test
     public void givenAllServicesAvailableAndVirusWhenUploadSipAsAsyncStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
@@ -310,9 +281,9 @@ public class IngestInternalResourceTest {
         reset(processingClient);
 
         RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .when().post(UPLOAD_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .body(operationList).contentType(MediaType.APPLICATION_JSON)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
@@ -331,13 +302,11 @@ public class IngestInternalResourceTest {
         final InputStream inputStreamZip =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_mauvais_format", inputStreamZip)
-            .when().post(UPLOAD_URI)
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStreamZip).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-        inputStreamZip.close();
     }
 
     @Test
@@ -350,13 +319,10 @@ public class IngestInternalResourceTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .when().post(UPLOAD_URI)
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-        inputStream.close();
 
     }
 
@@ -370,13 +336,10 @@ public class IngestInternalResourceTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when().post(UPLOAD_URI);
-
-        inputStream.close();
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
 
@@ -391,11 +354,10 @@ public class IngestInternalResourceTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn();
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -403,17 +365,16 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doThrow(new ProcessingInternalServerException("Test")).when(processingClient).executeVitamProcess(
+        Mockito.doThrow(new ProcessingInternalServerException("Test1")).when(processingClient).executeVitamProcess(
             Matchers.anyObject(),
             Matchers.anyObject());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when().post(UPLOAD_URI);
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -426,11 +387,10 @@ public class IngestInternalResourceTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
-            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when().post(UPLOAD_URI);
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
 }

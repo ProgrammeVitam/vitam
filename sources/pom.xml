@@ -111,47 +111,41 @@
 		<!-- <sonar.branch>1.0</sonar.branch> -->
 		<!-- <sonar.jacoco.reportPath>${project.build.directory}/jacoco-unit.exec</sonar.jacoco.reportPath> -->
 		<!-- <sonar.jacoco.itReportPath>${project.build.directory}/jacoco-it.exec</sonar.jacoco.itReportPath> -->
-		<!-- <sonar.jacoco.includes></sonar.jacoco.includes> -->
+		<!-- <sonar.jaccommons-iooco.includes></sonar.jacoco.includes> -->
 		<!-- <sonar.jacoco.excludes></sonar.jacoco.excludes> -->
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Dependencies versions -->
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-		<jacoco-maven-plugin.version>0.7.6.201602180812</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.7.7.201606060606</jacoco-maven-plugin.version>
 		<slf4j.version>1.7.21</slf4j.version>
 		<logback.version>1.1.7</logback.version>
-		<jersey.version>2.23.2</jersey.version>
+		<jersey.version>2.24</jersey.version>
 		<jclouds.version>1.9.2</jclouds.version>
+		<!-- Cannot pass to guava version 20.0 because jclouds use deprecated method removed in 20.0 release
+		(isAssignableFrom) -->
 		<guava.version>19.0</guava.version>
 		<log4j.version>1.2.17</log4j.version>
 		<commons-logging.version>1.2</commons-logging.version>
-		<!-- 2.5? -->
+		<!-- TODO: pass to 2.5 after beta release -->
 		<commons-io.version>1.3.2</commons-io.version>
-		<!-- une seule version ? -->
-		<commons-lang3>3.4</commons-lang3>
+		<!-- TODO: after beta release, try to keep only one version -->
+		<commons-lang3>3.5</commons-lang3>
+		<!-- TODO: after beta release, try to keep only one version -->
 		<commons-lang.version>2.6</commons-lang.version>
 		<easymock.version>3.4</easymock.version>
-		<jmeter.version>2.11</jmeter.version>
 		<!-- Will be updated to 2.8 when moving to ES 2.4 or 5.0 -->
 		<jackson.version>2.7.8</jackson.version>
 		<!-- Move to 2.4 / 5.0 will move too Jackson https://www.elastic.co/guide/en/elasticsearch/reference/2.4/release-notes-2.4.0.html -->
 		<elasticsearch.version>2.3.5</elasticsearch.version>
 		<mongo.version>3.3.0</mongo.version>
-		<!-- 1.1.6 ? -->
-		<testcontainers.version>1.0.4</testcontainers.version>
-		<yamlbeans.version>1.09</yamlbeans.version>
 		<apache-shiro.version>1.3.2</apache-shiro.version>
 		<jetty.version>9.3.13.v20161014</jetty.version>
-		<!-- 3.5.2 -->
-		<assertj.version>2.4.0</assertj.version>
+		<assertj.version>3.5.2</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
 		<junit.version>4.12</junit.version>
+		<!-- TODO: after beta, see why 2.2.12 release does not work correctly -->
 		<mockito.version>1.10.19</mockito.version>
-		<grizzly.version>2.3.28</grizzly.version>
-		<grizzly.rcm.version>2.3.4</grizzly.rcm.version>
-		<grizzly.utils.version>2.0.0-RC3</grizzly.utils.version>
-		<org.simpleframework>5.1.6</org.simpleframework>
-		<mockrunner.servlet.version>1.1.1</mockrunner.servlet.version>
 		<flapdoodle.version>1.50.5</flapdoodle.version>
 		<yandex.version>1.19</yandex.version>
 		<staxon.version>1.3</staxon.version>
@@ -159,8 +153,7 @@
 		<org.json.version>20160810</org.json.version>
 		<jhades.version>1.0.4</jhades.version>
 		<javax.servlet.version>3.1.0</javax.servlet.version>
-		<javax.inject.version>1</javax.inject.version>
-		<powermock.version>1.6.5</powermock.version>
+		<powermock.version>1.6.6</powermock.version>
 		<json-sanitize.version>1.1</json-sanitize.version>
 		<commons-collections4.version>4.1</commons-collections4.version>
 		<unix.user>vitam</unix.user>
@@ -169,18 +162,20 @@
 		<!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
 		<xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
 		<xml-resolver.version>1.2</xml-resolver.version>
-		<!-- 3.2.4 ? -->
-		<cglib.version>2.2.2</cglib.version>
 		<opencsv.version>2.3</opencsv.version>
 		<commons-csv.version>1.4</commons-csv.version>
 		<bouncycastle.version>1.55</bouncycastle.version>
-		<!-- 1.3.0 ? -->
-		<diffutils.version>1.2.1</diffutils.version>
+		<diffutils.version>1.3.0</diffutils.version>
 		<jaxb2.version>1.0.2</jaxb2.version>
 		<httpclient.version>4.5.2</httpclient.version>
-		<netty.version>4.1.5.Final</netty.version>
+		<netty.version>4.1.6.Final</netty.version>
 		<commons-compress.version>1.12</commons-compress.version>
 		<easystream.version>1.2.15</easystream.version>
+		<!-- Metrics -->
+		<metrics.version>3.1.2</metrics.version>
+		<metrics.jersey.version>3.1.2</metrics.jersey.version>
+		<metrics.jvm.version>3.1.2</metrics.jvm.version>
+		<metrics.elastic.version>2.2.0</metrics.elastic.version>
 		<skipITs>false</skipITs>
 	</properties>
 
@@ -636,6 +631,11 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>2.3</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -669,7 +669,6 @@
 				<artifactId>mongo-java-driver</artifactId>
 				<version>${mongo.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
@@ -720,13 +719,16 @@
 				<artifactId>easystream</artifactId>
 				<version>${easystream.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>de.odysseus.staxon</groupId>
 				<artifactId>staxon</artifactId>
 				<version>${staxon.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-server</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.glassfish.jersey.core</groupId>
 				<artifactId>jersey-client</artifactId>
@@ -758,7 +760,6 @@
 				<artifactId>jersey-media-json-jackson</artifactId>
 				<version>${jersey.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-multipart</artifactId>
@@ -800,11 +801,6 @@
 				<version>${jetty.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-io</artifactId>
-				<version>${commons-io.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${javax.servlet.version}</version>
@@ -814,32 +810,35 @@
 				<artifactId>httpclient</artifactId>
 				<version>${httpclient.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>${commons-lang3}</version>
 			</dependency>
 			<dependency>
-				<!-- Keep for test case -->
-				<groupId>org.glassfish.jersey.connectors</groupId>
-				<artifactId>jersey-grizzly-connector</artifactId>
-				<version>${jersey.version}</version>
-				<scope>test</scope>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
 			</dependency>
 			<dependency>
-				<!-- Keep for test case -->
-				<groupId>org.glassfish.jersey.connectors</groupId>
-				<artifactId>jersey-netty-connector</artifactId>
-				<version>${jersey.version}</version>
-				<scope>test</scope>
+				<groupId>net.sf.opencsv</groupId>
+				<artifactId>opencsv</artifactId>
+				<version>${opencsv.version}</version>
 			</dependency>
 			<dependency>
-				<!-- Keep for test case -->
-				<groupId>io.netty</groupId>
-				<artifactId>netty-all</artifactId>
-				<version>${netty.version}</version>
-				<scope>test</scope>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-csv</artifactId>
+				<version>${commons-csv.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-csv</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
 			</dependency>
 
 			<!-- ########################## Security ########################## -->
@@ -887,9 +886,7 @@
 				<artifactId>xml-resolver</artifactId>
 				<version>${xml-resolver.version}</version>
 			</dependency>
-
 			<dependency>
-
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk15on</artifactId>
 				<version>${bouncycastle.version}</version>
@@ -947,18 +944,55 @@
 				<optional>true</optional>
 			</dependency>
 
+			<!-- ####################### Metrics ####################### -->
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-core</artifactId>
+				<version>${metrics.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-jersey2</artifactId>
+				<version>${metrics.jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.dropwizard.metrics</groupId>
+				<artifactId>metrics-jvm</artifactId>
+				<version>${metrics.jvm.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.elasticsearch</groupId>
+				<artifactId>metrics-elasticsearch-reporter</artifactId>
+				<version>${metrics.elastic.version}</version>
+			</dependency>
+
 			<!-- ####################### Tests ####################### -->
 
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-grizzly-connector</artifactId>
+				<version>${jersey.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-netty-connector</artifactId>
+				<version>${jersey.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<!-- Keep for test case -->
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>${mockito.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -978,23 +1012,6 @@
 				<artifactId>easymock</artifactId>
 				<version>${easymock.version}</version>
 				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.jmeter</groupId>
-				<artifactId>ApacheJMeter_java</artifactId>
-				<version>${jmeter.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>slf4j-nop</artifactId>
-						<groupId>org.slf4j</groupId>
-					</exclusion>
-				</exclusions>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers</artifactId>
-				<version>${testcontainers.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
@@ -1102,46 +1119,6 @@
 				<artifactId>jhades</artifactId>
 				<version>${jhades.version}</version>
 				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-collections4</artifactId>
-				<version>${commons-collections4.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>cglib</groupId>
-				<artifactId>cglib</artifactId>
-				<version>${cglib.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/net.sf.opencsv/opencsv -->
-			<dependency>
-				<groupId>net.sf.opencsv</groupId>
-				<artifactId>opencsv</artifactId>
-				<version>${opencsv.version}</version>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-csv</artifactId>
-				<version>${commons-csv.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.fasterxml.jackson.dataformat</groupId>
-				<artifactId>jackson-dataformat-csv</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-compress</artifactId>
-				<version>${commons-compress.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.simpleframework</groupId>
-				<artifactId>simple</artifactId>
-				<version>${org.simpleframework}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

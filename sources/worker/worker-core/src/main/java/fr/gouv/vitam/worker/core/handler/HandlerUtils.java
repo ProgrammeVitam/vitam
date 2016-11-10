@@ -39,11 +39,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
  * Handler Utils class
@@ -53,30 +51,26 @@ public class HandlerUtils {
     private HandlerUtils() {
         //private constructor
     }
-    
+
     /**
-     * @param containerId
+     * Save the given map as specified by the rank output argument
+     * 
+     * @param handlerIO 
      * @param map
-     * @param fileName
-     * @param client
+     * @param rank 
      * @param removeTmpFile
      * @throws IOException
      * @throws ProcessingException
      */
-    public static void saveMap(String containerId, Map<String, ?> map, String fileName, WorkspaceClient client,
-        boolean removeTmpFile)
+    public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile)
         throws IOException, ProcessingException {
-
-        final String tmpFilePath = containerId + fileName.split("/")[1];
-        final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(tmpFilePath);
-
+        final String tmpFilePath = handlerIO.getOutput(rank).getPath();
+        final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
         firstMapTmpFileWriter.write(JsonHandler.prettyPrint(map));
         firstMapTmpFileWriter.flush();
         firstMapTmpFileWriter.close();
 
-        HandlerIO.transferFileFromTmpIntoWorkspace(client, tmpFilePath, fileName, containerId,
-            removeTmpFile);
+        handlerIO.addOuputResult(rank, firstMapTmpFile, removeTmpFile);
     }
 }

@@ -8,13 +8,7 @@
 	</parent>
 	<artifactId>processing-management-client</artifactId>
 	<name>Processing Management Client</name>
-	
-    <build>
-		<pluginManagement>
-			<plugins>
-			</plugins>
-		</pluginManagement>
-	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -54,7 +48,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

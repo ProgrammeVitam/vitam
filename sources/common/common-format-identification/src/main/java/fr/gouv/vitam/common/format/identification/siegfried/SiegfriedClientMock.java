@@ -30,6 +30,7 @@ import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -37,7 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * Mock client implementation for siegfried
  */
-class SiegfriedClientMock implements SiegfriedClient {
+class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient {
 
     @Override
     public JsonNode status(Path filePath)

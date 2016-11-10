@@ -28,7 +28,10 @@ package fr.gouv.vitam.processing.engine.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -53,6 +56,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -232,6 +236,51 @@ public class ProcessEngineImpl implements ProcessEngine {
         workflowStatus.increment(stepResponse.getGlobalStatus());
 
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        // FIXME P0 here replace the loop on itemStatus by this one in order to have start/status for Handler
+        /*for (Action action : step.getActions()) {
+            String hanlderId = action.getActionDefinition().getActionKey();
+            final LogbookOperationParameters actionParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    GUIDFactory.newEventGUID(tenantId),
+                    hanlderId,
+                    GUIDReader.getGUID(workParams.getContainerName()),
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(hanlderId, StatusCode.STARTED),
+                    GUIDReader.getGUID(workParams.getContainerName()));
+            helper.updateDelegate(actionParameters);
+            // FIXME P0: each handler should have a list itself => CompositeItemStatus
+            ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
+            if (itemStatus instanceOf CompositeItemStatus) {
+                CompositeItemStatus actionStatus = (CompositeItemStatus) itemStatus;
+                for (ItemStatus sub : actionStatus.getItemsStatus().values()) {
+                    final LogbookOperationParameters sublogbook =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(tenantId),
+                            actionStatus.getItemId(),
+                            GUIDReader.getGUID(workParams.getContainerName()),
+                            LogbookTypeProcess.INGEST,
+                            sub.getGlobalStatus(),
+                            VitamLogbookMessages.getCodeOp(sub.getItemId(),
+                                sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage(),
+                            GUIDReader.getGUID(workParams.getContainerName()));
+                    helper.updateDelegate(sublogbook);
+                }
+            } else {
+                final LogbookOperationParameters sublogbook =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDFactory.newEventGUID(tenantId),
+                        actionStatus.getItemId(),
+                        GUIDReader.getGUID(workParams.getContainerName()),
+                        LogbookTypeProcess.INGEST,
+                        itemStatus.getGlobalStatus(),
+                        VitamLogbookMessages.getCodeOp(itemStatus.getItemId(),
+                            itemStatus.getGlobalStatus()) + " Detail= " + itemStatus.computeStatusMeterMessage(),
+                        GUIDReader.getGUID(workParams.getContainerName()));
+                helper.updateDelegate(sublogbook);
+            }
+        }*/
+        // FIXME P0 this one should be removed once fixed
         for (ItemStatus actionStatus : stepResponse.getItemsStatus().values()) {
             final LogbookOperationParameters actionParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(

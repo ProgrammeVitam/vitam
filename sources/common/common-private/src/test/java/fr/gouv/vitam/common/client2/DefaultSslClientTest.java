@@ -47,8 +47,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.DefaultClient;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.client2.configuration.SSLConfiguration;
 import fr.gouv.vitam.common.client2.configuration.SSLKey;
 import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
@@ -81,7 +79,6 @@ public class DefaultSslClientTest {
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
     private static class SslResource extends ApplicationStatusResource {
-
         // Empty
     }
 

@@ -1,5 +1,5 @@
 {
-  "title": "FileDescriptorRatioGauge",
+  "title": "Ratio FileDescriptor max / FileDescriptor ouverts",
   "visState": "{\"title\":\"FileDescriptorRatioGauge\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"File descriptor ratio\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",

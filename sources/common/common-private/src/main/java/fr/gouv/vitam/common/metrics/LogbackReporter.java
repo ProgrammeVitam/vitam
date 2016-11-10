@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.ConsoleReporter;
@@ -50,6 +51,7 @@ import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -58,6 +60,19 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * A reporter which outputs measurements to a {@link PrintStream}, like {@code System.out}.
  */
 public class LogbackReporter extends ScheduledReporter {
+    // TODO Should this logger really be static ? (same one for ALL the metrics) perhaps not...
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbackReporter.class);
+
+    private static final int CONSOLE_WIDTH = 80;
+    private static final AtomicInteger UNIQUE_RANK = new AtomicInteger(0);
+    
+    private final PrintStream output;
+    private final ByteArrayOutputStream byteArrayOutput;
+    private final Locale locale;
+    private final Clock clock;
+    private final DateFormat dateFormat;
+    private final VitamLogger privateLogger;
+
     /**
      * Returns a new {@link Builder} for {@link ConsoleReporter}.
      *
@@ -188,17 +203,6 @@ public class LogbackReporter extends ScheduledReporter {
         }
     }
 
-    private static final int CONSOLE_WIDTH = 80;
-    // TODO Should this logger really be static ? (same one for ALL the metrics) perhaps not...
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbackReporter.class);
-    private static final String ENCODING_CHARSET = "utf-8";
-
-    private final PrintStream output;
-    private final ByteArrayOutputStream byteArrayOutput;
-    private final Locale locale;
-    private final Clock clock;
-    private final DateFormat dateFormat;
-
     private LogbackReporter(MetricRegistry registry,
         Locale locale,
         Clock clock,
@@ -216,8 +220,8 @@ public class LogbackReporter extends ScheduledReporter {
             DateFormat.MEDIUM,
             locale);
         dateFormat.setTimeZone(timeZone);
-        // TODO Conflicts appears when creating two reporters with different log levels because the logger is static
-        LOGGER.setLevel(logLevel);
+        privateLogger = VitamLoggerFactory.getInstance("logback-reporter" + UNIQUE_RANK.incrementAndGet());
+        privateLogger.setLevel(logLevel);
     }
 
     @SuppressWarnings("rawtypes")
@@ -279,8 +283,8 @@ public class LogbackReporter extends ScheduledReporter {
 
         output.println();
         try {
-            final String msg = byteArrayOutput.toString(ENCODING_CHARSET);
-            LOGGER.log(LOGGER.getLevel(), msg);
+            final String msg = byteArrayOutput.toString(CharsetUtils.UTF_8);
+            privateLogger.log(privateLogger.getLevel(), msg);
         } catch (final UnsupportedEncodingException e) {
             LOGGER.error(e);
         }

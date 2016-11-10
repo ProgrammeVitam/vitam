@@ -10,7 +10,8 @@ uses:
 traits:
 
   IngestListingResponse:
-    description: Request that will return the response model for Ingest listing
+    description: |
+      **UNSUPPORTED** Request that will return the response model for Ingest listing
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200,
       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
@@ -46,17 +47,44 @@ traits:
         description: Body containing the SIP in ZIP format
       application/x-tar:
         description: Body containing the SIP in TAR format
+      application/x-gzip:
+        description: Body containing the SIP in TAR.GZ format
+      application/x-bzip2:
+        description: Body containing the SIP in TAR.BZ2 format
     responses:
       202:
-        description: Returns the status of ingest operation accepted
+        description: |
+          **UNSUPPORTED** Returns the status of ingest operation accepted
         body:
           application/json:
             description: Ingest operation accepted
             schema: StandardTypes.AsyncStatus
             example: !include examples/ingests.json
+      200:
+        description: Returns the final result of the Ingest operation in OK status
+        body:
+          application/xml:
+            description: Final Ingest report
+            schema: IngestTypes.ArchiveTransferReply
+            example: !include examples/sedaArchiveTransferReply.xml
+      206:
+        description: Returns the final result of the Ingest operation in Warning status
+        body:
+          application/xml:
+            description: Final Ingest report
+            schema: IngestTypes.ArchiveTransferReply
+            example: !include examples/sedaArchiveTransferReply.xml
+      400:
+        description: Returns the final result of the Ingest operation in KO status
+        body:
+          application/xml:
+            description: Final Ingest report
+            schema: IngestTypes.ArchiveTransferReply
+            example: !include examples/sedaArchiveTransferReplyKO.xml
 
   IngestPoolingResponse:
-    description: Response model for Ingest pooling
+    description: |
+      **UNSUPPORTED** Response model for Ingest pooling
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
       StandardTraits.StandardHeader202, StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
@@ -70,7 +98,8 @@ traits:
             example: !include examples/ingests.json
 
   IngestFinalResponse:
-    description: Request that will return the final response model for Ingest
+    description: |
+      **UNSUPPORTED** Request that will return the final response model for Ingest
     is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]

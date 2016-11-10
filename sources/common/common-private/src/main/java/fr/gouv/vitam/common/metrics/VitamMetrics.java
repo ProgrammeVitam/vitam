@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.metrics;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +57,7 @@ import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfig
  */
 public class VitamMetrics {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetrics.class);
-    private static final String ELASTICSEARCH_DATE_FORMAT = "YY.MM.dd";
+    private static final String ELASTICSEARCH_DATE_FORMAT = "YYYY.MM.dd";
 
     private final VitamMetricsType type;
     private final int interval;
@@ -69,9 +67,11 @@ public class VitamMetrics {
     private boolean isReporting = false;
 
     /**
-     * A constructor to instantiate a {@see VitamMetrics} with the configuration object
-     * {@link VitamMetricConfiguration}. The configuration object must be returned from the method {link
+     * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricConfiguration}
+     * . The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
+     * 
+     * @param type
      *
      * @param configuration {@link VitamMetricConfiguration}
      */
@@ -133,37 +133,31 @@ public class VitamMetrics {
     }
 
     private void configureLogbackReporter(VitamMetricsConfiguration configuration) {
-        reporter = LogbackReporter.forRegistry(registry).build();
+        reporter = LogbackReporter.forRegistry(registry)
+            .logLevel(configuration.getMetricLogLevel())
+            .build();
     }
 
     private void configureElasticsearchReporter(VitamMetricsConfiguration configuration) {
         final Map<String, Object> additionalFields = new HashMap<>();
 
-        additionalFields.put("hostname", ServerIdentity.getInstance().getName());
-        additionalFields.put("role", ServerIdentity.getInstance().getRole());
-        try {
-            checkElasticsearchConnection(configuration.getMetricReporterHost(), configuration.getMetricReporterPort());
-            reporter = ElasticsearchReporter.forRegistry(registry)
-                .hosts(configuration.getMetricReporterHost() + ":" + configuration.getMetricReporterPort())
-                .index(type.getElasticsearchIndex())
-                .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
-                .additionalFields(additionalFields)
-                .build();
-        } catch (final IOException e) {
-            LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
+        if (configuration.getMetricReporterHosts().length == 0) {
+            LOGGER.warn("Empty list of ElasticSearch hosts");
         }
-    }
-
-    private void checkElasticsearchConnection(final String host, final int port) throws IOException {
-        final URL templateUrl = new URL("http://" + host + ":" + port + "/");
-        final HttpURLConnection connection = (HttpURLConnection) templateUrl.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(200);
-        connection.connect();
-        // Only by calling getResponseCode causes the connection to throw an exception if the host does not exists.
-        connection.getResponseCode();
-        connection.disconnect();
+        else {
+            additionalFields.put("hostname", ServerIdentity.getInstance().getName());
+            additionalFields.put("role", ServerIdentity.getInstance().getRole());
+            try {
+                reporter = ElasticsearchReporter.forRegistry(registry)
+                    .hosts(configuration.getMetricReporterHosts())
+                    .index(type.getElasticsearchIndex())
+                    .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
+                    .additionalFields(additionalFields)
+                    .build();
+            } catch (final IOException e) {
+                LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
+            }
+        }
     }
 
     private void configureJVMMetrics() {

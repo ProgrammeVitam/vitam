@@ -1,7 +1,7 @@
 #%RAML 1.0
-title: API-Vitam Version Alpha - Access
+title: API-Vitam Version Beta - Access
 version: v1
-baseUri: https://api.vitam.gouv.fr/{version}
+baseUri: https://api.vitam.gouv.fr/access-external/{version}
 protocols: [ HTTPS ]
 
 uses:
@@ -9,12 +9,7 @@ uses:
   StandardTraits: libraries/StandardTraits.raml
   AccessTypes: libraries/AccessTypes.raml
   AccessTraits: libraries/AccessTraits.raml
-
-securitySchemes:
-  Vitam: !include securitySchemes/SecuritySchemeVitam.raml
-  VitamMock: !include securitySchemes/SecuritySchemeVitamMock.raml
-
-securedBy: [Vitam, VitamMock]
+  RegisterTraits: libraries/RegisterTraits.raml
 
 mediaType: application/json
 
@@ -23,38 +18,38 @@ types:
     type: string
 
 documentation:
+  - title: Avertissements
+    content: !include docs-fr/avertissement.md
+
   - title: API Access
     content: !include docs-fr/access.md
 
-  - title: Conventions REST Générales
-    content: !include docs-fr/standard.md
+  - title: API Registre des fonds
+    content: !include docs-fr/access-register.md
 
-  - title: DSL Vitam
-    content: !include docs-fr/dsl.md
-
-  - title: Champs de l'étude Units
+  - title: Champs d'application sur les Units
     content: |
-      Le principe est le suivant:
-        - Pas de POST (sauf X-Http-Method-Override: GET) car ceci relève de l'entrée
+      Les principes sont les suivants :
+        - Pas de POST (sauf *X-Http-Method-Override: GET*) car ceci relève de l'entrée
         - Le PUT est utilisé pour réaliser un update partiel
         - Pas de DELETE car ceci relève de l'élimination
         - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
         - Un seul Object par Unit max
         - Une requête depuis un Unit signifie recherche relative depuis celui-ci (roots = this)
         - Accept: **application/json** signifie les métadonnées au format Json
-        - Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
+        - (**UNSUPPORTED**) Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
         - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
-  - title: Champs de l'étude Objects
+  - title: Champs d'application sur les Objects
     content: |
-      Le principe proposé serait le suivant:
+      Les principes sont les suivants :
         - Object signifie ObjectGroup en masquant la complexité ObjectGroup/Object
-        - Pas de POST (sauf X-Http-Method-Override: GET) car ceci relève de l'entrée
+        - Pas de POST (sauf *X-Http-Method-Override: GET*) car ceci relève de l'entrée
         - Pas de DELETE car ceci relève de l'élimination
         - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
         - Une requête depuis un object signifie recherche relative depuis celui-ci (roots = this)
         - Accept: **application/json** signifie les métadonnées au format Json
-        - Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
+        - (**UNSUPPORTED**) Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
         - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
 /units:
@@ -73,7 +68,8 @@ documentation:
       X-Http-Method-Override:
         required: true
   put:
-    description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request.
+    description: |
+      **UNSUPPORTED** Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request.
     is: [AccessTraits.AccessUpdateUnitResponse]
 
   /{idu}:
@@ -92,7 +88,8 @@ documentation:
         X-Http-Method-Override:
           required: true
     head:
-      description: Test the existence of this Unit
+      description: |
+        **UNSUPPORTED** Test the existence of this Unit
       is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeadHeader,
         StandardTraits.StandardHeader204, StandardTraits.StandardHeader404,
         StandardTraits.StandardHeader417]
@@ -116,7 +113,8 @@ documentation:
           X-Http-Method-Override:
             required: true
       head:
-        description: Test the existence of this Object
+        description: |
+          **UNSUPPORTED** Test the existence of this Object
         is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
         StandardTraits.StandardHeader204,
         StandardTraits.StandardHeader417]
@@ -153,12 +151,62 @@ documentation:
         X-Http-Method-Override:
           required: true
     head:
-      description: Test the existence of this Object
+      description: |
+        **UNSUPPORTED** Test the existence of this Object
       is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
       StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader417]
 
+
+/accession-register:
+  displayName: AccessionRegisters
+  description: |
+   **ALPHA version** API qui définit les requêtes pour accéder au Registre des Fonds.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de registres selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Request that will return results composed of AccessionRegister
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Request that will return results composed of AccessionRegister, the request must use POST with X-Http-Method-Override: GET.
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+
+  /{idu}:
+    displayName: AccessionRegister
+    description: |
+     **UNSUPPORTED** API qui définit les requêtes pour accéder à 1 Résumé d'un Fond dans le Registre des Fonds.
+    get:
+      description: |
+        **UNSUPPORTED** Request that will return result composed of 1 AccessionRegister
+      is: [RegisterTraits.RegisterItemResponse]
+    post:
+      description: |
+        **UNSUPPORTED** Request that will return result of 1 AccessionRegister. The request is using POST with X-Http-Method-Override: GET
+      is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+
+    /accession-register-detail:
+      displayName: AccessionRegisterDetail
+      description: |
+       **ALPHA version** API qui définit les requêtes pour accéder au détail d'un Fond dans le Registre des Fonds.
+      get:
+        description: Request that will return result composed of 1 AccessionRegisterDetail
+        is: [RegisterTraits.RegisterListingResponse]
+      post:
+        description: |
+          Request that will return result of all AccessionRegisterDetail of one AccessionRegister. The request is using POST with X-Http-Method-Override: GET
+        is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
+        headers:
+          X-Http-Method-Override:
+            required: true
+
 /status:
   get:
-    is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
+    is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]

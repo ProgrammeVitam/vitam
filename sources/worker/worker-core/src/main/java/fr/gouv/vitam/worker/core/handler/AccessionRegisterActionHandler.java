@@ -28,10 +28,12 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -68,7 +70,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIO handlerIO;
 
-    private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
+    private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
 
     public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
@@ -82,7 +84,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
      */
     public AccessionRegisterActionHandler() {
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
-            handlerInitialIOList.addInput(File.class);
+            handlerInitialIOList.add(File.class);
         }
     }
 
@@ -128,9 +130,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, handlerInitialIOList)) {
+        if (! handler.checkHandlerIO(0, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
         }
     }
@@ -138,18 +138,17 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private AccessionRegisterDetail generateAccessionRegister(WorkerParameters params) throws ProcessingException {
         AccessionRegisterDetail register = new AccessionRegisterDetail();
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        try {
-            final InputStream archiveUnitMapStream =
-                new FileInputStream((File) handlerIO.getInput().get(ARCHIVE_UNIT_MAP_RANK));
+        try (final InputStream archiveUnitMapStream =
+                new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
-                new FileInputStream((File) handlerIO.getInput().get(OBJECTGOUP_MAP_RANK));
+                new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput().get(BDO_TO_VERSION_BDO_MAP_RANK));
+                new FileInputStream((File) handlerIO.getInput(BDO_TO_VERSION_BDO_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handlerIO.getInput().get(SEDA_PARAMETERS_RANK))
+                JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
@@ -197,7 +196,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 .setObjectSize(new RegisterValueDetail()
                     .setTotal(objectsSizeInSip)
                     .setRemained(objectsSizeInSip));
-        } catch (FileNotFoundException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
         }

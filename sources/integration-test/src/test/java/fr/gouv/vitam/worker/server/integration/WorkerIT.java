@@ -60,6 +60,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -70,6 +71,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
@@ -126,7 +129,7 @@ public class WorkerIT {
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
 
-    private static MetaDataApplication medtadataApplication;
+    private static MetaDataApplication metadataApplication;
     private static WorkerApplication wkrapplication;
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
@@ -168,8 +171,8 @@ public class WorkerIT {
 
         // launch metadata
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
-        medtadataApplication.start();
+        metadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
+        metadataApplication.start();
         SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
@@ -178,6 +181,9 @@ public class WorkerIT {
             .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
         lgbapplication.start();
+        ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
+        LogbookLifeCyclesClientFactory.changeMode(configuration);
+        LogbookOperationsClientFactory.changeMode(configuration);
 
         // launch workspace
         SystemPropertyUtil
@@ -217,7 +223,7 @@ public class WorkerIT {
             wkrapplication.stop();
             lgbapplication.stop();
             processManagementApplication.stop();
-            medtadataApplication.stop();
+            metadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
         }
@@ -419,7 +425,7 @@ public class WorkerIT {
           assertNotNull(retStepControl);
           assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
-          workspaceClient.deleteContainer(CONTAINER_NAME);
+          workspaceClient.deleteContainer(CONTAINER_NAME);          
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");

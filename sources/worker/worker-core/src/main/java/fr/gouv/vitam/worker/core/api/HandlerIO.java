@@ -29,36 +29,137 @@ package fr.gouv.vitam.worker.core.api;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Handler input and output parameter
  */
-public class HandlerIO {
+public class HandlerIO implements VitamAutoCloseable {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HandlerIO.class);
+    /**
+     * Not Enough Param
+     */
     public static final String NOT_ENOUGH_PARAM = "Input/Output io parameter list is not enough";
+    /**
+     * Not Conform Param
+     */
     public static final String NOT_CONFORM_PARAM = "Input/Output io parameter is not correct";
-    private final List<Object> input;
-    private final List<Object> output;
-    private String localPathRoot;
+    private static final String HANDLER_INPUT_NOT_FOUND = "Handler input not found exception: ";
+
+    private final List<Object> input = new ArrayList<>();
+    private final List<ProcessingUri> output = new ArrayList<>();
+    private final String containerName;
+    private final String workerId;
+    private final File localDirectory;
+    private final Map<String, Object> memoryMap = new HashMap<>();
 
 
     /**
      * Constructor with local root path
      * 
-     * @param localPath
+     * @param containerName
+     * @param workerId
      */
-    public HandlerIO(String localPath) {
-        input = new ArrayList<>();
-        output = new ArrayList<>();
-        localPathRoot = localPath;
+    public HandlerIO(String containerName, String workerId) {
+        this.containerName = containerName;
+        this.workerId = workerId;
+        this.localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
+        localDirectory.mkdirs();
+    }
+
+    /**
+     * Add Input parameters
+     * 
+     * @param list
+     * @throws IllegalArgumentException if an error occurs
+     */
+    public void addInIOParameters(List<IOParameter> list) {
+        for (final IOParameter in : list) {
+            switch (in.getUri().getPrefix()) {
+                case WORKSPACE:
+                    try {
+                        // TODO P1 : remove optional when lazy file loading is implemented
+                        input.add(findFileFromWorkspace(in.getUri().getPath(),
+                            in.getOptional()));
+                        break;
+                    } catch (final FileNotFoundException e) {
+                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + in.getUri().getPath(), e);
+                    }
+                case MEMORY:
+                    input.add(memoryMap.get(in.getUri().getPath()));
+                    break;
+                case VALUE:
+                    input.add(in.getUri().getPath());
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                        HANDLER_INPUT_NOT_FOUND + in.getUri().getPrefix() + ":" + in.getUri().getPath());
+            }
+        }
+    }
+
+    /**
+     * Add Output parameters
+     * 
+     * @param list
+     * @throws IllegalArgumentException if an error occurs
+     */
+    public void addOutIOParameters(List<IOParameter> list) {
+        for (final IOParameter out : list) {
+            switch (out.getUri().getPrefix()) {
+                case WORKSPACE:
+                case MEMORY:
+                    output.add(out.getUri());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Handler Output not conform: " + out.getUri());
+            }
+        }
+    }
+
+    /**
+     * Reset after each Action
+     */
+    public void reset() {
+        input.clear();
+        output.clear();
+    }
+
+    /**
+     * Clear the HandlerIO, including temporary files and directories at the end of the step Workflow execution
+     * 
+     * @throws IOException
+     */
+    @Override
+    public void close() {
+        reset();
+        memoryMap.clear();
+        if (!FileUtil.deleteRecursive(localDirectory)) {
+            LOGGER.warn("Cannot clear the temporary directory: " + localDirectory);
+        }
     }
 
     /**
@@ -69,65 +170,128 @@ public class HandlerIO {
     }
 
     /**
-     * @param object
-     * @return HandlerIO
+     * Return one Object from input
+     * 
+     * @param rank
+     * @return the rank-th object
      */
-    public HandlerIO addInput(Object object) {
-        input.add(object);
-        return this;
+    public Object getInput(int rank) {
+        return input.get(rank);
     }
 
     /**
      * @return list of output
      */
-    public List<Object> getOutput() {
+    public List<ProcessingUri> getOutput() {
         return output;
     }
 
     /**
-     * @param object
-     * @return HandlerIO
+     * Return one ProcessingUri from output
+     * 
+     * @param rank
+     * @return the rank-th ProcessingUri
      */
-    public HandlerIO addOutput(Object object) {
-        output.add(object);
+    public ProcessingUri getOutput(int rank) {
+        return output.get(rank);
+    }
+
+    /**
+     * Add one output result (no delete)
+     * 
+     * @param rank the position in the output
+     * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
+     * @return this
+     * @throws ProcessingException
+     * @throws IllegalArgumentException
+     */
+    public HandlerIO addOuputResult(int rank, Object object) throws ProcessingException {
+        return addOuputResult(rank, object, false);
+    }
+
+    /**
+     * Add one output result
+     * 
+     * @param rank the position in the output
+     * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
+     * @param deleteLocal if true, will delete the local file in case of WORKSPACE only
+     * @return this
+     * @throws ProcessingException
+     * @throws IllegalArgumentException
+     */
+    public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException {
+        ProcessingUri uri = output.get(rank);
+        if (uri == null) {
+            throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + rank);
+        }
+        switch (uri.getPrefix()) {
+            case MEMORY:
+                memoryMap.put(uri.getPath(), object);
+                break;
+            case VALUE:
+                // Ignore
+                break;
+            case WORKSPACE:
+                if (!(object instanceof File)) {
+                    throw new ProcessingException("Not a File but WORKSPACE out parameter: " + uri);
+                }
+                transferFileToWorkspace(uri.getPath(), (File) object, deleteLocal);
+                break;
+            default:
+                throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri);
+
+        }
         return this;
+    }
+
+    /**
+     * 
+     * @return the container Name
+     */
+    public String getContainerName() {
+        return containerName;
+    }
+
+    /**
+     * 
+     * @return the worker Id
+     */
+    public String getWorkerId() {
+        return workerId;
     }
 
     /**
      * @return the localPathRoot
      */
-    public String getLocalPathRoot() {
-        return localPathRoot;
+    public File getLocalPathRoot() {
+        return localDirectory;
     }
 
     /**
-     * @param localPathRoot the localPathRoot to set
-     *
-     * @return this HandlerIO
+     * 
+     * @param name
+     * @return a File pointing to a local path in Tmp directory under protected Worker instance space
      */
-    public HandlerIO setLocalPathRoot(String localPathRoot) {
-        this.localPathRoot = localPathRoot;
-        return this;
+    public File getNewLocalFile(String name) {
+        File file = new File(localDirectory.getAbsolutePath() + "/" + name);
+        file.getParentFile().mkdirs();
+        return file;
     }
 
-
     /**
-     * @param source HandlerIO with param
-     * @param destination HandlerIO with class element
+     * Check if input and output have the very same number of elements and for Input the associated types
+     * 
+     * @param outputNumber the number of outputArguments
+     * @param clasz the list of Class that should be in the InputParameters
      * @return true if everything ok
      */
-    public static boolean checkHandlerIO(HandlerIO source, HandlerIO destination) {
-        if (source.getInput().size() != destination.getInput().size() ||
-            source.getOutput().size() != destination.getOutput().size()) {
+    public boolean checkHandlerIO(int outputNumber, List<Class<?>> clasz) {
+        if (getInput().size() != clasz.size() || getOutput().size() != outputNumber) {
             return false;
         }
-        for (int i = 0; i < source.getOutput().size(); i++) {
-            if (!source.getOutput().get(i).getClass().equals(destination.getOutput().get(i))) {
-                return false;
-            }
-        }
-        for (int i = 0; i < source.getInput().size(); i++) {
-            if (!source.getInput().get(i).getClass().equals(destination.getInput().get(i))) {
+        for (int i = 0; i < getInput().size(); i++) {
+            Object object = getInput(i);
+            if (object == null || !object.getClass().equals(clasz.get(i))) {
                 return false;
             }
         }
@@ -135,33 +299,145 @@ public class HandlerIO {
     }
 
     /**
-     * @param client workspace
-     * @param tmpFileSubpath tmp file sub path
-     * @param workspaceFilePath workspace file path
-     * @param workspaceContainerId container id
-     * @param removeTmpFile remove file after sending
-     * @throws ProcessingException if workspace error
+     * Helper to write a file to Workspace<br/>
+     * <br/>
+     * To be used when not specified within the Output Parameters
+     * 
+     * @param workspacePath path within the workspath, without the container (implicit)
+     * @param sourceFile the source file to write
+     * @param toDelete if True, will delete the local file
+     * @throws ProcessingException
      */
-    // TODO P0 call it dynamically
-    public static void transferFileFromTmpIntoWorkspace(WorkspaceClient client, String tmpFileSubpath,
-        String workspaceFilePath,
-        String workspaceContainerId, boolean removeTmpFile) throws ProcessingException {
-        ParametersChecker.checkParameter("Workspace client is a mandatory parameter", client);
-        ParametersChecker.checkParameter("Workspace Container Id is a mandatory parameter", workspaceContainerId);
-        final File firstMapTmpFile = PropertiesUtils.fileFromTmpFolder(tmpFileSubpath);
+    public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete)
+        throws ProcessingException {
         try {
-            client.putObject(workspaceContainerId, workspaceFilePath, new FileInputStream(firstMapTmpFile));
-            if (removeTmpFile && !firstMapTmpFile.delete()) {
-                SysErrLogger.FAKE_LOGGER.syserr("File could not be deleted" + " " +
-                    tmpFileSubpath);
+            ParametersChecker.checkParameter("Workspace path is a mandatory parameter", workspacePath);
+            ParametersChecker.checkParameter("Source file is a mandatory parameter", sourceFile);
+        } catch (IllegalArgumentException e) {
+            throw new ProcessingException(e);
+        }
+        if (!sourceFile.canRead()) {
+            throw new ProcessingException("Cannot found source file: " + sourceFile);
+        }
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient();
+            FileInputStream inputStream = new FileInputStream(sourceFile)) {
+            client.putObject(containerName, workspacePath, inputStream);
+            if (toDelete && !sourceFile.delete()) {
+                LOGGER.warn("File could not be deleted: " + sourceFile);
             }
-        } catch (final ContentAddressableStorageServerException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Can not save in workspace file " + tmpFileSubpath);
-            throw new ProcessingException(e);
-        } catch (final FileNotFoundException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Can not get file " + tmpFileSubpath);
-            throw new ProcessingException(e);
+        } catch (IOException e) {
+            throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingException("Cannot write file to workspace: " + containerName + "/" + workspacePath, e);
         }
     }
 
+    /**
+     * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
+     * Resources file
+     * 
+     * @param containerName container name
+     * @param objectName object name
+     * @param workerId worker id
+     * @param optional if file is optional
+     * @return file if found, if not found, null if optional
+     * @throws FileNotFoundException if file is not found and not optional
+     */
+    private final File findFileFromWorkspace(String objectName, boolean optional) throws FileNotFoundException {
+        // First try as full path
+        File file = null;
+        // TODO P1 : this optional situation would be treated later when lazy file loading is implemented
+        if (optional) {
+            try {
+                file = getFileFromWorkspace(objectName);
+            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                file = null;
+            }
+            if (file != null && !file.exists()) {
+                file = null;
+            }
+        } else {
+            try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+                file = getFileFromWorkspace(objectName);
+            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
+                // need to rewrite the exception
+                LOGGER.error(e);
+                throw new FileNotFoundException("File not found: " + objectName);
+            }
+            if (!file.exists()) {
+                throw new FileNotFoundException("File not found: " + objectName);
+            }
+        }
+        return file;
+    }
+
+    /**
+     * Helper to load a file from Workspace (or local cache) and save it into local cache.<br/>
+     * <br/>
+     * To be used when not specified within the Input parameters
+     * 
+     * @param objectName
+     * @return file if found
+     * @throws IOException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     */
+    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
+    // parallel)
+    public File getFileFromWorkspace(String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+        File file = getNewLocalFile(objectName);
+        if (!file.exists()) {
+            try (InputStream inputStream = getInputStreamFromWorkspace(objectName)) {
+                StreamUtils.copy(inputStream, new FileOutputStream(file));
+                return file;
+            }
+        }
+        return file;
+    }
+
+    /**
+     * Helper to get an InputStream (using local cache if possible) from Workspace<br/>
+     * <br/>
+     * To be used when not specified within the Input parameters
+     * 
+     * @param objectName
+     * @return the InputStream
+     * @throws IOException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     */
+    public InputStream getInputStreamFromWorkspace(String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+        File file = getNewLocalFile(objectName);
+        if (!file.exists()) {
+            try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+                return client.getObject(containerName, objectName);
+            }
+        }
+        return new FileInputStream(file);
+    }
+
+    /**
+     * Helper to delete a local file<br/>
+     * <br/>
+     * To be used when not specified within the Input/Output parameters
+     * 
+     * @param objectName
+     * @return True if deleted
+     */
+    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
+    // parallel)
+    public boolean deleteLocalFile(String objectName) {
+        File file = getNewLocalFile(objectName);
+        if (file.exists()) {
+            return file.delete();
+        }
+        return true;
+    }
 }

@@ -48,6 +48,7 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
 
     private IngestExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        disableUseAuthorizationFilter();
     }
 
 

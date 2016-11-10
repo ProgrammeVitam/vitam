@@ -1,5 +1,5 @@
 {
-  "title": "PSMarksweepTime",
+  "title": "Temps passé dans le GC PSMarksweep",
   "visState": "{\"title\":\"New Visualization\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Marksweep time (ms)\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",

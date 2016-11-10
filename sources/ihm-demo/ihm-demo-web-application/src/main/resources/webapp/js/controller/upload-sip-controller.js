@@ -79,14 +79,14 @@ angular.module('ihm.demo')
       var ext = filename.substr(filename.lastIndexOf('.')+1);
       var index=validFormats.indexOf(ext);
       if( index== -1){
-        var formats = ['tar.gz','tar.gz2'];
+        var formats = ['tar.gz','tar.bz2'];
         var spName=filename.split(".");
         var ext1 = spName.pop();
         var ext2 = spName.pop();
         var extn = ext2+'.'+ext1;
         if(formats.indexOf(extn)== -1){
-          $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2')
-          console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2');
+          $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2')
+          console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2');
           $route.reload();
         }
       }

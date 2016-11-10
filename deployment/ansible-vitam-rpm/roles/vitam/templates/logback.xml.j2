@@ -31,7 +31,7 @@
 		<suffixPattern>vitam-{{vitam_component}}: %d{ISO8601} [[%thread]] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
 	</appender>
 	<!-- By default, the level of the root level is set to TRACE -->
-	<root level="INFO">
+	<root level="{{ log_level }}">
 		<!-- <appender-ref ref="STDOUT" /> -->
 		<appender-ref ref="FILE" />
 		<appender-ref ref="SYSLOG" />

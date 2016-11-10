@@ -10,7 +10,7 @@ uses:
 traits:
 
   OperationListingResponse:
-    description: Response model for the listing of Logbook operations 
+    description: Response model for the listing of Logbook operations
     is: [ StandardTraits.StandardOptionalHeader,
        StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
        StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
@@ -26,14 +26,15 @@ traits:
         body:
           application/json:
             description: Matching Logbook operations
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
       206:
-        description: Returns the list of matching Logbook operations using Cursor
+        description: |
+          **UNSUPPORTED** Returns the list of matching Logbook operations using Cursor
         body:
           application/json:
             description: Matching Logbook operations
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
 
   OperationItemResponse:
@@ -52,9 +53,9 @@ traits:
         body:
           application/json:
             description: one Logbook item
-            schema: LogbookTypes.LogbookResponse
             example: !include examples/logbookResponse.json
 
+            schema: DslTypes.DslResponse
 
   UnitLifeCycleListingResponse:
     description: Response model for the listing of Logbook unit life cycles
@@ -73,14 +74,15 @@ traits:
         body:
           application/json:
             description: Matching Logbook objects life cycles
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
       206:
-        description: Returns the list of matching Logbook units life cycles using Cursor
+        description: |
+          **UNSUPPORTED** Returns the list of matching Logbook units life cycles using Cursor
         body:
           application/json:
             description: Matching Logbook objects life cycles
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
 
   UnitLifeCycleItemResponse:
@@ -99,7 +101,7 @@ traits:
         body:
           application/json:
             description: one Logbook unit life cycle item
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponseLifeCycle.json
 
   ObjectLifeCycleListingResponse:
@@ -119,14 +121,15 @@ traits:
         body:
           application/json:
             description: Matching Logbook objects life cycles
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
       206:
-        description: Returns the list of matching Logbook objects life cycles using Cursor
+        description: |
+          **UNSUPPORTED** Returns the list of matching Logbook objects life cycles using Cursor
         body:
           application/json:
             description: Matching Logbook objects life cycles
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponse.json
 
   ObjectLifeCycleItemResponse:
@@ -145,5 +148,5 @@ traits:
         body:
           application/json:
             description: one Logbook object life cycle item
-            schema: LogbookTypes.LogbookResponse
+            schema: DslTypes.DslResponse
             example: !include examples/logbookResponseLifeCycle.json

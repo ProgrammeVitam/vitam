@@ -136,6 +136,8 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         checkJerseyMetrics(resourceConfig);
         // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
+        // Cleaner filter
+        resourceConfig.register(ConsumeAllAfterResponseFilter.class);
         // Not supported MultiPartFeature.class
         registerInResourceConfig(resourceConfig);
 
@@ -145,10 +147,6 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         // Removed setContextPath to be set later on for IHM
         context.addServlet(sh, "/*");
 
-        // Cleaner filter
-        context.addFilter(ConsumeAllAfterResponseFilter.class, "/*", EnumSet.of(
-            DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         // No Authorization Filter
 
         // Replace here setFilter by adapted one for IHM
