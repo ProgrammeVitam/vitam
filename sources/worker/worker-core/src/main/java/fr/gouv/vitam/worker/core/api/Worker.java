@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.api;
 
 import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -38,7 +39,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 /**
  * Worker Interface.
  */
-public interface Worker {
+public interface Worker extends VitamAutoCloseable {
 
     /**
      * Worker execute the step's actions

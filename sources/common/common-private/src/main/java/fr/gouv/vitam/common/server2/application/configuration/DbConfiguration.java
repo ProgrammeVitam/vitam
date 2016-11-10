@@ -42,7 +42,7 @@ public interface DbConfiguration extends VitamApplicationConfiguration {
     /**
      * Must return the value of a 'mongoDbNodes' attribute
      * 
-     *  @retrun the list of mongodb node which contains the dbHost and dbPort
+     * @return the list of mongodb node which contains the dbHost and dbPort
      */
     List<MongoDbNode> getMongoDbNodes();
 

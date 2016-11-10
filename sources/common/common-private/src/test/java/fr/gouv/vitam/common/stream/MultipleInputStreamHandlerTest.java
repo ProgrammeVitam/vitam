@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class MultipleInputStreamHandlerTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MultipleInputStreamHandlerTest.class);
-    private static final int INPUTSTREAM_SIZE = 1000000;
+    private static final int INPUTSTREAM_SIZE = 100000;
     private static final TreeMap<Long, String> TIMES = new TreeMap<>();
 
     @BeforeClass

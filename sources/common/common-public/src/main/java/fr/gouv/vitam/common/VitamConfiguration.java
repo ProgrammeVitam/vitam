@@ -82,7 +82,7 @@ public class VitamConfiguration {
     /**
      * Default Read Timeout
      */
-    private static final int READ_TIMEOUT = 99999999;
+    private static final int READ_TIMEOUT = 86400;
 
     /**
      * Max total concurrent clients
@@ -121,9 +121,13 @@ public class VitamConfiguration {
      */
     public static final String STATUS_URL = "/status";
     /**
-     * Default Digest Type
+     * Default Digest Type for SECURITY
      */
     private static final DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
+    /**
+     * Default Digest Type for Vitam
+     */
+    private static final DigestType DEFAULT_DIGEST_TYPE = DigestType.SHA512;
     /**
      * Acceptable Request Time
      */
@@ -140,6 +144,10 @@ public class VitamConfiguration {
      * Retry delay
      */
     private static final int RETRY_DELAY = 30000;
+    /**
+     * Waiting delay (for wait(delay) method)
+     */
+    private static final int WAITING_DELAY = 1000;
 
     private String config;
     private String log;
@@ -521,6 +529,13 @@ public class VitamConfiguration {
     }
 
     /**
+     * @return the Default DigestType
+     */
+    public static DigestType getDefaultDigestType() {
+        return DEFAULT_DIGEST_TYPE;
+    }
+
+    /**
      * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
      */
     public static int getThreadsAllowedToBlockForConnectionMultipliers() {
@@ -541,4 +556,10 @@ public class VitamConfiguration {
         return RETRY_DELAY;
     }
 
+    /**
+     * @return the waiting Delay (wait)
+     */
+    public static int getWaitingDelay() {
+        return WAITING_DELAY;
+    }
 }

@@ -135,7 +135,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Empty constructor
      */
-    public ProcessDistributorImpl() {}
+    public ProcessDistributorImpl() {
+        // Empty
+    }
 
     // FIXME P1 : make this method (distribute()) more generic
     @Override

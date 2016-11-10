@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
@@ -243,5 +244,14 @@ public class ItemStatus {
         return computeMessage.toString();
     }
 
-
+    /**
+     * 
+     * @param blocking True if the step or handler is blocking
+     * @return True if this item shall stop the Step or Handler
+     */
+    @JsonIgnore
+    public boolean shallStop(boolean blocking) {
+        return getGlobalStatus().isGreaterOrEqualToFatal() || 
+            (blocking && getGlobalStatus().isGreaterOrEqualToKo());
+    }
 }

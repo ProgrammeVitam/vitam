@@ -2,6 +2,8 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +29,12 @@ import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({SedaUtils.class})
+@PrepareForTest({SedaUtils.class, SedaUtilsFactory.class})
 public class AccessionRegisterActionHandlerTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
@@ -40,19 +43,20 @@ public class AccessionRegisterActionHandlerTest {
     private static final String FAKE_URL = "http://localhost:8080";
     AccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
-    private HandlerIO action;
+    private HandlerIOImpl action;
     private GUID guid;
     private WorkerParameters params;
 
     @Before
     public void setUp() throws Exception {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         PowerMockito.mockStatic(SedaUtils.class);
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
             .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        action = new HandlerIO(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
     @After
@@ -63,7 +67,9 @@ public class AccessionRegisterActionHandlerTest {
     @Test
     public void testResponseOK()
         throws Exception {
-        PowerMockito.when(SedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));        
+        SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));        
         AdminManagementClientFactory.getInstance().changeMode(null);        
         List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));

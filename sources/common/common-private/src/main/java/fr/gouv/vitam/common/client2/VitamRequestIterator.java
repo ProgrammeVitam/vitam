@@ -131,6 +131,11 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         }
         objectResponse = response.readEntity(RequestResponseOK.class);
         iterator = objectResponse.getResults().iterator();
+        if (! iterator.hasNext()) {
+            objectResponse = null;
+            iterator = null;
+            return false;
+        }
         return true;
     }
 
@@ -138,6 +143,11 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         // TODO P1 Ignore for the moment X-Cursor-Timeout
         objectResponse = response.readEntity(RequestResponseOK.class);
         iterator = objectResponse.getResults().iterator();
+        if (! iterator.hasNext()) {
+            objectResponse = null;
+            iterator = null;
+            return false;
+        }
         return true;
     }
     

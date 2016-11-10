@@ -65,7 +65,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -84,7 +84,7 @@ public class IndexUnitActionHandlerTest {
     private static final String ARCHIVE_UNIT_WITH_RULES = "ARCHIVE_UNIT_TO_INDEX_WITH_RULES.xml";
     private final InputStream archiveUnit;
     private final InputStream archiveUnitWithRules;
-    private HandlerIO action;
+    private HandlerIOImpl action;
     private GUID guid;
 
     public IndexUnitActionHandlerTest() throws FileNotFoundException {
@@ -102,7 +102,7 @@ public class IndexUnitActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         metadataClient = mock(MetaDataClientRest.class);
         guid = GUIDFactory.newGUID();
-        action = new HandlerIO(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
     @After

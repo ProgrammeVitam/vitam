@@ -56,7 +56,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -73,7 +73,7 @@ public class StoreObjectGroupActionHandlerTest {
     private WorkspaceClientFactory workspaceClientFactory;    
     private MetaDataClient metadataClient;
     private StorageClient storageClient;
-    private HandlerIO action;
+    private HandlerIOImpl action;
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private final InputStream objectGroup;
     private static final String OBJ = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
@@ -87,7 +87,7 @@ public class StoreObjectGroupActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
-        action = new HandlerIO(CONTAINER_NAME, "workerId");
+        action = new HandlerIOImpl(CONTAINER_NAME, "workerId");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);

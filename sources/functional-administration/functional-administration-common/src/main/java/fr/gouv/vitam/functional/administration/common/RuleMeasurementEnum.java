@@ -28,11 +28,26 @@ package fr.gouv.vitam.functional.administration.common;
 
 import java.util.Calendar;
 
+/**
+ * Enum for Rule Measurement
+ */
 public enum RuleMeasurementEnum {
 
+    /**
+     * Month
+     */
     MOIS("Mois", Calendar.MONTH),
+    /**
+     * Day
+     */
     JOURS("Jours", Calendar.DAY_OF_MONTH),
+    /**
+     * Year
+     */
     ANNEE("Année", Calendar.YEAR),
+    /**
+     * Second
+     */
     SECONDES("Secondes", Calendar.SECOND);
 
     private final String type;
@@ -46,14 +61,27 @@ public enum RuleMeasurementEnum {
         this.calendarUnitType = calendarUnitType;
     }
 
+    /**
+     * 
+     * @return the type of the measure
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * 
+     * @return the Calendar Unit Type
+     */
     public int getCalendarUnitType() {
         return calendarUnitType;
     }
 
+    /**
+     * 
+     * @param month
+     * @return the associated RuleMeasurementEnum according to parameter
+     */
     public static RuleMeasurementEnum getEnumFromMonth(String month) {
         for(RuleMeasurementEnum e : values()) {
             if (e.getType().equalsIgnoreCase(month)) {

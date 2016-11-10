@@ -69,8 +69,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final String OBJECTS_PATH = "/objects";
 
-    private static final String NOT_YET_IMPLEMENTED =
-        "Not yet implemented";
+    private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
 
     private static final String REQUEST_IS_A_MANDATORY_PARAMETER = "Request is a mandatory parameter";
     private static final String GUID_IS_A_MANDATORY_PARAMETER = "GUID is a mandatory parameter";
@@ -118,6 +117,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
+    // FIXME P0 GetObjectResult should have Response and not InputStream in it in order to allow async on caller side
     public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -309,7 +309,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId,
                 Long.valueOf(json.get("size").textValue()));
-            LOGGER.error("response: " + response.getStatus());
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "Error to perfom put object");

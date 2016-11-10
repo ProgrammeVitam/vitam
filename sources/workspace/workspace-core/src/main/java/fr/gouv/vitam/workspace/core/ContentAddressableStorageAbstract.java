@@ -78,7 +78,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
-    // TODO P0: passed to protected but is it desired ? Better with getter ?
+    // FIXME P1: the BlobStoreContext should be build for each call, since it is as a HttpClient. For now (Filesystem),
+    // that's fine.
     protected final BlobStoreContext context;
 
     private static final int MAX_RESULTS = 51000;
@@ -450,7 +451,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
             final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-            .createArchiveInputStream(archiverType, inputStreamClosable);) {
+                .createArchiveInputStream(archiverType, inputStreamClosable);) {
             ArchiveEntry archiveEntry;
             boolean isEmpty = true;
 
@@ -591,6 +592,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         /**
          * Allow to "fakely" reopen this InputStream
+         * 
          * @param isclosed
          */
         public void setClosed(boolean isclosed) {

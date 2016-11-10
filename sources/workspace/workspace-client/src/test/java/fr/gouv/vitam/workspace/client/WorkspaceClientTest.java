@@ -30,7 +30,6 @@ import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -89,8 +88,7 @@ public abstract class WorkspaceClientTest extends VitamJerseyTest {
 
         @Override
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(getMockResource())
-                .register(MultiPartFeature.class);
+            resourceConfig.register(getMockResource());
         }
 
     }

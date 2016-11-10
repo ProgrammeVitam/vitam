@@ -25,6 +25,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -47,7 +48,7 @@ public class HandlerIOTest {
 
     @Test
     public void testHandlerIO() throws Exception {
-        final HandlerIO io = new HandlerIO(GUIDFactory.newGUID().getId(), GUIDFactory.newGUID().getId());
+        final HandlerIOImpl io = new HandlerIOImpl(GUIDFactory.newGUID().getId(), GUIDFactory.newGUID().getId());
         assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
         final File file = PropertiesUtils.getResourceFile("sip.xml");
         List<IOParameter> in = new ArrayList<>();
@@ -91,7 +92,7 @@ public class HandlerIOTest {
     public void testGetFileFromHandlerIO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
 
-        try (final HandlerIO io = new HandlerIO("containerName", "workerId")) {
+        try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
@@ -111,12 +112,12 @@ public class HandlerIOTest {
     public void testConcurrentGetFileFromHandlerIO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
 
-        final HandlerIO io = new HandlerIO("containerName", "workerId");
+        final HandlerIOImpl io = new HandlerIOImpl("containerName", "workerId");
         assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
         List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
 
-        final HandlerIO io2 = new HandlerIO("containerName", "workerId2");
+        final HandlerIOImpl io2 = new HandlerIOImpl("containerName", "workerId2");
         assertTrue(io2.checkHandlerIO(0, new ArrayList<>()));
 
         io.addInIOParameters(in);
@@ -141,7 +142,7 @@ public class HandlerIOTest {
     public void testGetFileError() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageNotFoundException(""));
         
-        try (final HandlerIO io = new HandlerIO("containerName", "workerId")) {
+        try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(false));

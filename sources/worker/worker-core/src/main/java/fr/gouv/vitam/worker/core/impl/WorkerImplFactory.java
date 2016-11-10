@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 /**
  * WorkerImpl Factory to create workerImpl
@@ -44,23 +41,8 @@ public final class WorkerImplFactory {
      * @param mongoDbAccess 
      * @return WorkerImpl
      */
-    public static Worker create(LogbookDbAccess mongoDbAccess) {
-        ParametersChecker.checkParameter("mongoDbAccess is a mandatory parameter", mongoDbAccess);
-        return new WorkerImpl(mongoDbAccess);
-    }
-
-    /**
-     * @param mongoDbAccess the database connector
-     * @param actionName the name of the action
-     * @param actionHandler the handler
-     * @return WorkerImpl
-     */
-    public static Worker create(LogbookDbAccess mongoDbAccess, String actionName,
-        ActionHandler actionHandler) {
-        ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
-        ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
-        ParametersChecker.checkParameter("mongoDbAccess is a mandatory parameter", mongoDbAccess);
-        return create(mongoDbAccess).addActionHandler(actionName, actionHandler);
+    public static Worker create() {
+        return new WorkerImpl();
     }
 
 }

@@ -28,6 +28,8 @@ package fr.gouv.vitam.functional.administration.common;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
@@ -66,6 +68,24 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(Document document) {
         super(document);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public FileRules(JsonNode content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public FileRules(String content) {
+        super(content);
         // FIXME P1
         append(TENANT, 0);
     }

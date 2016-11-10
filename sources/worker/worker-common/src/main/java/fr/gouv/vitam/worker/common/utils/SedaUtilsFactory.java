@@ -26,18 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.worker.common.HandlerIO;
+
 /**
  * SedaUtils Factory to create SedaUtils
  */
 public class SedaUtilsFactory {
-    /**
-     * @return SedaUtils
-     */
-    public static SedaUtils create() {
-        return new SedaUtils();
-    }
 
     private SedaUtilsFactory() {
         // Empty constructor
+    }
+    /**
+     * @param handlerIO
+     * @return SedaUtils
+     */
+    public static SedaUtils create(HandlerIO handlerIO) {
+        ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
+        return new SedaUtils(handlerIO);
     }
 }

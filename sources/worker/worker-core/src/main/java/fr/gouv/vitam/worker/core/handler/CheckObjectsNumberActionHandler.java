@@ -37,12 +37,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /** 
@@ -62,7 +62,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
-
+    private HandlerIO handlerIO;
+    
     /**
      * Default Constructor
      */
@@ -90,13 +91,14 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) throws ContentAddressableStorageServerException {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ContentAddressableStorageServerException {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
-            checkMandatoryIOParameter(actionDefinition);
+            checkMandatoryIOParameter(handlerIO);
+            this.handlerIO = handlerIO;
             final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
@@ -128,7 +130,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private ExtractUriResponse getUriListFromManifest(WorkerParameters params)
         throws ProcessingException {
         // get uri list from manifest
-        final SedaUtils sedaUtils = SedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
         return sedaUtils.getAllDigitalObjectUriFromManifest(params);
     }
 

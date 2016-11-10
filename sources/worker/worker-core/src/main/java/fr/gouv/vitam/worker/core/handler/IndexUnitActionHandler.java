@@ -75,10 +75,10 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -96,10 +96,6 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final String TAG_MANAGEMENT = "Management";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
-    private LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getClient();
-    private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
-        .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
 
     /**
@@ -122,32 +118,36 @@ public class IndexUnitActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         handlerIO = param;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
 
-        try {
-            checkMandatoryIOParameter(handlerIO);
-            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters,
-                params);
-            indexArchiveUnit(params, itemStatus);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-        // Update lifeCycle
-        try {
-            logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
-                logbookLifecycleUnitParameters,
-                itemStatus);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try {
+                checkMandatoryIOParameter(handlerIO);
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters,
+                    params);
+                indexArchiveUnit(params, itemStatus);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+            // Update lifeCycle
+            try {
+                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                    logbookLifecycleUnitParameters,
+                    itemStatus);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
 
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.WARNING);
+            if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+                itemStatus.increment(StatusCode.WARNING);
+            }
+            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -162,8 +162,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
 
         InputStream input;
-        try ( // TODO : whould use worker configuration instead of the processing configuration
-            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             input =
                 workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);

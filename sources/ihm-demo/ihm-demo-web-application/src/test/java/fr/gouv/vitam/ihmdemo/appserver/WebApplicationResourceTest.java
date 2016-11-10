@@ -89,7 +89,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
     IngestExternalClientFactory.class, AdminExternalClientFactory.class,
     JsonTransformer.class, WebApplicationConfig.class, AccessExternalClientFactory.class})
-// FIXME P0 Remove IOUtils.toByteArray(stream)
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";

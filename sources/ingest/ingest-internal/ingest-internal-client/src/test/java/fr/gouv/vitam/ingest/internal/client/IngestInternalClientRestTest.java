@@ -41,14 +41,11 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -57,7 +54,6 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -191,9 +187,10 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
-
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        final Response response2 = client.uploadInitialLogbook(ingestGuid, operationList);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        final Response response = client.upload(ingestGuid, inputStream, CommonMediaType.ZIP_TYPE);
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
 
@@ -232,7 +229,11 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).entity(uploadResponseDTO).build());                        
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        final Response response = client.upload(ingestGuid, operationList, null, CommonMediaType.ZIP);
+        final Response response2 = client.uploadInitialLogbook(ingestGuid, operationList);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        final Response response = client.upload(ingestGuid, inputStream, CommonMediaType.ZIP_TYPE);
         assertEquals(500, response.getStatus());
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
@@ -272,7 +273,9 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         
-        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        final Response response2 = client.uploadInitialLogbook(ingestGuid, operationList);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        final Response response = client.upload(ingestGuid, inputStream, CommonMediaType.ZIP_TYPE);
         assertEquals(500, response.getStatus());
         assertNotNull(response.readEntity(String.class));
     }
@@ -309,7 +312,9 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        final Response response = client.upload(ingestGuid, operationList, inputStream, CommonMediaType.ZIP);
+        final Response response2 = client.uploadInitialLogbook(ingestGuid, operationList);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        final Response response = client.upload(ingestGuid, inputStream, CommonMediaType.ZIP_TYPE);
         assertEquals(500, response.getStatus());
         assertNotNull(response.readEntity(String.class));
     }

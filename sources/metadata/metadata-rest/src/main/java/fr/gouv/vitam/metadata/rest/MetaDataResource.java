@@ -28,8 +28,6 @@ package fr.gouv.vitam.metadata.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -41,7 +39,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -59,7 +56,6 @@ import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
 import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
-import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 /**
@@ -77,7 +73,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param configuration {@link MetaDataConfiguration}
      */
     public MetaDataResource(MetaDataConfiguration configuration) {
-        metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
+        metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory());
         LOGGER.info("init MetaData Resource server");
     }
 
@@ -86,31 +82,19 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Insert or Select unit with json request
+     * Insert unit with json request
      * 
      * @param request
      * @param xhttpOverride
      * @return Response
      */
-
     @Path("units")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     // FIXME P0 changer String en JsonNode pour toutes les Query
-    public Response insertOrSelectUnit(String request,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-
-        if (xhttpOverride != null) {
-            if ("GET".equals(xhttpOverride)) {
-                return selectUnitsByQuery(request);
-            }
-
-        } else {
-            return insertUnit(request);
-        }
-        return Response.status(Status.METHOD_NOT_ALLOWED).build();
-
+    public Response insertOrSelectUnit(String request) {
+        return insertUnit(request);
     }
 
     /**
@@ -190,6 +174,22 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Select unit with json request
+     * 
+     * @param request
+     * @param xhttpOverride
+     * @return Response
+     */
+    @Path("units")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    // FIXME P0 changer String en JsonNode pour toutes les Query
+    public Response selectUnit(String request) {
+        return selectUnitsByQuery(request);
+    }
+
+    /**
      * select units list by query
      *
      * @param selectRequest
@@ -232,28 +232,6 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Select unit by query and path parameter unit_id
-     *
-     * @param selectRequest
-     * @param unitId
-     * @param xhttpOverride
-     * @return {@link Response} will be contains an json filled by unit result
-     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see #type(javax.ws.rs.core.MediaType)
-     */
-    @Path("units/{id_unit}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectUnitById(String selectRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (!"GET".equals(xhttpOverride)) {
-            return Response.status(Status.METHOD_NOT_ALLOWED).build();
-        }
-        return selectUnitById(selectRequest, unitId);
-    }
-
-    /**
      *
      * @param selectRequest
      * @param unitId
@@ -283,23 +261,11 @@ public class MetaDataResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (!"GET".equals(xhttpOverride)) {
-            return Response.status(Status.METHOD_NOT_ALLOWED).build();
-        }
-        return updateUnitbyId(updateRequest, unitId);
-    }
-
-    /**
-     * Selects unit by request and unit id
-     */
-    // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
-    private Response selectUnitById(String selectRequest, String unitId) {
+    public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         JsonNode jsonResultNode;
         try {
-            jsonResultNode = metaDataImpl.selectUnitsById(selectRequest, unitId);
+            jsonResultNode = metaDataImpl.updateUnitbyId(updateRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -329,13 +295,14 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * Update unit by request and unit id
+     * Selects unit by request and unit id
      */
-    private Response updateUnitbyId(String selectRequest, String unitId) {
+    // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
+    private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
         JsonNode jsonResultNode;
         try {
-            jsonResultNode = metaDataImpl.updateUnitbyId(selectRequest, unitId);
+            jsonResultNode = metaDataImpl.selectUnitsById(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -460,26 +427,6 @@ public class MetaDataResource extends ApplicationStatusResource {
                 .setHits(1, 0, 1)
                 .setQuery(queryJson))
             .build();
-    }
-
-    /**
-     * Get ObjectGroup
-     *
-     * @param selectRequest the request
-     * @param objectGroupId the objectGroup ID to get
-     * @param xhttpOverride header http override
-     * @return a response with the select query and the required object group (can be empty)
-     */
-    @Path("objectgroups/{id_og}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectObjectGroupById(String selectRequest, @PathParam("id_og") String objectGroupId,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (!HttpMethod.GET.equals(xhttpOverride)) {
-            return Response.status(Status.METHOD_NOT_ALLOWED).build();
-        }
-        return getObjectGroupById(selectRequest, objectGroupId);
     }
 
     /**

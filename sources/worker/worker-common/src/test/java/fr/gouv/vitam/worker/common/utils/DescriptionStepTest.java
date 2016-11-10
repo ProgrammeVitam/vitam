@@ -78,6 +78,7 @@ public class DescriptionStepTest {
             final JsonNode node = JsonHandler.getFromFile(json);
             final DescriptionStep step = JsonHandler.getFromFile(json, DescriptionStep.class);
         } catch (final Exception e) {
+            e.printStackTrace();
             fail("Should not have raised an exception");
         }
 

@@ -57,7 +57,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
 import fr.gouv.vitam.common.server2.application.GenericExceptionMapper;
@@ -138,7 +138,6 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
         // Cleaner filter
         resourceConfig.register(ConsumeAllAfterResponseFilter.class);
-        // Not supported MultiPartFeature.class
         registerInResourceConfig(resourceConfig);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);

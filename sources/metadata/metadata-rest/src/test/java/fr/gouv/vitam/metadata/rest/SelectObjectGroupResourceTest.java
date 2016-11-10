@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -138,7 +137,6 @@ public class SelectObjectGroupResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         application = new MetaDataApplication(configuration);
         application.start();
@@ -198,20 +196,19 @@ public class SelectObjectGroupResourceTest {
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        given().header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET).contentType(ContentType.JSON)
+        given().contentType(ContentType.JSON)
             .body(BODY_TEST).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public void getObjectGroupNotAllowed() {
+    public void getObjectGroupPRECONDITION_FAILED() {
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
             .when()
-            .post(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
+            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
             .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 
@@ -221,7 +218,6 @@ public class SelectObjectGroupResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body(BAD_QUERY_TEST)
             .when()
             .post(OBJECT_GROUPS_URI)
@@ -234,7 +230,6 @@ public class SelectObjectGroupResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body("")
             .when()
             .post(OBJECT_GROUPS_URI)
@@ -248,9 +243,8 @@ public class SelectObjectGroupResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/").then()
+            .get("/units/").then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -261,10 +255,9 @@ public class SelectObjectGroupResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body("")
             .when()
-            .post(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
+            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -273,9 +266,8 @@ public class SelectObjectGroupResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
-            .post(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
+            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 

@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +38,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
@@ -57,12 +53,14 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 /**
  * Check SIP - Object and Archiveunit Consistency handler
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
 
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
@@ -71,8 +69,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
     private static final String EVENT_TYPE =
         "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final int TENANT = 0;
 
@@ -83,8 +79,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
      * Empty constructor
      */
     public CheckObjectUnitConsistencyActionHandler() {
-        handlerInitialIOList.add(File.class);
-        handlerInitialIOList.add(File.class);
+        handlerInitialIOList.add(Map.class);
+        handlerInitialIOList.add(Map.class);
     }
 
     /**
@@ -132,17 +128,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
         final List<String> ogList = new ArrayList<>();
 
-        // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToUnitMapFile =
-            new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK));
-        final Map<String, Object> objectGroupToUnitStoredMap =
-            JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
-
-        // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToGuidMapFile =
-            new FileInputStream((File) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK));
-        final Map<String, Object> objectGroupToGuidStoredMap =
-            JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);
+        final Map<String, Object> objectGroupToUnitStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
+        final Map<String, Object> objectGroupToGuidStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
 
         final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
         try (
@@ -182,7 +169,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 

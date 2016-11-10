@@ -60,6 +60,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client2.TestVitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -541,7 +542,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private ObjectInit getPostObjectResult(int uniqueId) {
         final ObjectInit object = new ObjectInit();
         object.setId("" + uniqueId);
-        object.setDigestAlgorithm(DigestType.SHA256);
+        object.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
         object.setSize(1024);
         object.setType(DataCategory.OBJECT);
         return object;

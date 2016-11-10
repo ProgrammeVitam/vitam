@@ -26,17 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -96,17 +96,14 @@ public class IngestInternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        // Start by registering Multipart
-        resourceConfig.register(MultiPartFeature.class);
         IngestInternalResource resource = new IngestInternalResource(getConfiguration());
         // Register Workspace
         serviceRegistry.register(WorkspaceClientFactory.getInstance())
             // Register Logbook for Operation
             .register(LogbookOperationsClientFactory.getInstance())
             // Register Storage (ATR access)
-            .register(StorageClientFactory.getInstance());
-        // Will register Processing once in V2 FIXME P0
-        // .register(ProcessingManagementClientFactory.getInstance());
+            .register(StorageClientFactory.getInstance())
+            .register(ProcessingManagementClientFactory.getInstance());
         resourceConfig.register(resource)
             .register(new AdminStatusResource(serviceRegistry));
     }

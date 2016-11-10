@@ -12,10 +12,8 @@ import org.junit.Test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 
 public class AccessExternalApplicationTest {
     private AccessExternalApplication application;
@@ -25,7 +23,6 @@ public class AccessExternalApplicationTest {
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(portAvailable));
         RestAssured.port = portAvailable;
         RestAssured.basePath = "access-external/v1";
     }

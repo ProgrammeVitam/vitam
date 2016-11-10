@@ -112,7 +112,6 @@ public interface DefaultOfferService {
      * @throws IOException if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
-    //FIXME P0 : multithreading
     //TODO P1 : add chunk number to be able to retry and check error
     //TODO P1 : better chunk management
     String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)

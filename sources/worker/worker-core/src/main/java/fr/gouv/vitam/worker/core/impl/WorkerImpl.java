@@ -35,14 +35,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -69,7 +69,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  *
  * manages and executes actions by step
  */
-// TODO P0 REVIEW since Factory => class and constructors package protected (many tests broken)
 public class WorkerImpl implements Worker {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
 
@@ -79,16 +78,11 @@ public class WorkerImpl implements Worker {
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private final String workerId;
 
-    private final LogbookDbAccess mongoDbAccess;
-
     /**
      * Constructor
-     * 
-     * @param mongoDbAccess mongoDbAccess
      **/
-    public WorkerImpl(LogbookDbAccess mongoDbAccess) {
+    public WorkerImpl() {
         workerId = GUIDFactory.newGUID().toString();
-        this.mongoDbAccess = mongoDbAccess;
         /**
          * temporary init: will be managed by spring annotation
          */
@@ -131,7 +125,7 @@ public class WorkerImpl implements Worker {
         actions.put(AccessionRegisterActionHandler.getId(),
             new AccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
-            new TransferNotificationActionHandler(mongoDbAccess));
+            new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());
         actions.put(UnitsRulesComputeHandler.getId(), new UnitsRulesComputeHandler());
     }
@@ -151,8 +145,8 @@ public class WorkerImpl implements Worker {
         }
 
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
-        
-        try (final HandlerIO handlerIO = new HandlerIO(workParams.getContainerName(), workerId)) {
+
+        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId)) {
             for (final Action action : step.getActions()) {
                 // Reset handlerIO for next execution
                 handlerIO.reset();
@@ -174,8 +168,8 @@ public class WorkerImpl implements Worker {
                     step.getStepName());
                 // if the action has been defined as Blocking and the action status is KO or FATAL
                 // then break the process
-                if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
-                    actionResponse.getGlobalStatus().isGreaterOrEqualToKo()) {
+                if (actionResponse
+                    .shallStop(ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()))) {
                     break;
                 }
             }
@@ -191,5 +185,10 @@ public class WorkerImpl implements Worker {
     @Override
     public String getWorkerId() {
         return workerId;
+    }
+
+    @Override
+    public void close() {
+        actions.clear();
     }
 }

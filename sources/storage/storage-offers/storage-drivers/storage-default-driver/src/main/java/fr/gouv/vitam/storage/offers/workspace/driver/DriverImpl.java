@@ -44,7 +44,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 /**
  * Workspace Driver Implementation
  */
-// FIXME P0 should be clientV2/serverV2 still not totally completed
 public class DriverImpl implements Driver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 

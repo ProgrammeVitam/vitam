@@ -74,7 +74,6 @@ public class MetaDataImpl implements MetaData {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
-    private final DbRequestFactory dbRequestFactory;
     private MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -82,12 +81,9 @@ public class MetaDataImpl implements MetaData {
      *
      * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
-     * @param dbRequestFactory
      */
-    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
-        DbRequestFactory dbRequestFactory) {
+    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
         mongoDbAccess = mongoDbAccessFactory.create(configuration);
-        this.dbRequestFactory = dbRequestFactory;
     }
 
     /**
@@ -102,16 +98,13 @@ public class MetaDataImpl implements MetaData {
      *
      * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
-     * @param dbRequestFactory
      * @return a new instance of MetaDataImpl
-     * @throws IllegalArgumentException if one of dbRequestFactory and mongoDbAccessFactory is null
+     * @throws IllegalArgumentException if mongoDbAccessFactory is null
      */
     public static MetaData newMetadata(MetaDataConfiguration configuration,
-        MongoDbAccessMetadataFactory mongoDbAccessFactory,
-        DbRequestFactory dbRequestFactory) {
-        ParametersChecker.checkParameter("DbRequestFactory and / or mongoDbAccessFactory cannot be null",
-            dbRequestFactory, mongoDbAccessFactory);
-        return new MetaDataImpl(configuration, mongoDbAccessFactory, dbRequestFactory);
+        MongoDbAccessMetadataFactory mongoDbAccessFactory) {
+        ParametersChecker.checkParameter("MongoDbAccessFactory cannot be null", mongoDbAccessFactory);
+        return new MetaDataImpl(configuration, mongoDbAccessFactory);
     }
 
     @Override
@@ -128,7 +121,7 @@ public class MetaDataImpl implements MetaData {
         try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
-            result = dbRequestFactory.create().execRequest(insertParser, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
@@ -156,7 +149,7 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            result = dbRequestFactory.create().execRequest(insertParser, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
@@ -234,7 +227,7 @@ public class MetaDataImpl implements MetaData {
                 }
             }
             // Execute DSL request
-            result = dbRequestFactory.create().execRequest(selectRequest, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
             jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
@@ -275,7 +268,7 @@ public class MetaDataImpl implements MetaData {
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = dbRequestFactory.create().execRequest(updateRequest, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest, result);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
@@ -311,7 +304,7 @@ public class MetaDataImpl implements MetaData {
         final List<String> beforeList = Arrays.asList(original.split("\\n"));
         final List<String> revisedList = Arrays.asList(revised.split("\\n"));
 
-        final Patch patch = DiffUtils.diff(beforeList, revisedList);
+        final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
 
         return generateUnifiedDiff(original, revised, beforeList, patch, 1);
     }

@@ -42,19 +42,18 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 
 /**
  * CheckStorageAvailability Handler.<br>
  */
 public class CheckStorageAvailabilityActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
-    private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
@@ -63,7 +62,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
      *
      */
     public CheckStorageAvailabilityActionHandler() {
-        storageClientFactory = StorageClientFactory.getInstance();
+        // Empty
     }
 
     /**
@@ -75,16 +74,17 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
+        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         long totalSizeToBeStored;
         try {
-            checkMandatoryIOParameter(actionDefinition);
-            // TODO P0 get size manifest.xml in local
+            checkMandatoryIOParameter(handlerIO);
             // TODO P0 extract this information from first parsing
-            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            final long manifestSize = SedaUtils.getManifestSize(params);
+            SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
             final JsonNode storageCapacityNode;
             

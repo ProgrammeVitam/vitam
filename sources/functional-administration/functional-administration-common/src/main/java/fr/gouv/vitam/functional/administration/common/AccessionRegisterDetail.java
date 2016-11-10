@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -59,7 +60,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         append(TENANT, 0);
     }
 
-
     /**
      * Constructor
      * 
@@ -69,9 +69,25 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         super(document);
         // FIXME P1
         append(TENANT, 0);
-
     }
 
+    /**
+     * @param content
+     */
+    public AccessionRegisterDetail(JsonNode content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public AccessionRegisterDetail(String content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
 
     /**
      * @param id

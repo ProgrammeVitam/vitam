@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.integration.test;
 import static com.jayway.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.InputStream;
@@ -44,6 +45,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -57,14 +59,19 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
@@ -76,10 +83,14 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.integration.test.ProcessingIT;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -314,8 +325,40 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            Response response = client.upload(operationGuid, params, zipInputStreamSipObject, CommonMediaType.ZIP);
+            final Response response2 = client.uploadInitialLogbook(operationGuid, params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            Response response = client.upload(operationGuid, zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
             assertEquals(200, response.getStatus());
+
+            // Try to check AU
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            Select select = new Select();
+            select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
+            JsonNode node = metadataClient.selectUnits(select.getFinalSelect().toString());
+            LOGGER.warn(JsonHandler.prettyPrint(node));
+            JsonNode result = node.get("$result");
+            assertNotNull(result);
+            JsonNode unit = result.get(0);
+            assertNotNull(unit);
+            String og = unit.get("_og").asText();
+            assertNotNull(og);
+            // Try to check OG
+            select = new Select();
+            select.addRoots(og);
+            select.parseProjection(
+                "{\"$fields\":{\"_qualifiers.BinaryMaster.versions\": { $slice: [" + 0 +
+                    "," +
+                    "1]},\"_id\":0," + "\"_qualifiers.BinaryMaster.versions._id\":1}}");
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect().toString(), og);
+            final List<String> valuesAsText = jsonResponse.get("$result").findValuesAsText("_id");
+            final String objectId = valuesAsText.get(0);
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            Response responseStorage = storageClient.getContainerAsync("0", "default", objectId,
+                StorageCollectionType.OBJECTS);
+            InputStream inputStream = responseStorage.readEntity(InputStream.class);
+            SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
+            StreamUtils.closeSilently(sizedInputStream);
+            assertTrue(sizedInputStream.getSize() > 1);
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -345,7 +388,9 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        Response response = client.upload(operationGuid, params, zipInputStreamSipObject, CommonMediaType.ZIP);
+        final Response response2 = client.uploadInitialLogbook(operationGuid, params);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        Response response = client.upload(operationGuid, zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
         assertNotNull(response);
         assertEquals(500, response.getStatus());
         assertNotNull(response.getEntity());

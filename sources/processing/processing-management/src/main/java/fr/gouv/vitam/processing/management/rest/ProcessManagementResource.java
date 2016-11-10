@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -33,6 +35,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import com.codahale.metrics.Gauge;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -60,6 +64,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
     private final ServerConfiguration config;
     private final ProcessManagement processManagementMock;
+    private final AtomicLong runningWorkflows = new AtomicLong(0L);
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
@@ -70,6 +75,13 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         processManagementMock = null;
         config = configuration;
         LOGGER.info("init Process Management Resource server");
+        ProcessManagementApplication.getBusinessMetricsRegistry().register("Running workflows",
+            new Gauge<Long>() {
+                @Override
+                public Long getValue() {
+                    return runningWorkflows.get();
+                }
+            });
     }
 
     /**
@@ -100,6 +112,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         ItemStatus resp;
         ProcessManagement processManagement = processManagementMock;
         try {
+            runningWorkflows.incrementAndGet();
             if (processManagement == null) {
                 processManagement = new ProcessManagementImpl(config); // NOSONAR mock management
             }
@@ -126,7 +139,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
         } finally {
-            if (processManagementMock == null) {
+            runningWorkflows.decrementAndGet();
+            if (processManagementMock == null && processManagement != null) {
                 processManagement.close();
             }
         }

@@ -39,9 +39,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
  * Handler Utils class
@@ -66,10 +67,11 @@ public class HandlerUtils {
         throws IOException, ProcessingException {
         final String tmpFilePath = handlerIO.getOutput(rank).getPath();
         final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
-        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(JsonHandler.prettyPrint(map));
-        firstMapTmpFileWriter.flush();
-        firstMapTmpFileWriter.close();
+        try {
+            JsonHandler.writeAsFile(map, firstMapTmpFile);
+        } catch (InvalidParseOperationException e) {
+            throw new IOException(e);
+        }
 
         handlerIO.addOuputResult(rank, firstMapTmpFile, removeTmpFile);
     }

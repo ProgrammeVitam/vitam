@@ -49,19 +49,19 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     public DbConfigurationImpl() {
         // empty
     }
-    
+
     /**
      * DbConfiguration constructor with authentication
-     *
-     * @param dbHost database server IP address
-     * @param dbPort database server port
+     * 
+     * @param mongoDbNodes database server IP address and port
      * @param dbName database name
-     * @param dbAuthentication 
-     * @param dbUserName 
-     * @param dbPassword 
+     * @param dbAuthentication
+     * @param dbUserName
+     * @param dbPassword
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
-    public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication, String dbUserName, String dbPassword) {
+    public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
+        String dbUserName, String dbPassword) {
         for (final MongoDbNode node : mongoDbNodes) {
             ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
                 node.getDbHost(), dbName);
@@ -79,9 +79,8 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
 
     /**
      * DbConfiguration constructor
-     *
-     * @param dbHost database server IP address
-     * @param dbPort database server port
+     * 
+     * @param mongoDbNodes database server IP address and port
      * @param dbName database name
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
@@ -97,7 +96,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         this.dbName = dbName;
         this.dbAuthentication = false;
     }
-    
+
     @Override
     public List<MongoDbNode> getMongoDbNodes() {
         return mongoDbNodes;
@@ -107,17 +106,17 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     public String getDbName() {
         return dbName;
     }
-    
+
     @Override
     public String getDbUserName() {
         return dbUserName;
     }
-    
+
     @Override
     public String getDbPassword() {
         return dbPassword;
     }
-    
+
     @Override
     public boolean isDbAuthentication() {
         return dbAuthentication;
@@ -127,8 +126,8 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @param mongoDbNodes to set
      * @return this
      * @throws IllegalArgumentException if dbHost is null or empty
-     */    
-    public DbConfigurationImpl setMongoDbNodes(List<MongoDbNode> mongoDbNodes){
+     */
+    public DbConfigurationImpl setMongoDbNodes(List<MongoDbNode> mongoDbNodes) {
         for (final MongoDbNode node : mongoDbNodes) {
             ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
                 node.getDbHost());
@@ -151,7 +150,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         this.dbName = dbName;
         return this;
     }
-    
+
     /**
      * @param userName
      * @return MetaDataConfiguration

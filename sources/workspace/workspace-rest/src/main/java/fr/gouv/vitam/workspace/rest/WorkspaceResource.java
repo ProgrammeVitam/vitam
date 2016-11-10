@@ -53,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -83,9 +84,13 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 @javax.ws.rs.ApplicationPath("webresources")
 public class WorkspaceResource extends ApplicationStatusResource {
 
-    private static final VitamLogger LOGGER =
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceResource.class);
 
-        VitamLoggerFactory.getInstance(WorkspaceResource.class);
+    private static final String FOLDER_NAME = "folderName";
+
+    private static final String OBJECT_NAME = "objectName";
+
+    private static final String CONTAINER_NAME = "containerName";
 
     private final ContentAddressableStorageAbstract workspace;
 
@@ -110,9 +115,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createContainer(@PathParam("containerName") String containerName) {
-        // FIXME P0 REVIEW should be changed to POST /containers/{containername}
-
+    public Response createContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
@@ -139,7 +142,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteContainer(@PathParam("containerName") String containerName) {
+    public Response deleteContainer(@PathParam(CONTAINER_NAME) String containerName) {
         // FIXME P1 REVIEW true by default ? SHould not be! need to test if container is empty
 
         try {
@@ -167,7 +170,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isExistingContainer(@PathParam("containerName") String containerName) {
+    public Response isExistingContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
@@ -193,7 +196,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/container/{containerName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getContainerInformation(@PathParam("containerName") String containerName) {
+    public Response getContainerInformation(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
@@ -219,9 +222,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createFolder(@PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
-        // FIXME P0 REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
+    public Response createFolder(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
@@ -251,8 +253,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFolder(@PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
+    public Response deleteFolder(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName) {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -280,8 +282,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isExistingFolder(@PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
+    public Response isExistingFolder(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
@@ -312,8 +314,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
     public Response uncompressObject(InputStream stream,
-        @PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -364,8 +366,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUriDigitalObjectListByFolder(@PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
+    public Response getUriDigitalObjectListByFolder(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName) {
 
         List<URI> uriList = null;
         try {
@@ -406,8 +408,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response putObject(InputStream stream,
-        @PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName) {
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
@@ -438,8 +440,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteObject(@PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName) {
+    public Response deleteObject(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName) {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -468,8 +470,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObject(@PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName,
+    public void getObject(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
 
@@ -491,8 +493,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectInformation(@PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName) throws IOException {
+    public Response getObjectInformation(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName) throws IOException {
         JsonNode jsonResultNode;
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -524,8 +526,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    public Response computeObjectDigest(@PathParam("containerName") String containerName,
-        @PathParam("objectName") String objectName, @HeaderParam("X-digest-algorithm") String algo) {
+    public Response computeObjectDigest(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName, @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String algo) {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -537,25 +539,25 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
 
         if (algo != null) {
-            LOGGER.debug("X-digest-algorithm : " + algo);
+            LOGGER.debug(GlobalDataRest.X_DIGEST_ALGORITHM + " : " + algo);
             String messageDigest = null;
             try {
                 messageDigest = workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));
             } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.error(e);
                 return Response.status(Status.NOT_FOUND)
-                    .header("X-digest-algorithm", algo)
+                    .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
                     .entity(containerName + "/" + objectName).build();
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error(e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .header("X-digest-algorithm", algo)
+                    .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
                     .entity(containerName + "/" + objectName).build();
             }
 
             return Response.status(Status.OK)
-                .header("X-digest-algorithm", algo)
-                .header("X-digest", messageDigest).build();
+                .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
+                .header(GlobalDataRest.X_DIGEST, messageDigest).build();
         } else {
             final boolean exists = workspace.isExistingObject(containerName, objectName);
             if (exists) {

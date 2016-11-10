@@ -98,6 +98,7 @@ public class VitamConfigurationTest {
         
         assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
         assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
+        assertEquals(DigestType.SHA512, VitamConfiguration.getDefaultDigestType());
         
 
         try {

@@ -26,9 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
@@ -41,11 +39,10 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -66,7 +63,6 @@ import fr.gouv.vitam.workspace.common.ErrorMessage;
 /**
  * Workspace client which calls rest services
  */
-// FIXME P0 REVIEW Since Factory => class and constructors as package protected
 public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage {
 
     private static final String INTERNAL_SERVER_ERROR2 = "Internal Server Error";
@@ -74,8 +70,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
     private static final String OBJECTS = "/objects/";
     private static final String FOLDERS = "/folders/";
     private static final String CONTAINERS = "/containers/";
-    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
-    public static final String X_DIGEST = "X-digest";
 
     /**
      * Instantiates a workspace client with a factory
@@ -246,8 +240,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    // FIXME P0 REVIEW change the contract of the implementation later on (POST on /objects/name directly in
-    // order to prevent multipart)
     @Override
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageServerException {
@@ -276,6 +268,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
     }
 
     @Override
+    // FIXME P0 MUST return Response and not InputStream
     public InputStream getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -449,13 +442,13 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(X_DIGEST_ALGORITHM, algo.getName());
+            headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, algo.getName());
             response =
                 performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
                     MediaType.APPLICATION_JSON_TYPE, false);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.getHeaderString(X_DIGEST);
+                return response.getHeaderString(GlobalDataRest.X_DIGEST);
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());

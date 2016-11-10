@@ -57,13 +57,11 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -97,9 +95,6 @@ public class SelectUnitResourceTest {
             "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "]}";
 
     private static final String SERVER_HOST = "localhost";
-
-    private static final String X_HTTP_Method = "X-Http-Method-Override";
-    private static final String GET = "GET";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
     private static JunitHelper junitHelper;
@@ -139,7 +134,6 @@ public class SelectUnitResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         application = new MetaDataApplication(configuration);
         application.start();
@@ -200,23 +194,22 @@ public class SelectUnitResourceTest {
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        given().headers(Headers.headers(new Header(X_HTTP_Method, GET)))
+        given()
             .contentType(ContentType.JSON)
             .body(BODY_TEST).when()
-            .post("/units").then()
+            .get("/units").then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
 
     @Test
-    public void given_badRequestHHtp_when_selectUnit_thenReturn_notAllowed() {
+    public void given_badRequestHHtp_when_selectUnit_thenReturn_BAD_REQUEST() {
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "ABC")
             .when()
-            .post("/units")
+            .get("/units")
             .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
 
@@ -226,10 +219,9 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(BAD_QUERY_TEST)
             .when()
-            .post("/units")
+            .get("/units")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -239,10 +231,9 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body("")
             .when()
-            .post("/units")
+            .get("/units")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -253,9 +244,8 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/").then()
+            .get("/units/").then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -282,12 +272,6 @@ public class SelectUnitResourceTest {
             .body(BODY_TEST).when()
             .get("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
-
-        given().headers(Headers.headers(new Header(X_HTTP_Method, GET)))
-            .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
-            .post("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode());
     }
 
 
@@ -296,26 +280,11 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body("")
             .when()
-            .post("/units/" + ID_UNIT)
+            .get("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-
-    @Test
-    public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "ABC")
-            .body(BODY_TEST)
-            .when()
-            .post("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -324,9 +293,8 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -351,9 +319,8 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -364,9 +331,8 @@ public class SelectUnitResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
-            .post("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 

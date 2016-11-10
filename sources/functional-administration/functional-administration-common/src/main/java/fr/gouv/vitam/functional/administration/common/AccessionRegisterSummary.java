@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
@@ -77,6 +78,26 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
         // FIXME P1
         append(TENANT, 0);
     }
+
+    /**
+     * @param content
+     */
+    public AccessionRegisterSummary(JsonNode content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+
+    /**
+     * @param content
+     */
+    public AccessionRegisterSummary(String content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
 
     /**
      * @param id

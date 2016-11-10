@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -81,14 +82,15 @@ public class ExtractObjectNumSedaTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(client);
-        
     }
 
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        utils = SedaUtilsFactory.create();
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        utils = SedaUtilsFactory.create(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 
         assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();

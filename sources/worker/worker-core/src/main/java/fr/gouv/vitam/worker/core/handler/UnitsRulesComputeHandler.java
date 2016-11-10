@@ -62,7 +62,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -87,19 +87,21 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * calculate archive unit 's Maturity date
+ * Computes archive unit 's Management date
  */
 public class UnitsRulesComputeHandler extends ActionHandler {
 
+
+    private static final String WORKSPACE_SERVER_ERROR = "Workspace Server Error";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitsRulesComputeHandler.class);
 
@@ -123,13 +125,18 @@ public class UnitsRulesComputeHandler extends ActionHandler {
      * Empty constructor UnitsRulesComputeHandler
      *
      */
-    public UnitsRulesComputeHandler() {}
+    public UnitsRulesComputeHandler() {
+        // Empty
+    }
 
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
         long time = System.currentTimeMillis();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+            GUIDFactory.newEventGUID(0).getId());
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType, HANDLER_ID);
 
         try {
             calculateMaturityDate(params, itemStatus);
@@ -140,12 +147,11 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             try {
                 updateUnitLifeCycle(logbookLifecycleUnitParameters, params, StatusCode.KO);
             } catch (ProcessingException e1) {
-                LOGGER.debug(e);
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                 itemStatus.increment(StatusCode.KO);
             }
             itemStatus.increment(StatusCode.KO);
         }
-
 
         LOGGER.debug("[exit] execute... /Elapsed Time:" + ((System.currentTimeMillis() - time) / 1000) + "s");
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -153,8 +159,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Auto-generated method stub
-
+        // Nothing to check
     }
 
 
@@ -163,11 +168,10 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.getInstance().getClient(); InputStream xmlInput =
-                workspaceClient.getObject(containerId,
-                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
-           
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            InputStream xmlInput = workspaceClient.getObject(containerId,
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+
             if (xmlInput != null) {
                 // Parse RULES in management Archive unit, and add EndDate
                 parseXmlRulesAndUpdateEndDate(xmlInput, objectName, containerId, params, itemStatus, workspaceClient);
@@ -175,14 +179,9 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");
             }
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Workspace Server Error");
-            throw new ProcessingException(e);
-        } catch (IOException e) {
-            LOGGER.error("Workspace Server Error");
-            throw new ProcessingException(e);
-        } catch (XMLStreamException e) {
-            LOGGER.error("Workspace Server Error");
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException |
+            XMLStreamException e) {
+            LOGGER.error(WORKSPACE_SERVER_ERROR);
             throw new ProcessingException(e);
         }
     }
@@ -209,14 +208,13 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             query.add(eq(FileRules.RULEID, ruleId));
         }
         select.setQuery(query);
-        
-        try (AdminManagementClient adminManagementClient =
-            AdminManagementClientFactory.getInstance().getClient();){
+
+        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             return adminManagementClient.getRules(select.getFinalSelect());
         } catch (final VitamException e) {
             throw new ProcessingException(e);
         }
-        
+
     }
 
     /**
@@ -249,8 +247,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             while (true) {
                 event = reader.nextEvent();
                 if (event.isStartElement()) {
-                    switch (event.asStartElement().getName()
-                        .getLocalPart()) {
+                    switch (event.asStartElement().getName().getLocalPart()) {
                         case SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT:
                             writer.add(event);
 
@@ -294,8 +291,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                             while (isNotEndRuleTag) {
                                 event = reader.nextEvent();
                                 if (event.isStartElement()) {
-                                    switch (event.asStartElement().getName()
-                                        .getLocalPart()) {
+                                    switch (event.asStartElement().getName().getLocalPart()) {
                                         case SedaConstants.TAG_RULE_RULE:
                                             writer.add(event);
                                             event = (XMLEvent) reader.next();
@@ -362,17 +358,12 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
                 } else if (event.isEndElement()) {
 
-                    if (IngestWorkflowConstants.ROOT_TAG.equals(event.asEndElement().getName()
-                        .getLocalPart())) {
+                    if (IngestWorkflowConstants.ROOT_TAG.equals(event.asEndElement().getName().getLocalPart())) {
                         writer.add(event);
                         break;
                     }
 
-                    switch (event.asEndElement().getName()
-                        .getLocalPart()) {
-                        default:
-                            writer.add(event);
-                    }
+                    writer.add(event);
 
                 } else {
                     writer.add(event);
@@ -398,7 +389,6 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 }
             }
         }
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType, itemStatus.getItemId());
 
         // Write to workspace
         try {
@@ -469,18 +459,9 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 params.getObjectName().replace("." + extension, ""));
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventType,
-                getId());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                getId());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 params.getCurrentStep());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome,
-                statusCode.toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                statusCode.toString());
-            logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(getId(), statusCode));
+            logbookLifecycleParameters.setFinalStatus(getId(), null, statusCode, null);
 
             logbookClient.update(logbookLifecycleParameters);
         } catch (final LogbookClientBadRequestException e) {

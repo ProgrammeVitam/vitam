@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -82,7 +83,8 @@ public class SedaUtilsTest {
     private WorkspaceClientFactory workspaceClientFactory;    
     private final InputStream seda;
 
-    private final SedaUtils utils = SedaUtilsFactory.create();
+    private final HandlerIO handlerIO = mock(HandlerIO.class);
+    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
@@ -99,32 +101,32 @@ public class SedaUtilsTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
     }
 
-    // TODO P0 : Fix it bug on jenkins
-    @Ignore
+    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
     }
 
-    // TODO P0 : Fix it bug on jenkins
-    @Ignore
+    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
         final InputStream is = new ByteArrayInputStream(str.getBytes());        
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString())).thenReturn(is);        
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
-    // TODO P0 : Fix it bug on jenkins
-    @Ignore
+    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(is);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
@@ -133,6 +135,8 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotExistThenReturnNoFile() throws Exception {
         when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        when(handlerIO.getInputStreamFromWorkspace(anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
@@ -140,6 +144,7 @@ public class SedaUtilsTest {
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
@@ -175,7 +180,8 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        final long totalSize = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
 
@@ -183,14 +189,14 @@ public class SedaUtilsTest {
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+        utils.computeTotalSizeOfObjectsInManifest(params);
     }
 
     @Test
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTest());
-        final long manifestSize = SedaUtils.getManifestSize(params);
+        final long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
 
@@ -198,7 +204,7 @@ public class SedaUtilsTest {
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTestError());
-        SedaUtils.getManifestSize(params);
+        utils.getManifestSize(params);
     }
 
     private JsonNode getSedaTest() {

@@ -176,6 +176,9 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         givenClient = null;
         idleMonitor = new ExpiredConnectionMonitorThread(this);
         startupMonitor();
+        if (configuration != null) {
+            useAuthorizationFilter = !configuration.isSecure();
+        }
     }
 
     /**

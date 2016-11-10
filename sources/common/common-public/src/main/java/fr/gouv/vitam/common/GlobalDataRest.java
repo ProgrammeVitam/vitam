@@ -102,6 +102,15 @@ public class GlobalDataRest {
      */
     public static final String X_CURSOR_TIMEOUT = "X-Cursor-Timeout";
     
+    /**
+     * Digest value
+     */
+    public static final String X_DIGEST = "X-digest";
+    /**
+     * Digest algorithm
+     */
+    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+
     private GlobalDataRest() {
         // empty
     }

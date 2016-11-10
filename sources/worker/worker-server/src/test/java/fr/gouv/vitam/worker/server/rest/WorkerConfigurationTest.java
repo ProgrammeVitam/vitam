@@ -28,12 +28,7 @@ package fr.gouv.vitam.worker.server.rest;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
-
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 
 /**
  * AccessConfigurationTest
@@ -53,12 +48,5 @@ public class WorkerConfigurationTest {
 
         workerConfiguration.setJettyConfig("jettyFakeConfig");
         assertEquals("jettyFakeConfig", workerConfiguration.getJettyConfig());
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
-        nodes.add(new MongoDbNode("localhost", 55555));
-        workerConfiguration.setMongoDbNodes(nodes);
-        assertEquals("localhost", workerConfiguration.getMongoDbNodes().get(0).getDbHost());
-        assertEquals(55555, workerConfiguration.getMongoDbNodes().get(0).getDbPort());
-        workerConfiguration.setDbName("Vitam-test");
-        assertEquals("Vitam-test", workerConfiguration.getDbName());
     }
 }

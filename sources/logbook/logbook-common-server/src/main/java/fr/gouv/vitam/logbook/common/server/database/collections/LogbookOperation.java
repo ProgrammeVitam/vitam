@@ -35,6 +35,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -110,6 +111,15 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * @param content
      */
     public LogbookOperation(String content) {
+        super(content);
+    }
+
+    /**
+     * Constructor for Codec
+     *
+     * @param content
+     */
+    public LogbookOperation(JsonNode content) {
         super(content);
     }
 

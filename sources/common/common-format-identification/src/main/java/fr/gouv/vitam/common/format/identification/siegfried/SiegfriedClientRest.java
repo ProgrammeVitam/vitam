@@ -62,6 +62,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
     @Override
     public JsonNode analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
+        LOGGER.debug("Path to analyze: " + filePath);
         final Response siegfriedResponse = callSiegfried(filePath);
         return handleCommonResponseIdentify(siegfriedResponse);
     }

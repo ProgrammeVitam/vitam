@@ -709,7 +709,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
                 nodeQuery = JsonHandler.getFromString(query);
-                cursorId = logbookLifeCycle.createCursorUnit(operationId, nodeQuery);
+                cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, nodeQuery);
             }
             fr.gouv.vitam.common.model.RequestResponseOK responseOK =
                 new fr.gouv.vitam.common.model.RequestResponseOK().setQuery(nodeQuery);
