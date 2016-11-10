@@ -11,11 +11,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -42,11 +37,6 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-lifecycles-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

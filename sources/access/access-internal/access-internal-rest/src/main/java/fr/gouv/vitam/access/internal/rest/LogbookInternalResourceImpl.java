@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.external.rest;
+package fr.gouv.vitam.access.internal.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -39,33 +39,34 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
-// FIXME P0 : Do not use logbookCLient, Call access-internal instead
 /**
  * AccessResourceImpl implements AccessResource
  */
-@Path("/access-external/v1")
+@Path("/access-internal/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @javax.ws.rs.ApplicationPath("webresources")
-public class LogbookExternalResourceImpl {
+public class LogbookInternalResourceImpl {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
 
     /**
      * Constructor
      *
      * @param configuration
      */
-    public LogbookExternalResourceImpl() {
+    public LogbookInternalResourceImpl() {
         LOGGER.debug("LogbookExternalResource initialized");
     }
 
@@ -81,7 +82,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperationbyId(operationId);
             return Response.status(Status.OK)
                 .entity(result)
@@ -143,10 +144,11 @@ public class LogbookExternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query)
+    // FIXME P0 JsonNode en argument pour toutes les "query"
+    public Response selectOperation(String query)
         throws InvalidParseOperationException {
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK)
                 .entity(result)
@@ -176,7 +178,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(JsonNode query,
+    public Response selectOperationWithPostOverride(String query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
         Status status;
@@ -215,7 +217,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) throws InvalidParseOperationException {
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
             return Response.status(Status.OK)
                 .entity(result)
@@ -248,7 +250,7 @@ public class LogbookExternalResourceImpl {
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
         throws InvalidParseOperationException {
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
             return Response.status(Status.OK)
                 .entity(result)

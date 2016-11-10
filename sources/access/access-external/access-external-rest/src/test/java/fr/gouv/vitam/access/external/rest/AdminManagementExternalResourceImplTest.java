@@ -21,6 +21,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -37,7 +38,7 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AdminManagementClientFactory.class})
 public class AdminManagementExternalResourceImplTest {
 
@@ -45,11 +46,9 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final String RESOURCE_URI = "/admin-external/v1";
 
-    private static final String FORMAT_URI = "/formats";
+    private static final String FORMAT_URI = "/" + AdminCollections.FORMATS.getName();
 
-    private static final String RULES_URI = "/rules";
-
-    private static final String ACCESSION_REGISTER_URI = "/accession-registers";
+    private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
 
@@ -94,6 +93,7 @@ public class AdminManagementExternalResourceImplTest {
 
     @Test
     public void deleteCollection() throws ReferentialException {
+        AdminManagementClientFactory.changeMode(null);
         given()
         .when().delete(FORMAT_URI)
         .then().statusCode(Status.OK.getStatusCode());
@@ -124,6 +124,7 @@ public class AdminManagementExternalResourceImplTest {
 
     @Test
     public void testCheckDocument() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
         .when().put(FORMAT_URI)
@@ -157,6 +158,7 @@ public class AdminManagementExternalResourceImplTest {
 
     @Test
     public void insertDocument() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
         .when().post(FORMAT_URI)
@@ -165,11 +167,6 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
         .when().post(RULES_URI)
-        .then().statusCode(Status.CREATED.getStatusCode());
-
-        stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        given().contentType(ContentType.BINARY).body(stream)
-        .when().post(ACCESSION_REGISTER_URI)
         .then().statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.BINARY)
@@ -199,17 +196,13 @@ public class AdminManagementExternalResourceImplTest {
         .when().post(FORMAT_URI)
         .then().statusCode(Status.CONFLICT.getStatusCode());
         
-        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
-        given().contentType(ContentType.BINARY).body(stream)
-        .when().post(ACCESSION_REGISTER_URI)
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
     }
 
     @Test
     public void testGetDocuments() throws InvalidCreateOperationException, FileNotFoundException {
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
+        AdminManagementClientFactory.changeMode(null);
 
         given()
         .contentType(ContentType.JSON)

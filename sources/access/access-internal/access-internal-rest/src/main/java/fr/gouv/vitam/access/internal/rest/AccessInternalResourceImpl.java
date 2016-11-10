@@ -54,12 +54,11 @@ import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -380,8 +379,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         });
     }
 
-    private RequestResponseError getErrorEntity(Status status) {
-        return new RequestResponseError().setError(new VitamError(status.getStatusCode()).setContext(ACCESS_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setContext(ACCESS_MODULE)
+   
+            .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
+            .setDescription(status.getReasonPhrase());
     }
 }

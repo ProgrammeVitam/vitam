@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
@@ -76,7 +77,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -526,7 +526,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(new RequestResponseOK()
                     .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                    .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                    .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -536,7 +536,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
             .build();
     }
 
@@ -575,7 +575,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(1, 0, 1)
-                .setResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
+                .addResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
             .build();
     }
 

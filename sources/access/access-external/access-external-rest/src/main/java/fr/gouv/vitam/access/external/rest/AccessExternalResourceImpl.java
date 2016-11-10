@@ -26,6 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -51,23 +56,28 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -76,6 +86,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
+    /**
+     * 
+     */
+    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
@@ -483,36 +497,42 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
-    // FIXME P0 model VitamError à utiliser
-    private RequestResponseError getErrorEntity(Status status) {
-        return new RequestResponseError()
-            .setError(new VitamError(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup, String query,
         boolean post) {
-        if (post) {
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+        try {
+            if (post) {
+                if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                        Response.status(Status.PRECONDITION_FAILED)
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                }
+                final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+                if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
+                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                        Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
+                            .toString()).build());
+                }
+            }
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
+                LOGGER.error("At least one required header is missing. Required headers: (" +
+                    VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
-            }
-            final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-            if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                    Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
-                        .toString()).build());
-            }
-        }
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
-            LOGGER.error("At least one required header is missing. Required headers: (" +
-                VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+            } 
+        } catch (IllegalArgumentException e) {
+            Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .build();
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         }
+
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
         // FIXME P1 To be passed to client
@@ -547,6 +567,88 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                     .toString()).build();
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+        }
+    }
+
+
+    /**
+     * findDocuments
+     * @param collection
+     * @param select
+     * @return Response
+     */
+    @Path("/accession-register")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegister(JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(status).build();
+        }
+
+        ParametersChecker.checkParameter("select query is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            JsonNode result = client.getAccessionRegister(select);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(status).build();
+        }
+    }
+
+
+
+    /**
+     * findDocumentByID
+     * @param collection
+     * @param documentId
+     * @return Response
+     */
+    @POST
+    @Path("/accession-register/{id_document}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
+        return Response.status(Status.NOT_IMPLEMENTED).build();
+    }
+
+
+    /**
+     * findAccessionRegisterDetail
+     * @param collection
+     * @param documentId
+     * @return Response
+     */
+    @POST
+    @Path("/accession-register/{id_document}/accession-register-detail")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(status).build();
+        }
+        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+            JsonNode result = client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
+            return Response.status(Status.OK).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        } catch (InvalidParseOperationException | UnsupportedEncodingException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(status).build();
         }
     }
 }

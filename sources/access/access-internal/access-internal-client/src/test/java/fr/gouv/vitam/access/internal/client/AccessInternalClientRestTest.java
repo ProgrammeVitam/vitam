@@ -431,5 +431,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
         client.checkStatus();
     }
+    
+    
 
 }

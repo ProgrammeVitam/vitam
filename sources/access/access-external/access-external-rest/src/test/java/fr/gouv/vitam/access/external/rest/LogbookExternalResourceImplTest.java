@@ -26,8 +26,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -37,34 +38,28 @@ import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class})
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
+@PrepareForTest({AccessInternalClientFactory.class})
 public class LogbookExternalResourceImplTest {
     @Mock
     private AccessInternalConfiguration configuration;
     @InjectMocks
-    private AccessExternalResourceImpl accessExternalResourceImpl;
+    private LogbookExternalResourceImpl accessExternalResourceImpl;
 
     // URI
-    private static final String ACCESS_CONF = "access-external-test.conf";
     private static final String ACCESS_RESOURCE_LOGBOOK_URI = "access-external/v1";
 
     private static VitamServer vitamServer;
 
     // LOGGER
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceImplTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImplTest.class);
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
-    private static LogbookOperationsClient logbookClient;
-    private static LogbookLifeCyclesClient logbookLifeCycleClient;
+    private static AccessInternalClient accessInternalClient;
 
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
@@ -90,10 +85,8 @@ public class LogbookExternalResourceImplTest {
         "    \"events\": []}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    private static final String BODY_QUERY =
-        "{$query: {$eq: {\"evType\" : \"Process_SIP_unitary\"}}, $projection: {}, $filter: {}}";
     static String request = "{ $query: {} , $projection: {}, $filter: {} }";
-    static String bad_request = "{ $query:\\ {} , $projection: {}, $filter: {} }";
+    static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
     static String good_id = "goodId";
     static String bad_id = "badId";
 
@@ -102,19 +95,6 @@ public class LogbookExternalResourceImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class);
-        logbookClient = PowerMockito.mock(LogbookOperationsClient.class);
-        LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient()).thenReturn(logbookClient);
-
-        logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCyclesClient.class);
-        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
-            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
-        
         try {
             vitamServer = buildTestServer();
             ((BasicVitamServer) vitamServer).start();
@@ -131,33 +111,37 @@ public class LogbookExternalResourceImplTest {
 
     }
 
-
     private static VitamServer buildTestServer()
-        throws VitamApplicationServerException, LogbookClientException, InvalidParseOperationException {
+        throws Exception {
         VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
 
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
+        PowerMockito.mockStatic(AccessInternalClientFactory.class);
+        accessInternalClient = PowerMockito.mock(AccessInternalClient.class);
+        AccessInternalClientFactory accessInternalFactory = PowerMockito.mock(AccessInternalClientFactory.class);
+        PowerMockito.when(AccessInternalClientFactory.getInstance()).thenReturn(accessInternalFactory);
+        PowerMockito.when(AccessInternalClientFactory.getInstance().getClient()).thenReturn(accessInternalClient);
 
-        PowerMockito.when(logbookClient.selectOperation(request))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
-        PowerMockito.when(logbookClient.selectOperationbyId(good_id))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+        PowerMockito.when(accessInternalClient.selectOperation(JsonHandler.getFromString(request)))
+        .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+        PowerMockito.when(accessInternalClient.selectOperationbyId(good_id))
+        .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
 
-        PowerMockito.when(logbookClient.selectOperation(bad_request))
-            .thenThrow(LogbookClientException.class);
-        PowerMockito.when(logbookClient.selectOperationbyId(bad_id))
-            .thenThrow(LogbookClientException.class);
+        PowerMockito.doThrow(new LogbookClientException(""))
+        .when(accessInternalClient).selectOperation(JsonHandler.getFromString(bad_request));
+        PowerMockito.doThrow(new LogbookClientException(""))
+        .when(accessInternalClient).selectOperationbyId(bad_id);
 
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(good_id))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(good_id))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
-        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(bad_id))
-        .thenThrow(LogbookClientException.class);
-        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(bad_id))
-        .thenThrow(LogbookClientException.class);
+        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(good_id))
+        .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(good_id))
+        .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+        PowerMockito.doThrow(new LogbookClientException(""))
+        .when(accessInternalClient).selectUnitLifeCycleById(bad_id);
+        PowerMockito.doThrow(new LogbookClientException(""))
+        .when(accessInternalClient).selectObjectGroupLifeCycleById(bad_id);
 
         resourceConfig.register(new AccessExternalResourceImpl());
         resourceConfig.register(new LogbookExternalResourceImpl());
@@ -184,124 +168,120 @@ public class LogbookExternalResourceImplTest {
             LOGGER.error(e);
         }
     }
-
     // FIXME P0 this test is erratic
     @Ignore
     @Test
-    public void testErrorSelect() {
+    public void testErrorSelect() throws Exception {
+        given()
+        .contentType(ContentType.JSON)
+        .body(JsonHandler.getFromString(request))
+        .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+        .pathParam("id_op", 1)
+        .when()
+        .post(OPERATIONS_URI + OPERATION_ID_URI)
+        .then()
+        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .body(request)
-            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .pathParam("id_op", 1)
-            .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI)
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        .contentType(ContentType.JSON)
+        .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+        .body(JsonHandler.getFromString(BODY_TEST))
+        .when()
+        .post(OPERATIONS_URI)
+        .then()
+        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(BODY_TEST)
-            .when()
-            .post(OPERATIONS_URI)
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        .contentType(ContentType.JSON)
+        .body(JsonHandler.getFromString(bad_request))
+        .when()
+        .get(OPERATIONS_URI)
+        .then()
+        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .body(bad_request)
-            .when()
-            .get(OPERATIONS_URI)
-            .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        .contentType(ContentType.JSON)
+        .pathParam("id_op", bad_id)
+        .when()
+        .get(OPERATIONS_URI + OPERATION_ID_URI)
+        .then()
+        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .pathParam("id_op", bad_id)
-            .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        
-        given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .param("id_lc", bad_id)
-            .when()
-            .get("/unitlifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());       
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .param("id_lc", bad_id)
+        .when()
+        .get("/unitlifecycles/" + bad_id)
+        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());       
 
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .param("id_lc", bad_id)
-            .when()
-            .get("/objectgrouplifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());             
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .param("id_lc", bad_id)
+        .when()
+        .get("/objectgrouplifecycles/" + bad_id)
+        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());             
     }
 
-    // FIXME P0 this test is erratic
-    @Ignore
     @Test
     public void testSelectOperations() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .body(request)
-            .when()
-            .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .body(JsonHandler.getFromString(request))
+        .when()
+        .get(OPERATIONS_URI)
+        .then().statusCode(Status.OK.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(request)
-            .when()
-            .post(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .header(X_HTTP_METHOD_OVERRIDE, "GET")
+        .body(JsonHandler.getFromString(request))
+        .when()
+        .post(OPERATIONS_URI)
+        .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void testSelectOperationsById() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .pathParam("id_op", good_id)
-            .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .pathParam("id_op", good_id)
+        .when()
+        .get(OPERATIONS_URI + OPERATION_ID_URI)
+        .then().statusCode(Status.OK.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(bad_request)
-            .pathParam("id_op", good_id)
-            .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .header(X_HTTP_METHOD_OVERRIDE, "GET")
+        .body(bad_request)
+        .pathParam("id_op", good_id)
+        .when()
+        .post(OPERATIONS_URI + OPERATION_ID_URI)
+        .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void testLifeCycleSelect() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .param("id_lc", good_id)
-            .when()
-            .get("/unitlifecycles/" + good_id)
-            .then().statusCode(Status.OK.getStatusCode());
-        
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .param("id_lc", good_id)
+        .when()
+        .get("/unitlifecycles/" + good_id)
+        .then().statusCode(Status.OK.getStatusCode());
+
         given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .param("id_lc", good_id)
-            .when()
-            .get("/objectgrouplifecycles/" + good_id)
-            .then().statusCode(Status.OK.getStatusCode());       
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .param("id_lc", good_id)
+        .when()
+        .get("/objectgrouplifecycles/" + good_id)
+        .then().statusCode(Status.OK.getStatusCode());       
     }
 
 
