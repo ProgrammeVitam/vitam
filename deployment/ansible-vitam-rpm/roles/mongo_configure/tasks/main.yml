@@ -8,16 +8,25 @@
 
 # Detect if authentication is enabled
 
-- name: Initiate the admin database
-  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.Status()'"
-  # todo: active become to use mongo user to execute the commands
-  # become: true
-  # become_method: su
-  # become_user: "{{ mongo_user}}"
+- name: Check if authent is enabled
+  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.status()'"
+  become_user: "{{ mongo_user}}"
   run_once: true
-  register: authent_enabled
+  register: mongo_authent_enabled
   failed_when: false
   no_log: true
+
+# Set mongo_no_auth facts
+
+- name: Set mongo_no_auth fact
+  set_fact:
+    mongo_no_auth: false
+
+# TODO: try to use mongo return code or explain why we parse the stdr
+- name: Set mongo_no_auth fact to true
+  set_fact:
+    mongo_no_auth: true
+  when: "mongo_authent_enabled.rc != 0"
 
 # Copy the mongodb scripts
 
@@ -30,35 +39,22 @@
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
   run_once: true
-  # with_items:
-  #   - users-admin.js
-  #   - users-Vitam.js
-  #   - init-admin-database.js
-  #   - init-Vitam-database.js
-  #   - enable-sharding.js
 
 # Enable sharding for specific databases and collections
 
 - name: Enable the sharding
   command: mongo localhost:{{mongos_port}} {{vitam_folder_root}}/tmp/mongos/enable-sharding.js
-  # become: true
-  # become_method: su
-  # become_user: "{{ mongo_user}}"
+  become_user: "{{ mongo_user}}"
   run_once: true
-  # TODO/FIXME set_fact auth=true & try to use mongo return code or explain why we parse the stdr
-  when:
-    - "authent_enabled.stderr == 'exception: login failed'"
+  when: mongo_no_auth
 
 # Initiate the databases and the related users
 
 - name: Create the users
   command: mongo localhost:{{mongos_port}}/{{item}} {{vitam_folder_root}}/tmp/mongos/users-{{item}}.js
-  # become: true
-  # become_method: su
-  # become_user: "{{ mongo_user}}"
+  become_user: "{{ mongo_user}}"
   run_once: true
-  when:
-    - "authent_enabled.stderr == 'exception: login failed'"
+  when: mongo_no_auth
   with_items:
     - admin
     - logbook
@@ -80,8 +76,7 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
   run_once: true
-  when:
-    - "authent_enabled.stderr == 'exception: login failed'"
+  when: mongo_no_auth
 
 - name: Activate security on mongod instances
   blockinfile:
@@ -95,8 +90,7 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
   run_once: true
-  when:
-    - "authent_enabled.stderr == 'exception: login failed'"
+  when: mongo_no_auth
 
 - name: Activate security on mongoc instances
   blockinfile:
@@ -110,8 +104,7 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
   run_once: true
-  when:
-    - "authent_enabled.stderr == 'exception: login failed'"
+  when: mongo_no_auth
 
 # Restart the mongo instances (to enable auth)
 
@@ -152,9 +145,7 @@
 
 - name: Initiate the admin database
   command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} {{vitam_folder_root}}/tmp/mongos/init-{{item}}-database.js
-  # become: true
-  # become_method: su
-  # become_user: "{{ mongo_user}}"
+  become_user: "{{ mongo_user}}"
   run_once: true
   with_items:
     - admin
