@@ -65,7 +65,7 @@ public class LogbackReporter extends ScheduledReporter {
 
     private static final int CONSOLE_WIDTH = 80;
     private static final AtomicInteger UNIQUE_RANK = new AtomicInteger(0);
-    
+
     private final PrintStream output;
     private final ByteArrayOutputStream byteArrayOutput;
     private final Locale locale;

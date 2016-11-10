@@ -192,8 +192,8 @@ public final class VitamInstrumentedResourceMethodApplicationListener
      * @param URI {@link String} the end-point URI
      * @return String
      */
-    final private String metricGenericName(final ResourceMethod method, final String URI) {
-        return URI +
+    final private String metricGenericName(final ResourceMethod method, final String uri) {
+        return uri +
             METRIC_NAME_DELIMITER +
             method.getHttpMethod() +
             METRIC_NAME_DELIMITER +
@@ -297,7 +297,7 @@ public final class VitamInstrumentedResourceMethodApplicationListener
         if (!method.isExtended() && method.getHttpMethod() != null) {
             // TODO P2 /admin/v1/... and .../status URI are removed here but should be removed with regex in Kibana the
             // day it is possible
-            if (rootPath != null && (rootPath.equals("/admin/v1") || path.equals("/status"))) {
+            if (rootPath != null && ("/admin/v1".equals(rootPath) || "/status".equals(path))) {
                 return;
             } else if (rootPath == null) {
                 metricName = metricGenericName(method, path);
@@ -331,7 +331,7 @@ public final class VitamInstrumentedResourceMethodApplicationListener
             for (final Resource resource : event.getResourceModel().getResources()) {
 
                 /* TODO P1: Remove the application.wadl resources with a better option */
-                if (resource.getPath().equals("application.wadl")) {
+                if ("application.wadl".equals(resource.getPath())) {
                     continue;
                 }
                 for (final ResourceMethod method : resource.getResourceMethods()) {
@@ -374,10 +374,8 @@ public final class VitamInstrumentedResourceMethodApplicationListener
                 if (timer != null) {
                     context = timer.time();
                 }
-            } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-                if (context != null) {
-                    context.close();
-                }
+            } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED && context != null) {
+                context.close();
             }
         }
     }

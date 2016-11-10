@@ -27,7 +27,7 @@ metricsJVM: true
 metricReporter: ELASTICSEARCH
 metricReporterHosts:
 {% for host in groups['hosts-elasticsearch-log'] %}
-   - {{ host }}
+   - "{{ host }}:{{ elasticsearch_log_http_port }}"
 {% endfor %}
 metricLogLevel: DEBUG
 metricReporterInterval: 1

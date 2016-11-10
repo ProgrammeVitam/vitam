@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class VitamMetricRegistry extends MetricRegistry {
     private static final String VITAM_METRIC_REGISTRY_PARAMS = "VitamMetricRegistry parameters";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMetricRegistry.class);
+
     /**
      * VitamMetricRegistry constructor
      */
