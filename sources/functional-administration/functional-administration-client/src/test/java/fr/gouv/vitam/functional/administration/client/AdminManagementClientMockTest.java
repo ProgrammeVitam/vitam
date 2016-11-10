@@ -120,14 +120,13 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void getRuleByIDTest() throws InvalidParseOperationException, ReferentialException {
-        // ObjectNode objectNode=
-        // {"RuleId":"APP-00001","RuleType":"testList","RuleDescription":"testList","RuleDuration":"10","RuleMeasurement":"Annee"};
         AdminManagementClientFactory.changeMode(null);
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
-        assertEquals("AppraiseRule", objectNode.get("RuleType").asText().toString());
-        assertEquals("10", objectNode.get("RuleDuration").asText().toString());
-        assertEquals("Annee", objectNode.get("RuleMeasurement").asText().toString());
+        assertEquals(1, ((ArrayNode)objectNode.get("$results")).size());
+        assertEquals("AppraisalRule", ((ArrayNode)objectNode.get("$results")).get(0).get("RuleType").asText().toString());
+        assertEquals("6", ((ArrayNode)objectNode.get("$results")).get(0).get("RuleDuration").asText().toString());
+        assertEquals("Année",  ((ArrayNode)objectNode.get("$results")).get(0).get("RuleMeasurement").asText().toString());
     }
 
     @Test
