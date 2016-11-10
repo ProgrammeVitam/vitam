@@ -246,6 +246,11 @@
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
                 "optional": true
+              },
+              {
+                "name": "mapsOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
+                "optional": true
               }
             ],
             "out": [

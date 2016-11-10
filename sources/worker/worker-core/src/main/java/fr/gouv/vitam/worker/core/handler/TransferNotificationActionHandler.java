@@ -103,10 +103,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class TransferNotificationActionHandler extends ActionHandler {
 
     private static final int ATR_RESULT_OUT_RANK = 0;
-    private static final int SEDA_PARAMETERS_RANK = 4;
-    private static final int BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK = 3;
-    private static final int BDO_OG_STORED_MAP_RANK = 2;
     private static final int BINARY_DATAOBJECT_MAP_RANK = 1;
+    private static final int BDO_OG_STORED_MAP_RANK = 2;
+    private static final int BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK = 3;
+    private static final int SEDA_PARAMETERS_RANK = 4;
+    private static final int OBJECT_GROUP_ID_TO_GUID_MAP_RANK = 5;
+
+
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final String XML = ".xml";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
@@ -125,7 +128,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
-    public static final int HANDLER_IO_PARAMETER_NUMBER = 5;
+    public static final int HANDLER_IO_PARAMETER_NUMBER = 6;
 
     private final LogbookDbAccess mongoDbAccess;
 
@@ -508,6 +511,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private void addKOReplyOutcome(XMLStreamWriter xmlsw, String containerName)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
 
+        Map<String, Object> bdoVersionDataObject = null;
+
+        if (handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK) != null) {
+            final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
+                new FileInputStream((File) handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK));
+            bdoVersionDataObject =
+                JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
+        }
+
         LogbookOperation logbookOperation = getLogbookOperation(containerName);
         if (logbookOperation != null) {
             List<Document> logbookOperationEvents =
@@ -520,12 +532,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             try (MongoCursor<LogbookLifeCycleUnit> logbookLifeCycleUnits = getLogbookLifecycleUnits(containerName)) {
                 if (logbookLifeCycleUnits != null) {
+                    Map<String, Object> archiveUnitSystemGuid = null;
                     InputStream archiveUnitMapTmpFile = null;
                     File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
                     if (file != null) {
                         archiveUnitMapTmpFile = new FileInputStream(file);
                     }
-                    Map<String, Object> archiveUnitSystemGuid = null;
                     Map<String, String> systemGuidArchiveUnitId = null;
 
                     if (archiveUnitMapTmpFile != null) {
@@ -552,6 +564,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                             xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID,
                                 systemGuidArchiveUnitId
                                     .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()));
+                            writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_SYSTEM_ID,
+                                logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
                         }
 
                         for (Document event : logbookLifeCycleUnitEvents) {
@@ -567,10 +581,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             MongoCursor<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroups =
                 getLogbookLifecycleObjectGroups(containerName);
             if (logbookLifeCycleObjectGroups != null) {
-                Map<String, Object> binaryDataObjectSystemGuid = null;
-                Map<String, Object> bdoObjectGroupSystemGuid = null;
+                Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
+                Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
+                Map<String, String> objectGroupGuid = new HashMap<>();
+                Map<String, List<String>> dataObjectsForOG = new HashMap<>();
                 File file1 = (File) handlerIO.getInput(BINARY_DATAOBJECT_MAP_RANK);
                 File file2 = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
+                File file3 = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
                 if (file1 != null && file2 != null) {
                     InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
                     InputStream bdoObjectGroupStoredMapTmpFile =
@@ -578,27 +595,26 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     binaryDataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
                     bdoObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
                 }
-                Map<String, String> guidObjectToObjectGroup = new HashMap<>();
-                Map<String, String> guidToIdObject = new HashMap<>();
-                // Set to known which DOGIG has already be used in the XML
-                Set<String> usedDataObjectGroup = new HashSet<>();
-                if (binaryDataObjectSystemGuid != null && bdoObjectGroupSystemGuid != null) {
-                    for (Map.Entry<String, Object> entry : binaryDataObjectSystemGuid.entrySet()) {
-                        String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
-                        // String dataBDOVersion = bdoVersionDataObject.get(entry.getKey()).toString();
-                        // DataObjectTypeRoot dotr = new DataObjectTypeRoot();
-                        // dotr.setId(entry.getKey());
-                        // // Test if the DOGID has already be used . If so, use DOGRefID, else DOGID in the SEDA XML
-                        // if (usedDataObjectGroup.contains(dataOGID)) {
-                        // dotr.setDataObjectGroupRefId(dataOGID);
-                        // } else {
-                        // dotr.setDataObjectGroupId(dataOGID);
-                        // usedDataObjectGroup.add(dataOGID);
-                        // }
-                        // dotr.setDataObjectVersion(dataBDOVersion);
-                        // dotr.setDataObjectGroupSystemId(entry.getValue().toString());
-                        guidObjectToObjectGroup.put(entry.getValue().toString(), dataOGID);
-                        guidToIdObject.put(entry.getValue().toString(), entry.getKey());
+                for (final Map.Entry<String, Object> entry : bdoObjectGroupSystemGuid.entrySet()) {
+                    String idOG = entry.getValue().toString();
+                    String idObj = entry.getKey();
+                    if (!dataObjectsForOG.containsKey(idOG)) {
+                        List<String> listObj = new ArrayList<>();
+                        listObj.add(idObj);
+                        dataObjectsForOG.put(idOG, listObj);
+                    } else {
+                        dataObjectsForOG.get(idOG).add(idObj);
+                    }
+                }
+                if (file3 != null) {
+                    InputStream objectGroupGuidMapTmpFile = new FileInputStream(file3);
+                    Map<String, Object> objectGroupGuidBefore =
+                        JsonHandler.getMapFromInputStream(objectGroupGuidMapTmpFile);
+                    if (objectGroupGuidBefore != null) {
+                        for (Map.Entry<String, Object> entry : objectGroupGuidBefore.entrySet()) {
+                            String guid = entry.getValue().toString();
+                            objectGroupGuid.put(guid, entry.getKey());
+                        }
                     }
                 }
 
@@ -606,41 +622,39 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 while (logbookLifeCycleObjectGroups.hasNext()) {
 
                     LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup = logbookLifeCycleObjectGroups.next();
+
+
+                    String eventIdentifier = null;
+                    xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
+
+                    String ogGUID =
+                        logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
+                            ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
+                                .toString()
+                            : "";
+                    String igId = "";
+                    if (objectGroupGuid.containsKey(ogGUID)) {
+                        igId = objectGroupGuid.get(ogGUID);
+                        xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, objectGroupGuid.get(ogGUID));
+                    }
+                    if (dataObjectsForOG.get(igId) != null) {
+                        for (String idObj : dataObjectsForOG.get(igId)) {
+                            xmlsw.writeStartElement(SedaConstants.TAG_BINARY_DATA_OBJECT);
+                            xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, idObj);
+                            if (binaryDataObjectSystemGuid.get(idObj) != null) {
+                                writeAttributeValue(xmlsw, SedaConstants.TAG_BINARY_DATA_OBJECT_SYSTEM_ID,
+                                    binaryDataObjectSystemGuid.get(idObj).toString());
+                            }
+                            xmlsw.writeEndElement(); // END SedaConstants.TAG_BINARY_DATA_OBJECT
+                        }
+
+                    }
                     List<Document> logbookLifeCycleObjectGroupEvents =
                         (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS.toString());
-
-                    boolean firstIteration = true;
-                    String eventIdentifier = null;
                     for (Document event : logbookLifeCycleObjectGroupEvents) {
-                        if (firstIteration) {
-                            firstIteration = false;
-                            xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
-                            if (event.get(LogbookMongoDbName.eventIdentifier.getDbname()) != null &&
-                                guidObjectToObjectGroup.containsKey(
-                                    event.get(LogbookMongoDbName.eventIdentifier.getDbname()).toString())) {
-                                xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID,
-                                    event.get(LogbookMongoDbName.eventIdentifier.getDbname()).toString());
-                            }
-                        }
-
-                        xmlsw.writeStartElement(SedaConstants.TAG_BINARY_DATA_OBJECT);
-                        if (event.get(LogbookMongoDbName.eventIdentifier.getDbname()) != null && guidToIdObject
-                            .containsKey(event.get(LogbookMongoDbName.eventIdentifier.getDbname()).toString())) {
-                            eventIdentifier = guidToIdObject
-                                .get(event.get(LogbookMongoDbName.eventIdentifier.getDbname()).toString());
-                            xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, eventIdentifier);
-                        }
-                        if (event.get(LogbookMongoDbName.eventIdentifier.getDbname()) != null) {
-                            writeAttributeValue(xmlsw, SedaConstants.TAG_BINARY_DATA_OBJECT_SYSTEM_ID,
-                                event.get(LogbookMongoDbName.eventIdentifier.getDbname()).toString());
-                        }
-                        xmlsw.writeEndElement(); // END SedaConstants.TAG_BINARY_DATA_OBJECT
-
                         writeEvent(xmlsw, event, SedaConstants.TAG_DATA_OBJECT_GROUP, eventIdentifier);
                     }
-                    if (!firstIteration) {
-                        xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
-                    }
+                    xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
                 }
                 logbookLifeCycleObjectGroups.close();
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_LIST
@@ -757,29 +771,19 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 StatusCode.KO.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()))) {
 
-            if (SedaConstants.TAG_DATA_OBJECT_GROUP.equals(eventType) && eventIdentifierManifest != null) {
-                writeAttributeValue(xmlsw, SedaConstants.TAG_BINARY_DATA_OBJECT_ID, eventIdentifierManifest);
-            }
-
             xmlsw.writeStartElement(SedaConstants.TAG_EVENT);
-
-            // == eventtypecode
             if (event.get(LogbookMongoDbName.eventType.getDbname()) != null) {
-                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE_CODE, event.get(LogbookMongoDbName.eventType.getDbname()).toString());
+                writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE_CODE,
+                    event.get(LogbookMongoDbName.eventType.getDbname()).toString());
                 if (SedaConstants.TAG_OPERATION.equals(eventType)) {
-                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages.getLabelOp(event.get
-                        (LogbookMongoDbName.eventType.getDbname()).toString()));
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages
+                        .getLabelOp(event.get(LogbookMongoDbName.eventType.getDbname()).toString()));
                 } else if (SedaConstants.TAG_ARCHIVE_UNIT.equals(eventType) || SedaConstants.TAG_DATA_OBJECT_GROUP
                     .equals(eventType)) {
-                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages.getLabelLfc(event.get
-                        (LogbookMongoDbName.eventType.getDbname()).toString()));
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages
+                        .getLabelLfc(event.get(LogbookMongoDbName.eventType.getDbname()).toString()));
                 }
             }
-            // == eventtype
-
-                // fichier properties
-
-
             if (event.get(LogbookMongoDbName.eventDateTime.getDbname()) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_DATE_TIME,
                     event.get(LogbookMongoDbName.eventDateTime.getDbname()).toString());

@@ -74,20 +74,21 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
 @PrepareForTest({WorkspaceClientFactory.class})
 public class TransferNotificationActionHandlerTest {
-    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
-    private static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP = "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_obj.json";
-    private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "BDO_TO_OBJECT_GROUP_ID_MAP_obj.json";
-    private static final String BDO_TO_VERSION_BDO_MAP = "BDO_TO_VERSION_BDO_MAP_obj.json";
+    private static final String ARCHIVE_ID_TO_GUID_MAP = "transferNotificationActionHandler/ARCHIVE_ID_TO_GUID_MAP_objKO.json";
+    private static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP = "transferNotificationActionHandler/BINARY_DATA_OBJECT_ID_TO_GUID_MAP_objKO.json";
+    private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "transferNotificationActionHandler/BDO_TO_OBJECT_GROUP_ID_MAP_objKO.json";
+    private static final String BDO_TO_VERSION_BDO_MAP = "transferNotificationActionHandler/BDO_TO_VERSION_BDO_MAP_objKO.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
-
+    private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";    
+    
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
-    private static final String LOGBOOK_OPERATION = "transferNotificationActionHandler/logbookOperation.json";
-    private static final String LOGBOOK_LFC_AU = "transferNotificationActionHandler/logbookLifecycleAU.json";
-    private static final String LOGBOOK_LFC_GOT = "transferNotificationActionHandler/logbookLifecycleGOT.json";
+    private static final String LOGBOOK_OPERATION = "transferNotificationActionHandler/logbookOperationKO.json";
+    private static final String LOGBOOK_LFC_AU = "transferNotificationActionHandler/logbookLifecycleAUKO.json";
+    private static final String LOGBOOK_LFC_GOT = "transferNotificationActionHandler/logbookLifecycleGOTKO.json";
 
     private static LogbookDbAccess mongoDbAccess;
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;    
+    private WorkspaceClientFactory workspaceClientFactory;
     private HandlerIO action;
     private List<IOParameter> in;
     private List<IOParameter> out;
@@ -107,7 +108,7 @@ public class TransferNotificationActionHandlerTest {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         mongoDbAccess = mock(LogbookDbAccess.class);
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
@@ -119,6 +120,7 @@ public class TransferNotificationActionHandlerTest {
         action.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
         action.addOuputResult(3, PropertiesUtils.getResourceFile(BDO_TO_VERSION_BDO_MAP));
         action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
+        action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         action.reset();
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/responseReply.xml")));
@@ -128,7 +130,7 @@ public class TransferNotificationActionHandlerTest {
     public void clean() {
         action.close();
     }
-    
+
     @Test
     public void givenXMLCreationWhenValidThenResponseOK()
         throws Exception {
@@ -168,7 +170,7 @@ public class TransferNotificationActionHandlerTest {
         Mockito.when(lifecycleAUCursor.next()).thenReturn(getLogbookLifecycleAU());
 
         Mockito.doReturn(getLogbookOperation()).when(mongoDbAccess).getLogbookOperation(anyObject());
-        Mockito.doReturn(lifecycleGOTCursor).when(mongoDbAccess).getLogbookLifeCycleObjectGroups(anyObject());        
+        Mockito.doReturn(lifecycleGOTCursor).when(mongoDbAccess).getLogbookLifeCycleObjectGroups(anyObject());
         Mockito.doReturn(lifecycleAUCursor).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
@@ -199,7 +201,7 @@ public class TransferNotificationActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
-    
+
     @Test
     public void givenExceptionLogbookWhenProcessKOBeforeLifecycleThenResponseKO()
         throws Exception {
@@ -217,7 +219,7 @@ public class TransferNotificationActionHandlerTest {
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-    
+
     @Test
     public void givenExceptionLogbookLCUnitWhenProcessOKThenResponseKO()
         throws Exception {
@@ -242,7 +244,8 @@ public class TransferNotificationActionHandlerTest {
         TransferNotificationActionHandler handler = new TransferNotificationActionHandler(mongoDbAccess);
 
         Mockito.doReturn(getLogbookOperation()).when(mongoDbAccess).getLogbookOperation(anyObject());
-        Mockito.doThrow(new LogbookDatabaseException("")).when(mongoDbAccess).getLogbookLifeCycleObjectGroups(anyObject());
+        Mockito.doThrow(new LogbookDatabaseException("")).when(mongoDbAccess)
+            .getLogbookLifeCycleObjectGroups(anyObject());
         Mockito.doReturn(null).when(mongoDbAccess).getLogbookLifeCycleUnits(anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
@@ -253,7 +256,7 @@ public class TransferNotificationActionHandlerTest {
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-    
+
     private static LogbookOperation getLogbookOperation() throws FileNotFoundException, IOException {
         return new LogbookOperation(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
     }
