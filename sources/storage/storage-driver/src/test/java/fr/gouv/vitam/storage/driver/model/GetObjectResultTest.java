@@ -30,6 +30,9 @@ package fr.gouv.vitam.storage.driver.model;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,7 +46,7 @@ public class GetObjectResultTest {
 
     @BeforeClass
     public static void init() {
-        getObjectResult = new GetObjectResult("ti", BYTES);
+        getObjectResult = new GetObjectResult("ti", Response.ok(BYTES).build());
     }
 
     @Test
@@ -53,6 +56,6 @@ public class GetObjectResultTest {
 
     @Test
     public void testGetResultStream() {
-        assertEquals(BYTES, getObjectResult.getObject());
+        assertEquals(BYTES, getObjectResult.getObject().getEntity());
     }
 }
