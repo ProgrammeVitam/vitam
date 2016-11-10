@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.metrics.ElasticsearchReporter;
 
-import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
@@ -70,7 +69,7 @@ public class VitamMetrics {
      * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricConfiguration}
      * . The configuration object must be returned from the method {link
      * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
-     * 
+     *
      * @param type
      *
      * @param configuration {@link VitamMetricConfiguration}
@@ -86,9 +85,6 @@ public class VitamMetrics {
             configureJVMMetrics();
         }
         switch (configuration.getMetricReporter()) {
-            case CONSOLE:
-                configureConsoleReporter();
-                break;
             case ELASTICSEARCH:
                 configureElasticsearchReporter(configuration);
                 break;
@@ -128,10 +124,6 @@ public class VitamMetrics {
         return isReporting;
     }
 
-    private void configureConsoleReporter() {
-        reporter = ConsoleReporter.forRegistry(registry).build();
-    }
-
     private void configureLogbackReporter(VitamMetricsConfiguration configuration) {
         reporter = LogbackReporter.forRegistry(registry)
             .logLevel(configuration.getMetricLogLevel())
@@ -143,8 +135,7 @@ public class VitamMetrics {
 
         if (configuration.getMetricReporterHosts().length == 0) {
             LOGGER.warn("Empty list of ElasticSearch hosts");
-        }
-        else {
+        } else {
             additionalFields.put("hostname", ServerIdentity.getInstance().getName());
             additionalFields.put("role", ServerIdentity.getInstance().getRole());
             try {
@@ -155,7 +146,8 @@ public class VitamMetrics {
                     .additionalFields(additionalFields)
                     .build();
             } catch (final IOException e) {
-                LOGGER.warn("Unable to reach ElasticSearch log host: " + e.getMessage());
+                LOGGER.error(e);
+                LOGGER.warn("Unable to reach ElasticSearch log host.");
             }
         }
     }

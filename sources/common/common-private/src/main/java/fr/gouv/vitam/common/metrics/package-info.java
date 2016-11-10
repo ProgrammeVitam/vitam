@@ -24,59 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.common.metrics;
-
-import fr.gouv.vitam.common.ParametersChecker;
-
 /**
- * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
- *
+ * This package contains the metric classes used in VITAM
  */
-public enum VitamMetricsReporterType {
-
-    ELASTICSEARCH("elasticsearch"),
-
-    LOGBACK("logback"),
-
-    NONE("none");
-
-    private final String name;
-
-    /**
-     * Constructor
-     *
-     * @param String name
-     */
-    VitamMetricsReporterType(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * Return the name of the enum as a String
-     *
-     * @return String
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Retrieve an {@link VitamMetricsReporterType} given a name. Throws an {@code IllegalArgumentException} if the name
-     * doesn't exists.
-     *
-     * @param metricReporterTypeName
-     * @return VitamMetricsReporterType
-     * @throws IllegalArgumentException
-     */
-    public static VitamMetricsReporterType get(String metricReporterTypeName) throws IllegalArgumentException {
-        ParametersChecker.checkParameterNullOnly("VitamMetricsReporterType name", metricReporterTypeName);
-
-        for (final VitamMetricsReporterType v : values()) {
-            if (v.getName().equals(metricReporterTypeName)) {
-                return v;
-            }
-        }
-        throw new IllegalArgumentException("Invalid VitamMetricsReporterType name");
-    }
-}
+package fr.gouv.vitam.common.metrics;
