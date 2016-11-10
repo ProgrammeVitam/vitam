@@ -163,7 +163,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
         JsonNode detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
-        JsonNode detail = detailResponse.get("$results");
+        JsonNode detail = detailResponse.get("results");
         assertNotNull(detail);
         assertTrue(detail.isArray());
         ArrayNode detailAsArray = (ArrayNode) detail;
