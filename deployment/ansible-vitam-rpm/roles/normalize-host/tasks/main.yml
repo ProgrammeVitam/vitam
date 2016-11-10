@@ -33,3 +33,6 @@
     - log
     - script
     - tmp
+
+- name: update yum cache
+  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
