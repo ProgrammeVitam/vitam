@@ -17,7 +17,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -333,7 +332,9 @@ public class FormatIdentificationActionHandlerTest {
         node.put("MIMEType", "application/vnd.oasis.opendocument");
         final ArrayNode ret = JsonHandler.createArrayNode();
         ret.add(node);
-        return ret;
+        final ObjectNode result = JsonHandler.createObjectNode();
+        result.set("$results", ret);
+        return result;
     }
 
     private JsonNode getAdminManagementJson2Result() {

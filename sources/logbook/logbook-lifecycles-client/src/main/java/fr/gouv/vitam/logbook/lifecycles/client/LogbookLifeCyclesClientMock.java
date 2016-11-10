@@ -30,11 +30,11 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 import javax.ws.rs.HttpMethod;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,8 +45,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -63,26 +61,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String CREATE = "CREATE";
     private static final String COMMIT = "COMMIT";
     private static final String ROLLBACK = "ROLLBACK";
-
-    private static final String MOCK_SELECT_RESULT_1 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
 
     @Override
     public void create(LogbookLifeCycleParameters parameters)
@@ -132,14 +110,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         logInformation(ROLLBACK, parameters);
     }
 
-    /**
-     *
-     * @return the default first answer
-     */
-    public static String getMockSelectOperationResult() {
-        return MOCK_SELECT_RESULT_1;
-    }
-
     private void logInformation(String operation, LogbookParameters parameters) {
         String result;
         try {
@@ -154,30 +124,26 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public JsonNode selectUnitLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
     public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-                "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+                "/", null, ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
     public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+            "/", null, ClientMockResultHelper.getLogbookOperation());
     }
 }

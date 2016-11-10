@@ -252,7 +252,7 @@ public class VitamServiceRegistry {
                 .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
         }
         list.add(sub);
-        status.setErrors(list);
+        status.addAllErrors(list);
         if (globalStatus) {
             status.setDescription("All services are available")
                 .setHttpCode(Status.OK.getStatusCode()).setMessage("All services are available")

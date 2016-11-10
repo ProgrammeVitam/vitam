@@ -50,26 +50,25 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.model.response.VitamError;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
@@ -137,29 +136,27 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .setResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         }
     }
@@ -274,29 +271,27 @@ public class LogbookResource extends ApplicationStatusResource {
                 .entity(new RequestResponseOK()
                     .setHits(result.size(), 0, 1)
                     .setQuery(JsonHandler.getFromString(query))
-                    .setResult(resultAsJson))
+                    .addResult(resultAsJson))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         }
     }
@@ -339,12 +334,11 @@ public class LogbookResource extends ApplicationStatusResource {
                 LOGGER.error(e);
                 Status status = Status.PRECONDITION_FAILED;
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(
-                        new VitamError(status.getStatusCode())
-                            .setContext("logbook")
-                            .setState("code_vitam")
-                            .setMessage(status.getReasonPhrase())
-                            .setDescription(e.getMessage())))
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext("logbook")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(e.getMessage()))
                     .build();
             }
             return Response.status(Response.Status.CREATED).build();
@@ -422,8 +416,8 @@ public class LogbookResource extends ApplicationStatusResource {
                 nodeQuery = JsonHandler.getFromString(query);
                 cursorId = logbookLifeCycle.createCursorUnit(operationId, nodeQuery);
             }
-            fr.gouv.vitam.common.model.RequestResponseOK responseOK =
-                new fr.gouv.vitam.common.model.RequestResponseOK().setQuery(nodeQuery);
+            RequestResponseOK responseOK =
+                new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
@@ -435,26 +429,26 @@ public class LogbookResource extends ApplicationStatusResource {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
+                .entity(new RequestResponseOK()
                     .setHits(nb, 0, nb).setQuery(nodeQuery));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             ResponseBuilder builder = Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())));
+                    .setDescription(exc.getMessage()));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             ResponseBuilder builder = Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())));
+                    .setDescription(exc.getMessage()));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
@@ -482,9 +476,9 @@ public class LogbookResource extends ApplicationStatusResource {
                 LOGGER.error("unit lifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage())))
+                        .setDescription(e.getMessage()))
                     .build();
             }
             /**
@@ -496,25 +490,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.CONFLICT;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.CREATED).build();
@@ -544,9 +538,9 @@ public class LogbookResource extends ApplicationStatusResource {
                 LOGGER.error("unit lifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage())))
+                        .setDescription(e.getMessage()))
                     .build();
             }
             /**
@@ -558,25 +552,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -602,25 +596,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -659,24 +653,23 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .setResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
-                    .setResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode()))
                 .build();
         } catch (final LogbookException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         }
     }
@@ -738,17 +731,17 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             ResponseBuilder builder = Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())));
+                    .setDescription(exc.getMessage()));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             ResponseBuilder builder = Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())));
+                    .setDescription(exc.getMessage()));
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }
@@ -777,9 +770,9 @@ public class LogbookResource extends ApplicationStatusResource {
                 LOGGER.error("objectgrouplifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage())))
+                        .setDescription(e.getMessage()))
                     .build();
             }
             /**
@@ -791,25 +784,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.CONFLICT;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.CREATED).build();
@@ -838,9 +831,9 @@ public class LogbookResource extends ApplicationStatusResource {
                 LOGGER.error("objectgrouplifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                         .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage())))
+                        .setDescription(e.getMessage()))
                     .build();
             }
             /**
@@ -851,25 +844,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -895,25 +888,25 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage())))
+                    .setDescription(exc.getMessage()))
                 .build();
         }
         return Response.status(Response.Status.OK).build();
@@ -955,24 +948,23 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .setResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
-                    .setResult(JsonHandler.createArrayNode()))
+                    .addResult(JsonHandler.createArrayNode()))
                 .build();
         } catch (final LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(exc.getMessage())))
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
                 .build();
         }
     }

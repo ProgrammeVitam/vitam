@@ -380,7 +380,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
     private void checkAndUpdateFormatIdentification(String objectId, JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
-        final JsonNode refFormat = result.get(0);
+        final JsonNode refFormat = result.get("$results").get(0);
         final JsonNode puid = refFormat.get(FileFormat.PUID);
         final StringBuilder diff = new StringBuilder();
         if ((formatIdentification == null || !formatIdentification.isObject()) && puid != null) {

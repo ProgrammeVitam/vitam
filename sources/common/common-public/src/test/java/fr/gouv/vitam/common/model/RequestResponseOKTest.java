@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +38,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 public class RequestResponseOKTest {
 
@@ -53,13 +58,41 @@ public class RequestResponseOKTest {
     public final void testSetRequestResponseOKAttributes()
         throws JsonProcessingException, IOException {
         results = new ArrayList<>();
-        final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
-        query = new ObjectMapper().readTree(json).get("objects");
+        final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
+        query = new ObjectMapper().readTree(json);
         final RequestResponseOK requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(results);
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
+
+        assertEquals(
+            "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
+                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            JsonHandler.unprettyPrint(requestResponseOK));
+        try {
+            RequestResponseOK copy =
+                JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
+            assertEquals(requestResponseOK.getQuery(), copy.getQuery());
+        } catch (InvalidParseOperationException e) {
+            fail("should not failed");
+        }
+        requestResponseOK.addResult(query);
+        requestResponseOK.addResult(query);
+        requestResponseOK.getHits().setTotal(2).setLimit(2);
+        assertEquals(
+            "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+                "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            JsonHandler.unprettyPrint(requestResponseOK));
+        try {
+            RequestResponseOK copy =
+                JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
+            assertEquals(requestResponseOK.getQuery(), copy.getQuery());
+        } catch (InvalidParseOperationException e) {
+            fail("should not failed");
+        }
+
     }
 
     @Test(expected = IllegalArgumentException.class)
