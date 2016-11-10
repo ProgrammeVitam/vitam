@@ -173,9 +173,9 @@ public class LogbookOperationsClientMockTest {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1",
-            client.selectOperation(request).get("$result").get(1).get("_id").asText());
+            client.selectOperation(request).get("$results").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0",
-            client.selectOperationbyId("eventIdentifier").get("$result").get(0).get("_id").asText());
+            client.selectOperationbyId("eventIdentifier").get("$results").get(0).get("_id").asText());
     }
 
     @Test

@@ -88,7 +88,7 @@ angular.module('ihm.demo')
       ctrl.searchOptions.orderby = "evDateTime";
 
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-        ctrl.operationList = response.data.result;
+        ctrl.operationList = response.data.$results;
         ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
         ctrl.currentPage = 1;
       }, function(response) {

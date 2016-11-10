@@ -71,12 +71,12 @@ angular.module('accession.register.search')
           var isReponseValid = responseValidator.validateReceivedResponse(response);
           if (isReponseValid) {
             // Get total results
-            self.totalResult = response.data.hits.total;
+            self.totalResult = response.data.$hits.total;
             self.showResult = true;
 
             if (self.totalResult > 0) {
               // Display found registers
-              self.registers = response.data.result;
+              self.registers = response.data.$results;
             }
           } else {
             // Invalid response

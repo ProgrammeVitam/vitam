@@ -167,9 +167,9 @@ public class AdminManagementClientMockTest {
         assertNotNull(detail);
         assertTrue(detail.isArray());
         ArrayNode detailAsArray = (ArrayNode) detail;
-        assertEquals(2, detailAsArray.size());
+        assertEquals(1, detailAsArray.size());
         JsonNode item = detailAsArray.get(0);
-        assertEquals("AG2", item.get("SubmissionAgency").asText());
+        assertEquals("FRAN_NP_005061", item.get("SubmissionAgency").asText());
     }
     
 }

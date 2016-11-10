@@ -3,7 +3,6 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import static com.jayway.restassured.RestAssured.given;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -14,7 +13,6 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
 

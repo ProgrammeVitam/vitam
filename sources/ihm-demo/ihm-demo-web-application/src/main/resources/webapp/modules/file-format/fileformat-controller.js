@@ -63,7 +63,7 @@ angular.module('ihm.demo')
       ctrl.searchOptions.FORMAT = "all";
       ctrl.searchOptions.orderby = "Name";
       ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
-        ctrl.fileFormatList = response.data.sort(function (a, b) {
+        ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
         });
         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
@@ -77,7 +77,7 @@ angular.module('ihm.demo')
       ctrl.searchOptions = {};
       clearResults();
       ctrl.client.all('formats').post({FORMAT: "all", orderby: "Name"}).then(function(response) {
-        ctrl.fileFormatList = response.data.sort(function (a, b) {
+        ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
         });
         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
@@ -109,13 +109,13 @@ angular.module('ihm.demo')
 
     self.getFormatEntry = function(id) {
       ihmDemoCLient.getClient('admin/formats').all(id).post({}).then(function(response) {
-        updateEntry(response.data);
+        updateEntry(response.data.$results[0]);
       });
     };
 
     self.getFormatEntryByPUID = function(puid) {
       ihmDemoCLient.getClient('admin').all('formats').post({FORMAT: "all", PUID: puid}).then(function(response) {
-        updateEntry(response.data[0]);
+        updateEntry(response.data.$results[0]);
       });
     };
 

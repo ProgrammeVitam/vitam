@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -35,6 +36,7 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -250,6 +252,40 @@ public class UserInterfaceTransactionManager {
     public static JsonNode selectObjectGroupLifeCycleById(String objectGroupLifeCycleId) throws LogbookClientException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
+        }
+    }
+
+    /**
+     * @param options
+     * @return
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode findAccessionRegisterSummary(String options) throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            String query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            return client.getAccessionRegisterSummary(JsonHandler.getFromString(query));
+        }
+    }
+    
+    /**
+     * @param id
+     * @param options
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode findAccessionRegisterDetail(String id, String options) throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
+        try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            String query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            return accessClient.getAccessionRegisterDetail(id, JsonHandler.getFromString(query));
         }
     }
 

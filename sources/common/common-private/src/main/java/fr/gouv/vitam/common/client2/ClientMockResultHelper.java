@@ -48,7 +48,7 @@ public class ClientMockResultHelper {
     private static final String RESULT =
         "{\"$query\":{}," +
             "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
-            "\"$result\":";
+            "\"$results\":";
 
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -92,7 +92,7 @@ public class ClientMockResultHelper {
         "\"PUID\":\"fmt/164\", " +
         "\"_tenant\":\"0\"}";
 
-    private static final String ACCESSION_SUMMARY = "\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
+    private static final String ACCESSION_SUMMARY = "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
         "\"_tenant\": 0," +
         "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
         "    \"TotalObjects\": {" +
@@ -180,18 +180,18 @@ public class ClientMockResultHelper {
     }
 
     public static JsonNode getFormat() throws InvalidParseOperationException {
-        return JsonHandler.getFromString(FORMAT);
+        return createReponse(FORMAT);
     }
 
     public static JsonNode getRule() throws InvalidParseOperationException {
-        return JsonHandler.getFromString(RULE);
+        return createReponse(RULE);
     }
 
     public static JsonNode getFormatList() throws InvalidParseOperationException {
-        return JsonHandler.getFromString("[" + FORMAT + "]");
+        return createReponse(FORMAT);
     }
 
     public static JsonNode getRuleList() throws InvalidParseOperationException {
-        return JsonHandler.getFromString("[" + RULE + "]");
+        return createReponse(RULE);
     }
 }

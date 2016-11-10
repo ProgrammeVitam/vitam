@@ -16,8 +16,8 @@ angular.module('core')
 .service('responseValidator', function(){
   var self = this;
   self.validateReceivedResponse = function (responseToValidate) {
-    if (responseToValidate.data === undefined || responseToValidate.data.hits === undefined ||
-        responseToValidate.data.hits === null || responseToValidate.data.result === undefined || responseToValidate.data.result === null) {
+    if (responseToValidate.data === undefined || responseToValidate.data.$hits === undefined ||
+        responseToValidate.data.$hits === null || responseToValidate.data.$results === undefined || responseToValidate.data.$results === null) {
       // Invalid response
       // Display error message
       return false;
