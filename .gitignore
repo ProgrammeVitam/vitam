@@ -9,6 +9,7 @@ npm-debug.log
 .settings
 **/node_modules/
 **/evosuite-tests/
+**/generated-sources/
 *.retry
 *~*
 repodata

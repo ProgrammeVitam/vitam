@@ -57,7 +57,6 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -229,6 +228,11 @@ public class IngestInternalIT {
         adminClient
             .importFormat(
                 PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"));
+
+
+        // Import Rules
+        adminClient.importRulesFile(
+            PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"));
     }
 
     @AfterClass

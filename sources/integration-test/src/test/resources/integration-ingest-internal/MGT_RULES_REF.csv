@@ -1,0 +1,41 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,AppraisalRule,Dossier individuel d’agent civil,"Durée de conservation des dossiers individuels d’agents. 
+L’échéance est calculée à partir de la date de naissance de l’agent",80,Année
+APP-00002,AppraisalRule,Offres non retenues des marchés,"Durée de conservation des offres non retenues des marchés publics
+L’échéance est calculée à partir de la date de notification du marché au titulaire",5,Année
+APP-00003,AppraisalRule,Exécution d’un marché de services,"Durée de conservation des pièces comptables pour l’ordonnateur
+l’échéance est calculée à partir de la date de solde comptable",10,Année
+APP-00004,AppraisalRule,Exécution d’un marché de travaux,"Durée de conservation des dossiers d’exécution de marchés de travaux
+L’échéance est calculée à partir de la date de levée des réserves",10,Année
+APP-00005,AppraisalRule,Pièces comptables (comptable),"Durée de conservation des pièces comptables pour le comptable
+l’échéance est calculée à partir de la date de solde comptable",6,Année
+ACC-00001,AccessRule,Libre communicabilité,Durée de communicabilité par défaut,0,Année
+ACC-00002,AccessRule,Communicabilité des informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif (date du document le plus récent dans le dossier),"Durée de communicabilité applicable aux informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif
+L’échéance est calculée à partir de la date du document le plus récent du dossier",25,Année
+ACC-00003,AccessRule,Communicabilité des informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif (date du document),"Durée de communicabilité applicable aux informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif
+L’échéance est calculée à partir de la date du document",25,Année
+ACC-00004,AccessRule,Incommunicabilité,"Durée de communicabilité applicables aux documents dont la communication est susceptible d’entraîner la diffusion d’informations permettant de concevoir, fabriquer, utiliser ou localiser des armes nucléaires, biologiques, chimiques ou toutes autres armes ayant des effets directs ou indirects de destruction d’un niveau analogue
+L’échéance est calculée à partir de la date du document",9999,Année
+ACC-00005,AccessRule,Règle vide,,100,Jours
+ACC-00006,AccessRule,Règle avec durée de 0 mois,Pour test,0,Mois
+ACC-00007,AccessRule,Règle avec durée de 0 jour,Pour test,0,Jours
+STO-00001,StorageRule,Dossier individuel d’agent civil,"Durée de conservation dans les systèmes métiers des dossiers individuels des agents civils
+L’échéance est calculée à partir de la date où l’agent quitte l’organisation",1,Année
+STO-00002,StorageRule,Déclaration de revenus en ligne (impôt sur le revenu),"Durée de conservation dans les systèmes métiers des dossiers individuels des déclarations de revenus en ligne (impôt sur le revenu)
+L’échéance est calculée à partir de l’ouverture du service pour l’année fiscale en cours",4,Mois
+STO-00003,StorageRule,Contrôle sanitaire des usagers,"Durée de conservation dans les systèmes métiers des dossiers individuels des usagers soumis à des contrôles sanitaires
+L’échéance est calculée à partir de la date de cessation d’activités de l’usager",5,Année
+STO-00004,StorageRule,Dossier des administrateurs civils,"Durée de conservation dans les systèmes métiers des dossiers des administrateurs civils
+L’échéance est calculée à partir de la date de radiation de l’agent de la liste des cadres",1,Année
+DIS-00001,DisseminationRule,Actes de décès,"Délai de diffusion en ligne des actes de décès
+L’échéance est calculée à partir de la date d’enregistrement du décès",25,Année
+DIS-00002,DisseminationRule,Actes de mariage,"Délai de diffusion en ligne des actes de mariage
+L’échéance est calculée à partir de la date de célébration du mariage",75,Année
+DIS-00003,DisseminationRule,Actes de naissance (avec mentions),"Délai de diffusion en ligne des actes de naissance, avec les mentions marginales
+L’échéance est calculée à partir de la date d’enregistrement de la naissance",100,Année
+DIS-00004,DisseminationRule,Dossier individuel d’agent civil,"Délai de diffusion en ligne des dossiers individuels des agents civils
+L’échéance est calculée à partir de la date du document le plus récent dans le dossier",100,Année
+REU-00001,ReuseRule,Actes de décès,"Durée d’exclusivité accordé à la société XXX pour la réutilisation du produit de la numérisation des registres d’état civil du département de XXX
+L’échéance est calculée à partir de la date de signature du contrat",10,Année
+CLASS-00001,ClassificationRule,Réévaluation par défaut de la classification,"Délai de réévaluation par défaut du niveau de protection d’un document au titre du secret de la défense nationale
+L’échéance est calculée à partir de la date d’émission du document",10,Année

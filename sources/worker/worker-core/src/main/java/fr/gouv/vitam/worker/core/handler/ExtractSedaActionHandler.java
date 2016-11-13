@@ -32,8 +32,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +55,8 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -146,6 +151,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     private static final String BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE =
         "ERROR: BinaryDataObject version must be unique";
+    public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
@@ -160,6 +166,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
+    private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -179,10 +186,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 8;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private File globalSedaParametersFile;
+    private final Map<String, Set<String>> unitIdToSetOfRuleId;
+    private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
      */
     public ExtractSedaActionHandler() {
         binaryDataObjectIdToGuid = new HashMap<>();
@@ -197,6 +205,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         guidToLifeCycleParameters = new HashMap<>();
         binaryDataObjectIdToVersionDataObject = new HashMap<>();
         objectGuidToBinaryObject = new HashMap<>();
+        mngtMdRuleIdToRulesXml = new HashMap<>();
+        unitIdToSetOfRuleId = new HashMap<>();
     }
 
     /**
@@ -340,6 +350,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
+                // Process rules : build mgtRulesMap
+                if (event.isStartElement() &&
+                    SedaConstants.getSupportedRules().contains(event.asStartElement().getName().getLocalPart())) {
+                    final StartElement element = event.asStartElement();
+                    parseMetadataManagementRules(reader, element, event.asStartElement().getName().getLocalPart());
+                }
 
                 // We add all the end but the start and end document and the event in the DataObjectPackage structure
                 if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
@@ -395,7 +411,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             saveObjectGroupsToWorkspace(client, containerId, logbookLifeCycleClient);
 
             // Add parents to archive units and save them into workspace
-            addParentsAndSaveArchiveUnitToWorkspace(client, archiveUnitTree, containerId,
+            finalizeAndSaveArchiveUnitToWorkspace(client, archiveUnitTree, containerId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, itemStatus, logbookLifeCycleClient);
 
 
@@ -412,7 +428,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false);
 
-        } catch (final XMLStreamException e) {
+		} catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
         } catch (final LogbookClientBadRequestException e) {
@@ -424,10 +440,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final LogbookClientServerException e) {
             LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
-            /*
-             * } catch (InvalidParseOperationException e) { LOGGER.error(INVALID_INGEST_TREE_EXCEPTION_MSG, e); throw
-             * new ProcessingException(e);
-             */
         } catch (final CycleFoundException e) {
             LOGGER.error(CYCLE_FOUND_EXCEPTION, e);
             throw new ProcessingException(e);
@@ -446,16 +458,62 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void addParentsAndSaveArchiveUnitToWorkspace(WorkspaceClient client, ObjectNode archiveUnitTree,
+    private void parseMetadataManagementRules(XMLEventReader reader, StartElement element, String currentRuleInProcess)
+        throws ProcessingException {
+        try {
+            StringWriter stringWriterRule = new StringWriter();
+            XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
+            XMLEventWriter xw =
+                xmlOutputFactory.createXMLEventWriter(stringWriterRule);
+            final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
+            String currentRuleId = null;
+
+            // Add start element
+            xw.add(eventFactory.createStartElement("", "", GLOBAL_MGT_RULE_TAG));
+            xw.add(element);
+            while (true) {
+                XMLEvent event = reader.nextEvent();
+
+                if (event.isEndElement() &&
+                    (currentRuleInProcess.equalsIgnoreCase(((EndElement) event).getName().getLocalPart()))) {
+                    xw.add(event);
+
+                    // Add to map
+                    mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
+                    stringWriterRule.close();
+                    break;
+                }
+
+                if (event.isStartElement() &&
+                    SedaConstants.TAG_RULE_RULE.equals(event.asStartElement().getName().getLocalPart())) {
+                    xw.add(event);
+                    event = (XMLEvent) reader.next();
+                    xw.add(event);
+                    if (event.isCharacters()) {
+                        currentRuleId = event.asCharacters().getData();
+                    }
+                    event = (XMLEvent) reader.next();
+                    xw.add(event);
+                    continue;
+                }
+
+                xw.add(event);
+            }
+            xw.add(eventFactory.createEndDocument());
+        } catch (XMLStreamException | IOException e) {
+            LOGGER.error(CANNOT_READ_SEDA, e);
+            throw new ProcessingException(e);
+        }
+    }
+
+    private void finalizeAndSaveArchiveUnitToWorkspace(WorkspaceClient client, ObjectNode archiveUnitTree,
         String containerId, String path, ItemStatus itemStatus, LogbookLifeCyclesClient logbookLifeCycleClient)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         XMLStreamException, IOException, ProcessingException {
-
         // Finalize Archive units extraction process
         if (unitIdToGuid == null) {
             return;
         }
-
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
@@ -464,6 +522,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             final String unitGuid = element.getValue();
             final String unitId = element.getKey();
+            boolean isRootArchive = true;
 
             // 1- Update created Unit life cycles
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
@@ -488,42 +547,112 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartDocument());
             writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.ROOT_TAG));
             boolean startCopy = false;
+            // management rules id to add
+            Set<String> globalMgtIdExtra = null;
             while (true) {
-                final XMLEvent event = reader.nextEvent();
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(ARCHIVE_UNIT)) {
+                XMLEvent event = reader.nextEvent();
+                if (event.isStartElement() && ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
                     startCopy = true;
                 }
 
                 if (startCopy) {
+                    if (event.isStartElement() &&
+                        ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
+
+                        // add start work tag
+                        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.WORK_TAG));
+
+                        // Get parents list
+                        // Add _up tag
+                        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.UP_FIELD));
+                        if (archiveUnitTree.has(unitId)) {
+                            final JsonNode archiveNode = archiveUnitTree.get(unitId);
+                            if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
+                                final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
+                                if (archiveUps.isArray() && archiveUps.size() > 0) {
+                                    writer.add(eventFactory.createCharacters(getUnitParents((ArrayNode) archiveUps)));
+                                    isRootArchive = false;
+                                }
+                            }
+                        }
+                        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.UP_FIELD));
+
+                        String listRulesForCurrentUnit = "";
+                        if (unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.containsKey(unitId)) {
+                            listRulesForCurrentUnit = getListOfRulesFormater(unitIdToSetOfRuleId.get(unitId));
+                        }
+                        String listRulesForAuRoot = "";
+                        if (isRootArchive) {
+                            if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
+                                globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
+                            }
+                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
+                                unitIdToSetOfRuleId != null && !unitIdToSetOfRuleId.isEmpty()) {
+                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.values());
+                            }
+                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
+                                listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
+                            }
+                        }
+
+                        StringBuilder rules = new StringBuilder();
+                        if (!Strings.isNullOrEmpty(listRulesForCurrentUnit)) {
+                            rules.append(listRulesForCurrentUnit);
+                        }
+                        if (!Strings.isNullOrEmpty(listRulesForAuRoot)) {
+                            rules.append(listRulesForAuRoot);
+                        }
+
+                        if (!StringUtils.isBlank(rules)) {
+                            writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.RULES));
+                            writer.add(eventFactory.createCharacters(rules.toString()));
+                            writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.RULES));
+                        }
+                        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
+                    } else if (event.isEndElement() &&
+                        (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart()))) {
+
+                        if (isRootArchive && globalMgtIdExtra != null) {
+                            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+
+                            // Add inherited rules from Management bloc
+                            for (String id : globalMgtIdExtra) {
+                                StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(id);
+                                StringReader stringReader = new StringReader(stringWriter.toString());
+                                XMLEventReader xmlEventReaderRule =
+                                    inputFactory.createXMLEventReader(stringReader);
+                                boolean startCopyRule = false;
+                                while (true) {
+                                    XMLEvent eventRule = xmlEventReaderRule.nextEvent();
+                                    if (eventRule.isStartElement() &&
+                                        GLOBAL_MGT_RULE_TAG
+                                            .equals(eventRule.asStartElement().getName().getLocalPart())) {
+                                        startCopyRule = true;
+                                        continue;
+                                    }
+
+                                    if (eventRule.isEndElement() &&
+                                        GLOBAL_MGT_RULE_TAG.equals(eventRule.asEndElement().getName().getLocalPart())) {
+                                        break;
+                                    }
+                                    if (startCopyRule) {
+                                        writer.add(eventRule);
+                                    }
+                                }
+                            }
+                        }
+
+                        writer.add(event);
+                        continue;
+                    }
                     writer.add(event);
                 }
 
-                if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(ARCHIVE_UNIT)) {
-                    writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.WORK_TAG));
-
-                    // Get parents list
-                    // Add _up tag
-                    writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.UP_FIELD));
-
-                    if (archiveUnitTree.has(unitId)) {
-                        final JsonNode archiveNode = archiveUnitTree.get(unitId);
-                        if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
-                            final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
-                            if (archiveUps.isArray() && archiveUps.size() > 0) {
-                                writer.add(eventFactory.createCharacters(getUnitParents((ArrayNode) archiveUps)));
-                            }
-                        }
-                    }
-
-                    writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.UP_FIELD));
-                    writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
+                if (event.isEndElement() && ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart())) {
                     break;
                 }
             }
-
             writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.ROOT_TAG));
-            writer.add(eventFactory.createEndDocument());
-
             writer.close();
             reader.close();
 
@@ -552,6 +681,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
         }
+    }
+
+    private String getListOfRulesFormater(Set<String> rulesId) {
+        StringBuilder sbRules = new StringBuilder();
+        if (rulesId != null) {
+            for (String ruleId : rulesId) {
+                sbRules.append(ruleId).append(SedaConstants.RULE_SEPARATOR);
+            }
+        }
+        return sbRules.toString();
     }
 
     private String getUnitParents(ArrayNode parents) {
@@ -710,12 +849,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             final String groupId = reader.getElementText();
                             String groupGuidTmp = GUIDFactory.newGUID().toString();
                             binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
-                            // The DataObjectGroupReferenceID is after DataObjectGroupID in the XML flow
+                            // The DataObjectGroupReferenceID is after
+                            // DataObjectGroupID in the XML flow
                             if (objectGroupIdToBinaryDataObjectId.get(groupId) != null) {
                                 objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
                                 groupGuidTmp = objectGroupIdToGuid.get(groupId);
                             } else {
-                                // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
+                                // The DataObjectGroupReferenceID is before
+                                // DataObjectGroupID in the XML flow
                                 final List<String> binaryOjectList = new ArrayList<String>();
                                 binaryOjectList.add(binaryObjectId);
                                 objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
@@ -974,6 +1115,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 ", is defined without the group object id " +
                 binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
                 ". The technical group object guid is " + gotGuid);
+
             return gotGuid;
 
         } else if (!Strings.isNullOrEmpty(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit))) {
@@ -1002,7 +1144,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return logbookLifeCycleParameters;
     }
 
-
     private void createUnitLifeCycle(String unitGuid, String containerId,
         LogbookLifeCyclesClient logbookLifeCycleClient)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -1029,14 +1170,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);
     }
 
-
     private List<String> extractArchiveUnitToLocalFile(XMLEventReader reader, StartElement startElement,
         String archiveUnitId, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException {
 
         // Map<String, File> archiveUnitToTmpFileMap = new HashMap<>();
         final List<String> archiveUnitGuids = new ArrayList<String>();
-
 
         final String elementGuid = GUIDFactory.newGUID().toString();
         boolean isReferencedArchive = false;
@@ -1054,6 +1193,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
         final QName archiveUnitRefIdTag = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT_REF_ID_TAG);
+        final QName ruleTag = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE);
 
         // Add new node in archiveUnitNode
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnitTree.get(archiveUnitId);
@@ -1193,13 +1333,29 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     archiveUnitTree.set(childArchiveUnitRef, childArchiveUnitNode);
                     archiveUnitTree.without(archiveUnitId);
 
-                    // Set isReferencedArchive to true so we can remove this unit from unitIdToGuid (no lifeCycle for
+                    // Set isReferencedArchive to true so we can remove this
+                    // unit from unitIdToGuid (no lifeCycle for
                     // this unit because it will not be indexed)
                     isReferencedArchive = true;
+
+                } else if (event.isStartElement() && ruleTag.equals(event.asStartElement().getName())) {
+                    Set<String> setRuleIds = unitIdToSetOfRuleId.get(elementID);
+                    if (setRuleIds == null) {
+                        setRuleIds = new HashSet<String>();
+                    }
+                    String idRule = reader.getElementText();
+                    setRuleIds.add(idRule);
+                    unitIdToSetOfRuleId.put(elementID, setRuleIds);
+
+                    writer.add(
+                        eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE));
+                    writer.add(eventFactory.createCharacters(idRule));
+                    writer.add(
+                        eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE));
+
                 } else {
                     writer.add(event);
                 }
-
             }
             reader.close();
             writer.close();
@@ -1215,7 +1371,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         if (isReferencedArchive) {
-            // Remove this unit from unitIdToGuid (no lifeCycle for this unit because it will not be indexed)
+            // Remove this unit from unitIdToGuid (no lifeCycle for this unit
+            // because it will not be indexed)
             unitIdToGuid.remove(elementID);
 
             // delete created temporary file
@@ -1361,7 +1518,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
     }
-
 
     private ObjectNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
         final ObjectNode qualifierObject = JsonHandler.createObjectNode();

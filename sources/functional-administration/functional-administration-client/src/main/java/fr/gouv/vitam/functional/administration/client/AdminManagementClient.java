@@ -138,7 +138,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws IOException when IO Exception occurs
      * @throws AdminManagementClientServerException
      */
-    JsonNode getRule(JsonNode query)
+    JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
         IOException, AdminManagementClientServerException;
 

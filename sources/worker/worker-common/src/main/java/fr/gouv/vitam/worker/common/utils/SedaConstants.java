@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Constants for the Seda used in Json files
  */
@@ -62,11 +65,11 @@ public class SedaConstants {
      * Tag of messageDigest
      */
     public static final String TAG_DIGEST = "MessageDigest";
-    
+
     /**
      * Tag of algorithm
      */
-   public static final String ALGORITHM = "Algorithm";
+    public static final String ALGORITHM = "Algorithm";
 
     /**
      * Tag of DataObjectVersion
@@ -161,6 +164,21 @@ public class SedaConstants {
      */
     public static final String PREFIX_MGT = "_mgt";
 
+    /**
+     * Date format patern
+     */
+    public static final String DATE_FORMAT_PATERN = "yyyy-MM-dd";
+
+    /**
+     * Date time format patern
+     */
+    public static final String DATE_TIME_FORMAT_PATERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+
+    /**
+     * Rule separator in work
+     */
+    public static final String RULE_SEPARATOR = ";";
+
     // XML Tags used in SEDA
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
     public static final String TAG_DATE = "Date";
@@ -185,9 +203,36 @@ public class SedaConstants {
 
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
     public static final String TAG_SUBMISSIONAGENCYIDENTIFIER = "SubmissionAgencyIdentifier";
+    public static final String TAG_DATA_OBJECT_GROUPE_ID = "DataObjectGroupId";
+    public static final String TAG_RULE_STORAGE = "StorageRule";
+    public static final String TAG_RULE_APPRAISAL = "AppraisalRule";
+    public static final String TAG_RULE_ACCESS = "AccessRule";
+    public static final String TAG_RULE_DISSEMINATION = "DisseminationRule";
+    public static final String TAG_RULE_REUSE = "ReuseRule";
+    public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
+    public static final String TAG_RULE_RULE = "Rule";
+    public static final String TAG_RULE_START_DATE = "StartDate";
 
-    
-    public static final String TAG_OPERATION = "Operation";    
+    public static final String TAG_RULE_FINAL_ACTION = "FinalAction";
+    public static final String TAG_RULE_PREVENT_INHERITANCE = "PreventInheritance";
+    public static final String TAG_RULE_REF_NON_RULE_ID = "RefNonRuleId";
+    public static final String TAG_RULE_CLASSIFICATION_LEVEL = "ClassificationLevel";
+    public static final String TAG_RULE_CLASSIFICATION_OWNER = "ClassificationOwner";
+    public static final String TAG_RULE_REASSESSING_DATE = "ClassificationReassessingDate";
+    public static final String TAG_RULE_NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
+    public static final String TAG_RULE_NEED_AUTHORISATION = "NeedAuthorization";
+    /**
+     * Prefix of rules will be applicatedto archive unit
+     */
+    public static final String TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT = "RulesToApply";
+    /**
+     * Preefix of rules end date
+     */
+    public static final String TAG_RULE_END_DATE = "EndDate";
+    public static final String TAG_MANAGEMENT = "Management";
+    private static List<String> RULES_TYPE;
+
+    public static final String TAG_OPERATION = "Operation";
     public static final String TAG_EVENT = "Event";
     public static final String TAG_EVENT_TYPE = "EventType";
     public static final String TAG_EVENT_TYPE_CODE = "EventTypeCode";
@@ -200,15 +245,34 @@ public class SedaConstants {
     public static final String TAG_ARCHIVE_SYSTEM_ID = "SystemId";
     public static final String TAG_DATA_OBJECT_GROUP = "DataObjectGroup";
     public static final String TAG_BINARY_DATA_OBJECT_ID = "BinaryDataObjectID";
-    public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";    
-    
+    public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";
+
     public static final String NAMESPACE_XLINK = "xlink";
     public static final String NAMESPACE_PR = "pr";
     public static final String NAMESPACE_XSI = "xsi";
-    public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";    
-    
+    public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";
+
     private SedaConstants() {
         // Empty constructor
     }
+
+    /**
+     * 
+     * @return supported Rules type
+     */
+    public static List<String> getSupportedRules() {
+        if (RULES_TYPE == null) {
+            RULES_TYPE = new ArrayList<String>();
+            RULES_TYPE.add(SedaConstants.TAG_RULE_ACCESS);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_REUSE);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_STORAGE);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_APPRAISAL);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_CLASSIFICATION);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_DISSEMINATION);
+        }
+        return RULES_TYPE;
+    }
+
+
 
 }

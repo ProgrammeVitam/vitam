@@ -878,7 +878,7 @@ public class WebApplicationResourceTest {
     public void testSearchRulesOK() throws Exception {
         final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRule(anyObject());
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRules(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
@@ -893,7 +893,7 @@ public class WebApplicationResourceTest {
     public void testSearchRuleBadRequest() throws Exception {
         final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRule(anyObject());
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRules(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
@@ -909,7 +909,7 @@ public class WebApplicationResourceTest {
     public void testSearchRuleNotFound() throws Exception {
         final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new FileRulesException("")).when(adminClient).getRule(anyObject());
+        doThrow(new FileRulesException("")).when(adminClient).getRules(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);

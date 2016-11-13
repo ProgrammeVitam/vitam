@@ -70,6 +70,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -104,22 +105,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static String INVALIDPARAMETERS = "Invalid Parameters Value";
     private static String MANDATORYRULEPARAMETERISMISSING = "Check Parameters : Mandatory rule Parameters is missing";
 
-    private enum ruleMeasurement {
-        MOIS("Mois"), JOURS("Jours"), ANNEE("Année"), SECONDES("Secondes");
 
-        private final String type;
-
-        /**
-         * Constructor
-         */
-        private ruleMeasurement(String ruleMeasurement) {
-            type = ruleMeasurement;
-        }
-
-        private String getType() {
-            return type;
-        }
-    }
 
     /**
      * Constructor
@@ -294,7 +280,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * findExistsRuleQueryBuilder:Check if the Collection contains records
      *
-     * @param rulesValue
      * @return the JsonNode answer
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
@@ -361,7 +346,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @return
      */
     private static boolean contains(String test) {
-        for (final ruleMeasurement c : ruleMeasurement.values()) {
+        for (final RuleMeasurementEnum c : RuleMeasurementEnum.values()) {
             if (c.getType().equals(test)) {
                 return true;
             }

@@ -73,8 +73,9 @@ public class AdminManagementExternalResourceImpl {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    /** 
+    /**
      * checkDocument
+     * 
      * @param collection
      * @param document
      * @return Response
@@ -104,6 +105,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * importDocument
+     * 
      * @param collection
      * @param document
      * @return Response
@@ -124,7 +126,8 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(Status.CREATED).build();
             }
             if (ACCESSION_REGISTER_COLLECTION.equals(collection)) {
-                client.createorUpdateAccessionRegister(JsonHandler.getFromInputStream(document, AccessionRegisterDetail.class));
+                client.createorUpdateAccessionRegister(
+                    JsonHandler.getFromInputStream(document, AccessionRegisterDetail.class));
                 return Response.status(Status.CREATED).build();
             }
             return Response.status(Status.NOT_FOUND).build();
@@ -146,6 +149,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * deleteDocuments
+     * 
      * @param collection
      * @return Response
      */
@@ -172,6 +176,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * findDocuments
+     * 
      * @param collection
      * @param select
      * @return Response
@@ -188,7 +193,7 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(Status.OK).entity(result).build();
             }
             if (RULES_COLLECTION.equals(collection)) {
-                JsonNode result = client.getRule(select);
+                JsonNode result = client.getRules(select);
                 return Response.status(Status.OK).entity(result).build();
             }
             return Response.status(Status.NOT_FOUND).build();
@@ -207,6 +212,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * findDocumentByID
+     * 
      * @param collection
      * @param documentId
      * @return Response
@@ -214,7 +220,8 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Path("/{collection}/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId) {
+    public Response findDocumentByID(@PathParam("collection") String collection,
+        @PathParam("id_document") String documentId) {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (FORMAT_COLLECTION.equals(collection)) {

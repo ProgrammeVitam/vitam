@@ -137,7 +137,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        assertNotNull(client.getRule(select.getFinalSelect()));
+        assertNotNull(client.getRules(select.getFinalSelect()));
     }
 
     @Test

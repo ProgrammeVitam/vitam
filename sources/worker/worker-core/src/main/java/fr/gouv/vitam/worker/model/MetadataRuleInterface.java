@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,17 +23,14 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
+
 package fr.gouv.vitam.worker.model;
 
-import javax.xml.bind.annotation.XmlRootElement;
+public interface MetadataRuleInterface {
 
-import fr.gouv.culture.archivesdefrance.seda.v2.ReplyOutcomeType.ArchiveUnitList.ArchiveUnit;
+    public String getRuleId();
+    public String setRuleId(String id);
 
-/**
- * The override of the generated pojo is needed to describe it as a root element to generate the XML Stream
- */
-@XmlRootElement(name = "ArchiveUnit")
-public class ArchiveUnitReplyTypeRoot extends ArchiveUnit {
 
 }
