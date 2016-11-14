@@ -183,7 +183,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     }
 
     @Test
-    public void givenXMLKOCreationWhenProcessKOThenResponseKO()
+    public void givenXMLCreationWhenProcessKOThenResponseATROK()
         throws Exception {
         TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
@@ -205,12 +205,12 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
 
     @Test
-    public void givenXMLKOCreationWhenProcessKOBeforeLifecycleThenResponseKO()
+    public void givenXMLCreationWhenProcessKOBeforeLifecycleThenResponseATRKO()
         throws Exception {
         TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
@@ -230,7 +230,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.addOutIOParameters(out);
         final CompositeItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
 

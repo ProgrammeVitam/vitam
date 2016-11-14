@@ -523,7 +523,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // FIXME P1 hack since Jackson cannot parse it correctly
             //RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
-            JsonNode elmt = node.get("result");
+            JsonNode elmt = node.get("$results").get(0);
             if (elmt == null) {
                 LOGGER.error("Error while loading logbook operation: " + node.toString());
                 throw new ProcessingException("Error while loading logbook operation: " + node.toString());
