@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><ROOT><WORK><_up></_up><RulesToApply>APP-00001;ACC-00001;STO-00001;DIS-00001;</RulesToApply></WORK>
+<ArchiveUnit id="aeaaaaaaaaw6uhq7aav6sakylcqjr7aaaaaq">
+                <ArchiveUnitProfile>PresentationType</ArchiveUnitProfile>
+                <Management>
+                    <StorageRule><Rule>STO-00001</Rule><StartDate>2016-01-01</StartDate><EndDate>2017-01-01</EndDate><FinalAction></FinalAction></StorageRule>
+                    <AppraisalRule><Rule>APP-00001</Rule><StartDate>2016-01-01</StartDate><EndDate>2096-01-01</EndDate><FinalAction></FinalAction></AppraisalRule>
+                    <AccessRule><Rule>ACC-00001</Rule><StartDate>2016-01-01</StartDate><EndDate>2016-01-01</EndDate></AccessRule>
+                    <DisseminationRule><Rule>DIS-00001</Rule><StartDate>2016-01-01</StartDate><EndDate>2041-01-01</EndDate></DisseminationRule>
+                    <NeedAuthorization>false</NeedAuthorization>
+                </Management>
+                <Content xml:id="ID029">
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Sensibilisation API</Title>
+                    <FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+                    <OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+                    <ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0</ArchivalAgencyArchiveUnitIdentifier>
+                    <OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0</OriginatingAgencyArchiveUnitIdentifier>
+                    <TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0</TransferringAgencyArchiveUnitIdentifier>
+                    <Description>Sensibilisation au Technical Design et à l'API Design Java et REST de la solution logicielle Vitam</Description>
+                    <Language>fr-FR</Language>
+                    <OriginatingAgency>
+                        <Identifier>Identifier0</Identifier>
+                    </OriginatingAgency>
+                    <SubmissionAgency>
+                        <Identifier>Identifier1</Identifier>
+                    </SubmissionAgency>
+                    <Writer>
+                        <FirstName>FirstName0</FirstName>
+                        <BirthName>BirthName0</BirthName>
+                    </Writer>
+                    <CreatedDate>2016-05-05T20:45:20</CreatedDate>
+                    <TransactedDate>2016-05-05</TransactedDate>
+                </Content>
+                <DataObjectReference id="ID0290">
+                    <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            <_og>aeaaaaaaaaw6uhq7aav6sakylcqjrnaaaaaq</_og></ArchiveUnit></ROOT>

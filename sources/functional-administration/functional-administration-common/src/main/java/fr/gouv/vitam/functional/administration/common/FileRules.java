@@ -40,11 +40,11 @@ public class FileRules extends VitamDocument<FileRules> {
 
     public static final String RULEID = "RuleId";
 
-    private static final String RULETYPE = "RuleType";
-    private static final String RULEVALUE = "RuleValue";
-    private static final String RULEDESCRIPTION = "RuleDescription";
-    private static final String RULEDURATION = "RuleDuration";
-    private static final String RULEMEASUREMENT = "RuleMeasurement";
+    public static final String RULETYPE = "RuleType";
+    public static final String RULEVALUE = "RuleValue";
+    public static final String RULEDESCRIPTION = "RuleDescription";
+    public static final String RULEDURATION = "RuleDuration";
+    public static final String RULEMEASUREMENT = "RuleMeasurement";
     private static final String CREATIONDATE = "CreationDate";
     private static final String UPDATEDATE = "UpdateDate";
     private static final String TENANT = "_tenant";

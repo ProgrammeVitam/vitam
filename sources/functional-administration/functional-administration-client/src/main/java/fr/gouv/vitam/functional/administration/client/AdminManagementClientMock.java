@@ -197,7 +197,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getRule(JsonNode query)
+    public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);

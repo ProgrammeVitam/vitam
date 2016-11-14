@@ -71,8 +71,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
@@ -125,7 +125,8 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters, params);
+            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters,
+                params);
             indexArchiveUnit(params, itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -135,7 +136,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         try {
             logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient, logbookLifecycleUnitParameters,
+            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                logbookLifecycleUnitParameters,
                 itemStatus);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -209,7 +211,8 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        final List<Object> archiveUnitDetails = new ArrayList<>();
+        String ruleList = null;
+        final List<Object> archiveUnitDetails = new ArrayList<Object>();
         XMLEventReader reader = null;
 
         try {
@@ -235,7 +238,6 @@ public class IndexUnitActionHandler extends ActionHandler {
                         }
                         eventWritable = false;
                     }
-
                     switch (tag) {
                         case TAG_MANAGEMENT:
                             writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
@@ -259,6 +261,10 @@ public class IndexUnitActionHandler extends ActionHandler {
                         case IngestWorkflowConstants.WORK_TAG:
                             eventWritable = false;
                             break;
+                        case IngestWorkflowConstants.RULES:
+                            reader.nextEvent();
+                            eventWritable = false;
+                            break;
                     }
                 }
 
@@ -271,6 +277,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                         case IngestWorkflowConstants.ROOT_TAG:
                         case IngestWorkflowConstants.WORK_TAG:
                         case IngestWorkflowConstants.UP_FIELD:
+                        case IngestWorkflowConstants.RULES:
                             eventWritable = false;
                             break;
                         case TAG_CONTENT:
@@ -281,6 +288,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                             writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
                             eventWritable = false;
                             break;
+
                     }
                 }
 

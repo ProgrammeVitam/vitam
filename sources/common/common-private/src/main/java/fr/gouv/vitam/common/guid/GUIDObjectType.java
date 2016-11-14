@@ -78,7 +78,7 @@ public final class GUIDObjectType {
          * Store Accession register Symmary type
          */
         ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE);
-        
+
         final int id;
 
         private GUIDObjectEnumType(int id) {
@@ -139,6 +139,7 @@ public final class GUIDObjectType {
      * Accession register
      */
     public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
+
 
     private GUIDObjectType() {
         // empty

@@ -74,7 +74,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         super(factory);
     }
 
-    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats, régles
+    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats,
+    // régles
     // de gestions, contrat , etc)
     @Override
     public Status checkFormat(InputStream stream) throws ReferentialException {
@@ -338,7 +339,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getRule(JsonNode query)
+    public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;

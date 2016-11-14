@@ -371,7 +371,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        final JsonNode result = client.getRule(select.getFinalSelect());
+        final JsonNode result = client.getRules(select.getFinalSelect());
     }
 
     @Test

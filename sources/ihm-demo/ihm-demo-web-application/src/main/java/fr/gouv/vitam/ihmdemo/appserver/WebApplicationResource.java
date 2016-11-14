@@ -134,14 +134,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
         this.webApplicationConfig = webApplicationConfig;
     }
     /**
-     * Retrieve all the messages for logbook 
+     * Retrieve all the messages for logbook
+     * 
      * @return Response
      */
     @GET
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookMessages() {
-        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per file
+        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per
+        // file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
     }
 
@@ -366,9 +368,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     // FIXME P0 - This endpoint is front test only and should not be used. A chunk compatible endpoint MUST be made
     /**
-     * upload 2 : API Endpoint that can Handle chunk mode. 
-     * Chunks information are given in header (Fast catch of these header are present in the code)
-     * <br />The front should give some information
+     * upload 2 : API Endpoint that can Handle chunk mode. Chunks information are given in header (Fast catch of these
+     * header are present in the code) <br />
+     * The front should give some information
      * <ul>
      * <li>Flow-Chunk-Number => The index of the current chunk</li>
      * <li>Flow-Chunk-Size => The configured maximal size of a chunk</li>
@@ -392,12 +394,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         LOGGER.error("This method should not be used !!");
         LOGGER.error("Headers number: " + headers.getLength());
         MultivaluedMap<String, String> headersMap = headers.getRequestHeaders();
-        for (Map.Entry<String, List<String>> entry: headersMap.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : headersMap.entrySet()) {
             if (entry.getKey().startsWith("Flow-")) {
                 LOGGER.error("Header: " + entry.getKey() + ", value: " + entry.getValue());
             }
         }
-        
+
         return Response.status(Status.OK).build();
     }
 
@@ -686,7 +688,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = adminClient.getRule(JsonHandler.getFromString(query));
+            result = adminClient.getRules(JsonHandler.getFromString(query));
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);

@@ -30,7 +30,8 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
- * GUID Factory <br> <br>
+ * GUID Factory <br>
+ * <br>
  * Usage:<br>
  * One should use the appropriate helper according to the type of the object for the GUID.<br>
  * For instance: for a Unit newUnitGUID(tenantId);<br>

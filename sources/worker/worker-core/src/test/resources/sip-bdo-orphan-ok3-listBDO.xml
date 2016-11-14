@@ -421,7 +421,19 @@
                 </DataObjectReference>
             </ArchiveUnit>
         </DescriptiveMetadata>
-        <ManagementMetadata/>
+        <ManagementMetadata xml:id="ID030">
+            <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
+            <ServiceLevel>ServiceLevel0</ServiceLevel>
+            <StorageRule>
+                <Rule>ID420</Rule>
+                <StartDate>2016-01-10</StartDate>
+                <FinalAction>Copy</FinalAction>
+                <PreventInheritance>false</PreventInheritance>
+                <RefNonRuleId>ID100</RefNonRuleId>
+            </StorageRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
     </DataObjectPackage>
     <ArchivalAgency>
         <Identifier>Identifier4</Identifier>

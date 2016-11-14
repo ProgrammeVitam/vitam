@@ -118,6 +118,23 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
       "behavior": "BLOCKING",
       "distribution": {

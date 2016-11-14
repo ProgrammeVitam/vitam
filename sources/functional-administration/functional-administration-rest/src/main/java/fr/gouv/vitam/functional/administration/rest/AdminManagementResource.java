@@ -428,7 +428,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * @param select as String
-     * @return Response jersay Response
+     * @return Response jersey Response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */

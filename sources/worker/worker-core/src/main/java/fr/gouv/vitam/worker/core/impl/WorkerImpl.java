@@ -59,6 +59,7 @@ import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
+import fr.gouv.vitam.worker.core.handler.UnitsRulesComputeHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 
@@ -132,6 +133,7 @@ public class WorkerImpl implements Worker {
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler(mongoDbAccess));
         actions.put(DummyHandler.getId(), new DummyHandler());
+        actions.put(UnitsRulesComputeHandler.getId(), new UnitsRulesComputeHandler());
     }
 
     @Override

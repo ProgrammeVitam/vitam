@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,17 +23,43 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.worker.model;
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Calendar;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.ReplyOutcomeType.ArchiveUnitList.ArchiveUnit;
+public enum RuleMeasurementEnum {
 
-/**
- * The override of the generated pojo is needed to describe it as a root element to generate the XML Stream
- */
-@XmlRootElement(name = "ArchiveUnit")
-public class ArchiveUnitReplyTypeRoot extends ArchiveUnit {
+    MOIS("Mois", Calendar.MONTH),
+    JOURS("Jours", Calendar.DAY_OF_MONTH),
+    ANNEE("Année", Calendar.YEAR),
+    SECONDES("Secondes", Calendar.SECOND);
 
+    private final String type;
+    private final int calendarUnitType;
+
+    /**
+     * Constructor
+     */
+    private RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType) {
+        this.type = ruleMeasurement;
+        this.calendarUnitType = calendarUnitType;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getCalendarUnitType() {
+        return calendarUnitType;
+    }
+
+    public static RuleMeasurementEnum getEnumFromMonth(String month) {
+        for(RuleMeasurementEnum e : values()) {
+            if (e.getType().equalsIgnoreCase(month)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }
