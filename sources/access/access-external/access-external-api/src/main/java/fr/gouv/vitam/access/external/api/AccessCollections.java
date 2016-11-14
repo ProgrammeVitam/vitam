@@ -24,39 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.access.external.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
+/**
+ * All collections in in access external module
+ */
+public enum AccessCollections {
+    
+    /**
+     * Accession Register summary Collection
+     */
+    ACCESSION_REGISTER("accession-register"),
+    
+    /**
+     * Accession Register detail Collection
+     */
+    ACCESSION_REGISTER_DETAIL("accession-register-detail");
 
-import java.io.IOException;
+    private String name;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class RequestResponseTest {
-
-    private JsonNode query;
-
-    @Test
-    public final void givenRequestResponseWithNoAttributesWhenInstanciateThenQueryIsEmpty() {
-        final RequestResponse requestResponse = new FakeRequestResponse();
-        assertThat(requestResponse.getQuery()).isEmpty();
+    private AccessCollections(final String collection) {
+        name = collection;
     }
-
-    @Test
-    public final void givenRequestResponseWithNoAttributesWhenInstanciateThenQueryIsNotEmpty()
-        throws JsonProcessingException, IOException {
-        final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
-        query = new ObjectMapper().readTree(json).get("objects");
-        final RequestResponse requestResponse = new FakeRequestResponse();
-        requestResponse.setQuery(query);
-        assertThat(requestResponse.getQuery()).isNotEmpty();
+    
+    /**
+     *
+     * @return the name of the collection
+     */
+    public String getName() {
+        return name;
     }
-
-    private class FakeRequestResponse extends RequestResponse {
-
+    
+    public boolean compareTo(String value) {
+        return name.equals(value);
     }
 }

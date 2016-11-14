@@ -26,34 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
  * Abstract RequestResponse for all request response in Vitam
  *
  */
 public abstract class RequestResponse {
-    private JsonNode query = JsonHandler.createObjectNode();
 
-    /**
-     * @return the query as JsonNode of Response
-     */
-    public JsonNode getQuery() {
-        return query;
-    }
-
-    /**
-     * RequestResponse constructor
-     *
-     * @param query the query of type JsonNode which will be setted for RequestResponse
-     * @return the updated RequestResponse Object
-     */
-    public RequestResponse setQuery(JsonNode query) {
-        if (query != null) {
-            this.query = query;
-        }
-        return this;
-    }
 }

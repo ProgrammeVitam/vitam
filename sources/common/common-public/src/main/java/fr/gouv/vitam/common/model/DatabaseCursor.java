@@ -27,16 +27,24 @@
 
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * DatabaseCursor class Show database position of request response
  */
 
-//TODO P1 ; refactor to the common vitam
+// TODO P1 ; refactor to the common vitam
 
 public class DatabaseCursor {
+    @JsonProperty("total")
     private int total;
+    @JsonProperty("offset")
     private int offset;
+    @JsonProperty("limit")
     private int limit;
+    @JsonProperty("size")
+    private int size;
+
 
     /**
      * For Json
@@ -44,6 +52,7 @@ public class DatabaseCursor {
     protected DatabaseCursor() {
         // Empty
     }
+
     /**
      * DatabaseCursor constructor
      *
@@ -55,10 +64,26 @@ public class DatabaseCursor {
         this.total = total;
         this.offset = offset;
         this.limit = limit;
+        this.size = total;
+    }
+    
+    /**
+     * DatabaseCursor constructor
+     *
+     * @param total total of units inserted/modified
+     * @param offset the offset of unit in database
+     * @param limit number limit of unit per response
+     */
+    public DatabaseCursor(int total, int offset, int limit, int size) {
+        this.total = total;
+        this.offset = offset;
+        this.limit = limit;
+        this.size = size;
     }
 
     /**
-     * @return the total of units inserted/modified
+     * @return the total of units inserted/modified/selected as potential total response size (beyond current limit)
+     * 
      */
     public int getTotal() {
         return total;
@@ -103,6 +128,23 @@ public class DatabaseCursor {
      */
     public DatabaseCursor setLimit(int limit) {
         this.limit = limit;
+        return this;
+    }
+    
+    /**
+     * @return the size as current response size
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * @param size the size as current response size
+     *
+     * @return this
+     */
+    public DatabaseCursor setSize(int size) {
+        this.size = size;
         return this;
     }
 }

@@ -37,8 +37,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * Mock client implementation for access
@@ -82,5 +84,28 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+
+    @Override
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.createLogbookResult();
+    }
+
+    @Override
+    public JsonNode selectOperationbyId(String processId) throws InvalidParseOperationException{
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCycleById(String idUnit)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String idObject)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
     }
 }

@@ -8,7 +8,10 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -17,50 +20,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  * Mock client implementation for Access External
  */
 class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
-
-    private static final String RESULT =
-        "{\"query\":{}," +
-            "\"hits\":{\"total\":100,\"offset\":0,\"limit\":25}," +
-            "\"result\":";
-
-    private static final String OPERATION =
-        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "    \"evType\": \"Process_SIP_unitary\"," +
-            "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"evTypeProc\": \"INGEST\"," +
-            "    \"outcome\": \"STARTED\"," +
-            "    \"outDetail\": null," +
-            "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-            "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-            "    \"agIdApp\": null," +
-            "    \"agIdAppSession\": null," +
-            "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"agIdSubm\": null," +
-            "    \"agIdOrig\": null," +
-            "    \"obId\": null," +
-            "    \"obIdReq\": null," +
-            "    \"obIdIn\": null," +
-            "    \"events\": []}";
-    private static final String MOCK_SELECT_RESULT_1 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
 
     @Override
     public JsonNode selectUnits(String selectQuery) throws InvalidParseOperationException {
@@ -94,36 +53,37 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
-        return createResult();
+        return ClientMockResultHelper.createLogbookResult();
     }
 
     @Override
     public JsonNode selectOperationbyId(String processId) throws InvalidParseOperationException{
-        return JsonHandler.getFromString(MOCK_SELECT_RESULT_1);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
     public JsonNode selectUnitLifeCycleById(String idUnit)
         throws LogbookClientException, InvalidParseOperationException {
-        return JsonHandler.getFromString(MOCK_SELECT_RESULT_1);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException {
-        return JsonHandler.getFromString(MOCK_SELECT_RESULT_1);  
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
+    @Override
+    public JsonNode getAccessionRegisterSummary(JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        return ClientMockResultHelper.getAccessionRegisterSummary();
+    }
 
-    private JsonNode createResult() throws InvalidParseOperationException {
-        StringBuilder result = new StringBuilder(RESULT).append("[");
-        for (int i = 0; i < 100; i++) {
-            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",").append(OPERATION);
-            if (i < 99) {
-                result.append(",");
-            }
-        }
-        result.append("]}");
-        return JsonHandler.getFromString(result.toString());
+    @Override
+    public JsonNode getAccessionRegisterDetail(String id, JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        return ClientMockResultHelper.getAccessionRegisterDetail();
     }
 }

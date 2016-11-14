@@ -51,9 +51,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class PaginationHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PaginationHelper.class);
     private static final String PARAMETERS = "PaginationHelper parameters";
-    private static final String RESULT_SESSION_ATTRIBUTE = "result";
-    private static final String JSON_NODE_RESULT = "result";
-    private static final String JSON_NODE_HITS = "hits";
+    private static final String RESULT_SESSION_ATTRIBUTE = "$results";
+    private static final String JSON_NODE_RESULT = "$results";
+    private static final String JSON_NODE_HITS = "$hits";
     private static final String JSON_NODE_OFFSET = "offset";
     private static final String JSON_NODE_LIMIT = "limit";
 

@@ -152,4 +152,33 @@ public interface AccessExternalClient extends BasicClient {
      */
     JsonNode selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException;
+
+
+
+    /**
+     * Get the accession register summary matching the given query
+     * 
+     * @param query The DSL Query as Json Node
+     * @return The AccessionregisterSummary list as a response JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     */
+    JsonNode getAccessionRegisterSummary(JsonNode query) throws InvalidParseOperationException, AccessExternalClientServerException,
+    AccessExternalClientNotFoundException;
+
+    /**
+     * Get the accession register details matching the given query
+     * 
+     * @param query The DSL Query as a JSON Node
+     * @return The AccessionregisterDetails list as a response jsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     */
+    JsonNode getAccessionRegisterDetail(String id, JsonNode query) throws InvalidParseOperationException, AccessExternalClientServerException,
+    AccessExternalClientNotFoundException;
+
 }
+
+

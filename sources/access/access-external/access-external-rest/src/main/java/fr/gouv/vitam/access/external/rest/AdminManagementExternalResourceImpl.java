@@ -42,14 +42,13 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -60,9 +59,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
-    private static final String FORMAT_COLLECTION = "formats";
-    private static final String RULES_COLLECTION = "rules";
-    private static final String ACCESSION_REGISTER_COLLECTION = "accession-registers";
 
     /**
      * Constructor
@@ -87,11 +83,11 @@ public class AdminManagementExternalResourceImpl {
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
+            if (AdminCollections.FORMATS.compareTo(collection)) {
                 Status status = client.checkFormat(document);
                 return Response.status(status).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
+            if (AdminCollections.RULES.compareTo(collection)) {
                 Status status = client.checkRulesFile(document);
                 return Response.status(status).build();
             }
@@ -117,17 +113,12 @@ public class AdminManagementExternalResourceImpl {
     public Response importDocument(@PathParam("collection") String collection, InputStream document) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
+            if (AdminCollections.FORMATS.compareTo(collection)) {
                 client.importFormat(document);
                 return Response.status(Status.CREATED).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
+            if (AdminCollections.RULES.compareTo(collection)) {
                 client.importRulesFile(document);
-                return Response.status(Status.CREATED).build();
-            }
-            if (ACCESSION_REGISTER_COLLECTION.equals(collection)) {
-                client.createorUpdateAccessionRegister(
-                    JsonHandler.getFromInputStream(document, AccessionRegisterDetail.class));
                 return Response.status(Status.CREATED).build();
             }
             return Response.status(Status.NOT_FOUND).build();
@@ -138,10 +129,6 @@ public class AdminManagementExternalResourceImpl {
         } catch (ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(status).build();
         }
 
@@ -158,11 +145,11 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteDocuments(@PathParam("collection") String collection) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
+            if (AdminCollections.FORMATS.compareTo(collection)) {
                 client.deleteFormat();
                 return Response.status(Status.OK).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
+            if (AdminCollections.RULES.compareTo(collection)) {
                 client.deleteRulesFile();
                 return Response.status(Status.OK).build();
             }
@@ -186,13 +173,14 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+        
         ParametersChecker.checkParameter("select query is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
+            if (AdminCollections.FORMATS.compareTo(collection)) {
                 JsonNode result = client.getFormats(select);
                 return Response.status(Status.OK).entity(result).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
+            if (AdminCollections.RULES.compareTo(collection)) {
                 JsonNode result = client.getRules(select);
                 return Response.status(Status.OK).entity(result).build();
             }
@@ -224,14 +212,15 @@ public class AdminManagementExternalResourceImpl {
         @PathParam("id_document") String documentId) {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
+            if (AdminCollections.FORMATS.compareTo(collection)) {
                 JsonNode result = client.getFormatByID(documentId);
                 return Response.status(Status.OK).entity(result).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
+            if (AdminCollections.RULES.compareTo(collection)) {
                 JsonNode result = client.getRuleByID(documentId);
                 return Response.status(Status.OK).entity(result).build();
             }
+
             return Response.status(Status.NOT_FOUND).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);

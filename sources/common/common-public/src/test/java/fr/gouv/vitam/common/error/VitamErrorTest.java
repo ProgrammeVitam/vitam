@@ -82,7 +82,7 @@ public class VitamErrorTest {
     public void testSetErrors() throws Exception {
         final List<VitamError> errorList = new ArrayList<>();
         errorList.add(vitamError);
-        vitamError.setErrors(errorList);
+        vitamError.addAllErrors(errorList);
         assertTrue(vitamError.getErrors().contains(vitamError));
     }
 
@@ -93,7 +93,7 @@ public class VitamErrorTest {
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
-        error.setErrors(Collections.singletonList(new VitamError("1")));
+        error.addAllErrors(Collections.singletonList(new VitamError("1")));
         System.err.println(error.toString());
         assertEquals(ERROR_JSON, error.toString());
     }

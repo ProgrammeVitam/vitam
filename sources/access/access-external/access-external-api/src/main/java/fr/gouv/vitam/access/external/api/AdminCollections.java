@@ -24,41 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.model.response;
+package fr.gouv.vitam.access.external.api;
 
-import static org.junit.Assert.assertEquals;
+/**
+ * All collections in functional admin module
+ */
+public enum AdminCollections {
+    /**
+     * Formats Collection
+     */
+    FORMATS("formats"),
 
-import org.junit.Test;
+    /**
+     * Rules Collection
+     */
+    RULES("rules");
 
-import com.fasterxml.jackson.databind.JsonNode;
+    private String name;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-
-public class RequestResponseOKTest {
-
-    @Test
-    public void testRequestResponseOK() throws InvalidParseOperationException {
-        final RequestResponseOK requestOK = new RequestResponseOK();
-        final DatabaseCursor cursor = new DatabaseCursor(0, 0, 0);
-        cursor.setTotal(1).setOffset(0).setLimit(10);
-        requestOK.setHits(cursor);
-        assertEquals(10, requestOK.getHits().getLimit());
-        assertEquals(0, requestOK.getHits().getOffset());
-        assertEquals(1, requestOK.getHits().getTotal());
-
-        requestOK.setHits(2, 0, 100);
-        assertEquals(100, requestOK.getHits().getLimit());
-        assertEquals(0, requestOK.getHits().getOffset());
-        assertEquals(2, requestOK.getHits().getTotal());
-
-        final JsonNode test = JsonHandler.getFromString("{}");
-        requestOK.setQuery(test).setResult(test);
-        assertEquals(test, requestOK.getQuery());
-        assertEquals(test, requestOK.getResult());
-
-
+    private AdminCollections(final String collection) {
+        name = collection;
     }
-
-
+    
+    /**
+     *
+     * @return the name of the collection
+     */
+    public String getName() {
+        return name;
+    }
+    
+    public boolean compareTo(String value) {
+        return name.equals(value);
+    }
 }

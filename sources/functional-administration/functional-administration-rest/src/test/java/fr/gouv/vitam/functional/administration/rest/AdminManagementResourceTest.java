@@ -78,7 +78,7 @@ public class AdminManagementResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-
+    private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
@@ -178,6 +178,9 @@ public class AdminManagementResourceTest {
         with()
             .when().delete(DELETE_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
+        with()
+        .when().delete(DELETE_RULES_URI)
+        .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -250,7 +253,7 @@ public class AdminManagementResourceTest {
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
-        final JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
 
         given()
@@ -289,7 +292,7 @@ public class AdminManagementResourceTest {
 
 
     @Test
-    public void getDocument() throws Exception {
+    public void findFormat() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
@@ -383,15 +386,14 @@ public class AdminManagementResourceTest {
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
-        final JsonNode jsonDocument = JsonHandler.getFromString(document);
-
+        final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
             .contentType(ContentType.JSON)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test

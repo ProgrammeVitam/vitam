@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * Access client interface
@@ -105,6 +106,46 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    
 
+    /**
+     * selectOperation
+     * 
+     * @param select
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
+    /**
+     * selectOperationbyId
+     * 
+     * @param processId
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectUnitLifeCycleById
+     * 
+     * @param idUnit
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectObjectGroupLifeCycleById
+     * 
+     * @param idObject
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectObjectGroupLifeCycleById(String idObject)
+        throws LogbookClientException, InvalidParseOperationException;
 }

@@ -31,28 +31,27 @@ import java.io.IOException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Access External Client Factory<br>
+ * Admin External Client Factory<br>
  *
- * Used to create access client : if configuration file does not exist 'access-external-client.conf',<br>
+ * Used to create admin external client : if configuration file does not exist 'access-external-client.conf',<br>
  * mock access client will be returned
  */
-public final class AccessExternalClientFactory extends VitamClientFactory<AccessExternalClient> {
+public final class AdminExternalClientFactory extends VitamClientFactory<AdminExternalClient> {
 
+    // Using same client config with access external client
     private static final String CONFIGURATION_FILENAME = "access-external-client.conf";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientFactory.class);
-    private static final AccessExternalClientFactory ACCESS_CLIENT_FACTORY = new AccessExternalClientFactory();
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientFactory.class);
+    private static final AdminExternalClientFactory ACCESS_CLIENT_FACTORY = new AdminExternalClientFactory();
 
-    private static final String RESOURCE_PATH = "/access-external/v1";
+    private static final String RESOURCE_PATH = "/admin-external/v1";
 
-    private AccessExternalClientFactory() {
+    private AdminExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
-        disableUseAuthorizationFilter();
     }
 
     /**
@@ -60,7 +59,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
      *
      * @return the instance
      */
-    public static final AccessExternalClientFactory getInstance() {
+    public static final AdminExternalClientFactory getInstance() {
         return ACCESS_CLIENT_FACTORY;
     }
 
@@ -70,8 +69,8 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
      * @param configurationPath the path to the configuration file
      * @return ClientConfiguration
      */
-    static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
-        SecureClientConfiguration configuration = null;
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
+        ClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 SecureClientConfigurationImpl.class);
@@ -88,14 +87,14 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
     }
 
     @Override
-    public AccessExternalClient getClient() {
-        AccessExternalClient client;
+    public AdminExternalClient getClient() {
+        AdminExternalClient client;
         switch (getVitamClientType()) {
             case MOCK:
-                client = new AccessExternalClientMock();
+                client = new AdminExternalClientMock();
                 break;
             case PRODUCTION:
-                client = new AccessExternalClientRest(this);
+                client = new AdminExternalClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Log type unknown");

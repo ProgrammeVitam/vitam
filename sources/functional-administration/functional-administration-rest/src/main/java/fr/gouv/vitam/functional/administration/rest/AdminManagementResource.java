@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
@@ -76,7 +78,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -217,7 +218,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
-            return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .addResult(JsonHandler.toJsonNode(fileFormat))).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
@@ -239,15 +242,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocument(JsonNode select)
+    public Response findFormats(JsonNode select)
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         List<FileFormat> fileFormatList = new ArrayList<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
+            RequestResponseOK responseEntity = new RequestResponseOK().setHits(fileFormatList.size(), 0, fileFormatList.size());
+            for (FileFormat format : fileFormatList) {
+                responseEntity.addResult(JsonHandler.toJsonNode(format));
+            }
             return Response.status(Status.OK)
-                .entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList))).build();
+                .entity(responseEntity).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -260,15 +267,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
-    }
-
-    private String fileFormatListToJsonString(List<FileFormat> formatList)
-        throws IOException {
-        final OutputStream out = new ByteArrayOutputStream();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, formatList);
-        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        return new String(data);
     }
 
     /***************************************** rules Manager *************************************/
@@ -392,7 +390,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (fileRules == null || fileRules.size() > 1) {
                 throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
-            return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .addResult(JsonHandler.toJsonNode(fileRules.get(0)))).build();
 
         } catch (final FileRulesException e) {
             LOGGER.error(e);
@@ -443,8 +443,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
+            RequestResponseOK responseEntity = new RequestResponseOK().setHits(filerulesList.size(), 0, filerulesList.size());
+            for (FileRules rule : filerulesList) {
+                responseEntity.addResult(JsonHandler.toJsonNode(rule));
+            }
             return Response.status(Status.OK)
-                .entity(JsonHandler.getFromString(fileRulesListToJsonString(filerulesList)))
+                .entity(responseEntity)
                 .build();
 
         } catch (final InvalidParseOperationException e) {
@@ -459,16 +463,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
-    }
-
-    private String fileRulesListToJsonString(List<FileRules> rulesList)
-        throws IOException {
-        final OutputStream out = new ByteArrayOutputStream();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, rulesList);
-        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        final String fileRulesAsString = new String(data);
-        return fileRulesAsString;
     }
 
     /**
@@ -526,7 +520,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(new RequestResponseOK()
                     .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                    .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                    .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -536,7 +530,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
             .build();
     }
 
@@ -575,7 +569,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(1, 0, 1)
-                .setResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
+                .addResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
             .build();
     }
 

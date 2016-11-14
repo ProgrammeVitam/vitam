@@ -40,12 +40,18 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * Access client <br>
@@ -54,11 +60,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 
 // TODO P1 : tenantId should be determined otherwise with a config or so
-
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientRest.class);
 
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
+    private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
@@ -68,6 +74,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_VERSION = "usage version should be filled";
 
     private static final int TENANT_ID = 0;
+
+    private static final String LOGBOOK_OPERATIONS_URL = "/operations";
+    private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
+    private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
+    private static final Select emptySelectQuery = new Select();
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
@@ -256,6 +267,124 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 consumeAnyEntityAndClose(response);
             }
         }
+    }
+    
+
+    /* Logbook internal */
+
+    @Override
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL, headers,
+                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectOperationbyId(String processId)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCycleById(String idUnit)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
+
+        try {
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String idObject)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
+
+        try {
+            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, headers,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
 }

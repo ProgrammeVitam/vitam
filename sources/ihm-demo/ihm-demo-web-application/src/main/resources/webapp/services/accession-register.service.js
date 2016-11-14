@@ -42,10 +42,10 @@ angular.module('core')
       var options = {
         OriginatingAgency: accessionRegisterId
       };
-      return accessionRegisterResource.getDetails(options)
+      return accessionRegisterResource.getDetails(accessionRegisterId, options)
         .then(function(response) {
           // TODO Add checks
-          successCallbackFunction(response.data.result);
+          successCallbackFunction(response.data.$results);
           return response;
         }, function (error) {
           return error;
@@ -65,7 +65,7 @@ angular.module('core')
       };
       return accessionRegisterResource.getSummary(options)
         .then(function(response) {
-          successCallbackFunction(response.data.result[0]);
+          successCallbackFunction(response.data.$results[0]);
           // TODO Add checks
           return response;
         }, function (error) {

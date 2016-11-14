@@ -53,11 +53,11 @@ angular.module('ihm.demo')
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
       ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
-        ctrl.fileFormatList = response.data.result;
+        ctrl.fileFormatList = response.data.$results;
         ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
-        ctrl.resultPages = Math.ceil(response.data.hits.total/ITEM_PER_PAGE);
+        ctrl.resultPages = Math.ceil(response.data.$hits.total/ITEM_PER_PAGE);
         ctrl.searchOptions = {};
         ctrl.currentPage = ctrl.currentPage || 1;
         ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
@@ -136,7 +136,7 @@ angular.module('ihm.demo')
     var self = this;
 
     ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
-      self.detail = response.data.result;
+      self.detail = response.data.$results[0];
       self.detailId = idOperationService.getIdFromResult(self.detail);
     });
 

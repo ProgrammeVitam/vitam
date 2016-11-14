@@ -38,7 +38,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
 public class AccessExternalClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
-    protected static final int PORT = 8082;
     protected static final String PATH = "/access-external/v1";
     protected AccessExternalClientRest client;
 
@@ -238,6 +237,26 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
             return expectedResponse.get();
+        }
+        
+        @POST
+        @Path("/accession-register")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessionRegister(@PathParam("id_op") String operationId,
+            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            throws InvalidParseOperationException {
+            return expectedResponse.post();
+        }
+        
+        @POST
+        @Path("/accession-register/{id_document}/accession-register-detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessionRegisterDetail(@PathParam("id_op") String operationId,
+            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            throws InvalidParseOperationException {
+            return expectedResponse.post();
         }
 
     }
@@ -555,5 +574,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenSelectLogbookLifeCyclesObjectBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectObjectGroupLifeCycleById(ID);
-    }        
+    }  
+    
+    /***
+     * 
+     * Accession register test
+     * 
+     ***/
+    
+    
 }

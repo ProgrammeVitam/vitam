@@ -10,11 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -32,6 +34,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * Rest client implementation for Access External
  */
 class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
+
+    private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
@@ -43,17 +49,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
     private static final int TENANT_ID = 0;
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-
-    /**
-     * @param server - localhost
-     * @param port - define 8082
-     */ 
+    private static final Select emptySelectQuery = new Select();
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
         super(factory);
@@ -256,7 +257,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -276,7 +277,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
-                LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -284,7 +285,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -306,7 +307,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
-                LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -314,7 +315,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -336,7 +337,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, headers,
-                LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -344,7 +345,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
-                throw new LogbookClientException("Request procondition failed");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -355,6 +356,65 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    @Override
+    public JsonNode getAccessionRegisterSummary(JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+
+        try {
+            response = performRequest(HttpMethod.POST, AccessCollections.ACCESSION_REGISTER.getName(), headers,
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            }
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getAccessionRegisterDetail(String id, JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+
+        try {
+            response = performRequest(HttpMethod.POST, 
+                AccessCollections.ACCESSION_REGISTER.getName() + "/" + id + "/" + AccessCollections.ACCESSION_REGISTER_DETAIL.getName(), headers,
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessExternalClientServerException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            }
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
 }

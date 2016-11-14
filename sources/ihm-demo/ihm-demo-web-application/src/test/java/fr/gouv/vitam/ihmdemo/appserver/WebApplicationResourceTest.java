@@ -32,7 +32,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -62,6 +61,10 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.ResponseBody;
 
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
@@ -72,10 +75,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -86,10 +85,10 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
-    IngestExternalClientFactory.class, AdminManagementClientFactory.class,
-    JsonTransformer.class, WebApplicationConfig.class})
+    IngestExternalClientFactory.class, AdminExternalClientFactory.class,
+    JsonTransformer.class, WebApplicationConfig.class, AccessExternalClientFactory.class})
 // FIXME P0 Remove IOUtils.toByteArray(stream)
 public class WebApplicationResourceTest {
 
@@ -146,7 +145,7 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(UserInterfaceTransactionManager.class);
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        PowerMockito.mockStatic(AdminExternalClientFactory.class);
     }
 
 
@@ -442,13 +441,12 @@ public class WebApplicationResourceTest {
     @Test
     public void givenReferentialWrongFormatWhenUploadThenThrowReferentialException() throws Exception {
 
-        final AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminManagementClientFactory =
-            PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(ReferentialException.class).when(adminManagementClient).importFormat(anyObject());
-        // doNothing().when(adminManagementClient).importFormat(anyObject());
+        final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient).createDocuments(anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // Need for test
@@ -466,12 +464,12 @@ public class WebApplicationResourceTest {
     @Test
     public void testFormatUploadOK() throws Exception {
 
-        final AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminManagementClientFactory =
-            PowerMockito.mock(AdminManagementClientFactory.class);
-        doNothing().when(adminManagementClient).importFormat(anyObject());
+        final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         // Need for test
@@ -510,13 +508,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFormatOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).findDocuments(anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
@@ -525,14 +523,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFormatBadRequest() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -541,13 +538,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFormatNotFound() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new ReferentialException("")).when(adminClient).getFormats(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocuments(anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -556,12 +553,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFormatByIdOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormatByID(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).findDocumentById(anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
@@ -570,12 +567,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFormatByIdNotFound() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocumentById(anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -584,13 +581,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testDeleteFormatOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doNothing().when(adminClient).deleteFormat();
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doReturn(Status.OK).when(adminClient).deleteDocuments(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().config(RestAssured.config()
             .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -602,13 +599,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testCheckFormatOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject())).thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // Need for test
@@ -830,12 +827,12 @@ public class WebApplicationResourceTest {
     @Test
     public void givenReferentialWrongFormatRulesWhenUploadThenThrowReferentialException() throws Exception {
 
-        final AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminManagementClientFactory =
-            PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(ReferentialException.class).when(adminManagementClient).importRulesFile(anyObject());
-        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminExternalClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient).createDocuments(anyObject(), anyObject());
+        PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         // Need for test
@@ -853,12 +850,12 @@ public class WebApplicationResourceTest {
     @Test
     public void testRuleUploadOK() throws Exception {
 
-        final AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminManagementClientFactory =
-            PowerMockito.mock(AdminManagementClientFactory.class);
-        doNothing().when(adminManagementClient).importRulesFile(anyObject());
+        final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
@@ -876,13 +873,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchRulesOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRules(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).findDocuments(anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
@@ -891,14 +888,14 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchRuleBadRequest() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRules(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).findDocuments(anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -907,13 +904,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchRuleNotFound() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new FileRulesException("")).when(adminClient).getRules(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocuments(anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -922,12 +919,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchRuleByIdNotFound() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new FileRulesException("")).when(adminClient).getRuleByID(anyObject());
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocumentById(anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -936,13 +933,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testDeleteRulesFileOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doNothing().when(adminClient).deleteRulesFile();
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.doReturn(Status.OK).when(adminClient).deleteDocuments(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().config(RestAssured.config()
             .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
@@ -954,13 +951,13 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testCheckRulesFileOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
+        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject())).thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         // Need for test
@@ -1186,13 +1183,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegister(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject()))
+        .thenReturn(sampleLogbookOperation);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
@@ -1201,14 +1193,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterBadRequest() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegister(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -1217,32 +1203,21 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAccessionRegisterDetailOK() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegisterDetail(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject()))
+        .thenReturn(sampleLogbookOperation);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
-            .post("/admin/accession-register/detail");
+            .post("/admin/accession-register/1/accession-register-detail");
     }
 
     @Test
     public void testGetAccessionRegisterDetailBadRequest() throws Exception {
-        final AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
-        final AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getAccessionRegisterDetail(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .post("/admin/accession-register/detail");
+            .post("/admin/accession-register/1/accession-register-detail");
     }
 }

@@ -89,7 +89,7 @@ angular.module('lifecycle')
     var buildLifeCycle = function() {
       ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, self.lifeCycleId).then(function(response) {
         self.receivedResponse = response;
-        if (response.data.hits === undefined || response.data.hits === null || response.data.hits.total !== 1) {
+        if (response.data.$hits === undefined || response.data.$hits === null || response.data.$hits.total !== 1) {
           // Invalid response
           // Display error message
           self.showResult = false;
@@ -99,7 +99,7 @@ angular.module('lifecycle')
 
           // Build unit LifeCycle details
           // Add just result events
-          angular.forEach(response.data.result.events, function(value) {
+          angular.forEach(response.data.$results.events, function(value) {
             var isEndEvent = value.outcome !== 'STARTED';
             if(isEndEvent){
               var newEvent = {};

@@ -52,12 +52,12 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public class WebApplicationResourceAuthTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
-    private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String OPTIONS = "{\"name\": \"myName\"}";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
     private static final String CREDENTIALS_NO_VALID =
         "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
-    private static final String OPTIONS_DOWNLOAD = "{usage: \"Dissemination\", version: 1}";
-    private static final String UPDATE = "{title: \"myarchive\"}";
+    private static final String OPTIONS_DOWNLOAD = "{\"usage\": \"Dissemination\", \"version\": 1}";
+    private static final String UPDATE = "{\"title\": \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";

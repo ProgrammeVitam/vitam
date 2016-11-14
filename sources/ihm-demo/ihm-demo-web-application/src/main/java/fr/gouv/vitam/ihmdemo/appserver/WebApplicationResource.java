@@ -66,6 +66,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -81,10 +85,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -469,18 +469,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
         JsonNode result = null;
-        try (final AdminManagementClient adminClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = adminClient.getFormats(JsonHandler.getFromString(query));
+            result = adminClient.findDocuments(AdminCollections.FORMATS, JsonHandler.getFromString(query));
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -501,18 +501,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
         JsonNode result = null;
 
-        try (final AdminManagementClient adminClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            result = adminClient.getFormatByID(formatId);
+            result = adminClient.findDocumentById(AdminCollections.FORMATS, formatId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -533,11 +533,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(InputStream input) {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.checkFormat(input);
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.checkDocuments(AdminCollections.FORMATS, input);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
+        } catch (final AccessExternalClientNotFoundException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -555,12 +557,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(InputStream input) {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importFormat(input);
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.createDocuments(AdminCollections.FORMATS, input);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (final DatabaseConflictException e) {
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -576,11 +578,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
-            client.deleteFormat();
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.deleteDocuments(AdminCollections.FORMATS);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -682,18 +685,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
         JsonNode result = null;
-        try (final AdminManagementClient adminClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = adminClient.getRules(JsonHandler.getFromString(query));
+            result = adminClient.findDocuments(AdminCollections.RULES, JsonHandler.getFromString(query));
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (Exception e) {
@@ -715,19 +718,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         JsonNode result = null;
 
-        try (final AdminManagementClient adminClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = JsonHandler.createObjectNode();
-            result = adminClient.getRuleByID(ruleId);
+            result = adminClient.findDocumentById(AdminCollections.RULES, ruleId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -748,11 +751,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(InputStream input) {
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
-            client.checkRulesFile(input);
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.checkDocuments(AdminCollections.RULES, input);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -772,13 +775,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefRule(InputStream input) {
 
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
-            client.importRulesFile(input);
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.createDocuments(AdminCollections.RULES, input);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (final DatabaseConflictException e) {
+        } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
@@ -796,11 +797,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
-            client.deleteRulesFile();
+        try (final AdminExternalClient adminClient =
+            AdminExternalClientFactory.getInstance().getClient()) {
+            adminClient.deleteDocuments(AdminCollections.RULES);
             return Response.status(Status.OK).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -819,19 +820,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccessionRegister(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        String query = "";
-        JsonNode result = null;
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        JsonNode result = JsonHandler.createObjectNode();
+        try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.createObjectNode();
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = client.getAccessionRegister(JsonHandler.getFromString(query));
+            result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options);
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -848,23 +844,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return accession register details
      */
     @POST
-    @Path("/admin/accession-register/detail")
+    @Path("/admin/accession-register/{id}/accession-register-detail")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAccessionRegisterDetail(String options) {
+    public Response getAccessionRegisterDetail(@PathParam("id") String id, String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        String query = "";
-        JsonNode result = null;
-        try (final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient()) {
+        JsonNode result = JsonHandler.createObjectNode();
+        try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.createObjectNode();
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = client.getAccessionRegisterDetail(JsonHandler.getFromString(query));
+            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options);
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
+        } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -905,7 +896,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
             final List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
             final String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query

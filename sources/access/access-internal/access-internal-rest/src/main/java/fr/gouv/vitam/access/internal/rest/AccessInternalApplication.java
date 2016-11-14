@@ -123,6 +123,7 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
             .register(new AdminStatusResource());
         } else {
             resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
+            .register(new LogbookInternalResourceImpl())
             .register(new AdminStatusResource(serviceRegistry));
         }
     }
