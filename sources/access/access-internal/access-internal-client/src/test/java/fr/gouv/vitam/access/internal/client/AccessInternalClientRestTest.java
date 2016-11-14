@@ -124,7 +124,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Path("/access/v1")
+    @Path("/access-internal/v1")
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource implements AccessInternalResource {
         private final ExpectedResults expectedResponse;

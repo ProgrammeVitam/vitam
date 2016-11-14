@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -42,10 +43,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     protected AccessExternalClientRest client;
 
     final String queryDsql =
-        "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-            " $filter : { $orderby : { '#id' } }," +
-            " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-            " }";
+        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
     final String MOCK_LOGBOOK_RESULT = 
         "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -69,7 +67,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
-
 
     public AccessExternalClientRestTest() {
         super(AccessExternalClientFactory.getInstance());
@@ -581,6 +578,30 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      * Accession register test
      * 
      ***/
+    
+    @Test
+    public void selectAccessionExternalSumary() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
+        assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql))).isNotNull();
+    }
+
+    @Test(expected=AccessExternalClientNotFoundException.class)
+    public void selectAccessionExternalSumaryError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql));
+    }
+
+    @Test
+    public void selectAccessionExternalDetail() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
+        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql));
+    } 
+    
+    @Test(expected=AccessExternalClientNotFoundException.class)
+    public void selectAccessionExternalDetailError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql));
+    } 
     
     
 }

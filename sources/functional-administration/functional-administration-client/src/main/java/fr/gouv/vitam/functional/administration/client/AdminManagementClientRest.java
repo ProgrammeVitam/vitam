@@ -202,7 +202,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
                     throw new ReferentialException("File format error");
                 default:
-                    break;
+                    throw new ReferentialException("Unknown error");
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {

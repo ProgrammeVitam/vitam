@@ -46,7 +46,7 @@ public class AccessInternalClientFactory extends VitamClientFactory<AccessIntern
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "access-internal-client.conf";
     private static final AccessInternalClientFactory ACCESS_CLIENT_FACTORY = new AccessInternalClientFactory();
-    private static final String RESOURCE_PATH = "/access/v1";
+    private static final String RESOURCE_PATH = "/access-internal/v1";
 
     private AccessInternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);

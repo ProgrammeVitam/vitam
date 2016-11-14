@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -48,7 +49,7 @@ public final class RequestResponseOK extends RequestResponse{
     @JsonProperty("$hits")
     private DatabaseCursor hits = new DatabaseCursor(0, 0, 0);
     @JsonProperty("$results")
-    private final List<JsonNode> results = new ArrayList<>();
+    private final ArrayNode results = JsonHandler.createArrayNode();
     @JsonProperty("$context")
     private JsonNode query = JsonHandler.createObjectNode();
 
@@ -81,7 +82,7 @@ public final class RequestResponseOK extends RequestResponse{
      * @return RequestResponseOK with mutable results list of String
      */
     @JsonSetter("$results")
-    public RequestResponseOK addAllResults(List<JsonNode> resultList) {
+    public RequestResponseOK addAllResults(ArrayNode resultList) {
         ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
         results.addAll(resultList);
         return this;
@@ -123,7 +124,7 @@ public final class RequestResponseOK extends RequestResponse{
      * @return the result of RequestResponse as a list of String
      */
     @JsonGetter("$results")
-    public List<JsonNode> getResults() {
+    public ArrayNode getResults() {
         return results;
     }
 
