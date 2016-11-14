@@ -129,6 +129,10 @@ public class VitamConfiguration {
      */
     private static final DigestType DEFAULT_DIGEST_TYPE = DigestType.SHA512;
     /**
+     *  Default Digest Type for time stamp generation
+     */
+    private static final DigestType DEFAULT_TIMESTAMP_DIGEST_TYPE = DigestType.SHA512;
+    /**
      * Acceptable Request Time
      */
     private static final long ACCEPTABLE_REQUEST_TIME = 10;
@@ -191,14 +195,14 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
+     *
      * @param vitamConfiguration
      */
     void setInternalConfiguration(VitamConfiguration vitamConfiguration) {
         setConfig(vitamConfiguration.getConfig())
-        .setData(vitamConfiguration.getData())
-        .setLog(vitamConfiguration.getLog())
-        .setTmp(vitamConfiguration.getTmp()).checkValues();
+            .setData(vitamConfiguration.getData())
+            .setLog(vitamConfiguration.getLog())
+            .setTmp(vitamConfiguration.getTmp()).checkValues();
     }
 
     /**
@@ -424,7 +428,7 @@ public class VitamConfiguration {
 
     /**
      * Junit facility
-     * 
+     *
      * @param timeout
      */
     public static void setConnectTimeout(int timeout) {
@@ -534,6 +538,14 @@ public class VitamConfiguration {
     public static DigestType getDefaultDigestType() {
         return DEFAULT_DIGEST_TYPE;
     }
+
+    /**
+     * @return the Default DigestType for time stamp generation
+     */
+    public static DigestType getDefaultTimestampDigestType() {
+        return DEFAULT_TIMESTAMP_DIGEST_TYPE;
+    }
+
 
     /**
      * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
