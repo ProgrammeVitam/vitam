@@ -42,12 +42,42 @@ Quand le cron logbook est terminé ET quand les services (worker et workspace) s
 
 Ensuite, arêt des clusters ElasticSearch et MongoDB.
 
-A l'issue, sauvegarde à froid des bases (procédure en cours de mise en place).
+Sauvegarde MongoDB de base dite "Shardée"
+-----------------------------------------
+
+#. Désactiver la répartition de charge **mongos**.
+#. S'assurer que les répartiteurs ont terminé leurs transactions.
+#. Pour chaque nœud ("Shard") constitué d'un lot de réplicats **mongod** DB.
+#. #. Déterminer le service de donnée **mongod** *élu principal* du lot.
+   #. Stopper ce service.
+#. **Continuer lorsque tous les serveurs principaux de tous les nœuds ont été arrêtés.**
+#. Déterminer le service de configuration **mongoc** *élu principal* du lot.
+#. Stopper ce service.
+#. Lancer les sauvegardes les données sur chaque service **mongod** précédemment arrêtés.
+#. Lancer la sauvegarde des données du service **mongoc** arrêté.
+#. **Continuer lorsque toutes les sauvegardes se sont terminées.**
+#. Relancer chaque service de donnée **mongod**.
+#. Relancer le service de configuration **mongoc**.
+#. Ré-activer la répartition de charge **mongos**.
+#. S'assurer que la répartition de charge est bien active.
 
 .. todo:: finaliser cette partie quand les scripts seront écrits.
 
 A 8h du matin, redémarrage de tous les services.
 
+.. figure:: images/backup_Vitam_full_process.*
+    :align: center
+    
+    Vue d'ensemble de la procédure de sauvegarde Vitam.
+
+Ci-dessous un script shell reprenant la procédure de sauvegarde décrite ci-dessus.
+Ce dernier peux servir de démonstration dans un environnement Vitam tout en un.
+
+Ce script est disponible dans deployment/demo_backup_vitam.sh
+
+.. literalinclude:: ../../../../deployment/demo_backup_vitam.sh
+  :language: shell
+  :linenos:
 
 Socles d'exécution
 ==================
