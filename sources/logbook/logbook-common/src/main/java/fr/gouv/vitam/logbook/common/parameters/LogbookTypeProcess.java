@@ -58,5 +58,10 @@ public enum LogbookTypeProcess {
     /**
      * Rules Manager process
      */
-    MASTERDATA
+    MASTERDATA,
+    /**
+     * traceabiliy  type process
+     */
+    TRACEABILITY
+    
 }

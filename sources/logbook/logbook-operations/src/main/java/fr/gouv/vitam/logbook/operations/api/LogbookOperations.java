@@ -26,10 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.api;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -111,5 +114,17 @@ public interface LogbookOperations {
      */
     void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException;
+    /**
+     * Select all logbook operations entries after  a given date 
+     *
+     * @param date the select request in format of JsonNode
+     * @return the Closeable MongoCursor of LogbookOperation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws InvalidCreateOperationException 
+     */
+    MongoCursor<LogbookOperation> selectAfterDate(LocalDateTime date)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException;
 
 }
