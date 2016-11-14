@@ -29,10 +29,8 @@ package fr.gouv.vitam.functional.administration.rest;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,8 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -527,10 +524,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
+        final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
+        for (AccessionRegisterSummary register : fileFundRegisters) {
+            resultArrayNode.add(JsonHandler.toJsonNode(register));
+        }
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
+                .addAllResults(resultArrayNode))
             .build();
     }
 
@@ -564,12 +565,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
+        final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
+        for (AccessionRegisterDetail register : fileAccessionRegistersDetail) {
+            resultArrayNode.add(JsonHandler.toJsonNode(register));
+        }
 
-        // FIXME P0 Check hints
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .addResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
+                .setHits(fileAccessionRegistersDetail.size(), 0, fileAccessionRegistersDetail.size())
+                .addResult(resultArrayNode))
             .build();
     }
 
