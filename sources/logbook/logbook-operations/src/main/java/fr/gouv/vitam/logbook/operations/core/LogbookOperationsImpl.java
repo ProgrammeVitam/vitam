@@ -26,15 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -99,4 +107,20 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException {
         mongoDbAccess.updateBulkLogbookOperation(operationArray);
     }
+    @Override
+    public MongoCursor<LogbookOperation> selectAfterDate(final LocalDateTime date)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException {
+        final Select select = logbookOperationsAfterDateQuery(date);
+        return mongoDbAccess.getLogbookOperations(select.getFinalSelect());
+
+    }
+    private Select logbookOperationsAfterDateQuery(final LocalDateTime date) throws InvalidCreateOperationException {
+       
+        Query parentQuery =  QueryHelper.gt("evDateTime",  date.toString());
+        Query sonQuery    =  QueryHelper.gt( LogbookDocument.EVENTS+ ".evDateTime",  date.toString());
+        Select select = new Select();
+        select.setQuery(QueryHelper.or().add(parentQuery, sonQuery));
+        return select;
+    }
+
 }
