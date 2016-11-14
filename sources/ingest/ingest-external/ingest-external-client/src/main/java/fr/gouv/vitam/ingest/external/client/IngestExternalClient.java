@@ -44,8 +44,7 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * 
      * @throws IngestExternalException
-     * @throws XMLStreamException
      */
 	//TODO P0 : add file name
-    Response upload(InputStream stream) throws IngestExternalException, XMLStreamException;
+    Response upload(InputStream stream) throws IngestExternalException;
 }

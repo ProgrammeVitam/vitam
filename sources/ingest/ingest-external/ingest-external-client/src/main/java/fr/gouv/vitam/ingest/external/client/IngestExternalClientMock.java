@@ -51,7 +51,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
     @Override
     public Response upload(InputStream stream)
-        throws IngestExternalException, XMLStreamException {
+        throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }

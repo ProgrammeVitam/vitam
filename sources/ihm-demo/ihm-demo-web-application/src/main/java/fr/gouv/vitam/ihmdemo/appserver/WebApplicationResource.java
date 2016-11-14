@@ -51,6 +51,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -58,7 +60,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -85,9 +86,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -96,6 +99,7 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -339,7 +343,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param stream data input stream
      * @return Response
-     * @throws XMLStreamException
      * @throws IOException
      */
     // TODO P1 : add file name
@@ -347,27 +350,25 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response upload(InputStream stream) throws XMLStreamException, IOException {
-        Response response = null;
-        String responseXml = "";
-        String guid = "guid";
+    public void upload(InputStream stream, @Suspended final AsyncResponse asyncResponse) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
+        VitamThreadPoolExecutor.getInstance().execute(() -> uploadAsync(asyncResponse, stream));
+    }
+
+    private void uploadAsync(final AsyncResponse asyncResponse, InputStream stream) {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            response = client.upload(stream);
-
-            // FIXME P0 utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
-            responseXml = response.readEntity(String.class);
-            guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-        } catch (final VitamException e) {
-            LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+            final Response response = client.upload(stream);
+            String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            helper.writeResponse(Response.status(Status.fromStatusCode(response.getStatus()))
+                .header("Content-Disposition", "attachment; filename=" + xRequestId + ".xml")
+                .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
+        } catch (final IngestExternalException exc) {
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } finally {
+            StreamUtils.closeSilently(stream);
         }
-        return Response.status(Status.fromStatusCode(response.getStatus())).entity(responseXml)
-            .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
-            .header(GlobalDataRest.X_REQUEST_ID, guid)
-            .build();
     }
 
     // FIXME P0 - This endpoint is front test only and should not be used. A chunk compatible endpoint MUST be made
@@ -1140,7 +1141,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
                 .build();
-        } catch (FileNotFoundException | XMLStreamException e) {
+        } catch (FileNotFoundException e) {
             LOGGER.error("The selected file is not found", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();

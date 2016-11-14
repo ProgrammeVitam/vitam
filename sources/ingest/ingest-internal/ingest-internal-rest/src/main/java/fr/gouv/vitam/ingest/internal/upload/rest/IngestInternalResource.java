@@ -278,24 +278,28 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
                 }
             } catch (final ContentAddressableStorageCompressedFileException e) {
-                try {
-                    final String errorMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO);
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
-                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                        OutcomeMessage.WORKFLOW_INGEST_KO.value());
-                } catch (final LogbookClientException e1) {
-                    LOGGER.error(e1);
+                if (parameters != null) {
+                    try {
+                        final String errorMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO);
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
+                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
+                            OutcomeMessage.WORKFLOW_INGEST_KO.value());
+                    } catch (final LogbookClientException e1) {
+                        LOGGER.error(e1);
+                    }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final ContentAddressableStorageException e) {
-                try {
-                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error workspace");
-                } catch (final LogbookClientException e1) {
-                    LOGGER.error(e1);
+                if (parameters != null) {
+                    try {
+                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error workspace");
+                    } catch (final LogbookClientException e1) {
+                        LOGGER.error(e1);
+                    }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
