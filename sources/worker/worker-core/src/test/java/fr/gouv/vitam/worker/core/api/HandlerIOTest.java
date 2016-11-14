@@ -12,6 +12,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +39,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class HandlerIOTest {
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    
+
     @Before
     public void setUp() {
         workspaceClient = mock(WorkspaceClient.class);
@@ -90,7 +93,9 @@ public class HandlerIOTest {
 
     @Test
     public void testGetFileFromHandlerIO() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
+
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
         try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
@@ -102,7 +107,7 @@ public class HandlerIOTest {
             io.addOutIOParameters(out);
             Object object = io.getInput(0);
             assertEquals(File.class, object.getClass());
-            
+
             io.addOuputResult(0, object, true);
             assertFalse(((File) object).exists());
         }
@@ -110,7 +115,8 @@ public class HandlerIOTest {
 
     @Test
     public void testConcurrentGetFileFromHandlerIO() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
         final HandlerIOImpl io = new HandlerIOImpl("containerName", "workerId");
         assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
@@ -124,13 +130,14 @@ public class HandlerIOTest {
         Object object = io.getInput(0);
         assertEquals(File.class, object.getClass());
         assertTrue(((File) object).exists());
-        
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
+
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
         io2.addInIOParameters(in);
         Object object2 = io2.getInput(0);
         assertEquals(File.class, object2.getClass());
         assertTrue(((File) object2).exists());
-        
+
         io.close();
         assertFalse(((File) object).exists());
         assertTrue(((File) object2).exists());
@@ -140,8 +147,9 @@ public class HandlerIOTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetFileError() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageNotFoundException(""));
-        
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+
         try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             List<IOParameter> in = new ArrayList<>();

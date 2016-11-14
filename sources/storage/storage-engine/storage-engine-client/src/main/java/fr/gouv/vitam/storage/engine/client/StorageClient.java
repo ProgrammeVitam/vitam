@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.InputStream;
-
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -119,22 +117,6 @@ public interface StorageClient extends BasicClient {
      */
     boolean delete(String tenantId, String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException;
-
-
-    /**
-     * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
-     *
-     * @param tenantId the tenant id
-     * @param strategyId the storage strategy id
-     * @param guid vitam guid of the object to be returned
-     * @param type 
-     * @return the object requested
-     * @throws StorageServerClientException if the Server got an internal error
-     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
-     *         exist
-     */
-    InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type)
-        throws StorageServerClientException, StorageNotFoundException;
 
 
     /**

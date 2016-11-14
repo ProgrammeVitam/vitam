@@ -33,10 +33,12 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,6 +51,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -268,8 +271,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
     }
 
     @Override
-    // FIXME P0 MUST return Response and not InputStream
-    public InputStream getObject(String containerName, String objectName)
+    public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
@@ -278,7 +280,42 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.readEntity(InputStream.class);
+                return response;
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+
+    @Override
+    public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            if (response.getStatus() == 200) {
+                AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+                ResponseBuilder responseBuilder =
+                    Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+                helper.writeResponse(responseBuilder);
+            }
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response;
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());

@@ -288,7 +288,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
             SanityChecker.checkParameter(containerName, folderName);
-    
+
             final boolean exists = workspace.isExistingFolder(containerName, folderName);
             if (exists) {
                 return Response.status(Status.OK).entity(containerName + "/" + folderName).build();
@@ -300,6 +300,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
     }
+
     /**
      * uncompress a sip into the workspace
      *
@@ -567,7 +568,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             }
         }
     }
-    
+
     private void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse) {
 
         InputStream stream = null;
@@ -576,7 +577,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
             SanityChecker.checkParameter(containerName, objectName);
-            stream = workspace.getObject(containerName, objectName);
+            stream = (InputStream) workspace.getObject(containerName, objectName).getEntity();
 
             helper = new AsyncInputStreamHelper(asyncResponse, stream);
             ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);

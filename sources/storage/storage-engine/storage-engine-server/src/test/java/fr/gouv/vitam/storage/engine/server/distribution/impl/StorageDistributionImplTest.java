@@ -37,6 +37,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,7 +80,7 @@ public class StorageDistributionImplTest {
 
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setUrlWorkspace("http://localhost:8080");
-        client = Mockito.mock(WorkspaceClient.class);        
+        client = Mockito.mock(WorkspaceClient.class);
         simpleDistribution = new StorageDistributionImpl(configuration);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1);
     }
@@ -115,7 +118,9 @@ public class StorageDistributionImplTest {
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
             // Store object
             storedInfoResult = customDistribution
@@ -141,10 +146,12 @@ public class StorageDistributionImplTest {
         // Store Unit
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
-                DataCategory.UNIT, "testRequester");
+            storedInfoResult =
+                customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
+                    DataCategory.UNIT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -157,10 +164,12 @@ public class StorageDistributionImplTest {
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
-                DataCategory.LOGBOOK, "testRequester");
+            storedInfoResult =
+                customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
+                    DataCategory.LOGBOOK, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -173,10 +182,12 @@ public class StorageDistributionImplTest {
         // Store object group
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
-            storedInfoResult = customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
-                DataCategory.OBJECT_GROUP, "testRequester");
+            storedInfoResult =
+                customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
+                    DataCategory.OBJECT_GROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -196,10 +207,12 @@ public class StorageDistributionImplTest {
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
             customDistribution
-                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -215,16 +228,18 @@ public class StorageDistributionImplTest {
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
             // Store object
             storedInfoResult = customDistribution
-                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
         reset(client);
-        when(client.getObject("container1"+ this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
     }
 
     @Test
@@ -239,7 +254,8 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -250,7 +266,8 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -259,10 +276,12 @@ public class StorageDistributionImplTest {
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         IOUtils.closeQuietly(stream);
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(stream);
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).build());
         try {
             customDistribution
-                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,"testRequester");
+                .storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -273,7 +292,8 @@ public class StorageDistributionImplTest {
         CreateObjectDescription createObjectDescription, DataCategory category)
         throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
         try {
-            simpleDistribution.storeData(tenantId, strategyId, objectId, createObjectDescription, category, "testRequester");
+            simpleDistribution.storeData(tenantId, strategyId, objectId, createObjectDescription, category,
+                "testRequester");
             fail("Parameter should be considered invalid");
         } catch (final IllegalArgumentException exc) {
             // test OK

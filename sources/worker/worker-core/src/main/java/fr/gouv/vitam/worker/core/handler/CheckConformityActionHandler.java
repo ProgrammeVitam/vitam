@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -210,12 +212,12 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient, logbookLifecycleObjectGroupParameters,
             params);
-
+        Response response = null;
         try {
             DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
-            InputStream inputStream =
-                workspaceClient.getObject(containerId,
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
+            response = workspaceClient.getObject(containerId,
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
+            InputStream inputStream = (InputStream) response.getEntity();
             Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
             boolean isVitamDigest = false;
@@ -297,6 +299,8 @@ public class CheckConformityActionHandler extends ActionHandler {
             LogbookClientServerException e) {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
+        } finally {
+            workspaceClient.consumeAnyEntityAndClose(response);
         }
 
     }
@@ -317,8 +321,7 @@ public class CheckConformityActionHandler extends ActionHandler {
      */
     private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
         throws ProcessingException {
-        try (InputStream is =
-            workspaceClient.getObject(containerId, jsonFilePath)) {
+        try (InputStream is = (InputStream) workspaceClient.getObject(containerId, jsonFilePath).getEntity()) {
             if (is != null) {
                 return JsonHandler.getFromInputStream(is, JsonNode.class);
             } else {

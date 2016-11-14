@@ -37,6 +37,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
@@ -135,8 +137,8 @@ public class IndexUnitActionHandlerTest {
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
-        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);        
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
@@ -150,7 +152,7 @@ public class IndexUnitActionHandlerTest {
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
@@ -184,7 +186,7 @@ public class IndexUnitActionHandlerTest {
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnitWithRules);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnitWithRules).build());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")

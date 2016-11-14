@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.handler;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
@@ -90,12 +92,14 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try {
                 checkMandatoryIOParameter(actionDefinition);
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                    logbookLifecycleObjectGroupParameters, params);
                 indexObjectGroup(params, itemStatus);
             } catch (final ProcessingInternalServerException exc) {
                 LOGGER.error(exc);
@@ -108,7 +112,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             try {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                    logbookLifecycleObjectGroupParameters,
                     itemStatus);
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
@@ -138,11 +143,12 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
         try (// TODO : whould use worker configuration instead of the processing configuration
             final WorkspaceClient workspaceClient = WorkspaceClientFactory
-                .getInstance().getClient();
-            final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+                .getInstance().getClient();            
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-
-            if (input != null) {
+            Response response = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+            if (response != null) {
+                final InputStream input =
+                    (InputStream) response.getEntity();
                 final ObjectNode json = (ObjectNode) JsonHandler.getFromInputStream(input);
                 json.remove(SedaConstants.PREFIX_WORK);
                 final Insert insertRequest = new Insert().addData(json);
@@ -155,7 +161,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
-        } catch (InvalidParseOperationException | IOException e) {
+        } catch (InvalidParseOperationException e) {
             throw new ProcessingException("Json wrong format", e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             throw new ProcessingException("Workspace Server Error", e);

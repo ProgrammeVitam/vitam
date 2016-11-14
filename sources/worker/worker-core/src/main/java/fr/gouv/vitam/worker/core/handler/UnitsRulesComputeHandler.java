@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -168,13 +169,12 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            InputStream xmlInput = workspaceClient.getObject(containerId,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
-
-            if (xmlInput != null) {
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            Response response = workspaceClient.getObject(containerId,
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+            if (response != null) {                
                 // Parse RULES in management Archive unit, and add EndDate
-                parseXmlRulesAndUpdateEndDate(xmlInput, objectName, containerId, params, itemStatus, workspaceClient);
+                parseXmlRulesAndUpdateEndDate((InputStream) response.getEntity(), objectName, containerId, params, itemStatus, workspaceClient);
             } else {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");

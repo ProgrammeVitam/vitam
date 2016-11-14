@@ -5,18 +5,22 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Matchers.eq;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -61,9 +65,9 @@ public class FormatIdentificationActionHandlerTest {
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private final InputStream objectGroup;
-    private final InputStream objectGroup2;
-    private WorkspaceClientFactory workspaceClientFactory;    
+    private InputStream objectGroup;
+    private InputStream objectGroup2;
+    private WorkspaceClientFactory workspaceClientFactory;
     private HandlerIOImpl handlerIO;
     private GUID guid;
 
@@ -77,7 +81,7 @@ public class FormatIdentificationActionHandlerTest {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         guid = GUIDFactory.newGUID();
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
@@ -149,11 +153,15 @@ public class FormatIdentificationActionHandlerTest {
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
-
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+
 
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
@@ -184,8 +192,12 @@ public class FormatIdentificationActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
 
         assertEquals(FormatIdentificationActionHandler.getId(), HANDLER_ID);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());                
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
         final AdminManagementClient adminManagementClient =
@@ -208,8 +220,12 @@ public class FormatIdentificationActionHandlerTest {
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup2)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup2).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
         final AdminManagementClient adminManagementClient =
@@ -233,8 +249,12 @@ public class FormatIdentificationActionHandlerTest {
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -257,8 +277,9 @@ public class FormatIdentificationActionHandlerTest {
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -276,8 +297,8 @@ public class FormatIdentificationActionHandlerTest {
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
-
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
 
@@ -293,8 +314,12 @@ public class FormatIdentificationActionHandlerTest {
 
         final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
-            .thenReturn(IOUtils.toInputStream("VitamTest"));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
+            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();

@@ -30,6 +30,9 @@ package fr.gouv.vitam.storage.offers.workspace.core;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
@@ -61,11 +64,12 @@ public interface DefaultOfferService {
      *
      * @param containerName the container containing the object
      * @param objectId the object id
-     * @return the object as an inputStream
+     * @param asyncResponse the async Response
+     * @return the object included in a response
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException thrown when a server error occurs
      */
-    InputStream getObject(String containerName, String objectId)
+    Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**

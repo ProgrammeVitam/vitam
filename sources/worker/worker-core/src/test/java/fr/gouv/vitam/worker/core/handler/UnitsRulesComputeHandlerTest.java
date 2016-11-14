@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
@@ -99,7 +101,8 @@ public class UnitsRulesComputeHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName"))).thenReturn(archiveUnit);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
 
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
@@ -117,14 +120,16 @@ public class UnitsRulesComputeHandlerTest {
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName"))).thenReturn(archiveUnit);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -133,7 +138,8 @@ public class UnitsRulesComputeHandlerTest {
     public void givenWorkspaceArchiveUnitFileNullOrNotExistWhenExecuteThenReturnResponseKO() throws Exception {
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName"))).thenReturn(archiveUnit);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")

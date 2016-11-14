@@ -236,7 +236,6 @@ public class ProcessEngineImpl implements ProcessEngine {
 
             // update workflow Status
             workflowStatus.increment(stepResponse.getGlobalStatus());
-
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
             for (Action action : step.getActions()) {
                 String hanlderId = action.getActionDefinition().getActionKey();

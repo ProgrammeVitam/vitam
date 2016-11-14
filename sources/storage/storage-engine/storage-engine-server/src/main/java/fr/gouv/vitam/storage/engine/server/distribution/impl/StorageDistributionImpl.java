@@ -97,10 +97,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * StorageDistribution service Implementation 
- * process continue if needed)
+ * StorageDistribution service Implementation process continue if needed)
  */
-//TODO P1: see what to do with RuntimeException (catch it and log it to let the
+// TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
 
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
@@ -113,7 +112,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final int NB_RETRY = 3;
     private final String urlWorkspace;
     // TODO P2 see API
-    // TODO P2 : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
+    // TODO P2 : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is
+    // no
     // specification about that
     private final DigestType digestType;
     // FOR JUNIT TEST ONLY (TODO P1: review WorkspaceClientFactory to offer a mocked WorkspaceClient)
@@ -130,7 +130,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         WorkspaceClientFactory.changeMode(urlWorkspace);
         mockedWorkspaceClient = null;
         // TODO P2 : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
-        // TODO P2 Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
+        // TODO P2 Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512,
+        // ...)
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
         // allow check of duplicated files)
         digestType = VitamConfiguration.getDefaultDigestType();
@@ -172,7 +173,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (final OfferReference offerReference : offerReferences) {
                 // TODO P1 : sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
-                // TODO P1 special notice: when parallel, try to get only once the inputstream and then multiplexing it to
+                // TODO P1 special notice: when parallel, try to get only once the inputstream and then multiplexing it
+                // to
                 // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
                 Map<String, Object> result =
@@ -274,7 +276,11 @@ public class StorageDistributionImpl implements StorageDistribution {
             } catch (final IllegalArgumentException exc) {
                 throw new StorageTechnicalException(exc);
             }
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters);
+                WorkspaceClient workspaceClient =
+                    (mockedWorkspaceClient == null) ? WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is
+                                                                                                         // closed
+                        mockedWorkspaceClient) {
                 final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, category.getFolder());
                 if (connection.objectExistsInOffer(request)) {
                     // TODO P2: when GUID will be correct, we can use the WORM property of the GUID
@@ -295,7 +301,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
 
                 putObjectRequest =
-                    buildPutObjectRequest(createObjectDescription, tenantId, objectId, category, messageDigest);
+                    buildPutObjectRequest(createObjectDescription, tenantId, objectId, category, messageDigest,
+                        workspaceClient);
                 // Perform actual object upload
                 putObjectResult = connection.putObject(putObjectRequest);
 
@@ -394,20 +401,19 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, String tenantId,
-        String objectId, DataCategory category, Digest messageDigest)
+        String objectId, DataCategory category, Digest messageDigest, WorkspaceClient workspaceClient)
         throws StorageTechnicalException, StorageNotFoundException {
         final InputStream dataStream = retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
-            createObjectDescription.getWorkspaceObjectURI());
+            createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
         return new PutObjectRequest(tenantId, digestType.getName(), objectId,
             messageDigest.getDigestInputStream(dataStream), category.name());
     }
 
-    private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
+    private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI,
+        WorkspaceClient workspaceClient)
         throws StorageNotFoundException, StorageTechnicalException {
-        try (WorkspaceClient workspaceClient = (mockedWorkspaceClient == null) ? 
-            WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is closed
-            mockedWorkspaceClient) {
-            return workspaceClient.getObject(containerGUID, objectURI);
+        try {
+            return (InputStream) workspaceClient.getObject(containerGUID, objectURI).getEntity();
         } catch (final ContentAddressableStorageNotFoundException exc) {
             throw new StorageNotFoundException(exc);
         } catch (final ContentAddressableStorageServerException exc) {
@@ -523,7 +529,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final GetObjectResult result = getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
+            final GetObjectResult result =
+                getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
@@ -543,7 +550,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
                     AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
-                    ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+                    ResponseBuilder responseBuilder =
+                        Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
                     helper.writeResponse(responseBuilder);
                     return result;
                 }

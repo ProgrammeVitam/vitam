@@ -39,6 +39,8 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 
@@ -103,8 +105,8 @@ public class SedaUtilsTest {
 
     // TODO P1 : WARN sometimes bug on jenkins
     @Test
-    public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(seda);
+    public void givenGuidWhenXmlExistThenReturnValid() throws Exception {        
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
     }
@@ -114,7 +116,7 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
         final InputStream is = new ByteArrayInputStream(str.getBytes());        
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString())).thenReturn(is);        
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString())).thenReturn(Response.status(Status.OK).entity(is).build());        
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
@@ -125,7 +127,7 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(is);
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
@@ -143,7 +145,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
@@ -179,7 +181,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
