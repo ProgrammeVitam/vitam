@@ -1,0 +1,13 @@
+ingestProtocol: https
+ingestPort: {{vitam_ingestexternal_port_https}}
+ingestHost: {{vitam_ingestexternal_host}}
+
+logbookProtocol: http
+logbookPort: {{vitam_logbook_port}}
+logbookHost: {{vitam_logbook_host}}
+
+certfile: {{vitam_folder_conf}}/keystore_ihm-recette.p12
+dataDir: {{vitam_folder_data}}/
+reportingDir: {{vitam_folder_app}}/
+configDir: {{vitam_folder_data}}/
+soapUiExecutable: {{ soapui_folder_app }}/bin/testrunner.sh

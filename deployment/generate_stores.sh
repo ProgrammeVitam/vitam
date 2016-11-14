@@ -30,6 +30,26 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 	echo "------------------------------------------------"
 done
 
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette --ask-vault-pass| sed "1 d"); do
+	echo "Génération du keystore de ihm-demo"
+	echo "	Génération pour ${i}..."
+	echo "Génération du truststore de ${j}-external..."
+	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
+	echo "	Import des CA server dans truststore de ${j}-external..."
+	echo "		... import CA server root..."
+	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
+	echo "		... import CA server intermediate..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
+	echo "		... import CA client root..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
+	echo "		... import CA client intermediate..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+
+	echo "Fin de génération du trustore de ${j}-external"
+	echo "------------------------------------------------"
+done
+
 for j in ingest access; do
 	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external --ask-vault-pass| sed "1 d"); do
 		echo "Génération du keystore de access-external"
@@ -67,9 +87,10 @@ for j in ingest access; do
 
 	#	generatetruststore ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihmdemotototiti ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_ingest-external.jks grantedstore_ingest-external ${grantedKeyStorePassphrase_ingest_external}
 	#	generatetruststore ${REPERTOIRE_CA}/server_intermediate/ca.crt azerty ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-		echo "	Import certificat IHM-demo du grantedstore de ${j}-external..."	
+		echo "	Import certificat IHM-demo & ihm-recette du grantedstore de ${j}-external..."	
 		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
 		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihm-demo
+		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ihm-recette.crt ihm-recette
 		echo "------------------------------------------------"
 	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
 	done

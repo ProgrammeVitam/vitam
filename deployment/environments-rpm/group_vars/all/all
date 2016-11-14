@@ -31,6 +31,12 @@ vitam_ihm_demo_port: 8002
 vitam_ihm_demo_baseurl: /ihm-demo
 vitam_ihm_demo_static_content: webapp
 
+
+vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
+vitam_ihm_recette_port: 8204
+vitam_ihm_recette_baseurl: /ihm-recette
+vitam_ihm_recette_static_content: webapp
+
 vitam_ingestexternal_host: "ingest-external.service.{{consul_domain}}"
 vitam_ingestexternal_port: 8001
 vitam_ingestexternal_port_https: 8443
@@ -105,6 +111,9 @@ vitam_conf_permission: 0640
 
 consul_component: consul
 consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
+
+soapui_component: soapui
+soapui_folder_app: "{{vitam_folder_root}}/app/{{soapui_component}}"
 
 mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
 mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="c8480034-0dce-4dac-a1f2-c088e879b614" activeEnvironment="Default" name="TestSIP" resourceRoot="" soapui-version="5.2.1" abortOnError="false" runType="SEQUENTIAL" defaultScriptLanguage="Groovy" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+  <con:entry key="Environment" value="Default"/>
+  <con:entry key="Global Properties" value=""/>
+  <con:entry key="TestSuite" value="TestSuite ingest US 655/946"/>
+  <con:entry key="Password" value=""/>
+  <con:entry key="TestRunner Path" value=""/>
+  <con:entry key="Tool Args" value=""/>
+  <con:entry key="Ignore Errors" value="false"/>
+  <con:entry key="Host:Port" value=""/>
+  <con:entry key="user-settings.xml Password" value=""/>
+  <con:entry key="WSS Password Type" value=""/>
+  <con:entry key="Save Project" value="false"/>
+  <con:entry key="Enable UI" value="false"/>
+  <con:entry key="System Properties" value=""/>
+  <con:entry key="Domain" value=""/>
+  <con:entry key="Coverage Report" value="false"/>
+  <con:entry key="Export JUnit Results" value="false"/>
+  <con:entry key="Export JUnit Results with test properties" value="false"/>
+  <con:entry key="Open Report" value="false"/>
+  <con:entry key="Project Properties" value=""/>
+  <con:entry key="Export All" value="false"/>
+  <con:entry key="Project Password" value=""/>
+  <con:entry key="Report Format(s)" value=""/>
+  <con:entry key="TestCase" value="Loop SIP"/>
+  <con:entry key="Print Report" value="false"/>
+  <con:entry key="Username" value=""/>
+  <con:entry key="Root Folder" value=""/>
+  <con:entry key="Select Report Type" value=""/>
+  <con:entry key="Save After" value="false"/>
+  <con:entry key="Add Settings" value="false"/>
+  <con:entry key="Endpoint" value=""/>
+</xml-fragment>]]></con:setting></con:settings><con:testSuite id="3738c27b-9369-49bf-82cf-ca1f835e1d56" name="TestSuite"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.panels.testcase.JTestRunLog$OptionsForm@max_rows">1000</con:setting><con:setting id="com.eviware.soapui.impl.wsdl.panels.testcase.JTestRunLog$OptionsForm@errors_only">false</con:setting></con:settings><con:runType>SEQUENTIAL</con:runType><con:testCase id="3f83a299-20d7-4e96-bee8-f15112f5a389" failOnError="false" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="SIPTEST" searchProperties="true" timeout="0" wsrmEnabled="false" wsrmVersion="1.0" wsrmAckTo="" amfAuthorisation="false" amfEndpoint="" amfLogin="" amfPassword=""><con:settings/><con:testStep type="groovy" name="init" id="7772c6d0-3604-44b8-9d9b-b683c04d9c3f"><con:settings/><con:config><script>/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+
+// defition du json 
+def inputJSON = context.inputJSON 
+log.info '#### Debut  du test ####' 
+// iterator 
+
+def i = context.iteration 
+
+if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
+	context.testName		= inputJSON.params[i].testName
+	context.sipName		= inputJSON.params[i].sipName
+	context.category		= inputJSON.params[i].category
+	context.httpStatusCode 	= inputJSON.params[i].httpStatusCode
+	context.result 		= true 
+	context.expected 		= inputJSON.params[i].expected
+
+} 
+
+</script></con:config></con:testStep><con:testStep type="groovy" name="upload" id="e6ef1659-0600-4375-9d3b-747d9cbc40bc"><con:settings/><con:config><script>/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+/**
+ * Upload File 
+ **/
+
+def url  = context.ingest+"ingest-ext/v1/upload/"
+log.info 'Url for ingest' + url
+def cert = context.certfile 
+def file =context.dataDir+context.sipName
+log.info 'File uploaded: ' + context.dataDir+context.sipName
+//log.info  'upload file '+cert
+def header1 =  "--header Transfer-Encoding:chunked "
+def header2 =  "--header Content-Type:application/octet-stream "
+def upload =  "-X POST --data-binary "+ " @"+  file  
+def activateStatutCodes = "-o /dev/null  -w %{http_code}"
+def options =activateStatutCodes+ " " +header1 +  " " + header2
+def curl  = "curl -k --key " + cert + " " + url + " " + upload + " " +options 
+log.info 'curl executed for ingest: ' + curl
+proc = curl.execute();
+// starting 
+Thread.start { System.err &lt;&lt; proc.err } 
+proc.waitFor()
+//log.info proc
+def result = proc.text 
+def statusOk = context.httpStatusCode+"" ==result+""  
+
+log.info ' statusOK  ='+ statusOk+ ' result =  ' + result + ' expected = '  + context.httpStatusCode
+log.info statusOk
+
+
+if (statusOk ){
+	
+}
+else {
+//	context.nbFail = context.nbFail +1
+}
+
+if (!statusOk  ){
+	//testRunner.gotoStep(4)
+}
+//assert statusOk</script></con:config></con:testStep><con:testStep type="groovy" name="find" id="6a107074-b274-44d8-b933-c4003dba2ac9"><con:settings/><con:config><script>//curl -X POST -H "X-HTTP-Method-Override: GET" -H "Content-Type: application/json" -H "Cache-Control: no-cache"  -d '
+import groovy.json.JsonSlurper
+
+def url  = context.logbook+"logbook/v1/operations"
+//Content-Type:application/octet-stream
+def header1 =  "--header X-HTTP-Method-Override:GET"
+def header2 =  "--header Content-Type:application/json"
+def header3 =  "--header Cache-Control:no-cache "
+def activateStatutCodes = "-o /dev/null  -w '%{http_code}'"
+//activateStatutCode =" "
+
+def json =('{$query:{},$filter:{$limit:1,$orderby:{evDateTime:-1}},$projection:{}}')
+def options =header1+ " " +header2 +  " " + header3
+def curl  = "curl -v -d "+json + " "+url +" " +options 
+proc = curl.execute();
+
+Thread.start { System.err &lt;&lt; proc.err } 
+proc.waitFor()
+
+def slup = new JsonSlurper()// $.result[*]
+def result =slup.parseText(proc.text)
+
+assert  result.result.size == 1 
+def id = result.result[0]._id
+context.ope_id = id </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>
+import com.eviware.soapui.support.XmlHolder
+import groovy.json.JsonSlurper 
+def host = "http://localhost:9002"
+def url  = context.logbook+"logbook/v1/operations/"+context.ope_id
+def options = "" 
+def curl  = "curl "+url +" " +options 
+log.info curl
+proc = curl.execute();
+Thread.start { System.err &lt;&lt; proc.err } 
+proc.waitFor()
+
+def slup = new JsonSlurper()// $.result[*]
+result =slup.parseText(proc.text)
+log.info result
+def size = result.result.events.size 
+
+resultat =  result.result.events[size-1].outcome == context.expected
+
+log.info "------------------------------------->resultat observé  "+ result.result.events[size-1].outcome
+
+if (resultat ){
+	context.nbsuccess= 	context.nbsuccess+ 1 
+}
+else {
+	context.nbFail = context.nbFail +1
+}
+
+def i = context.iteration 
+
+context.inputJSON.params[i].result = resultat
+context.inputJSON.params[i].expected = context.expected
+context.inputJSON.params[i].observed = result.result.events[size-1].outcome	
+
+assert resultat
+</script></con:config></con:testStep><con:testStep type="groovy" name="while" id="80a3a8e4-bc73-41e7-a411-48982e666a01"><con:settings/><con:config><script>
+def inputJSON = context.inputJSON 
+//log.info("ddd"+ inputJSON)
+def i = context.iteration 
+
+if ( context.inputJSON!= null &amp;&amp; i &lt; inputJSON.params.size -1 ) {
+	context.iteration = (i +  1 )
+	testRunner.gotoStep(0)
+}
+else {
+	
+}
+log.info '### Fin du test'
+</script></con:config></con:testStep><con:testStep type="groovy" name="report" id="666d2252-2a14-4ffc-95bb-817708297ebd"><con:settings/><con:config><script><![CDATA[
+import groovy.json.JsonOutput
+def  inputJSON = context.inputJSON 
+	log.info '#### GENERATION DU RAPPORT'
+	log.info ' json'+context.inputJSON
+	log.info ' Nombre de tests '+context.inputJSON.params.size
+	
+if ( context.inputJSON!= null && 0 < context.inputJSON.params.size  ) {
+	def ok_image = "images/icon_success_sml.gif"
+	def ko_image = "images/icon_error_sml.gif"
+	def replaceText =""
+	context.inputJSON.params.each {
+		def image
+		def result = "${it['sipName']}"
+		def name = "${it['testName'] }"
+		def category = "${it['category'] }"
+		def observed = "${it['observed'] }"
+		def expected = "${it['expected'] }"
+		def w3class
+		if ( it['result']==true ) 
+		{	
+			image= ok_image 
+			w3class = "class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green'"
+
+		}
+		else {
+		 image= ko_image
+		 w3class = "class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red'"
+		}
+		// w3class =""
+
+		replaceText <<="<tr class='trtab'>" // open tr 
+		replaceText <<= " <td  "+ w3class + " >   <img src='"+ image +"'alt='' />  </td> " // td image 
+		replaceText <<= " <td "+ w3class + " >"+ name+ "</td>"  // td name 
+		replaceText <<= "<td "+ w3class + " >"+result+ "</td>" // td result 
+		replaceText <<= "<td "+ w3class + " >"+category+ "</td>" // td result 
+		replaceText <<= "<td "+ w3class + " >"+observed+ "</td>" // td result 
+		replaceText <<= "<td "+ w3class + " >"+expected+ "</td>" // td result 
+		replaceText <<="</tr>"// close tr 
+	}
+
+	def reportingTemplate = context.expand('${#Project#reportingTemplate}')
+	String fileContents = new File(reportingTemplate).text
+	fileContents= fileContents.replaceAll( '##NBTESTS##', context.inputJSON.params.size+"" )
+	fileContents= fileContents.replaceAll( '##TESTS##', replaceText.toString()+"" )
+	fileContents= fileContents.replaceAll( '##SUCCESS##', context.nbsuccess+"" )
+	fileContents= fileContents.replaceAll( '##NBFAILLURES##', context.nbFail+"" )
+	
+	def out = context.expand('${#Project#reportingDir}') + 'reporting.html'
+	File file = new File(out)
+	file.text= fileContents
+	
+	def jsonOut = context.expand('${#Project#reportingDir}') + 'reporting.json'
+	File jsonFile = new File(jsonOut)
+	jsonFile.text= JsonOutput.toJson(context.inputJSON)
+	log.info 'Fin de tests'
+}]]></script></con:config></con:testStep><con:setupScript>def configD =context.expand('${#Project#configDir}')
+log.info ("\ncongig  directory :" + configD)
+import groovy.json.JsonSlurper
+def i = 0 ; 
+def inputFile = new File(configD+"data.json")
+def inputJSON = new JsonSlurper().parseText(inputFile.text)
+
+//define contexts
+
+context.dataDir = context.expand('${#Project#dataDir}')
+context.ingest = context.expand('${#Project#ingestHost}')
+context.logbook = context.expand('${#Project#logbookHost}')
+context.certfile = context.expand('${#Project#certfile}')
+context.inputJSON = inputJSON 
+context.inputFile =inputFile
+context.iteration  = 0 ; 
+context.nbFail = 0 
+context.nbsuccess= 0 
+
+def items = []
+context.items = items</con:setupScript>
+<con:tearDownScript>//context.inputFile.close()</con:tearDownScript><con:properties/></con:testCase><con:properties/></con:testSuite>
+<con:endpointStrategy xsi:type="con:DefaultEndpointStrategy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:endpoint mode="COMPLEMENT" username="ykouki" password="">https://int.env.programmevitam.fr</con:endpoint></con:endpointStrategy>
+<con:wssContainer>
+<con:crypto>
+	<con:source>/home/lubla/testSoapUI/keystore_ihm-demo.p12</con:source>
+	<con:password>vitam1234</con:password>
+	<con:type>KEYSTORE</con:type>
+</con:crypto>
+<con:outgoing>
+	<con:name>vitam</con:name>
+	<con:username/>
+	<con:password/>
+	<con:entry type="Encryption" username="ihm_demo_int3" password="vitam1234">
+		<con:configuration>
+			<crypto>keystore_ihm-demo.p12</crypto>
+			<keyIdentifierType>3</keyIdentifierType>
+			<symmetricEncAlgorithm/>
+			<encKeyTransport/>
+			<embeddedKeyName/>
+			<embeddedKeyPassword/>
+			<encryptionCanonicalization/>
+			<encryptSymmetricKey>true</encryptSymmetricKey>
+		</con:configuration>
+	</con:entry>
+</con:outgoing>
+</con:wssContainer>
+<con:oAuth2ProfileContainer/>
+<con:sensitiveInformation>
+<ProjectSpecificExposureList>null###null</ProjectSpecificExposureList>
+</con:sensitiveInformation>
+</con:soapui-project>

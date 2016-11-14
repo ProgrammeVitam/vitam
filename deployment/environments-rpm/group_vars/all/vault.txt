@@ -20,3 +20,5 @@ mongoFunctionalAdminUser: functional-admin
 mongoFunctionalAdminPassword: azerty
 mongoWorkerUser: worker
 mongoWorkerPassword: azerty
+p12_ihm_recette_password: grokbizftej
+TrustStore_ihm_recette_password: AzErTy

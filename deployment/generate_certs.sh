@@ -20,6 +20,20 @@ echo "Fin de génération du certificat client de ihm-demo"
 echo "--------------------------------------------------"
 
 
+
+
+
+echo "Generation du certificat client de ihm-recette"
+generateclientcertificate ihm-recette ihmrecetteclientkeypassword caintermediatekeypassword
+echo "	Conversion en p12..."
+crtkey2p12 ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ihm-recette ihmrecetteclientkeypassword ihm-recette ${p12_ihm_recette_password}
+echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ !"
+
+echo "Fin de génération du certificat client de ihm-recette"
+echo "--------------------------------------------------"
+
+
+
 for j in ingest access; do
 	echo "Generation du certificat server de ${j}-external"
 	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external --ask-vault-pass| sed "1 d"); do

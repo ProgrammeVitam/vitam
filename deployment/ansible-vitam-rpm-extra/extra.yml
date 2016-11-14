@@ -21,6 +21,11 @@
   roles:
     - {role: vitam, vitam_component: library, java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" } 
 
+- hosts: hosts-ihm-recette
+  roles:
+    - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", secret_platform: "false" }
+    - {role: soapui_get_tests, when: ansible_virtualization_type != 'docker'}
+
 - hosts: reverse
   roles:
     - reverse

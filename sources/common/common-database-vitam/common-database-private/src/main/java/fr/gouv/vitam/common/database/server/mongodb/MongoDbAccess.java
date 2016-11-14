@@ -167,4 +167,14 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     public String toString() {
         return dbname;
     }
+    
+    /**
+     * Change the target database
+     * 
+     * @param dbname Name of the target database
+     */
+    public void setDatabase(String dbname) {
+        mongoDatabase = mongoClient.getDatabase(dbname);
+        this.dbname = dbname;
+    }
 }

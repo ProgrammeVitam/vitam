@@ -1,0 +1,33 @@
+{
+    "name": "bootstrap-material-design-icons",
+    "version": "2.2.0",
+    "authors": [
+        {
+            "name": "Andrey Izman",
+            "email": "izmanw@gmail.com"
+        }
+    ],
+    "description": "Google Material Design Icons For Using With Bootstrap",
+    "keywords": [
+        "icons",
+        "material",
+        "material-design",
+        "google",
+        "icons-web-font",
+        "web-font",
+        "bootstrap"
+    ],
+    "license": ["MIT", "CC-BY-4.0"],
+    "main": [
+        "./css/material-icons.*",
+        "./fonts/MaterialIcons-Regular.*"
+    ],
+    "ignore": [
+        ".gitignore",
+        "*.json",
+        "*.md"
+    ],
+    "dependencies": {},
+    "devDependencies": {},
+    "homepage": "http://github.com/mervick/material-design-icons"
+}

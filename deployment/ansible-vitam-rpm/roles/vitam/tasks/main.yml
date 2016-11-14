@@ -146,6 +146,15 @@
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\;').split('\n') }}"
 
+- name: copy files section (symbolic links to sources)
+  copy:
+    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type l -exec basename {} \\;').split('\n') }}"
+
 # OMA: disabled as hooks are now integrated for postinst, preun && postun in pom.xml
 # - name: systemctl reload-daemon
 #   command: systemctl daemon-reload
