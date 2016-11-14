@@ -686,7 +686,8 @@ La structure est décrite ci-dessous.
 Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'une structure incluse dans celle-ci.
 
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation de l'opération, constitué d'une chaîne de 36 caractères.
+"_id" : Identifiant unique donné par le système lors de l'initialisation de l'opération
+    Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire de l'opération dans la collection.
 
     *Ce champ existe uniquement pour la structure incluante.*
@@ -759,7 +760,8 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe qui appelle Vitam à la session utilisée pour lancer l’opération
+"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe
+    qui appelle Vitam à la session utilisée pour lancer l’opération
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
     *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
@@ -885,7 +887,8 @@ Exemple de JSON stocké en base
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie, constitué d'une chaîne de 36 caractères.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie.
+    Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire du journal de cycle de vie de l'unit.
 
     *Ce champ existe uniquement pour la structure incluante.*
@@ -1021,7 +1024,9 @@ Exemple de JSON stocké en base
             "outMessg": "Début de la vérification de lempreinte.",
             "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-            "evDetData": "{\"MessageDigest\":\"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc1259056365aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc1259056365aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
+            "evDetData": "{\"MessageDigest\":\"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
+            5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
+            5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
             "_tenant": 0
         },
         {
@@ -1035,7 +1040,8 @@ Exemple de JSON stocké en base
             "outMessg": "Début de la vérification de lempreinte.",
             "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a245b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\"} ",
+            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a2
+            45b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\"} ",
             "_tenant": 0
         },
         {
@@ -1049,7 +1055,9 @@ Exemple de JSON stocké en base
             "outMessg": "Objet reçu correspondant à lobjet attendu.",
             "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a245b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a245b668914a3364ee0def01ef8719eed5488e0e21020e\"} ",
+            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a
+            245b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a2
+            45b668914a3364ee0def01ef8719eed5488e0e21020e\"} ",
             "_tenant": 0
         },
         {
@@ -1063,7 +1071,9 @@ Exemple de JSON stocké en base
             "outMessg": "Objet reçu correspondant à lobjet attendu.",
             "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
-            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a245b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a245b668914a3364ee0def01ef8719eed5488e0e21020e\"} ",
+            "evDetData": "{\"MessageDigest\":\"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a2
+            45b668914a3364ee0def01ef8719eed5488e0e21020e\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"a3077c531007f1ec5f8bc34bf4a7cf9c2c51ef83cb647cd5903d400bc1768b0fa0ca714e93be4bb9c5a
+            245b668914a3364ee0def01ef8719eed5488e0e21020e\"} ",
             "_tenant": 0
         },
         {
@@ -1181,10 +1191,13 @@ Exemple de JSON stocké en base
     ],
     "_tenant": 0
     }
+
+
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie, constitué d'une chaîne de 36 caractères.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie.
+    Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire du journal de cycle de vie du groupe d'objet.
 
     *Ce champ existe uniquement pour la structure incluante.*
@@ -1343,7 +1356,8 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 "_id" (#id): Identifiant unique de l'unit.
     Chaîne de 36 caractères.
 
-"DescriptionLevel": La valeur de champ est une chaine de caractères. Il s'agit du niveau de description archivistique de l'ArchiveUnit.
+"DescriptionLevel": La valeur de champ est une chaine de caractères.
+    Il s'agit du niveau de description archivistique de l'ArchiveUnit.
     Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le manifeste.
 
 "Title": La valeur de ce champ est une chaine de caractères. Il s'agit du titre de l'ArchiveUnit.
@@ -1426,8 +1440,10 @@ Exemple de Json stocké en base
                      },
                      "OtherMetadata": null,
                      "Size": 40740,
-                     "Uri": "content/fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0.png",
-                     "MessageDigest": "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0",
+                     "Uri": "content/fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7
+                     f6c86a35cd2925351076da7abc064ad89369edf44f0.png",
+                     "MessageDigest": "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d
+                     7f6c86a35cd2925351076da7abc064ad89369edf44f0",
                      "Algorithm": "SHA-512"
                  }
              ]
@@ -1454,8 +1470,10 @@ Exemple de Json stocké en base
                      },
                      "OtherMetadata": null,
                      "Size": 17120,
-                     "Uri": "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
-                     "MessageDigest": "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4",
+                     "Uri": "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f
+                     9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
+                     "MessageDigest": "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f
+                     9dbfeca338180ca64bdde645706ec14499311d557f4",
                      "Algorithm": "SHA-512"
                  }
              ]
@@ -1485,8 +1503,10 @@ Exemple de Json stocké en base
                      },
                      "OtherMetadata": null,
                      "Size": 100646,
-                     "Uri": "content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp",
-                     "MessageDigest": "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
+                     "Uri": "content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e2
+                     21a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp",
+                     "MessageDigest": "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e2
+                     21a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
                      "Algorithm": "SHA-512"
                  }
              ]
@@ -1517,7 +1537,8 @@ Exemple de Json stocké en base
                      "OtherMetadata": null,
                      "Size": 186536,
                      "Uri": "content/f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954.pdf",
-                     "MessageDigest": "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5",
+                     "MessageDigest": "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073
+                     a422d825175bf1bef24dc355bfa081f7e48b106070fd5",
                      "Algorithm": "SHA-512"
                  }
              ]
@@ -1543,7 +1564,8 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
       <DataObjectGroupReferenceId>ID4</DataObjectGroupReferenceId>
       <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
       <Uri>Content/ID8.txt</Uri>
-      <MessageDigest algorithm="SHA-512">8e393c3a82ce28f40235d0870ca5b574ed2c90d831a73cc6bf2fb653c060c7f094fae941dfade786c826f8b124f09f989c670592bf7a404825346f9b15d155af</MessageDigest>
+      <MessageDigest algorithm="SHA-512">8e393c3a82ce28f40235d0870ca5b574ed2c90d831a73cc6bf2fb653c060c7f094fae941dfade786c826
+      f8b124f09f989c670592bf7a404825346f9b15d155af</MessageDigest>
       <Size>30</Size>
       <FormatIdentification>
           <FormatLitteral>Plain Text File</FormatLitteral>
@@ -1575,11 +1597,11 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
 "_qualifiers" (#qualifiers): est une structure qui va décrire les objets inclus dans ce groupe d'objet. Il est composé comme suit :
 
 - [Usage de l'objet. Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
-  - "nb": nombre d'objets de cet usage
-  - "versions" : tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
-    - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères.
-    - "DataObjectGroupId" : Référence à l'identifiant objectGroup. Chaine de 36 caractères.
-    - "DataObjectVersion" : version de l'objet par rapport à son usage.
+    - "nb": nombre d'objets de cet usage
+    - "versions" : tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
+        - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères.
+        - "DataObjectGroupId" : Référence à l'identifiant objectGroup. Chaine de 36 caractères.
+        - "DataObjectVersion" : version de l'objet par rapport à son usage.
 
     Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*, *binaryMaster_2*. Ces champs sont renseignés avec les valeurs situées entre les balises <DataObjectVersion>.
 
@@ -1657,7 +1679,8 @@ Détail des champ du JSON stocké en base
 "_id": Il s'agit de l'identifiant unique du format dans VITAM.
     C'est une chaine de caractères composée de 36 signes.
 
-"CreatedDate": Il s'agit la date de création de la version du fichier de signatures PRONOM utilisé pour alimenter l’enregistrement correspondant au format dans Vitam (balise DateCreated dans le fichier).
+"CreatedDate": Il s'agit la date de création de la version du fichier de signatures PRONOM.
+    Il est utilisé pour alimenter l’enregistrement correspondant au format dans Vitam (balise DateCreated dans le fichier).
     Le format de la date correspond à la norme ISO 8601.
 
 "VersionPronom": Il s'agit du numéro de version du fichier de signatures PRONOM utilisé.
@@ -1781,7 +1804,7 @@ Colonne du csv comprenant les règles de gestion
 RuleId            RuleType          RuleValue               RuleDescription             RuleDuration     RuleMeasurement
 ---------------- ----------------- ----------------------- --------------------------- --------------- -------------------------------
 Id de la règle    Type de règle     Intitulé de la règle    Description de la règle     Durée            Unité de mesure de la durée
-================ ================= ======================= =========================== ===============  ===============================
+================ ================= ======================= =========================== =============== ===============================
 
 Détail des champs
 -----------------
@@ -1888,25 +1911,29 @@ Par exemple pour
 
 on récupère la valeur FRAN_NP_051314
 
-"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état (total, deleted et remained)
+"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état
+    (total, deleted et remained)
 
     - "total": Nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
-"TotalObjects": Contient la répartition du nombre d'objets du fonds par état (total, deleted et remained)
+"TotalObjects": Contient la répartition du nombre d'objets du fonds par état
+    (total, deleted et remained)
 
     - "total": Nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
 
-"TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état (total, deleted et remained)
+"TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état
+    (total, deleted et remained)
 
     - "total": Nombre total d'unités archivistiques pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
 
-"ObjectSize": Contient la répartition du volume total des fichiers du fonds par état (total, deleted et remained)
+"ObjectSize": Contient la répartition du volume total des fichiers du fonds par état
+    (total, deleted et remained)
 
     - "total": Volume total en octets des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimées ou sortis du système. La valeur contenue dans ce champ est un entier.
@@ -2009,71 +2036,113 @@ Ce champ est facultatif dans le bordereau. Si elle est absente ou vide, alors la
 "Status": Indication sur l'état des archives concernées par l'enregistrement.
 La liste des valeurs possibles pour ce champ se trouve en annexe
 
-"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état (total, deleted et remained)
+"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état
+    (total, deleted et remained)
     - "total": Nombre total de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
-"TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état (total, deleted et remained)
+"TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état
+    (total, deleted et remained)
     - "total": Nombre total d'unités archivistiques pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
-"TotalObjects": Contient la répartition du nombre d'objets du fonds par état (total, deleted et remained)
+"TotalObjects": Contient la répartition du nombre d'objets du fonds par état
+    (total, deleted et remained)
     - "total": Nombre total d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
-"ObjectSize": Contient la répartition du volume total des fichiers du fonds par état (total, deleted et remained)
+"ObjectSize": Contient la répartition du volume total des fichiers du fonds par état
+    (total, deleted et remained)
     - "total": Volume total en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Volume total en octets des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
 
- Annexes
- =======
+Annexes
+=======
 
- Valeurs possibles pour le champ evType
- --------------------------------------
+Valeurs possibles pour le champ evType logBook Operation
+---------------------------------------------------------
 
- ===================================== ========================================================================================== ======================================================================
- Code evtType                               Fr EventType Label                                                                         EN EventType Label
- ------------------------------------- ------------------------------------------------------------------------------------------ ----------------------------------------------------------------------
- STP_UPLOAD_SIP	                       Réception dans vitam	                                                                      Upload SIP
- UPLOAD_SIP	                           Tache de réception dans Vitam
- STP_SANITY_CHECK_SIP	                 Contrôles préalables à l’entrée	                                                          Sanity Check
- SANITY_CHECK_SIP	                     Contrôle sanitaire
- CHECK_CONTAINER	                     Contrôle du format du conteneur du SIP
- STP_INGEST_CONTROL_SIP	               Contrôle du bordereau	                                                                    Check Manifest
- CHECK_SEDA	Vérification               globale du SIP	                                                                            Check SIP – Manifest SEDA Consistency
- CHECK_MANIFEST_DATAOBJECT_VERSION	   Vérification des usage des groupes d’objets	                                              Check SIP – Manifest – DataObjectVersion
- CHECK_MANIFEST_OBJECTNUMBER	         Vérification du nombre d'objets	                                    c                       Check SIP – ObjectGroups - Objects Count
- CHECK_MANIFEST	                       Vérification de la cohérence du bordereau	                                                Check SIP – ObjectGroups – Lifecycle Logbook Creation
- CHECK_CONSISTENCY	                   Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
- OLD_CHECK_DIGEST	                     Vérification de l’empreinte	                                                              Check SIP – ObjectGroups – Digest
- STP_OG_CHECK_AND_TRANSFORME	         Contrôle et traitements des objets	                                                        Check and process objects
- CHECK_DIGEST	                         Vérification de l’intégrité des objets
- OG_OBJECTS_FORMAT_CHECK	             Identification des formats	                                                                File format check
- STP_STORAGE_AVAILABILITY_CHECK	       Préparation de la prise en charge	                                                        Check before storage
- STORAGE_AVAILABILITY_CHECK	           Vérification de la disponibilité de l’offre de stockage	                                  Storage availability check
- STP_UNIT_CHECK_AND_PROCESS	           Contrôle et traitements des Units	                                                        Check and process units
- UNITS_RULES_COMPUTE	                 Application des règles de gestion et calcul des échéances	                                Apply management rules and compute deadlines
- STP_UNIT_STORING	                     Rangement des Unites	                                                                      ArchiveUnit storing
- UNIT_METADATA_INDEXATION	             Indexation des metadonnées des Units	                                                      Units – Metadata Indexation
- STP_OG_STORING	                       Rangement des objets	                                                                      ObjectsGroups storing
- OG_STORAGE	                           Ecriture des objets sur l’offre de stockage	                                              ObjectGroups Storage
- OG_METADATA_INDEXATION	               Indexation des métadonnées des groupes d'objets	                                          ObjectGroups – Metadata Index
- STP_INGEST_FINALISATION	             Finalisation de l’entrée	                                                                  Ingest finalisation and transfer notification to the operator
- ATR_NOTIFICATION	                     Notification de la fin de l’opération d’entrée
- ACCESSION_REGISTRATION	               Alimentation du registre des fonds
- CHECK_PROFIL	                         Vérification du Profil
- UNIT_METADATA_STORAGE	               Sécurisation des métadonnées des Unités Archivistiques
- UNIT_LOGBOOK_STORAGE	                 Enregistrement du journal de cycle de vie des unités archivistiques
- OG_METADATA_STORAGE	                 Sécurisation des métadonnées des Objets et Groupes d’Objets
- OG_LOGBOOK_STORAGE	                   Enregistrement du journal du cycle de vie des Objets et Groupes d'objets
- ==================================== ========================================================================================== ======================================================================
+  ===================================== ========================================================================================== ======================================================================
+  Code evtType                          Fr EventType Label                                                                         EN EventType Label
+  ------------------------------------- ------------------------------------------------------------------------------------------ ----------------------------------------------------------------------
+  STP_UPLOAD_SIP                          Réception dans vitam                                                                       Upload SIP
+  UPLOAD_SIP                              Tache de réception dans Vitam
+  STP_SANITY_CHECK_SIP                  Contrôles préalables à l’entrée                                                            Sanity Check
+  SANITY_CHECK_SIP                      Contrôle sanitaire
+  CHECK_CONTAINER                         Contrôle du format du conteneur du SIP
+  STP_INGEST_CONTROL_SIP                  Contrôle du bordereau                                                                      Check Manifest
+  CHECK_SEDA                              Vérification globale du SIP                                                                  Check SIP – Manifest SEDA Consistency
+  CHECK_MANIFEST_DATAOBJECT_VERSION     Vérification des usage des groupes d’objets                                                Check SIP – Manifest – DataObjectVersion
+  CHECK_MANIFEST_OBJECTNUMBER             Vérification du nombre d'objets                                       c                      Check SIP – ObjectGroups - Objects Count
+  CHECK_MANIFEST                          Vérification de la cohérence du bordereau                                                  Check SIP – ObjectGroups – Lifecycle Logbook Creation
+  CHECK_CONSISTENCY                     Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
+  OLD_CHECK_DIGEST                      Vérification de l’empreinte                                                                Check SIP – ObjectGroups – Digest
+  STP_OG_CHECK_AND_TRANSFORME             Contrôle et traitements des objets                                                           Check and process objects
+  CHECK_DIGEST                          Vérification de l’intégrité des objets
+  OG_OBJECTS_FORMAT_CHECK                 Identification des formats                                                                   File format check
+  STP_STORAGE_AVAILABILITY_CHECK          Préparation de la prise en charge                                                          Check before storage
+  STORAGE_AVAILABILITY_CHECK              Vérification de la disponibilité de l’offre de stockage                                      Storage availability check
+  STP_UNIT_CHECK_AND_PROCESS              Contrôle et traitements des Units                                                          Check and process units
+  UNITS_RULES_COMPUTE                     Application des règles de gestion et calcul des échéances                                  Apply management rules and compute deadlines
+  STP_UNIT_STORING                      Rangement des Unites                                                                         ArchiveUnit storing
+  UNIT_METADATA_INDEXATION              Indexation des metadonnées des Units                                                         Units – Metadata Indexation
+  STP_OG_STORING                          Rangement des objets                                                                       ObjectsGroups storing
+  OG_STORAGE                              Ecriture des objets sur l’offre de stockage                                                  ObjectGroups Storage
+  OG_METADATA_INDEXATION                  Indexation des métadonnées des groupes d'objets                                              ObjectGroups – Metadata Index
+  STP_INGEST_FINALISATION                 Finalisation de l’entrée                                                                   Ingest finalisation and transfer notification to the operator
+  ATR_NOTIFICATION                      Notification de la fin de l’opération d’entrée
+  ACCESSION_REGISTRATION                  Alimentation du registre des fonds
+  CHECK_PROFIL                          Vérification du Profil
+  UNIT_METADATA_STORAGE                 Sécurisation des métadonnées des Unités Archivistiques
+  UNIT_LOGBOOK_STORAGE                  Enregistrement du journal de cycle de vie des unités archivistiques
+  OG_METADATA_STORAGE                     Sécurisation des métadonnées des Objets et Groupes d’Objets
+  OG_LOGBOOK_STORAGE                      Enregistrement du journal du cycle de vie des Objets et Groupes d'objets
+  ===================================== ========================================================================================== ======================================================================
 
- Valeurs possibles pour le champ evTypeProc
- ------------------------------------------
+Valeurs possibles pour le champ evType logBook LifeCycle
+---------------------------------------------------------
+
+  ====================================== =========================================================================================================
+  Code evtType                              Label de evtType
+  -------------------------------------- ---------------------------------------------------------------------------------------------------------
+  STP_SANITY_CHECK_SIP                      Contrôles préalables à l’entrée
+  SANITY_CHECK_SIP                          Contrôle sanitaire
+  CHECK_CONTAINER                             Contrôle du format du conteneur du SIP
+  STP_UPLOAD_SIP                              Réception dans vitam
+  UPLOAD_SIP                                  Tache de réception dans Vitam
+  STP_INGEST_CONTROL_SIP                      Contrôle du bordereau
+  CHECK_SEDA                                  Vérification globale du SIP
+  CHECK_MANIFEST_DATAOBJECT_VERSION         Vérification des usage des groupes d’objets
+  CHECK_MANIFEST_OBJECTNUMBER                 Vérification du nombre d'objets
+  CHECK_MANIFEST                              Vérification de la cohérence du bordereau
+  CHECK_CONSISTENCY                         Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
+  OLD_CHECK_DIGEST                          Vérification de l’empreinte
+  STP_OG_CHECK_AND_TRANSFORME                 Contrôle et traitement des objets
+  CHECK_DIGEST                              Vérification de l’intégrité des objets
+  OG_OBJECTS_FORMAT_CHECK                     Identification des formats
+  STP_STORAGE_AVAILABILITY_CHECK              Préparation de la prise en charge
+  STORAGE_AVAILABILITY_CHECK                  Vérification de la disponibilité de l’offre de stockage
+  STP_UNIT_CHECK_AND_PROCESS                  Contrôle et traitement des Unités Archivistiques
+  UNITS_RULES_COMPUTE                         Application des règles de gestion et calcule des échéances
+  STP_UNIT_STORING                          Rangement des Unités Archivistiques
+  UNIT_METADATA_INDEXATION                  Indexation des metadonnées des Unités Archivistiques
+  STP_OG_STORING                              Rangement des objets
+  OG_STORAGE                                  Ecriture des objets sur l’offre de stockage
+  OG_METADATA_INDEXATION                      Indexation des métadonnées des groupes d'objets
+  STP_ACCESSION_REGISTRATION                  Registre des Fonds
+  ACCESSION_REGISTRATION                      Alimentation du registre des fonds
+  STP_INGEST_FINALISATION                     Finalisation de l’entrée
+  ACCESSION_REGISTRATION                      Alimentation du registre des fonds
+  STP_INGEST_FINALISATION                     Finalisation de l’entrée
+  ATR_NOTIFICATION                          Notification de la fin de l’opération d’entrée
+  ====================================== =========================================================================================================
+
+Valeurs possibles pour le champ evTypeProc
+------------------------------------------
 
  =================================== ===================
  Process Type                          Valeur
@@ -2087,27 +2156,27 @@ La liste des valeurs possibles pour ce champ se trouve en annexe
  Rules Manager process                 MASTERDATA
  =================================== ===================
 
- Prefixes possibles des RulesId
- -------------------------------
+Prefixes possibles des RulesId
+-------------------------------
 
- ========= ============================== ===============================
+ ========= ============================== ===================================================================================
  Prefixe    Type de règle correspondante   Description du type de règle
- --------- ------------------------------ -------------------------------
+ --------- ------------------------------ -----------------------------------------------------------------------------------
  ACC        AccessRule                     Règle d'accès
  APP        Appraisal                      Règle correspondant à la durée d'utilité administrative (DUA)/Durée de rétention
  STO        StorageRule                    Règle de Stockage
  DIS        DisseminationRule              Règle de diffusion
  REU        ReuseRule                      Règle d'utilisation
  CLASS      ClassificationRule             Règle de classification
- ========= ============================== ===============================
+ ========= ============================== ===================================================================================
 
- Valeurs possibles pour le champ Status de la collection AccessionRegisterDetail
- -------------------------------------------------------------------------------
+Valeurs possibles pour le champ Status de la collection AccessionRegisterDetail
+-------------------------------------------------------------------------------
 
-========================================== ======================
-Status type                                Valeur
------------------------------------------ ----------------------
-Le fonds est complet sauvegardé            STORED_AND_COMPLETED
-Le fonds est mis à jour est sauvegardé     STORED_AND_UPDATED
-Le fonds n'est pas sauvagerdé              UNSTORED
-========================================== ======================
+  ========================================== ======================
+  Status type                                Valeur
+  ------------------------------------------ ----------------------
+  Le fonds est complet sauvegardé            STORED_AND_COMPLETED
+  Le fonds est mis à jour est sauvegardé     STORED_AND_UPDATED
+  Le fonds n'est pas sauvagerdé              UNSTORED
+  ========================================== ======================
