@@ -31,20 +31,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 public class RequestResponseOKTest {
 
-    private ArrayList<JsonNode> results;
+    private ArrayNode results;
     private JsonNode query;
 
     @Test
@@ -57,7 +57,7 @@ public class RequestResponseOKTest {
     @Test
     public final void testSetRequestResponseOKAttributes()
         throws JsonProcessingException, IOException {
-        results = new ArrayList<>();
+        results = JsonHandler.createArrayNode();
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json);
         final RequestResponseOK requestResponseOK = new RequestResponseOK();
@@ -68,7 +68,7 @@ public class RequestResponseOKTest {
 
         assertEquals(
             "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
-                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+                "\"$results\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
             RequestResponseOK copy =

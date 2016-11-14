@@ -33,7 +33,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -58,6 +57,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -67,10 +67,10 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 
 public class VitamRequestIteratorTest extends VitamJerseyTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorTest.class);
@@ -178,7 +178,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            List<JsonNode> list = new ArrayList<>();
+            ArrayNode list = JsonHandler.createArrayNode();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -249,7 +249,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            List<JsonNode> list = new ArrayList<>();
+            ArrayNode list = JsonHandler.createArrayNode();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -278,7 +278,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            List<JsonNode> list = new ArrayList<>();
+            ArrayNode list = JsonHandler.createArrayNode();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -318,7 +318,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            List<JsonNode> list = new ArrayList<>();
+            ArrayNode list = JsonHandler.createArrayNode();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -338,7 +338,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            List<JsonNode> list = new ArrayList<>();
+            ArrayNode list = JsonHandler.createArrayNode();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);

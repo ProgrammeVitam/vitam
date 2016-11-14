@@ -265,14 +265,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = ReferentialException.class)
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
-        final JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
-        final JsonNode result = client.getFormatByID("HDE");
+        client.getFormats(select.getFinalSelect());
+        client.getFormatByID("HDE");
     }
 
     @Test(expected = ReferentialException.class)
@@ -280,7 +280,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final JsonNode result = client.getFormatByID("HDE");
+        client.getFormatByID("HDE");
     }
 
     /***********************************************************************************

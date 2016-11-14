@@ -72,7 +72,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 /**
  * AccessResourceImpl implements AccessResource
  */
-@Path("/access/v1")
+@Path("/access-internal/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 

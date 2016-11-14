@@ -74,7 +74,7 @@ public class AccessInternalResourceImplTest {
 
     // URI
     private static final String ACCESS_CONF = "access-test.conf";
-    private static final String ACCESS_RESOURCE_URI = "access/v1";
+    private static final String ACCESS_RESOURCE_URI = "access-internal/v1";
     private static final String ACCESS_UNITS_URI = "/units";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";

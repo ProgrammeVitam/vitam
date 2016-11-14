@@ -45,6 +45,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -266,12 +267,15 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             final List<LogbookOperation> result = logbookOperation.select(JsonHandler.getFromString(query));
-            final JsonNode resultAsJson = JsonHandler.getFromString(logbookOperationToJsonString(result));
+            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+            for (LogbookOperation format : result) {
+                resultAsJson.add(JsonHandler.toJsonNode(format));
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(result.size(), 0, 1)
                     .setQuery(JsonHandler.getFromString(query))
-                    .addResult(resultAsJson))
+                    .addAllResults(resultAsJson))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
@@ -373,11 +377,6 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         return Response.status(Response.Status.OK).build();
-    }
-
-    private String logbookOperationToJsonString(List<LogbookOperation> logbook)
-        throws IllegalArgumentException {
-        return JsonHandler.unprettyPrint(logbook);
     }
 
     /***** LIFE CYCLES UNIT - START *****/
