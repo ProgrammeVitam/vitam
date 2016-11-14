@@ -32,21 +32,25 @@ import static java.lang.String.format;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 
 /**
  * Storage web application
  */
-// FIXME P0 refacto config
+// FIXME P1 refacto config
 public final class StorageApplication extends AbstractVitamApplication<StorageApplication, StorageConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageApplication.class);
     private static final String STORAGE_CONF_FILE_NAME = "storage-engine.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+
+    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * StorageApplication constructor
@@ -80,7 +84,12 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
                     STORAGE_CONF_FILE_NAME));
             }
             final StorageApplication application = new StorageApplication(args[0]);
-            // FIXME P0 AutoCheck check with default offer
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -88,10 +97,15 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
         }
     }
 
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
+    }
+
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        // FIXME P0 AutoCheck setup with default offer
+        setServiceRegistry(new VitamServiceRegistry());
+        // FIXME P0 register for default offer: usefull ?
         resourceConfig.register(new StorageResource(getConfiguration()));
-        resourceConfig.register(new AdminStatusResource());
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }
 }

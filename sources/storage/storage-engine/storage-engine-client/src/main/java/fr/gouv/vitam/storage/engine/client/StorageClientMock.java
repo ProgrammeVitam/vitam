@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -112,7 +113,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     @Override
     public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-        return Response.status(Status.OK).entity(IOUtils.toInputStream(MOCK_GET_FILE_CONTENT)).build();
+        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT), MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
 }

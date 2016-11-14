@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * Description of the step execution.
@@ -41,7 +41,7 @@ public class DescriptionStep {
     @JsonProperty("step")
     private Step step;
     @JsonProperty("workParams")
-    private DefaultWorkerParameters workParams;
+    private WorkerParameters workParams;
 
     /**
      * Constructor.
@@ -51,7 +51,7 @@ public class DescriptionStep {
      */
     @JsonCreator
     public DescriptionStep(@JsonProperty("step") Step step,
-        @JsonProperty("workParams") DefaultWorkerParameters workParams) {
+        @JsonProperty("workParams") WorkerParameters workParams) {
         ParametersChecker.checkParameter("step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workParams is a mandatory parameter", workParams);
         this.step = step;
@@ -82,7 +82,7 @@ public class DescriptionStep {
      *
      * @return workParams
      */
-    public DefaultWorkerParameters getWorkParams() {
+    public WorkerParameters getWorkParams() {
         return workParams;
     }
 
@@ -91,7 +91,7 @@ public class DescriptionStep {
      *
      * @param workParams workParams
      */
-    public void setWorkParams(DefaultWorkerParameters workParams) {
+    public void setWorkParams(WorkerParameters workParams) {
         this.workParams = workParams;
     }
 

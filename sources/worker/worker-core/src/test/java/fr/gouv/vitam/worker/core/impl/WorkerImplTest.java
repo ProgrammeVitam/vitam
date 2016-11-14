@@ -78,7 +78,7 @@ public class WorkerImplTest {
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess);
+        workerImpl = WorkerImplFactory.create();
         workerImpl.run(null, new Step());
     }
 
@@ -87,7 +87,7 @@ public class WorkerImplTest {
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
         ContentAddressableStorageServerException {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess);
+        workerImpl = WorkerImplFactory.create();
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
@@ -99,7 +99,7 @@ public class WorkerImplTest {
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
         ContentAddressableStorageServerException {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess);
+        workerImpl = WorkerImplFactory.create();
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
@@ -111,7 +111,7 @@ public class WorkerImplTest {
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
         ContentAddressableStorageServerException {
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess);
+        workerImpl = WorkerImplFactory.create();
         final Step step = new Step();
         final List<Action> actions = new ArrayList<Action>();
         final Action action = new Action();
@@ -148,7 +148,7 @@ public class WorkerImplTest {
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));      
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess)
+        workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
@@ -179,7 +179,7 @@ public class WorkerImplTest {
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));       
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess)
+        workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8011/")
@@ -211,7 +211,7 @@ public class WorkerImplTest {
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
-        workerImpl = WorkerImplFactory.create(mongoDbAccess)
+        workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")

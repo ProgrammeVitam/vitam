@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -58,6 +60,7 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
+import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 
@@ -89,8 +92,8 @@ public class IngestExternalImplTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     @Test
@@ -98,8 +101,8 @@ public class IngestExternalImplTest {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     @Test
@@ -108,8 +111,8 @@ public class IngestExternalImplTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     @Test
@@ -121,8 +124,8 @@ public class IngestExternalImplTest {
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(formatIdentifierMock);
         when(formatIdentifierMock.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
 
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     @Test
@@ -134,8 +137,8 @@ public class IngestExternalImplTest {
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(formatIdentifierMock);
         when(formatIdentifierMock.analysePath(anyObject())).thenThrow(new FormatIdentifierBadRequestException(""));
 
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
 
@@ -144,8 +147,8 @@ public class IngestExternalImplTest {
         FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getNotSupprtedFormatIdentifierResponseList());
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
 
@@ -154,7 +157,7 @@ public class IngestExternalImplTest {
         FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         ingestExternalImpl.upload(stream);
     }
 
@@ -165,7 +168,7 @@ public class IngestExternalImplTest {
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     @Test
@@ -175,13 +178,12 @@ public class IngestExternalImplTest {
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        ingestExternalImpl.upload(stream);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream).getStatus());
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
         List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip" +
-            ".zip",
+        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip",
             "x-fmt/263", "pronom"));
         return list;
     }
@@ -207,7 +209,7 @@ public class IngestExternalImplTest {
 
     private List<FormatIdentifierResponse> getFormatIdentifierTarResponse() {
         List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("ZIP Format", "application/x-tar",
+        list.add(new FormatIdentifierResponse("TAR Format", "application/x-tar",
             "x-fmt/263", "pronom"));
         return list;
     }
@@ -215,8 +217,7 @@ public class IngestExternalImplTest {
 
     private List<FormatIdentifierResponse> getNotSupprtedFormatIdentifierResponseList() {
         List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("xsd Format", "application/xsd" +
-            ".xsd",
+        list.add(new FormatIdentifierResponse("xsd Format", "application/xsd",
             "x-fmt/263", "pronom"));
         return list;
     }

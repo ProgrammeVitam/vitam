@@ -28,6 +28,8 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Before;
@@ -46,23 +48,25 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({SedaUtils.class})
+@PrepareForTest({SedaUtils.class, SedaUtilsFactory.class})
 public class CheckStorageAvailabilityActionHandlerTest {
 
     CheckStorageAvailabilityActionHandler handler = new CheckStorageAvailabilityActionHandler();
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private GUID guid;
-    private HandlerIO handlerIO;
+    private HandlerIOImpl handlerIO;
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         PowerMockito.mockStatic(SedaUtils.class);
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIO(guid.getId(), "workerId");
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
     @After
@@ -72,7 +76,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaNotExistWhenCheckStorageThenReturnResponseFatal() throws Exception {
-        PowerMockito.when(SedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenThrow(new ProcessingException(""));
+        SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenThrow(new ProcessingException(""));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
@@ -83,8 +89,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseKO() throws Exception {
-        PowerMockito.when(SedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(838860800));
-        PowerMockito.when(SedaUtils.getManifestSize(anyObject())).thenReturn(new Long(83886800));
+        SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(838860800));
+        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(83886800));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
@@ -96,8 +104,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
-        PowerMockito.when(SedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
-        PowerMockito.when(SedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+        SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
         
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =

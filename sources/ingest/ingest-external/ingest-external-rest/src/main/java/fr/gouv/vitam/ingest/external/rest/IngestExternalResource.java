@@ -38,12 +38,14 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
+import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 
 /**
@@ -74,29 +76,31 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @return Response
      * @throws XMLStreamException
      */
-    // TODO P0 : add file name
-    @Path("upload")
+    // TODO P2 : add file name
+    @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_XML)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response upload(InputStream stream) throws XMLStreamException {
         Response response;
         try {
             IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             response = ingestExtern.upload(stream);
         } catch (final IngestExternalException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new IngestExternalError(status.getStatusCode())
-                    .setContext("ingest")
-                    .setState("Error")
-                    .setMessage("The ingest external server error")
-                    .setDescription(
-                        "The application 'Xxxx' requested an ingest operation and this operation has errors."))
-                .build();
+            try {
+                return Response.status(status)
+                    .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(), "Unknown", "Unknown", e.getMessage()))
+                    .type(MediaType.APPLICATION_XML_TYPE)
+                    .build();
+            } catch (IngestExternalException e1) {
+                // Really bad
+                LOGGER.error(e1);
+                return Response.status(status).build();
+            }
         }
-        // FIXME P0 Fix ByteArray vs Close vs AsyncResponse
+        // FIXME P0 Move to Async
         return Response.status(response.getStatus()).entity(response.getEntity())
             .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
 

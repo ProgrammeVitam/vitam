@@ -96,11 +96,13 @@ public class IngestInternalClientMockTest {
         InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response = client.upload(conatinerGuid, operationList, inputStream, CommonMediaType.ZIP);
-        assertEquals(response.getStatus(), Status.OK.getStatusCode());
+        final Response response = client.uploadInitialLogbook(conatinerGuid, operationList);
+        assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        final Response response2 = client.upload(conatinerGuid, inputStream, CommonMediaType.ZIP_TYPE);
+        assertEquals(response2.getStatus(), Status.OK.getStatusCode());
 
         try {
-            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response.readEntity(InputStream.class)));
+            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response2.readEntity(InputStream.class)));
         } catch (IOException e) {
             e.printStackTrace();
             fail();

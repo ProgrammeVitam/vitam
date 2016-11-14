@@ -34,9 +34,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server2.BasicVitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 

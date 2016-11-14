@@ -100,10 +100,11 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -128,6 +129,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int BDO_ID_TO_VERSION_DO_IO_RANK = 5;
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
+    private static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 9;
 
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
@@ -183,7 +186,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, String> binaryDataObjectIdToVersionDataObject;
     private final Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters;
 
-    public static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 8;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private File globalSedaParametersFile;
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
@@ -241,17 +243,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } finally {
             // Empty all maps
             binaryDataObjectIdToGuid.clear();
-            objectGroupIdToGuid.clear();
             objectGroupIdToGuidTmp.clear();
             unitIdToGuid.clear();
             binaryDataObjectIdWithoutObjectGroupId.clear();
             binaryDataObjectIdToObjectGroupId.clear();
             objectGroupIdToBinaryDataObjectId.clear();
             unitIdToGroupId.clear();
-            objectGroupIdToUnitId.clear();
             guidToLifeCycleParameters.clear();
             objectGuidToBinaryObject.clear();
             binaryDataObjectIdToVersionDataObject.clear();
+            // Except if they are to be used in MEMORY just after in the same STEP
+            // objectGroupIdToGuid
+            // objectGroupIdToUnitId
         }
 
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -268,8 +271,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public void extractSEDA(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        // TODO P0: whould use worker configuration instead of the processing configuration
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookLifeCycleClient =
                 LogbookLifeCyclesClientFactory.getInstance().getClient()) {
@@ -300,7 +301,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         try {
             try {
-                xmlFile = client.getObject(containerId,
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
@@ -372,8 +373,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
                     if (element.getName().equals(unitName)) {
-                        writeArchiveUnitToTmpDir(client, containerId, reader, element, archiveUnitTree,
-                            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient);
+                        writeArchiveUnitToTmpDir(containerId, reader, element, archiveUnitTree,
+                            logbookLifeCycleClient);
                     } else if (element.getName().equals(dataObjectName)) {
                         final String objectGroupGuid =
                             writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient);
@@ -419,7 +420,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             HandlerUtils.saveMap(handlerIO, binaryDataObjectIdToGuid, BDO_ID_TO_GUID_IO_RANK, true);
 
             // Save objectGroupIdToUnitId Map
-            HandlerUtils.saveMap(handlerIO, objectGroupIdToUnitId, OG_ID_TO_UNID_ID_IO_RANK, true);
+            handlerIO.addOuputResult(OG_ID_TO_UNID_ID_IO_RANK, objectGroupIdToUnitId);
             // Save binaryDataObjectIdToVersionDataObject Map
             HandlerUtils.saveMap(handlerIO, binaryDataObjectIdToVersionDataObject, BDO_ID_TO_VERSION_DO_IO_RANK, true);
 
@@ -428,7 +429,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false);
 
-		} catch (final XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
         } catch (final LogbookClientBadRequestException e) {
@@ -708,9 +709,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return parentsList.toString();
     }
 
-    private void writeArchiveUnitToTmpDir(WorkspaceClient client, String containerId, XMLEventReader reader,
-        StartElement startElement, ObjectNode archiveUnitTree, String path,
-        LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException {
+    private void writeArchiveUnitToTmpDir(String containerId, XMLEventReader reader,
+        StartElement startElement, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient)
+        throws ProcessingException {
 
         try {
             // Get ArchiveUnit Id
@@ -832,7 +833,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             // Create OG lifeCycle
                             createObjectGroupLifeCycle(groupGuid, containerId, logbookLifeCycleClient);
                             if (objectGroupIdToBinaryDataObjectId.get(groupId) == null) {
-                                final List<String> binaryOjectList = new ArrayList<String>();
+                                final List<String> binaryOjectList = new ArrayList<>();
                                 binaryOjectList.add(binaryObjectId);
                                 objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
                             } else {
@@ -855,9 +856,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                                 objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
                                 groupGuidTmp = objectGroupIdToGuid.get(groupId);
                             } else {
-                                // The DataObjectGroupReferenceID is before
-                                // DataObjectGroupID in the XML flow
-                                final List<String> binaryOjectList = new ArrayList<String>();
+                                // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
+                                final List<String> binaryOjectList = new ArrayList<>();
                                 binaryOjectList.add(binaryObjectId);
                                 objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
                                 objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
@@ -1013,7 +1013,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             listBDO.add(binaryDataOjectId);
             objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
         } else {
-            listBDO = new ArrayList<String>();
+            listBDO = new ArrayList<>();
             listBDO.add(binaryDataOjectId);
             objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
         }
@@ -1174,8 +1174,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         String archiveUnitId, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException {
 
-        // Map<String, File> archiveUnitToTmpFileMap = new HashMap<>();
-        final List<String> archiveUnitGuids = new ArrayList<String>();
+        final List<String> archiveUnitGuids = new ArrayList<>();
 
         final String elementGuid = GUIDFactory.newGUID().toString();
         boolean isReferencedArchive = false;
@@ -1185,8 +1184,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String elementID = ((Attribute) startElement.getAttributes().next()).getValue();
         final QName name = startElement.getName();
         int stack = 1;
-        // TODO P0 : check why the use of this key (concatenation)
-        // final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString() + elementGuid);
         final File tmpFile = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + elementGuid);
         String groupGuid;
         XMLEventWriter writer;
@@ -1206,7 +1203,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnitTree.set(archiveUnitId, archiveUnitNode);
 
         try {
-            tmpFile.createNewFile();
             writer = xmlOutputFactory.createXMLEventWriter(new FileWriter(tmpFile));
             unitIdToGuid.put(elementID, elementGuid);
 
@@ -1257,6 +1253,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     }
                     // Create new startElement for group with new guid
+                    // FIXME P0: unused ?
                     groupGuid = objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                     final String newGroupId = getNewGdoIdFromGdoByUnit(unitIdToGroupId.get(elementID));
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
@@ -1275,7 +1272,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         archiveUnitList.add(elementID);
                         if (binaryDataObjectIdWithoutObjectGroupId.containsKey(objRefId)) {
                             final GotObj gotObj = binaryDataObjectIdWithoutObjectGroupId.get(objRefId);
-                            final String gotGuid = gotObj.getGotGuid().toString();
+                            final String gotGuid = gotObj.getGotGuid();
                             objectGroupIdToUnitId.put(gotGuid, archiveUnitList);
                             unitIdToGroupId.put(elementID, gotGuid); // update unitIdToGroupId with new GOT
                             gotObj.setVisited(true); // update isVisited to true
@@ -1361,12 +1358,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.close();
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not extract Object from SEDA XMLStreamException");
+            // delete created temporary file
+            tmpFile.delete();
             throw new ProcessingException(e);
         } catch (final IOException e) {
             LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid);
+            // delete created temporary file
+            tmpFile.delete();
             throw new ProcessingException(e);
         } catch (final Exception e) {
             LOGGER.error(e.getMessage());
+            // delete created temporary file
+            tmpFile.delete();
             throw new ProcessingException(e);
         }
 
@@ -1379,7 +1382,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             tmpFile.delete();
         } else {
             archiveUnitGuids.add(elementGuid);
-            // archiveUnitToTmpFileMap.put(elementGuid, tmpFile);
         }
 
         return archiveUnitGuids;
@@ -1396,6 +1398,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             HandlerUtils.saveMap(handlerIO, binaryDataObjectIdToObjectGroupId, BDO_ID_TO_OG_ID_IO_RANK, true);
             // Save objectGroupIdToGuid
             HandlerUtils.saveMap(handlerIO, objectGroupIdToGuid, OG_ID_TO_GUID_IO_RANK, true);
+            handlerIO.addOuputResult(OG_ID_TO_GUID_IO_MEMORY_RANK, objectGroupIdToGuid);
         } catch (final IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
             throw new ProcessingException(e1);
@@ -1581,7 +1584,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(HANDLER_IO_OUT_PARAMETER_NUMBER, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 

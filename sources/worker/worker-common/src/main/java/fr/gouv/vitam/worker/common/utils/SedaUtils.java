@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -82,7 +83,6 @@ public class SedaUtils {
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
-    private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final int VERSION_POSITION = 0;
@@ -96,14 +96,16 @@ public class SedaUtils {
     private final Map<String, String> binaryDataObjectIdToObjectGroupId;
     private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private final Map<String, String> unitIdToGroupId;
+    private final HandlerIO handlerIO;
 
-    protected SedaUtils() {
+    protected SedaUtils(HandlerIO handlerIO) {
         binaryDataObjectIdToGuid = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
         objectGroupIdToBinaryDataObjectId = new HashMap<>();
         unitIdToGuid = new HashMap<>();
         binaryDataObjectIdToObjectGroupId = new HashMap<>();
         unitIdToGroupId = new HashMap<>();
+        this.handlerIO = handlerIO;
     }
 
     /**
@@ -157,17 +159,14 @@ public class SedaUtils {
      */
     public String getMessageIdentifier(WorkerParameters params) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final String containerId = params.getContainerName();
         String messageId = "";
         XMLEventReader reader = null;
         InputStream xmlFile = null;
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-            // TODO P0 : whould use worker configuration instead of the processing configuration
+        try {
             try {
-                xmlFile = client.getObject(containerId,
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -214,12 +213,9 @@ public class SedaUtils {
      */
     public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params) {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final String containerId = params.getContainerName();
-        // TODO P0 : whould use worker configuration instead of the processing configuration
         final InputStream input;
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-            input = checkExistenceManifest(client, containerId);
+        try {
+            input = checkExistenceManifest();
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
@@ -243,17 +239,30 @@ public class SedaUtils {
      * Check Seda Validation status values
      */
     public enum CheckSedaValidationStatus {
-        VALID, NOT_XSD_VALID, NOT_XML_FILE, NO_FILE;
+        /**
+         * VALID XML File
+         */
+        VALID,
+        /**
+         * XML File not valid against XSD
+         */
+        NOT_XSD_VALID,
+        /**
+         * File is not a XML
+         */
+        NOT_XML_FILE,
+        /**
+         * File not found
+         */
+        NO_FILE;
     }
 
-    private InputStream checkExistenceManifest(WorkspaceClient client, String guid)
+    private InputStream checkExistenceManifest()
         throws IOException, ProcessingException {
-        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
-        ParametersChecker.checkParameter("guid is a mandatory parameter", guid);
         InputStream manifest = null;
         try {
-            manifest =
-                client.getObject(guid, IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            manifest = handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Manifest not found");
             throw new ProcessingException("Manifest not found", e);
@@ -269,23 +278,16 @@ public class SedaUtils {
      */
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
         throws ProcessingException {
-        final String guid = params.getContainerName();
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            // TODO P0 : whould use worker configuration instead of the processing configuration
-            return parsingUriSEDAWithWorkspaceClient(workspaceClient, guid);
-        }
+        return parsingUriSEDAWithWorkspaceClient();
     }
 
     /**
      * Parsing file Manifest
      *
-     * @param client - the InputStream to read from
-     * @param guid - Identification file seda.
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws XMLStreamException-This Exception class is used to report well format SEDA.
      */
-    private ExtractUriResponse parsingUriSEDAWithWorkspaceClient(WorkspaceClient client, String guid)
+    private ExtractUriResponse parsingUriSEDAWithWorkspaceClient()
         throws ProcessingException {
         InputStream xmlFile = null;
         LOGGER.debug(SedaUtils.MSG_PARSING_BDO);
@@ -311,10 +313,10 @@ public class SedaUtils {
         XMLEventReader eventReader = null;
         try {
             try {
-                xmlFile =
-                    client.getObject(guid,
-                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e1) {
                 LOGGER.error("Workspace error: Can not get file", e1);
                 throw new ProcessingException(e1);
             }
@@ -395,27 +397,18 @@ public class SedaUtils {
     public List<String> checkSupportedBinaryObjectVersion(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        final String containerId = params.getContainerName();
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-            // TODO P0 : whould use worker configuration instead of the processing configuration
-            return isSedaVersionValid(client, containerId);
-        }
+        return isSedaVersionValid();
     }
 
-    private List<String> isSedaVersionValid(WorkspaceClient client,
-        String containerId) throws ProcessingException {
-        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
-        ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
-
+    private List<String> isSedaVersionValid() throws ProcessingException {
         InputStream xmlFile = null;
         List<String> invalidVersionList;
         XMLEventReader reader = null;
         try {
             try {
-                xmlFile = client.getObject(containerId,
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -446,7 +439,7 @@ public class SedaUtils {
      * @return Seda Info object
      * @throws ProcessingException
      */
-    public static SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
+    public SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
         throws ProcessingException {
         final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
         BinaryObjectInfo binaryObjectInfo = new BinaryObjectInfo();
@@ -577,12 +570,10 @@ public class SedaUtils {
     /**
      * Parse SEDA file manifest.xml to retrieve all its binary data objects informations as a SedaUtilInfo.
      *
-     * @param workspaceClient workspace connector
-     * @param containerId container id
      * @return SedaUtilInfo
      * @throws ProcessingException throws when error occurs
      */
-    private static SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
+    private SedaUtilInfo getSedaUtilInfo()
         throws ProcessingException {
         InputStream xmlFile = null;
 
@@ -590,9 +581,9 @@ public class SedaUtils {
         XMLEventReader reader = null;
         try {
             try {
-                xmlFile = workspaceClient.getObject(containerId,
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 IOUtils.closeQuietly(xmlFile);
                 throw new ProcessingException(e);
@@ -626,31 +617,25 @@ public class SedaUtils {
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
      */
-    public static long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
+    public long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        // TODO P0 : whould use worker configuration instead of the processing configuration
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-            ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-            return computeBinaryObjectsSizeFromManifest(client, containerId);
-        }
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        return computeBinaryObjectsSizeFromManifest();
     }
 
     /**
      * Compute the total size of objects listed in the manifest.xml file
      *
-     * @param workspaceClient workspace client to be used.
-     * @param containerId the container guid
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
      */
 
-    private static long computeBinaryObjectsSizeFromManifest(WorkspaceClient workspaceClient, String containerId)
+    private long computeBinaryObjectsSizeFromManifest()
         throws ProcessingException {
         long size = 0;
-        final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
+        final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo();
         final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
         for (final String mapKey : binaryObjectMap.keySet()) {
             final long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
@@ -666,15 +651,14 @@ public class SedaUtils {
      *
      * @param params worker parameters
      * @return the size of the manifest
+     * @throws ProcessingException 
      */
-    public static long getManifestSize(WorkerParameters params)
+    public long getManifestSize(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
         try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-            // TODO P0 : whould use worker configuration instead of the processing configuration
             final JsonNode jsonSeda = getObjectInformation(client, containerId,
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             if (jsonSeda == null || jsonSeda.get("size") == null) {
@@ -695,7 +679,7 @@ public class SedaUtils {
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */
-    private static JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId,
+    private JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId,
         String pathToObject)
         throws ProcessingException {
         try {

@@ -49,6 +49,7 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
  * WorkerClient implementation for production environment using REST API.
  */
 class WorkerClientRest extends DefaultClient implements WorkerClient {
+    private static final String WORKER_INTERNAL_SERVER_ERROR = "Worker Internal Server Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String REQUEST_ID_MUST_HAVE_A_VALID_VALUE = "request id must have a valid value";
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
@@ -67,13 +68,12 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
             response =
                 performRequest(HttpMethod.POST, "/" + "tasks", getDefaultHeaders(requestId), 
                     JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final CompositeItemStatus compositeItemStatus = handleCommonResponseStatus(requestId, step, response, CompositeItemStatus.class);
-            return compositeItemStatus;
+            return handleCommonResponseStatus(requestId, step, response, CompositeItemStatus.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Worker Internal Server Error", e);
-            throw new WorkerServerClientException("Worker Internal Server Error", e);
+            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
+            throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Worker Internal Server Error", e);
+            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException("Step description incorrect", e);
         } finally {
             consumeAnyEntityAndClose(response);

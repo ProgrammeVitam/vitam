@@ -60,7 +60,7 @@ import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -95,7 +95,7 @@ public class CheckObjectsNumberActionHandlerTest {
     private ExtractUriResponse extractOutNumberUriResponseKO;
 
     private final List<String> messages = new ArrayList<>();
-    HandlerIO handlerIO = new HandlerIO("CheckObjectsNumberActionHandlerTest", "workerId");
+    HandlerIOImpl handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId");
 
 
     @Before
@@ -105,7 +105,7 @@ public class CheckObjectsNumberActionHandlerTest {
             .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckObjectsNumberActionHandlerTest");
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
+        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
 
         containerExtractionUtilsFactory = mock(ContainerExtractionUtilsFactory.class);
         containerExtractionUtils = mock(ContainerExtractionUtils.class);

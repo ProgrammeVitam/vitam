@@ -32,7 +32,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.server2.application.resources.VitamStatusService;

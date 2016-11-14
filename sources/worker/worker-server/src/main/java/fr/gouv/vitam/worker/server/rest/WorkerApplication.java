@@ -105,7 +105,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         if (mock != null) {
-            resourceConfig.register(new WorkerResource(getConfiguration(), mock));
+            resourceConfig.register(new WorkerResource(mock));
         } else {
             resourceConfig.register(new WorkerResource(getConfiguration()));
             WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
@@ -115,6 +115,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
                 .register(WorkspaceClientFactory.getInstance())
             // Metadata dependency
                 .register(MetaDataClientFactory.getInstance());
+            // FIXME P1 Siegfried missing but different configuration...
             // Processing dependency: optional ?
             // serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }

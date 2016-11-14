@@ -46,7 +46,7 @@ import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
  */
 class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
-    private static final String UPLOAD_URL = "/upload";
+    private static final String UPLOAD_URL = "/ingests";
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);

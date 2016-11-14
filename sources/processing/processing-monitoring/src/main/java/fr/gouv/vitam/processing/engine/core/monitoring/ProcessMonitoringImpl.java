@@ -59,7 +59,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
      *
      * @return the ProcessMonitoring instance
      */
-    // TODO P0 : Probably we should use a factory
     public static ProcessMonitoringImpl getInstance() {
         return INSTANCE;
     }
@@ -72,7 +71,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         int iterator = 0;
         for (final Step step : workflow.getSteps()) {
             ProcessStep processStep = new ProcessStep(step, containerName, workflow.getId(), iterator, 0, 0);
-            //ProcessStep processStep = new ProcessStep(step, 0, 0);
             uniqueId = containerName + "_" + workflow.getId() + "_" + iterator + "_" + step.getStepName();
             orderedWorkflow.put(uniqueId, processStep);
             iterator++;

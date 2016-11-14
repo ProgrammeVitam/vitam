@@ -65,6 +65,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -85,7 +86,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private WorkspaceClient workspaceClient;
     private final InputStream seda;
     private final InputStream seda_2;
-    private final SedaUtils utils = SedaUtilsFactory.create();
+    private final HandlerIO handlerIO = mock(HandlerIO.class);
+    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setContainerName(OBJ)

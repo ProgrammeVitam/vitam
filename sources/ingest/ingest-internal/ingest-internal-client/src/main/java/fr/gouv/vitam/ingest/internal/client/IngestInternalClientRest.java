@@ -35,7 +35,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
@@ -53,7 +52,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
-    private static final String UPLOAD_URL = "/upload";
     private static final String LOGBOOK_URL = "/logbooks";
     private static final String INGEST_URL = "/ingests";
 
@@ -61,21 +59,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         super(factory);
     }
 
-    /**
-     * Same as upload but using async service and 2 queries (delegated logbook and upload)
-     * 
-     * @param guid
-     * @param logbookParametersList
-     * @param inputStream
-     * @param archiveMimeType
-     * @return Response containing an InputStream for the ArchiveTransferReply (OK or KO) except in INTERNAL_ERROR (no
-     *         body)
-     * @throws VitamException
-     */
     @Override
-    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList,
-        InputStream inputStream,
-        String archiveMimeType) throws VitamException {        
+    public Response uploadInitialLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException {        
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
         
@@ -85,24 +70,24 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         if (response.getStatus() != Status.CREATED.getStatusCode()) {
             throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
         }
-        response = performRequest(HttpMethod.POST, INGEST_URL, headers,
-            inputStream, CommonMediaType.valueOf(archiveMimeType), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        return response;
+    }
+
+    @Override
+    public Response upload(GUID guid, InputStream inputStream, MediaType archiveMimeType) throws VitamException {
+        ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
+        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
+        Response response = performRequest(HttpMethod.POST, INGEST_URL, headers,
+            inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
         } else {
-            LOGGER.error("SIP Upload Error");
+            LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
         }
         return response;
     }
 
-    // FIXME P0 to be added in Interface and Mock
-    /**
-     * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
-     * 
-     * @param guid
-     * @param logbookParametersList
-     * @throws VitamClientException
-     */
+    @Override
     public void uploadFinalLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);

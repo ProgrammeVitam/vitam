@@ -29,22 +29,17 @@ package fr.gouv.vitam.worker.core.handler;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -61,7 +56,6 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
@@ -72,10 +66,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -83,10 +74,10 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -108,13 +99,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
-    // TODO P0 should not be a private attribute -> to refactor
-    private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
-        .newLogbookLifeCycleObjectGroupParameters();
-
+    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters;
+    private HandlerIO handlerIO;
     private FormatIdentifier formatIdentifier;
-    private final LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getClient();
 
     private boolean metadatasUpdated = false;
 
@@ -136,135 +123,139 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
+        logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        handlerIO = handler;
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        try {
-            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleObjectGroupParameters,
-                params);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        }
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try {
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                    logbookLifecycleObjectGroupParameters,
+                    params);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
 
-        try {
-            formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-        } catch (final FormatIdentifierNotFoundException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
-                FORMAT_IDENTIFIER_ID), e);
-            itemStatus.increment(StatusCode.FATAL);
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        } catch (final FormatIdentifierFactoryException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
-                FORMAT_IDENTIFIER_ID), e);
-            itemStatus.increment(StatusCode.FATAL);
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        } catch (final FormatIdentifierTechnicalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR), e);
-            itemStatus.increment(StatusCode.FATAL);
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        }
-        String filename = null;
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            // Get objectGroup metadatas
-            final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+            try {
+                formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+            } catch (final FormatIdentifierNotFoundException e) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
+                    FORMAT_IDENTIFIER_ID), e);
+                itemStatus.increment(StatusCode.FATAL);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            } catch (final FormatIdentifierFactoryException e) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
+                    FORMAT_IDENTIFIER_ID), e);
+                itemStatus.increment(StatusCode.FATAL);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            } catch (final FormatIdentifierTechnicalException e) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
+                    e);
+                itemStatus.increment(StatusCode.FATAL);
+                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
+            File file = null;
+            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+                // Get objectGroup metadatas
+                final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
+                final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
 
-            final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
-            if (qualifiers != null) {
-                final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
-                if (versions != null && !versions.isEmpty()) {
-                    for (final JsonNode versionsArray : versions) {
-                        for (final JsonNode version : versionsArray) {
-                            try {
-                                final JsonNode jsonFormatIdentifier =
-                                    version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
-                                final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+                if (qualifiers != null) {
+                    final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                    if (versions != null && !versions.isEmpty()) {
+                        for (final JsonNode versionsArray : versions) {
+                            for (final JsonNode version : versionsArray) {
+                                try {
+                                    final JsonNode jsonFormatIdentifier =
+                                        version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
+                                    final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
 
 
-                                // Retrieve the file
-                                filename = loadFileFromWorkspace(workspaceClient, params.getContainerName(),
-                                    objectIdToUri.get(objectId), params.getObjectName(), objectId);
+                                    // Retrieve the file
+                                    file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
-                                ObjectCheckFormatResult result =
-                                    executeOneObjectFromOG(objectId, jsonFormatIdentifier, filename, version);
+                                    ObjectCheckFormatResult result =
+                                        executeOneObjectFromOG(logbookClient, objectId, jsonFormatIdentifier, file,
+                                            version);
 
-                                itemStatus.increment(result.getStatus());
+                                    itemStatus.increment(result.getStatus());
 
-                                if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
-                                    return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                                    if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
+                                        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID,
+                                            itemStatus);
+                                    }
+                                } finally {
+                                    if (file != null) {
+                                        file.delete();
+                                    }
+                                    file = null;
                                 }
-                            } finally {
-                                if (filename != null) {
-                                    deleteLocalFile(filename);
-                                }
-                                filename = null;
                             }
                         }
                     }
                 }
-            }
 
-            if (metadatasUpdated) {
-                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+                if (metadatasUpdated) {
+                    try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
 
-                    @Override
-                    protected String produce(OutputStream sink) throws Exception {
-                        JsonHandler.writeAsOutputStream(jsonOG, sink);
-                        return params.getObjectName();
+                        @Override
+                        protected String produce(OutputStream sink) throws Exception {
+                            JsonHandler.writeAsOutputStream(jsonOG, sink);
+                            return params.getObjectName();
+                        }
+                    }) {
+                        workspaceClient.putObject(params.getContainerName(),
+                            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
+                            isos);
+                    } catch (IOException e) {
+                        throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                     }
-                }) {
-                    workspaceClient.putObject(params.getContainerName(),
-                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                        isos);
-                } catch (IOException e) {
-                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
+                }
+
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            } catch (final ContentAddressableStorageServerException e) {
+                // workspace error
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            } finally {
+                // delete the file
+                if (file != null) {
+                    file.delete();
                 }
             }
 
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (final ContentAddressableStorageServerException e) {
-            // workspace error
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } finally {
             try {
-                // delete the file
-                deleteLocalFile(filename);
+                commitLifecycleLogbook(logbookClient, itemStatus, params.getObjectName());
             } catch (final ProcessingException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-        }
+                LOGGER.error(e);
+                // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
+                if (!StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) &&
+                    !StatusCode.KO.equals(itemStatus.getGlobalStatus())) {
+                    itemStatus.setItemId("LOGBOOK_COMMIT_KO");
+                    itemStatus.increment(StatusCode.WARNING);
+                } else {
+                    itemStatus.setItemId("LOGBOOK_COMMIT_KO");
+                    itemStatus.increment(StatusCode.KO);
+                }
 
-        try {
-
-            commitLifecycleLogbook(itemStatus, params.getObjectName());
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
-            if (!StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) &&
-                !StatusCode.KO.equals(itemStatus.getGlobalStatus())) {
-                itemStatus.setItemId("LOGBOOK_COMMIT_KO");
-                itemStatus.increment(StatusCode.WARNING);
-            } else {
-                itemStatus.setItemId("LOGBOOK_COMMIT_KO");
-                itemStatus.increment(StatusCode.KO);
             }
 
-        }
+            if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
+                itemStatus.increment(StatusCode.OK);
+            }
 
-        if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
-            itemStatus.increment(StatusCode.OK);
+            LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
+            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
-
-        LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -273,7 +264,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
      * @param response the process result
      * @throws ProcessingException thrown if one error occurred
      */
-    private void commitLifecycleLogbook(ItemStatus itemStatus, String ogID) throws ProcessingException {
+    private void commitLifecycleLogbook(LogbookLifeCyclesClient logbookClient, ItemStatus itemStatus, String ogID)
+        throws ProcessingException {
         // TODO P0 WORKFLOW use the real message sub code
         // FIXME P0 TODO WORKFLOW MUST BE itemStatus.getmESSAGE()
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -288,15 +280,16 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         // Do not know...
     }
 
-    private ObjectCheckFormatResult executeOneObjectFromOG(String objectId, JsonNode formatIdentification,
-        String filename, JsonNode version) {
+    private ObjectCheckFormatResult executeOneObjectFromOG(LogbookLifeCyclesClient logbookClient, String objectId,
+        JsonNode formatIdentification,
+        File file, JsonNode version) {
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
         objectCheckFormatResult.setStatus(StatusCode.OK);
         objectCheckFormatResult.setSubStatus("FILE_FORMAT_OK");
         try {
 
             // check the file
-            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(Paths.get(filename));
+            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
 
             final FormatIdentifierResponse format = getFirstPronomFormat(formats);
             if (format == null) {
@@ -326,7 +319,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     objectCheckFormatResult.getStatus().name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
                 try {
-                    updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
+                    logbookClient.update(logbookLifecycleObjectGroupParameters);
                 } catch (final LogbookClientException e) {
                     LOGGER.error(e);
                     objectCheckFormatResult.setStatus(StatusCode.FATAL);
@@ -334,8 +327,12 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 }
             } else {
                 // check formatIdentification
-                checkAndUpdateFormatIdentification(objectId, formatIdentification, objectCheckFormatResult, result,
-                    version);
+                JsonNode newFormatIdentification =
+                    checkAndUpdateFormatIdentification(logbookClient, objectId, formatIdentification,
+                        objectCheckFormatResult, result,
+                        version);
+                // Reassign new format
+                ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }
         } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException |
             IOException e) {
@@ -358,7 +355,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 objectCheckFormatResult.getStatus().name());
             try {
-                updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
+                logbookClient.update(logbookLifecycleObjectGroupParameters);
             } catch (final LogbookClientException exc) {
                 LOGGER.error(exc);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);
@@ -378,17 +375,19 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         return objectCheckFormatResult;
     }
 
-    private void checkAndUpdateFormatIdentification(String objectId, JsonNode formatIdentification,
+    private JsonNode checkAndUpdateFormatIdentification(LogbookLifeCyclesClient logbookClient, String objectId,
+        JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
         final JsonNode refFormat = result.get("$results").get(0);
         final JsonNode puid = refFormat.get(FileFormat.PUID);
         final StringBuilder diff = new StringBuilder();
-        if ((formatIdentification == null || !formatIdentification.isObject()) && puid != null) {
-            formatIdentification = JsonHandler.createObjectNode();
-            ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, formatIdentification);
+        JsonNode newFormatIdentification = formatIdentification;
+        if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
+            newFormatIdentification = JsonHandler.createObjectNode();
+            ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
         }
-        if (formatIdentification != null) {
-            JsonNode fiPuid = formatIdentification.get(SedaConstants.TAG_FORMAT_ID);
+        if (newFormatIdentification != null) {
+            JsonNode fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID);
             if (!puid.equals(fiPuid)) {
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
                 if (fiPuid != null && fiPuid.size() != 0) {
@@ -396,13 +395,13 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     diff.append(fiPuid);
                     diff.append('\n');
                 }
-                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_ID, puid);
+                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_FORMAT_ID, puid);
                 diff.append("+ PUID : ");
                 diff.append(puid);
                 metadatasUpdated = true;
             }
             final JsonNode name = refFormat.get(FileFormat.NAME);
-            JsonNode fiFormatLitteral = formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
+            JsonNode fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
             if (!name.equals(fiFormatLitteral)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -413,13 +412,13 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     diff.append('\n');
                 }
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
-                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_FORMAT_LITTERAL, name);
+                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_FORMAT_LITTERAL, name);
                 diff.append("+ " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
                 diff.append(name);
                 metadatasUpdated = true;
             }
             final JsonNode mimeType = refFormat.get(FileFormat.MIME_TYPE);
-            JsonNode fiMimeType = formatIdentification.get(SedaConstants.TAG_MIME_TYPE);
+            JsonNode fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE);
             if (!mimeType.equals(fiMimeType)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -430,7 +429,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     diff.append('\n');
                 }
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
-                ((ObjectNode) formatIdentification).set(SedaConstants.TAG_MIME_TYPE, mimeType);
+                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_MIME_TYPE, mimeType);
                 diff.append("+ " + SedaConstants.TAG_MIME_TYPE + " : ");
                 diff.append(mimeType);
                 metadatasUpdated = true;
@@ -457,18 +456,14 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\"}");
             try {
-                updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
+                logbookClient.update(logbookLifecycleObjectGroupParameters);
             } catch (final LogbookClientException e) {
                 LOGGER.error(e);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);
                 objectCheckFormatResult.setSubStatus("FILE_FORMAT_TECHNICAL_ERROR");
             }
         }
-    }
-
-    private void updateLifeCycleLogbook(LogbookLifeCycleObjectGroupParameters logbookParameters)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        logbookClient.update(logbookParameters);
+        return newFormatIdentification;
     }
 
     /**
@@ -514,41 +509,16 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         }
     }
 
-    private String loadFileFromWorkspace(WorkspaceClient workspaceClient, String containerId, String filePath,
-        String objectGroupGuid, String objectGuid)
+    private File loadFileFromWorkspace(String filePath)
         throws ProcessingException {
-        try (InputStream is =
-            workspaceClient.getObject(containerId, IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath)) {
-            final String fileName = containerId + objectGroupGuid + objectGuid;
-            final File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
-
-            if (!file.exists()) {
-                try (OutputStream os = new FileOutputStream(file)) {
-                    IOUtils.copy(is, os);
-                }
-                return fileName;
-            } else {
-                throw new ProcessingException("Cannot save file because it already exists");
-            }
+        try {
+            return handlerIO.getFileFromWorkspace(IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath);
         } catch (final IOException e) {
             LOGGER.debug("Error while saving the file", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
-        }
-    }
-
-
-    private void deleteLocalFile(String fileName)
-        throws ProcessingException {
-        if (fileName != null && !fileName.isEmpty()) {
-            final File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
-            if (file.exists()) {
-                file.delete();
-            } else {
-                LOGGER.warn("Cannot delete file because it does not exists {}", fileName);
-            }
         }
     }
 
@@ -613,8 +583,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
     @Override
     public void close() {
-        if (logbookClient != null) {
-            logbookClient.close();
-        }
+        // Empty
     }
 }

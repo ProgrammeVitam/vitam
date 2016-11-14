@@ -26,10 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.api.strategy;
 
-// FIXME P0 REVIEW is not used in the release
+// FIXME P2 REVIEW is not used in the release
 /**
  * Describes the strategy of storage data into the workspace
  */
 public class StorageStrategy {
-    // FIXME P0
+    // FIXME P2
 }

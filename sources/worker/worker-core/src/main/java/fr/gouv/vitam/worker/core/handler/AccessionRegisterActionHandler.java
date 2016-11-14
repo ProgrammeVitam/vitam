@@ -57,9 +57,11 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 /**
  * Accession Register Handler
@@ -72,7 +74,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
 
-    public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
+    private static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
     private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
@@ -131,7 +133,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (! handler.checkHandlerIO(0, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 
@@ -176,7 +178,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             register = new AccessionRegisterDetail()
                 .setId(params.getContainerName())
                 .setOriginatingAgency(originalAgency)

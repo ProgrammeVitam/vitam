@@ -52,9 +52,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -70,10 +70,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final String OBJECT_GROUP = "ObjectGroup";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    private LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getClient();
-    private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
-        .newLogbookLifeCycleObjectGroupParameters();
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -94,30 +90,31 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
+        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
-        try {
-            checkMandatoryIOParameter(actionDefinition);
-            LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
-            indexObjectGroup(params, itemStatus);
-        } catch (final ProcessingInternalServerException exc) {
-            LOGGER.error(exc);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.WARNING);
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try {
+                checkMandatoryIOParameter(actionDefinition);
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,logbookLifecycleObjectGroupParameters, params);
+                indexObjectGroup(params, itemStatus);
+            } catch (final ProcessingInternalServerException exc) {
+                LOGGER.error(exc);
+                itemStatus.increment(StatusCode.FATAL);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.WARNING);
+            }
+            // Update lifeCycle
+            try {
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
+                    itemStatus);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
-        // Update lifeCycle
-        try {
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleObjectGroupParameters,
-                itemStatus);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
         if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
             itemStatus.increment(StatusCode.WARNING);
         }

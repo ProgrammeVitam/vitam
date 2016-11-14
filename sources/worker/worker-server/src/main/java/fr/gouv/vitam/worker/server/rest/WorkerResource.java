@@ -49,11 +49,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -70,7 +66,6 @@ public class WorkerResource extends ApplicationStatusResource {
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
-    private final LogbookMongoDbAccessImpl logbookMongoDbAccessImpl;
     private final Worker workerMocked;
 
     /**
@@ -80,17 +75,6 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     public WorkerResource(WorkerConfiguration configuration) {
         LOGGER.info("init Worker Resource server");
-        DbConfigurationImpl databaseConfiguration;
-        if (configuration.isDbAuthentication()) {
-            databaseConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                    configuration.getDbName(),
-                    true, configuration.getDbUserName(), configuration.getDbPassword());
-        } else {
-            databaseConfiguration = new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                configuration.getDbName());
-        }
-        logbookMongoDbAccessImpl = LogbookMongoDbAccessFactory.create(databaseConfiguration);
         workerMocked = null;
     }
 
@@ -98,12 +82,10 @@ public class WorkerResource extends ApplicationStatusResource {
     /**
      * Constructor for tests
      *
-     * @param configuration the worker configuration to be applied
      * @param worker the worker service be applied
      */
-    WorkerResource(WorkerConfiguration configuration, Worker worker) {
+    WorkerResource(Worker worker) {
         LOGGER.info("init Worker Resource server");
-        logbookMongoDbAccessImpl = null;
         this.workerMocked = worker;
     }
 
@@ -138,10 +120,12 @@ public class WorkerResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
             final CompositeItemStatus responses;
             if (workerMocked == null) {
-                responses =
-                    WorkerImplFactory.create(logbookMongoDbAccessImpl).run(descriptionStep.getWorkParams(),
-                        descriptionStep.getStep());
-                return Response.status(Status.OK).entity(responses).build();
+                try (Worker worker = WorkerImplFactory.create()) {
+                    responses =
+                        worker.run(descriptionStep.getWorkParams(),
+                            descriptionStep.getStep());
+                    return Response.status(Status.OK).entity(responses).build();
+                }
             } else {
                 responses = workerMocked.run(descriptionStep.getWorkParams(),
                     descriptionStep.getStep());
@@ -151,13 +135,7 @@ public class WorkerResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
-        } catch (final IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (final HandlerNotFoundException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (final ProcessingException | ContentAddressableStorageServerException exc) {
+        } catch (final IllegalArgumentException | ProcessingException | ContentAddressableStorageServerException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }

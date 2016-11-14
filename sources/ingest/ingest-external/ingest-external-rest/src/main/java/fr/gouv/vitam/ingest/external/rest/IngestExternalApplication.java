@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
@@ -126,6 +126,7 @@ public final class IngestExternalApplication
         setServiceRegistry(new VitamServiceRegistry());
         IngestExternalResource resource = new IngestExternalResource(getConfiguration());
         serviceRegistry.register(IngestInternalClientFactory.getInstance());
+        // FIXME P1 Siegfried missing but different configuration...
         resourceConfig.register(resource)
             .register(new AdminStatusResource(serviceRegistry));
     }

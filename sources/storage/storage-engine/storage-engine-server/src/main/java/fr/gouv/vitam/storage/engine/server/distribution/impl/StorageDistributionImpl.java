@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -97,6 +98,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 //TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
 
+    private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
+    private static final String TENANT_ID_IS_MANDATORY = "Tenant id is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory
         .getDefaultProvider();
@@ -125,7 +128,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // TODO P2 Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
         // allow check of duplicated files)
-        digestType = DigestType.SHA256;
+        digestType = VitamConfiguration.getDefaultDigestType();
     }
 
     /**
@@ -269,9 +272,12 @@ public class StorageDistributionImpl implements StorageDistribution {
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
                 final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, category.getFolder());
                 if (connection.objectExistsInOffer(request)) {
+                    // TODO P2: when GUID will be correct, we can use the WORM property of the GUID
                     switch (category) {
                         case LOGBOOK:
                         case OBJECT:
+                        case MANIFEST:
+                        case REPORT:
                             throw new StorageObjectAlreadyExistsException(VitamCodeHelper
                                 .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, objectId));
                         case UNIT:
@@ -370,8 +376,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private void checkStoreDataParams(CreateObjectDescription createObjectDescription, String tenantId,
         String strategyId, String dataId, DataCategory category) {
-        ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
-        ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", dataId);
         ParametersChecker.checkParameter("Category is mandatory", category);
         ParametersChecker.checkParameter("Object additional information guid is mandatory",
@@ -407,8 +413,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public JsonNode getContainerInformation(String tenantId, String strategyId)
         throws StorageNotFoundException, StorageTechnicalException {
-        ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
-        ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
@@ -496,12 +502,13 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
+    // FIXME P0 must return Response
     public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId,
         DataCategory category)
         throws StorageNotFoundException, StorageTechnicalException {
         // Check input params
-        ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
-        ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);
 
         // Retrieve strategy data

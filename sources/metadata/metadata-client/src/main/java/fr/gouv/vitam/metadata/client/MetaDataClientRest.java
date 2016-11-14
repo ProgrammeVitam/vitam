@@ -110,9 +110,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/units", headers, selectQuery, MediaType
+            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType
                 .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
@@ -139,9 +137,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/units/" + unitId, headers, selectQuery, MediaType
+            response = performRequest(HttpMethod.GET, "/units/" + unitId, null, selectQuery, MediaType
                 .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
@@ -171,9 +167,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/objectgroups/" + objectGroupId, headers, selectQuery,
+            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId, null, selectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
@@ -203,9 +197,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.PUT, "/units/" + unitId, headers, updateQuery, MediaType
+            response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery, MediaType
                 .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);

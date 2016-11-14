@@ -53,8 +53,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -118,23 +118,23 @@ public class LogbookOperationsImplWithMongoTest {
             StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "x-request-id");
+            StatusCode.OK, "end ingest", eip);
 
         logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
             eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", eip);
         logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
         logbookParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
             eip2, "eventType", eip2, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", eip);
         logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
         logbookParameters3 = LogbookParametersFactory.newLogbookOperationParameters(
             eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "x-request-id");
+            StatusCode.STARTED, "start ingest", eip);
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
     }
 

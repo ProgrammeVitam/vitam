@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -112,11 +111,11 @@ public class ProcessManagementApplication
         // Logbook dependency
         serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
          // Workspace dependency
-            .register(WorkspaceClientFactory.getInstance());
-        // FIXME P0 should not be necessary : Metadata dependency ???
-            //.register(MetaDataClientFactory.getInstance());
-        // FIXME P1 worker optional register ??? How to do it ?
-        resourceConfig.register(MultiPartFeature.class)
+            .register(WorkspaceClientFactory.getInstance())
+        // Metadata dependency: optional ???
+            .registerOptional(MetaDataClientFactory.getInstance());
+        // FIXME P1 worker optional register: How to do it ?
+        resourceConfig
             .register(new ProcessManagementResource(getConfiguration()))
             .register(new ProcessDistributorResource(getConfiguration()))
             .register(new AdminStatusResource(serviceRegistry));

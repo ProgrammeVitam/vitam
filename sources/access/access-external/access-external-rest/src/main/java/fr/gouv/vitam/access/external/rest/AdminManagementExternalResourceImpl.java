@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -96,6 +97,8 @@ public class AdminManagementExternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(status).build();
+        } finally {
+            StreamUtils.closeSilently(document);
         }
     }
 
@@ -130,6 +133,8 @@ public class AdminManagementExternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
+        } finally {
+            StreamUtils.closeSilently(document);
         }
 
     }

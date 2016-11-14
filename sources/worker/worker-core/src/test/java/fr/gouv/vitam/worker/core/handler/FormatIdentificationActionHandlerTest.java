@@ -46,7 +46,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -64,7 +64,7 @@ public class FormatIdentificationActionHandlerTest {
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
     private WorkspaceClientFactory workspaceClientFactory;    
-    private HandlerIO handlerIO;
+    private HandlerIOImpl handlerIO;
     private GUID guid;
 
     public FormatIdentificationActionHandlerTest() throws FileNotFoundException {
@@ -80,7 +80,7 @@ public class FormatIdentificationActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIO(guid.getId(), "workerId");
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
         deleteFiles();
     }
 

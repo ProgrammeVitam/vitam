@@ -126,7 +126,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("upload")
+        @Path("ingests")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_XML)
         public Response upload(InputStream stream) {

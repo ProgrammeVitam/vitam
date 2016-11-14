@@ -23,7 +23,6 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -31,7 +30,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -71,7 +69,6 @@ public class AdminManagementExternalResourceImplTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
             application =  new AccessExternalApplication("access-external-test.conf");
             application.start();
         } catch (final VitamApplicationServerException e) {

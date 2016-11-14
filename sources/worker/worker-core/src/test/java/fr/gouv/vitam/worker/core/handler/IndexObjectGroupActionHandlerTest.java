@@ -55,7 +55,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -72,7 +72,7 @@ public class IndexObjectGroupActionHandlerTest {
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
     private WorkspaceClientFactory workspaceClientFactory;        
-    final HandlerIO handlerIO = new HandlerIO("IndexObjectGroupActionHandlerTest", "workerId");
+    final HandlerIOImpl handlerIO = new HandlerIOImpl("IndexObjectGroupActionHandlerTest", "workerId");
 
     public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);

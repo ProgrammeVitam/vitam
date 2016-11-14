@@ -78,6 +78,7 @@ public class FormatIdentifierFactory {
                 for (FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
+                configurationsFormatIdentifiers.clear();
                 configurationsFormatIdentifiers.putAll(configMap);
             }
         } catch (final IOException e) {
@@ -97,7 +98,7 @@ public class FormatIdentifierFactory {
     }
 
     /**
-     * Instanciate the format identifier identified
+     * Instantiate the format identifier identified
      *
      * @param formatIdentifierId format identifier id
      * @return the Format Identifier implementation

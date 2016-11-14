@@ -39,7 +39,6 @@ public interface DbRequestFactory {
      * Creation of an DbRequest
      * @return the DbRequest
      */
-    // FIXME P0 à quoi sert un factory qui n'a qu'une seule méthode aussi basique ?
     public DbRequest create();
 
 }

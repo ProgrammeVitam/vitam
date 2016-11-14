@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -56,9 +57,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * Handler input and output parameter
  */
-public class HandlerIO implements VitamAutoCloseable {
+public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HandlerIO.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HandlerIOImpl.class);
     /**
      * Not Enough Param
      */
@@ -83,7 +84,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param containerName
      * @param workerId
      */
-    public HandlerIO(String containerName, String workerId) {
+    public HandlerIOImpl(String containerName, String workerId) {
         this.containerName = containerName;
         this.workerId = workerId;
         this.localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
@@ -96,6 +97,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param list
      * @throws IllegalArgumentException if an error occurs
      */
+    @Override
     public void addInIOParameters(List<IOParameter> list) {
         for (final IOParameter in : list) {
             switch (in.getUri().getPrefix()) {
@@ -127,6 +129,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param list
      * @throws IllegalArgumentException if an error occurs
      */
+    @Override
     public void addOutIOParameters(List<IOParameter> list) {
         for (final IOParameter out : list) {
             switch (out.getUri().getPrefix()) {
@@ -143,6 +146,7 @@ public class HandlerIO implements VitamAutoCloseable {
     /**
      * Reset after each Action
      */
+    @Override
     public void reset() {
         input.clear();
         output.clear();
@@ -165,6 +169,7 @@ public class HandlerIO implements VitamAutoCloseable {
     /**
      * @return list of input
      */
+    @Override
     public List<Object> getInput() {
         return input;
     }
@@ -175,6 +180,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param rank
      * @return the rank-th object
      */
+    @Override
     public Object getInput(int rank) {
         return input.get(rank);
     }
@@ -182,6 +188,7 @@ public class HandlerIO implements VitamAutoCloseable {
     /**
      * @return list of output
      */
+    @Override
     public List<ProcessingUri> getOutput() {
         return output;
     }
@@ -192,6 +199,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param rank
      * @return the rank-th ProcessingUri
      */
+    @Override
     public ProcessingUri getOutput(int rank) {
         return output.get(rank);
     }
@@ -205,6 +213,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
+    @Override
     public HandlerIO addOuputResult(int rank, Object object) throws ProcessingException {
         return addOuputResult(rank, object, false);
     }
@@ -219,6 +228,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
+    @Override
     public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException {
         ProcessingUri uri = output.get(rank);
         if (uri == null) {
@@ -248,6 +258,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * 
      * @return the container Name
      */
+    @Override
     public String getContainerName() {
         return containerName;
     }
@@ -256,6 +267,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * 
      * @return the worker Id
      */
+    @Override
     public String getWorkerId() {
         return workerId;
     }
@@ -263,6 +275,7 @@ public class HandlerIO implements VitamAutoCloseable {
     /**
      * @return the localPathRoot
      */
+    @Override
     public File getLocalPathRoot() {
         return localDirectory;
     }
@@ -272,6 +285,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param name
      * @return a File pointing to a local path in Tmp directory under protected Worker instance space
      */
+    @Override
     public File getNewLocalFile(String name) {
         File file = new File(localDirectory.getAbsolutePath() + "/" + name);
         file.getParentFile().mkdirs();
@@ -285,13 +299,18 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param clasz the list of Class that should be in the InputParameters
      * @return true if everything ok
      */
+    @Override
     public boolean checkHandlerIO(int outputNumber, List<Class<?>> clasz) {
         if (getInput().size() != clasz.size() || getOutput().size() != outputNumber) {
+            LOGGER.error("InputSize shoul be {} but is {} OR OutputSize should be {} but is {}",
+                clasz.size(), getInput().size(), outputNumber, getOutput().size());
             return false;
         }
         for (int i = 0; i < getInput().size(); i++) {
             Object object = getInput(i);
-            if (object == null || !object.getClass().equals(clasz.get(i))) {
+            if (object == null || !clasz.get(i).isInstance(object)) {
+                LOGGER.error("Input class should be {} but is {}",
+                    clasz.get(i).getName(), object != null ? object.getClass().getName() : "Null object");
                 return false;
             }
         }
@@ -308,6 +327,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param toDelete if True, will delete the local file
      * @throws ProcessingException
      */
+    @Override
     public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete)
         throws ProcessingException {
         try {
@@ -385,8 +405,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      */
-    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
-    // parallel)
+    @Override
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
@@ -411,6 +430,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      */
+    @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
@@ -431,8 +451,7 @@ public class HandlerIO implements VitamAutoCloseable {
      * @param objectName
      * @return True if deleted
      */
-    // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
-    // parallel)
+    @Override
     public boolean deleteLocalFile(String objectName) {
         File file = getNewLocalFile(objectName);
         if (file.exists()) {

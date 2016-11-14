@@ -42,9 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.metadata.api.model.RequestResponseError;
 import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -67,9 +65,6 @@ public class ProcessManagementResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         final ServerConfiguration configuration = new ServerConfiguration();
         configuration.setUrlMetadata(URL_METADATA);

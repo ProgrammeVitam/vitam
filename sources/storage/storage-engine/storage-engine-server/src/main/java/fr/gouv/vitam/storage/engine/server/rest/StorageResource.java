@@ -265,6 +265,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Path("/objects/{id_object}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    // FIXME P0 AsyncResponse
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId)
         throws IOException {
         final Response response = checkTenantStrategyHeader(headers);
@@ -772,6 +773,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Path("/reports/{id_report}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    // FIXME P0 AsyncResponse
     public Response getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
         throws IOException {
         final Response response = checkTenantStrategyHeader(headers);
@@ -782,7 +784,6 @@ public class StorageResource extends ApplicationStatusResource {
             try {
                 final InputStream result =
                     distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.REPORT);
-                // FIXME P0 fix ByteArray vs Close vs AsyncResponse
                 return Response.status(Status.OK).entity(result).build();
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);

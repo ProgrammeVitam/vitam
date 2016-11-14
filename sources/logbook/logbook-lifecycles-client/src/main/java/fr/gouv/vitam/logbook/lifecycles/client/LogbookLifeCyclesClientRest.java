@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -310,7 +311,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         try {
             return new VitamRequestIterator(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
-                null, null);
+                null, new Select().getFinalSelect());
         } catch (IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
@@ -323,7 +324,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         try {
             return new VitamRequestIterator(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
-                null, null);
+                null, new Select().getFinalSelect());
         } catch (IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);

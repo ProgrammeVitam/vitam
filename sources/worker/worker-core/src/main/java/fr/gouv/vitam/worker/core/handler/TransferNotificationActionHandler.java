@@ -53,6 +53,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.client2.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -65,10 +66,8 @@ import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -77,6 +76,10 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -85,10 +88,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.worker.model.ArchiveUnitReplyTypeRoot;
 import fr.gouv.vitam.worker.model.DataObjectTypeRoot;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -101,20 +105,20 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * Transfer notification reply handler
  */
 public class TransferNotificationActionHandler extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
 
     private static final int ATR_RESULT_OUT_RANK = 0;
+    private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int BINARY_DATAOBJECT_MAP_RANK = 1;
     private static final int BDO_OG_STORED_MAP_RANK = 2;
     private static final int BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK = 3;
     private static final int SEDA_PARAMETERS_RANK = 4;
     private static final int OBJECT_GROUP_ID_TO_GUID_MAP_RANK = 5;
+    static final int HANDLER_IO_PARAMETER_NUMBER = 6;
 
 
-    private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final String XML = ".xml";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
-    LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String XLINK_URI = "http://www.w3.org/1999/xlink";
     private static final String PREMIS_URI = "info:lc/xmlns/premis-v2";
@@ -122,29 +126,22 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XSD_VERSION = " seda-2.0-main.xsd";
 
     private HandlerIO handlerIO;
-    private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
-    public static final int HANDLER_IO_PARAMETER_NUMBER = 6;
-
-    private final LogbookDbAccess mongoDbAccess;
 
     /**
-     * Constructor TransferNotificationActionHandler with parameter mongoDbAccess
+     * Constructor TransferNotificationActionHandler
      * 
-     * @param mongoDbAccess mongoDbAccess
      * @throws IOException
      * 
      */
-    public TransferNotificationActionHandler(LogbookDbAccess mongoDbAccess) {
-        storageClientFactory = StorageClientFactory.getInstance();
+    public TransferNotificationActionHandler() {
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.add(File.class);
         }
-        this.mongoDbAccess = mongoDbAccess;
     }
 
     /**
@@ -157,6 +154,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
+        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -169,6 +167,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (isWorkflowKo) {
                 atrFile = createATRKO(params, handlerIO);
             } else {
+                // CHeck is only done in OK mode since all parameters are optional
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
@@ -176,10 +175,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // to
             // a(n) 'attribute declaration' component.
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-                handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
-            }
+            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
             // store binary data object
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
@@ -457,7 +453,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             xmlsw.writeStartElement(SedaConstants.TAG_REPLY_OUTCOME);
 
-            addKOReplyOutcome(xmlsw, params.getContainerName());
+            addKOReplyOutcomeIterator(xmlsw, params.getContainerName());
 
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
@@ -508,7 +504,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      */
-    private void addKOReplyOutcome(XMLStreamWriter xmlsw, String containerName)
+    private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
 
         Map<String, Object> bdoVersionDataObject = null;
@@ -520,67 +516,82 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
         }
 
-        LogbookOperation logbookOperation = getLogbookOperation(containerName);
-        if (logbookOperation != null) {
-            List<Document> logbookOperationEvents =
-                (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
-            xmlsw.writeStartElement(SedaConstants.TAG_OPERATION);
-            for (Document event : logbookOperationEvents) {
-                writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null);
+
+        final LogbookOperation logbookOperation;
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            JsonNode node = client.selectOperationbyId(containerName);
+            // FIXME P1 hack since Jackson cannot parse it correctly
+            //RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
+            //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
+            JsonNode elmt = node.get("result");
+            if (elmt == null) {
+                LOGGER.error("Error while loading logbook operation: " + node.toString());
+                throw new ProcessingException("Error while loading logbook operation: " + node.toString());
             }
-            xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
+            logbookOperation = new LogbookOperation(elmt);
+        } catch (LogbookClientException e) {
+            LOGGER.error("Error while loading logbook operation", e);
+            throw new ProcessingException(e);
+        }
 
-            try (MongoCursor<LogbookLifeCycleUnit> logbookLifeCycleUnits = getLogbookLifecycleUnits(containerName)) {
-                if (logbookLifeCycleUnits != null) {
-                    Map<String, Object> archiveUnitSystemGuid = null;
-                    InputStream archiveUnitMapTmpFile = null;
-                    File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
-                    if (file != null) {
-                        archiveUnitMapTmpFile = new FileInputStream(file);
-                    }
-                    Map<String, String> systemGuidArchiveUnitId = null;
+        List<Document> logbookOperationEvents =
+            (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
+        xmlsw.writeStartElement(SedaConstants.TAG_OPERATION);
+        for (Document event : logbookOperationEvents) {
+            writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null);
+        }
+        xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
-                    if (archiveUnitMapTmpFile != null) {
-                        archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
-                        if (archiveUnitSystemGuid != null) {
-                            systemGuidArchiveUnitId = new HashMap<>();
-                            for (Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
-                                systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
-                            }
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
+                Map<String, Object> archiveUnitSystemGuid = null;
+                InputStream archiveUnitMapTmpFile = null;
+                File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
+                if (file != null) {
+                    archiveUnitMapTmpFile = new FileInputStream(file);
+                }
+                Map<String, String> systemGuidArchiveUnitId = null;
+
+                if (archiveUnitMapTmpFile != null) {
+                    archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
+                    if (archiveUnitSystemGuid != null) {
+                        systemGuidArchiveUnitId = new HashMap<>();
+                        for (Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                            systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
                         }
                     }
+                }
 
-                    xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
-                    while (logbookLifeCycleUnits.hasNext()) {
-                        LogbookLifeCycleUnit logbookLifeCycleUnit = logbookLifeCycleUnits.next();
-                        List<Document> logbookLifeCycleUnitEvents =
-                            (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
-                        xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
+                xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
+                while (iterator.hasNext()) {
+                    LogbookLifeCycleUnit logbookLifeCycleUnit =
+                        new LogbookLifeCycleUnit(iterator.next());
+                    List<Document> logbookLifeCycleUnitEvents =
+                        (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
+                    xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
 
-                        if (systemGuidArchiveUnitId != null &&
-                            logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
+                    if (systemGuidArchiveUnitId != null &&
+                        logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
+                        systemGuidArchiveUnitId
+                            .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()) != null) {
+                        xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID,
                             systemGuidArchiveUnitId
-                                .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()) != null) {
-                            xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID,
-                                systemGuidArchiveUnitId
-                                    .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()));
-                            writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_SYSTEM_ID,
-                                logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
-                        }
-
-                        for (Document event : logbookLifeCycleUnitEvents) {
-                            writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null);
-                        }
-                        xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
+                                .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()));
+                        writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_SYSTEM_ID,
+                            logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
                     }
-                    logbookLifeCycleUnits.close();
+
+                    for (Document event : logbookLifeCycleUnitEvents) {
+                        writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null);
+                    }
+                    xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
                 }
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT_LIST
+            } catch (LogbookClientException e) {
+                LOGGER.error("Error while loading logbook lifecycle units", e);
+                throw new ProcessingException(e);
             }
-
-            MongoCursor<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroups =
-                getLogbookLifecycleObjectGroups(containerName);
-            if (logbookLifeCycleObjectGroups != null) {
+            try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 Map<String, String> objectGroupGuid = new HashMap<>();
@@ -619,10 +630,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 }
 
                 xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
-                while (logbookLifeCycleObjectGroups.hasNext()) {
+                while (iterator.hasNext()) {
 
-                    LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup = logbookLifeCycleObjectGroups.next();
-
+                    LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
+                        new LogbookLifeCycleObjectGroup(iterator.next());
 
                     String eventIdentifier = null;
                     xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
@@ -656,89 +667,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     }
                     xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
                 }
-                logbookLifeCycleObjectGroups.close();
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_LIST
+            } catch (LogbookClientException e) {
+                LOGGER.error("Error while loading logbook lifecycle ObjectGroups", e);
+                throw new ProcessingException(e);
             }
-        }
-    }
-
-    /**
-     * Retrieve the logbook operation of the current operation <br>
-     * 
-     * @param containerName operation identifier
-     * @return the logbook opetaion
-     * @throws ProcessingException thrown when an error occured wile retrieving the logbook operation in mongo
-     */
-    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    private LogbookOperation getLogbookOperation(String containerName) throws ProcessingException {
-        try {
-            return mongoDbAccess.getLogbookOperation(containerName);
-        } catch (LogbookDatabaseException | LogbookNotFoundException e) {
-            LOGGER.error("Error while loading logbook operation", e);
-            throw new ProcessingException(e);
-        }
-    }
-
-    /**
-     * Retrieve the logbook lifecycle units of the current operation <br>
-     * 
-     * @param containerName operation identifier
-     * @return mongo cursor on the lifecycle units
-     * @throws ProcessingException thrown when an error occured wile retrieving the logbook lifecycle units in mongo
-     */
-    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO
-    private MongoCursor<LogbookLifeCycleUnit> getLogbookLifecycleUnits(String containerName)
-        throws ProcessingException {
-        try {
-            final Select select = new Select();
-            select.setQuery(QueryHelper.eq(
-                LogbookLifeCycleMongoDbName.getLogbookLifeCycleMongoDbName(LogbookParameterName.eventIdentifierProcess)
-                    .getDbname(),
-                containerName));
-            JsonNode selectRequest = JsonHandler.getFromString(select.getFinalSelect().toString());
-
-            return mongoDbAccess.getLogbookLifeCycleUnits(selectRequest);
-        } catch (LogbookDatabaseException | LogbookNotFoundException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
-            LOGGER.error("Error while loading logbook lifecycle units", e);
-            throw new ProcessingException(e);
-        }
-    }
-
-    /**
-     * Retrieve the logbook lifecycle object groups of the current operation <br>
-     * 
-     * @param idProc operation identifier
-     * @return mongo cursor on the lifecycle object groups
-     * @throws ProcessingException thrown when an error occured wile retrieving the logbook lifecycle object groups in
-     *         mongo
-     */
-    // TODO P0 : should use the logbook client with a rest api when REST cursors are implemented in logbook
-    // FIXME P0 : should filter only on events with an outcome equals FATAL or KO
-    private MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifecycleObjectGroups(String idProc)
-        throws ProcessingException {
-        try {
-            final Select select = new Select();
-            select
-                .setQuery(QueryHelper.eq(
-                    LogbookLifeCycleMongoDbName
-                        .getLogbookLifeCycleMongoDbName(LogbookParameterName.eventIdentifierProcess).getDbname(),
-                    idProc));
-            JsonNode selectRequest = JsonHandler.getFromString(select.getFinalSelect().toString());
-
-            return mongoDbAccess.getLogbookLifeCycleObjectGroups(selectRequest);
-        } catch (LogbookDatabaseException | LogbookNotFoundException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
-            LOGGER.error("Error while loading logbook lifecycle units", e);
-            throw new ProcessingException(e);
         }
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(1, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 

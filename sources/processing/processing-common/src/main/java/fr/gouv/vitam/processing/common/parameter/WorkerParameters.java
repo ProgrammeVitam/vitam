@@ -29,12 +29,17 @@ package fr.gouv.vitam.processing.common.parameter;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.parameter.VitamParameter;
 
 /**
  * Class use to manage parameters for and on worker
  */
+@JsonSerialize(using = WorkerParametersSerializer.class)
+@JsonDeserialize(using = WorkerParametersDeserializer.class)
 public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
 
     /**

@@ -80,4 +80,12 @@ public enum StatusCode {
         return compareTo(KO) >= 0;
     }
 
+    /**
+     *
+     * @return True if the status is greater or equal to FATAL
+     */
+    public boolean isGreaterOrEqualToFatal() {
+        return compareTo(FATAL) >= 0;
+    }
+
 }

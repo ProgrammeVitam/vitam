@@ -64,6 +64,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
      */
     public static final String UNKNOW_NAMESPACE = "UNKNOW";
     private final SiegfriedClient client;
+    // FIXME P1 Unused
     private final Path rootPath;
     private final Path versionPath;
 
@@ -153,9 +154,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-        final Path filePath = Paths.get(rootPath.toString() + "/" + path.toString());
-
-        final JsonNode response = client.analysePath(filePath);
+        final JsonNode response = client.analysePath(path);
 
         return extractFormat(response);
     }

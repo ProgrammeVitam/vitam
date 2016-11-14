@@ -30,7 +30,7 @@ import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 
 /**
  * Factory to get MongoDbAccess for Logbook
@@ -46,20 +46,6 @@ public final class LogbookMongoDbAccessFactory {
      */
     public static final LogbookMongoDbAccessImpl create(DbConfiguration configuration) {
         ParametersChecker.checkParameter("configuration", configuration);        
-        MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
-        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);
-    }
-
-    /**
-     * Creation of one MongoDbAccess
-     *
-     * @param configuration
-     * @return the MongoDbAccess
-     * @throws IllegalArgumentException if argument is null
-     */
-    public static final LogbookMongoDbAccessImpl create(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration", configuration);
         MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);

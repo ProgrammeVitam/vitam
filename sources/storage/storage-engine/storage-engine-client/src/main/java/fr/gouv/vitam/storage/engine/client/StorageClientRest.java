@@ -317,6 +317,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
 
     @Override
+    // FIXME P0 to be removed
     public InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);

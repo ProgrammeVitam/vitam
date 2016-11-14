@@ -28,10 +28,11 @@ package fr.gouv.vitam.ingest.external.core;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -88,8 +90,6 @@ public class IngestExternalImpl implements IngestExternal {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
-    // FIXME P0 n'a pas besoin d'être une variable globale
-    private FormatIdentifier formatIdentifier;
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
@@ -129,7 +129,6 @@ public class IngestExternalImpl implements IngestExternal {
                 new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
-            Response responseResult = null;
 
             try {
                 workspaceFileSystem.createContainer(containerName.toString());
@@ -233,11 +232,11 @@ public class IngestExternalImpl implements IngestExternal {
                 try {
                     LOGGER.debug("Begin siegFried format identification");
                     // instantiate SiegFried
-                    formatIdentifier =
+                    FormatIdentifier formatIdentifier =
                         FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
                     // call siegFried
                     List<FormatIdentifierResponse> formats =
-                        formatIdentifier.analysePath(Paths.get(containerName.getId() + "/" + objectName.getId()));
+                        formatIdentifier.analysePath(file.toPath());
                     FormatIdentifierResponse format = getFirstPronomFormat(formats);
 
                     if (format == null) {
@@ -250,6 +249,7 @@ public class IngestExternalImpl implements IngestExternal {
                             mimeType = format.getMimetype();
                             isSupportedMedia = true;
                         } else {
+                            LOGGER.error("SIP Wrong format : " + format.getMimetype() + " is not supported");
                             formatParameters.setStatus(StatusCode.KO);
                             formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                                 VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO, format.getMimetype()));
@@ -323,14 +323,20 @@ public class IngestExternalImpl implements IngestExternal {
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
                 // TODO Response async
-                responseResult = ingestClient.upload(ingestGuid, helper.removeCreateDelegate(containerName.getId()),
-                    inputStream, mimeType);
-
+                ingestClient.uploadInitialLogbook(ingestGuid, helper.removeCreateDelegate(containerName.getId()));
+                if (!isFileInfected && isSupportedMedia) {
+                    return ingestClient.upload(ingestGuid, inputStream, CommonMediaType.valueOf(mimeType));
+                }
+                //throw new IngestExternalException("File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType));
+                // FIXME P1 later on real ATR KO
+                return Response.status(Status.BAD_REQUEST).entity(
+                    AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
+                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)))
+                    .type(MediaType.APPLICATION_XML_TYPE)
+                    .build();
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
-            return responseResult;
-
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new IngestExternalException(e);
         } finally {
@@ -346,6 +352,7 @@ public class IngestExternalImpl implements IngestExternal {
                     LOGGER.warn(e);
                 }
             }
+            StreamUtils.closeSilently(input);
         }
     }
 

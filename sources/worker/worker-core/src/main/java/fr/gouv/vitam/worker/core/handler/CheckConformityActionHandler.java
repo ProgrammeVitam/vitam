@@ -52,18 +52,17 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -77,21 +76,11 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionHandler.class);
 
     private static final String HANDLER_ID = "CHECK_DIGEST";
-    LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    private static final int BINARY_OBJECT_INFO_RANK = 0;
     private HandlerIO handlerIO;
-    private String eventDetailData;
     private String objectID;
-
-    int nbOK;
-    int nbKO;
-
-    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
-        .newLogbookLifeCycleObjectGroupParameters();
-
-    private LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getClient();
-
+    private int nbOK;
+    private int nbKO;
+    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters;
     private boolean oneOrMoreMessagesDigestUpdated = false;
     private static final int ALGO_RANK = 0;
     private static final String INCOME = "MessageIdentifier du manifest";
@@ -115,88 +104,92 @@ public class CheckConformityActionHandler extends ActionHandler {
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         handlerIO = handler;
+        logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         nbOK = 0;
         nbKO = 0;
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            // Get objectGroup
-            final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+                // Get objectGroup
+                final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
+                Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
-            objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).toString();
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-                HANDLER_ID);
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                StatusCode.STARTED.toString());
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, StatusCode.STARTED));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-                INCOME);
-            LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient,
-                logbookLifecycleObjectGroupParameters, params);
+                objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).toString();
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
+                    HANDLER_ID);
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
+                    StatusCode.STARTED.toString());
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, StatusCode.STARTED));
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
+                    INCOME);
+                LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient,
+                    logbookLifecycleObjectGroupParameters, params);
 
-            // checkMessageDigest
-            JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
-            if (qualifiers != null) {
-                List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
-                if (versions != null && !versions.isEmpty()) {
-                    for (JsonNode versionsArray : versions) {
-                        for (JsonNode version : versionsArray) {
-                            String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                            checkMessageDigest(workspaceClient, params, binaryObjects.get(objectId), version,
-                                itemStatus);
+                // checkMessageDigest
+                JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+                if (qualifiers != null) {
+                    List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                    if (versions != null && !versions.isEmpty()) {
+                        for (JsonNode versionsArray : versions) {
+                            for (JsonNode version : versionsArray) {
+                                String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                checkMessageDigest(logbookClient, workspaceClient, params, binaryObjects.get(objectId),
+                                    version,
+                                    itemStatus);
+                            }
                         }
                     }
                 }
+
+                if (oneOrMoreMessagesDigestUpdated) {
+                    workspaceClient.putObject(params.getContainerName(),
+                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
+                        new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
+                }
+
+                if (nbKO > 0) {
+                    logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
+                    // TODO P0 WORKFLOW
+                } else {
+                    logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
+                }
+
+            } catch (ProcessingException | ContentAddressableStorageServerException |
+                InvalidParseOperationException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
             }
 
-            if (oneOrMoreMessagesDigestUpdated) {
-                workspaceClient.putObject(params.getContainerName(),
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                    new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
+            try {
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                    logbookLifecycleObjectGroupParameters,
+                    itemStatus);
+            } catch (ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
             }
-
-            if (nbKO > 0) {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
-                // TODO P0 WORKFLOW
-            } else {
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
-            }
-
-        } catch (ProcessingException | ContentAddressableStorageServerException |
-            InvalidParseOperationException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
         }
-
-        try {
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
-            LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
-                logbookLifecycleObjectGroupParameters,
-                itemStatus);
-        } catch (ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
         LOGGER.debug("CheckConformityActionHandler response: " + itemStatus.getGlobalStatus());
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void checkMessageDigest(WorkspaceClient workspaceClient, WorkerParameters params,
+    private void checkMessageDigest(LogbookLifeCyclesClient logbookClient, WorkspaceClient workspaceClient,
+        WorkerParameters params,
         BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
         String containerId = params.getContainerName();
+        String eventDetailData;
         // started for binary Object
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             binaryObject.getId());

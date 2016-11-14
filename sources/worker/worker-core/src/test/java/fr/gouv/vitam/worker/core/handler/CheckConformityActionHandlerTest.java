@@ -56,7 +56,7 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -105,7 +105,7 @@ public class CheckConformityActionHandlerTest {
         //assertNotNull(objectGroup);
         handler = new CheckConformityActionHandler();
         WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("CheckConformityActionHandlerTest", "workerId");
+        HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
         List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);

@@ -277,7 +277,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
         client.getStorageInformation("idTenant", "idStrategy");
     }
 
-    // FIXME P0 : Waiting for server
     @Test
     public void createFromWorkspaceOK() throws Exception {
         when(mock.post())

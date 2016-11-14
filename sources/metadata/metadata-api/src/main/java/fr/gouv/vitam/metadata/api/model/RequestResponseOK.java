@@ -31,6 +31,9 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 /**
  * Meta-data RequestResponseOK class contains hits and result objects
  *
@@ -43,6 +46,7 @@ public class RequestResponseOK extends RequestResponse {
     /**
      * @return the hits of RequestResponseOK object
      */
+    @JsonGetter("hits")
     public DatabaseCursor getHits() {
         if (hits == null) {
             return new DatabaseCursor(0, 0, 0);
@@ -54,6 +58,7 @@ public class RequestResponseOK extends RequestResponse {
      * @param hits as DatabaseCursor object
      * @return RequestReponseOK with the hits are setted
      */
+    @JsonSetter("hits")
     public RequestResponseOK setHits(DatabaseCursor hits) {
         ParametersChecker.checkParameter("DatabaseCursor of result is a mandatory parameter", hits);
         this.hits = hits;

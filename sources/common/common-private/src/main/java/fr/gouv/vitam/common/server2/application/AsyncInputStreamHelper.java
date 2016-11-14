@@ -37,6 +37,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -172,7 +173,12 @@ public class AsyncInputStreamHelper implements StreamingOutput {
         try {
             ParametersChecker.checkParameter("ResponseBuilder should not be null", responseBuilder);
             if (receivedResponse != null) {
-                inputStream = receivedResponse.readEntity(InputStream.class);
+                try {
+                    inputStream = receivedResponse.readEntity(InputStream.class);
+                } catch (IllegalStateException e) {
+                    // Probably a Junit bad Outbound Response
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
             }
             asyncResponse.resume(responseBuilder.entity(self).build());
         } finally {

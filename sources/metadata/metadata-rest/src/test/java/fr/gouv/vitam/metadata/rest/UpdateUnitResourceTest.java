@@ -48,8 +48,6 @@ import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -58,13 +56,11 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -91,9 +87,6 @@ public class UpdateUnitResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static final String SERVER_HOST = "localhost";
-
-    private static final String X_HTTP_Method = "X-Http-Method-Override";
-    private static final String GET = "GET";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
     private static JunitHelper junitHelper;
@@ -133,7 +126,6 @@ public class UpdateUnitResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         application = new MetaDataApplication(configuration);
         application.start();
@@ -200,12 +192,6 @@ public class UpdateUnitResourceTest {
             .contentType(ContentType.JSON)
             .body(BODY_TEST).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-
-        given().headers(Headers.headers(new Header(X_HTTP_Method, GET)))
-            .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
-            .put("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
@@ -214,26 +200,11 @@ public class UpdateUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body("")
             .when()
             .put("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-
-    @Test
-    public void given_bad_header_when_UpdateByID_thenReturn_Not_allowed() {
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "ABC")
-            .body(BODY_TEST)
-            .when()
-            .put("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -242,7 +213,6 @@ public class UpdateUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
@@ -255,9 +225,8 @@ public class UpdateUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .put("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -268,24 +237,8 @@ public class UpdateUnitResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
-
-    @Ignore
-    @Test
-    public void given_pathWithId_when_get_UpdateByID_thenReturn_Found() {
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(BODY_TEST)
-            .when()
-            .put("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.FOUND.getStatusCode());
-    }
-
 }

@@ -51,7 +51,6 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
 /**
  * Processing Management Client
  */
-// FIXME P0 should be clientV2 / Server V2
 class ProcessingManagementClientRest extends DefaultClient implements ProcessingManagementClient {
     private static final String PROCESSING_INTERNAL_SERVER_ERROR = "Processing Internal Server Error";
     private static final String INTERNAL_SERVER_ERROR2 = "Internal Server Error";

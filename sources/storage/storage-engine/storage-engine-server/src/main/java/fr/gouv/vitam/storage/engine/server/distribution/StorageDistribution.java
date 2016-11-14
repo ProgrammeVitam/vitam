@@ -75,7 +75,6 @@ public interface StorageDistribution {
     JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageNotFoundException,
         StorageTechnicalException;
 
-    // FIXME P0: what is the inputStream for a Container ?
     /**
      * Get Storage Container full content as an InputStream
      * <p>

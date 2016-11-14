@@ -26,15 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import com.codahale.metrics.Gauge;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -47,12 +42,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
-// FIXME P0 REVIEW add a factory plus constructor and class as package protected
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private final ProcessEngine processEngine;
     private ServerConfiguration serverConfig;
-    private final AtomicLong runningWorkflows = new AtomicLong(0L);
 
     /**
      * constructor of ProcessManagementImpl
@@ -66,13 +59,6 @@ public class ProcessManagementImpl implements ProcessManagement {
          */
         this.serverConfig = serverConfig;
         processEngine = new ProcessEngineImplFactory().create();
-        AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
-            new Gauge<Long>() {
-                @Override
-                public Long getValue() {
-                    return runningWorkflows.get();
-                }
-            });
     }
 
     /**
@@ -106,7 +92,6 @@ public class ProcessManagementImpl implements ProcessManagement {
         workParams.setUrlMetadata(serverConfig.getUrlMetadata());
         workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
         WorkspaceClientFactory.changeMode(serverConfig.getUrlWorkspace());
-        runningWorkflows.incrementAndGet();
         try {
             response = processEngine.startWorkflow(workParams, workflowId);
         } catch (final WorkflowNotFoundException e) {
@@ -118,17 +103,13 @@ public class ProcessManagementImpl implements ProcessManagement {
         } catch (final ProcessingException e) {
             LOGGER.error("ProcessingException");
             throw new ProcessingException(workflowId, e);
-        } finally {
-            runningWorkflows.decrementAndGet();
         }
 
         return response;
     }
 
-    // FIXME P0 continue to close other inner resources
     @Override
     public void close() {
-        // TODO close processEngine
-        // processEngine.close();
+        // Nothing to do
     }
 }

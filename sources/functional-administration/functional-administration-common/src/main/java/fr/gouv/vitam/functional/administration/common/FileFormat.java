@@ -32,6 +32,8 @@ import java.util.List;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
@@ -116,6 +118,20 @@ public class FileFormat extends VitamDocument<FileFormat> {
      */
     public FileFormat(Document document) {
         super(document);
+    }
+
+    /**
+     * @param content
+     */
+    public FileFormat(JsonNode content) {
+        super(content);
+    }
+
+    /**
+     * @param content
+     */
+    public FileFormat(String content) {
+        super(content);
     }
 
     /**

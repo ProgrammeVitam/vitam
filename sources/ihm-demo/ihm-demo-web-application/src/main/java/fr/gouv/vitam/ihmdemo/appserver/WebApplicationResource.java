@@ -83,8 +83,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -351,7 +352,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             response = client.upload(stream);
 
-            // TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
+            // FIXME P0 utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
             responseXml = response.readEntity(String.class);
             guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -543,6 +544,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
     }
 
@@ -566,6 +569,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
     }
 
@@ -760,6 +765,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
     }
 
@@ -784,6 +791,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
 
     }

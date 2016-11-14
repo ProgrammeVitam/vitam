@@ -28,5 +28,5 @@
  * Workspace Strategies
  *
  */
-// FIXME P0 REVIEW there is no strategy for Workspace
+// FIXME P2 there is no strategy for Workspace
 package fr.gouv.vitam.workspace.api.strategy;

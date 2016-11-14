@@ -28,8 +28,11 @@ package fr.gouv.vitam.common.database.server.mongodb;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Vitam Document MongoDb abstract
@@ -62,6 +65,17 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(String content) {
         super(Document.parse(content));
+        checkId();
+    }
+
+    /**
+     * Constructor from Json
+     *
+     * @param content as JsonNode
+     * @throws IllegalArgumentException if Id is not a GUID
+     */
+    public VitamDocument(JsonNode content) {
+        super(Document.parse(JsonHandler.unprettyPrint(content)));
         checkId();
     }
 

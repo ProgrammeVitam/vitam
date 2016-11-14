@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -59,7 +59,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private static final DefaultOfferService INSTANCE = new DefaultOfferServiceImpl();
-    private static final String TMP_DIRECTORY = "/tmp/";
     private final ContentAddressableStorage defaultStorage;
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
@@ -112,7 +111,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (objectInit.getDigestAlgorithm() != null) {
             digestTypeFor.put(objectGUID, objectInit.getDigestAlgorithm());
         } else {
-            digestTypeFor.put(objectGUID, DigestType.SHA256);
+            digestTypeFor.put(objectGUID, VitamConfiguration.getDefaultDigestType());
         }
 
         return objectInit;
@@ -142,7 +141,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         // TODO the objectPart should contain the full object.
         try {
             defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, objectPart);
-            // FIXME P0: to optimize (big file case) !
+            // Check digest AFTER writing in order to ensure correctness
             final String digest = defaultStorage.computeObjectDigest(containerName,
                 objectTypeFor.get(objectId) + "/" + objectId, getDigestAlgoFor(objectId));
             // remove digest algo
@@ -181,11 +180,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return result;
     }
 
-    // FIXME P0 : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu,
-    // ce
-    // qui rend alors
-    // le calcul faux sémantiquement ici (aurait dans ce cas dû générer une exception)
     private DigestType getDigestAlgoFor(String id) {
-        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : DigestType.SHA512;
+        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : VitamConfiguration.getDefaultDigestType();
     }
 }

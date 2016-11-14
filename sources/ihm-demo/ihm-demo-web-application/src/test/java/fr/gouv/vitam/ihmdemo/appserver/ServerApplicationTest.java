@@ -12,9 +12,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 
 public class ServerApplicationTest {
 
@@ -46,7 +44,6 @@ public class ServerApplicationTest {
     public void givenFileWhenConfigureApplicationThenRunServer() throws Exception {
         final JunitHelper junitHelper = JunitHelper.getInstance();
         final int port = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         config.setPort(port);

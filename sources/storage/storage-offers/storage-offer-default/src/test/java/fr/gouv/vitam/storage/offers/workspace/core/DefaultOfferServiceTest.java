@@ -49,6 +49,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -165,11 +166,11 @@ public class DefaultOfferServiceTest {
         final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
-        final Digest digest = Digest.digest(testFile, DigestType.SHA256);
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
         assertEquals(
             offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
-                DigestType.SHA256),
+                VitamConfiguration.getDefaultDigestType()),
             digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
@@ -215,7 +216,7 @@ public class DefaultOfferServiceTest {
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
                         new ByteArrayInputStream(bytes.clone()), false);
                     assertEquals(computedDigest,
-                        Digest.digest(new ByteArrayInputStream(bytes.clone()), DigestType.SHA256)
+                        Digest.digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
                             .toString());
                 }
                 bb.clear();
@@ -227,11 +228,11 @@ public class DefaultOfferServiceTest {
         final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
-        final Digest digest = Digest.digest(testFile, DigestType.SHA256);
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
         assertEquals(
             offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
-                DigestType.SHA256),
+                VitamConfiguration.getDefaultDigestType()),
             digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
@@ -257,7 +258,7 @@ public class DefaultOfferServiceTest {
         final File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         final ObjectInit objectInit = new ObjectInit();
         if (algo) {
-            objectInit.setDigestAlgorithm(DigestType.SHA256);
+            objectInit.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
         }
         objectInit.setSize(file.length());
         objectInit.setType(OBJECT_TYPE);

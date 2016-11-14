@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 @javax.ws.rs.ApplicationPath("webresources")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID = "Missing the tenant ID (X-Tenant-Id)";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
 
     /**
@@ -97,7 +99,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
@@ -159,7 +161,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         ObjectInit objectInit) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
@@ -200,7 +202,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response putObject(@PathParam("id") String objectId, @Context HttpHeaders headers, InputStream input) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
@@ -219,6 +221,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (IOException | ContentAddressableStorageException exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
     }
 
@@ -248,7 +252,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response headObject(@PathParam("id") String idObject,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
@@ -271,7 +275,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
-                LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
             }

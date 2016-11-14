@@ -116,7 +116,7 @@ public class VitamServiceRegistry {
         }
         return this;
     }
-    
+
     /**
      * 
      * @return the number of registered services, including itself
@@ -166,8 +166,10 @@ public class VitamServiceRegistry {
             }
             Thread.sleep(retryDelay);
         }
-        throw new VitamApplicationServerException(
-            "Dependencies in error: " + JsonHandler.prettyPrint(getAutotestStatus()));
+        String status =
+            "Dependencies in error after " + retry + " checks : " + JsonHandler.prettyPrint(getAutotestStatus());
+        LOGGER.error(status);
+        throw new VitamApplicationServerException(status);
     }
 
     /**
@@ -195,7 +197,8 @@ public class VitamServiceRegistry {
                     .setState(Status.OK.getReasonPhrase());
             } catch (VitamApplicationServerException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                LOGGER.warn("Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
+                LOGGER.warn(
+                    "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
                 sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
                     .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
@@ -214,9 +217,11 @@ public class VitamServiceRegistry {
                     .setState(Status.OK.getReasonPhrase());
             } catch (VitamApplicationServerException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                LOGGER.warn("Can't connect to Optional factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
+                LOGGER.warn("Can't connect to Optional factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" +
+                    e.getMessage());
                 sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
-                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_UNAVAILABLE)
+                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+                    .setMessage("Optional Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
                 // Do not change globalStatus
             }

@@ -62,7 +62,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -70,7 +70,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 public class CheckSedaActionHandlerTest {
     CheckSedaActionHandler handler = new CheckSedaActionHandler();
     private static final String HANDLER_ID = "CHECK_SEDA";
-    private HandlerIO action;
+    private HandlerIOImpl action;
     private SedaUtils sedaUtils;
     private List<IOParameter> in;
     private GUID guid;
@@ -79,10 +79,10 @@ public class CheckSedaActionHandlerTest {
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
         guid = GUIDFactory.newGUID();
-        action = new HandlerIO(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId");
         in = new ArrayList<>();
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
     }
 
     @After

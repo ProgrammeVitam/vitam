@@ -32,7 +32,14 @@ import fr.gouv.vitam.worker.core.api.WorkerAction;
 
 
 /**
- * ActionHandler abstract class of interface Action
+ * ActionHandler abstract class of interface Action<br/>
+ * <br/>
+ * Each ActionHandler must implements some public static methods:</br>
+ * <pre><code>
+    // Return the unique Id of this Handler
+    public static final String getId();
+    // Later on (not available now), some other methods for Input/Output arguments
+ * </code></code>
  */
 public abstract class ActionHandler implements WorkerAction {
 

@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamInstrumentedResourceMethodApplicationListener;
@@ -217,7 +218,8 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
             metricsConfiguration = PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
         } catch (final IOException e) {
-            LOGGER.warn(e);
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(e.getMessage());
         }
 
         if (metricsConfiguration.hasMetricsJersey()) {

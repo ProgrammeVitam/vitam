@@ -86,8 +86,6 @@ public class AccessInternalModuleImplTest {
 
     private static String HOST = "http:\\localhost:";
 
-    private AccessInternalConfiguration conf;
-
     private AccessInternalModuleImpl accessModuleImpl;
 
     private MetaDataClient metaDataClient;
@@ -125,7 +123,7 @@ public class AccessInternalModuleImplTest {
         junitHelper.releasePort(serverPort);
     }
 
-    private static final String ID = "identifier1";
+    private static final String ID = "aeaqaaaaaitxll67abarqaktftcfyniaaaaq";
 
     /**
      * @param query
@@ -159,9 +157,8 @@ public class AccessInternalModuleImplTest {
         PowerMockito.mockStatic(StorageClientFactory.class);
         PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(factoryst);
         PowerMockito.when(factoryst.getClient()).thenReturn(storageClient);
-        conf = new AccessInternalConfiguration();
-        conf.setUrlMetaData(HOST);
-        accessModuleImpl = new AccessInternalModuleImpl(conf);
+        accessModuleImpl =
+            new AccessInternalModuleImpl(storageClient, logbookOperationClient, logbookLifeCycleClient);
     }
 
     @Test
@@ -174,7 +171,6 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_select_thenTrows_IllegalArgumentException()
         throws Exception {
-        accessModuleImpl = new AccessInternalModuleImpl(conf);
         accessModuleImpl.selectUnit(FromStringToJson(""));
     }
 
@@ -183,7 +179,6 @@ public class AccessInternalModuleImplTest {
     public void given_test_AccessExecutionException()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl = new AccessInternalModuleImpl(conf);
         accessModuleImpl.selectUnit(FromStringToJson(QUERY));
     }
 
@@ -239,7 +234,6 @@ public class AccessInternalModuleImplTest {
     public void given_test_AccessExecutionException_unitById()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(anyObject(), anyObject());
-        accessModuleImpl = new AccessInternalModuleImpl(conf);
         accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
     }
 
@@ -338,9 +332,6 @@ public class AccessInternalModuleImplTest {
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
-
         accessModuleImpl.updateUnitbyId(new Update().getFinalUpdate(), id);
     }
 
@@ -349,8 +340,6 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(""), ID);
     }
 
@@ -361,8 +350,6 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(FromStringToJson(QUERY).toString(), ID);
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
@@ -373,8 +360,6 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY_UPDATE), ID);
     }
 
@@ -384,8 +369,6 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(new MetaDataDocumentSizeException(""));
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID);
     }
 
@@ -397,8 +380,6 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID);
     }
 
@@ -410,8 +391,6 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
             .updateUnitbyId(FromStringToJson(QUERY).toString(), ID);
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID);
     }
 
@@ -419,7 +398,7 @@ public class AccessInternalModuleImplTest {
     public void given_null_params_conf_When_updateUnitById_ThenNotThrowAnyException()
         throws Exception {
         accessModuleImpl =
-            new AccessInternalModuleImpl(null, logbookOperationClient, logbookLifeCycleClient);
+            new AccessInternalModuleImpl(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -428,8 +407,6 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(FromStringToJson(QUERY).toString(), "");
-        accessModuleImpl =
-            new AccessInternalModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), "");
     }
 
@@ -473,7 +450,6 @@ public class AccessInternalModuleImplTest {
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
             anyObject()))
                 .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl = new AccessInternalModuleImpl(conf, storageClient);
         accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
