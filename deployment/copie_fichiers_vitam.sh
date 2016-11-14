@@ -44,6 +44,18 @@ echo "	Fichiers recopiés"
 echo "------------------------"
 
 
+
+
+
+echo "	Recopie pour logbook..."
+mkdir -p ansible-vitam-rpm/roles/vitam/files/logbook
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-logbook ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	# FIXME : be more restrictive on jks files
+	cp ${REPERTOIRE_CERTIFICAT}/timestamping/hosts/${i}/*p12 ansible-vitam-rpm/roles/vitam/files/logbook/
+done
+echo "	Fichiers recopiés"
+echo "------------------------"
+
 echo "============================================================================================="
 echo "Fin de procédure ; vous pouvez déployer l'ansiblerie."
 

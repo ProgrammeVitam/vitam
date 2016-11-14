@@ -179,7 +179,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(SIP + objectUri);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageClientFactory.getClient().storeFileFromWorkspace(DEFAULT_TENANT,
+                storageClient.storeFileFromWorkspace(DEFAULT_TENANT,
                     DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, objectGUID, description);
             }
 

@@ -103,14 +103,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final String CREATION_ISSUE = "Creation issue";
     private static final String UPDATE_ISSUE = "Update issue";
     private static final String ROLLBACK_ISSUE = "Rollback issue";
-    
-    static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
-    
+
     /**
      * Quick projection for ID Only
      */
     static final BasicDBObject ID_PROJECTION = new BasicDBObject(LogbookDocument.ID, 1);
     static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
+    static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
     static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
     static final int LAST_EVENT_SLICE = -1;
@@ -251,15 +250,19 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select)
+    public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
         // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
         // Logbook operation event . Must be removed when the processing will be reworked
-        final ObjectNode operationSlice = JsonHandler.createObjectNode();
-        operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
-        return select(LogbookCollections.OPERATION, select, operationSlice);
+        if (sliced) {
+            final ObjectNode operationSlice = JsonHandler.createObjectNode();
+            operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
+            return select(LogbookCollections.OPERATION, select, operationSlice);
+        } else {
+            return select(LogbookCollections.OPERATION, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -267,7 +270,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_UNIT, select);
+        return select(LogbookCollections.LIFECYCLE_UNIT, select, true);
     }
 
     @SuppressWarnings("unchecked")
@@ -287,7 +290,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
+        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select, true);
     }
 
     @SuppressWarnings("unchecked")
@@ -443,9 +446,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookException
      */
     @SuppressWarnings("rawtypes")
-    private final MongoCursor select(final LogbookCollections collection, final JsonNode select)
+    private final MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        return select(collection, select, DEFAULT_SLICE);
+        if (sliced) {
+            return select(collection, select, DEFAULT_SLICE);
+        } else {
+            return select(collection, select, null);
+        }
     }
 
     /**

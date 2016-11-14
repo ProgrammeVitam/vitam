@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.timestamp;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.TimeStampException;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
@@ -68,14 +69,21 @@ public class TimestampGenerator {
      * @throws IOException
      */
     public byte[] generateToken(byte[] hash, DigestType digestType, BigInteger nonce)
-        throws TSPException, CertificateEncodingException, OperatorCreationException, IOException {
+        throws TimeStampException {
 
         TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
         TimeStampRequest request = reqGen.generate(digestToOid(digestType), hash, nonce);
 
-        TimeStampResponse timeStampResponse = timeStampSignature.sign(request);
+        TimeStampResponse timeStampResponse = null;
+        try {
+            timeStampResponse = timeStampSignature.sign(request);
 
-        return timeStampResponse.getEncoded();
+            return timeStampResponse.getEncoded();
+        } catch (OperatorCreationException | TSPException | CertificateEncodingException | IOException e) {
+            throw new TimeStampException("unable to generate timestamp token", e);
+        }
+
+
     }
 
     private ASN1ObjectIdentifier digestToOid(DigestType digestType) {

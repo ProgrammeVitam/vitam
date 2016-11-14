@@ -122,6 +122,9 @@ public class LogBookLifeCycleObjectGroupTest {
             nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
             logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
+            logbookConf.setP12LogbookFile("tsa.p12");
+            logbookConf.setP12LogbookPassword("1234");
+
             application = new LogbookApplication(logbookConf);
             application.start();
 

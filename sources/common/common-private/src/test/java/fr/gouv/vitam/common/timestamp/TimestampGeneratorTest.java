@@ -27,6 +27,7 @@ package fr.gouv.vitam.common.timestamp;
  * accept its terms.
  */
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.TimeStampException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
@@ -60,7 +61,7 @@ public class TimestampGeneratorTest {
 
     @Test
     public void should_generate_a_time_stamp_request()
-            throws OperatorCreationException, CertificateEncodingException, TSPException, IOException {
+        throws TimeStampException, TSPException, CertificateEncodingException, OperatorCreationException {
         // Given
         TimeStampResponse timeStampResponse = mock(TimeStampResponse.class);
         ArgumentCaptor<TimeStampRequest> timeStampRequestArgumentCaptor = ArgumentCaptor.forClass(TimeStampRequest.class);

@@ -49,5 +49,13 @@ for j in ingest access; do
 	echo "---------------------------------------------------------"
 done
 
+echo "Generation logbook avec timestamping..."
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-logbook ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	generatehostcertificate logbook logbookkeypassword caintermediatekeypassword ${i} timestamping logbook.service.consul
+	echo "	Conversion en p12..."
+	crtkey2p12 ${REPERTOIRE_CERTIFICAT}/timestamping/hosts/${i}/logbook logbookkeypassword ${i} ${p12_logbook_password}
+done
+echo "Fin de generation logbook avec timestamping"
+echo "-------------------------------------------"
 echo "============================================================================================="
 echo "Fin de script."
