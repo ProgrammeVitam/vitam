@@ -20,6 +20,7 @@ hosts-mongo-express
 ########### VITAM services ###########
 
 [vitam:children]
+hosts-ihm-recette
 zone-external
 zone-access
 zone-applicative
@@ -28,6 +29,9 @@ zone-data
 zone-admin
 
 ##### Zone externe
+
+[hosts-ihm-recette]
+localhost
 
 [zone-external:children]
 hosts-ihm-demo
@@ -152,7 +156,11 @@ dns_servers=["10.100.211.222","8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m"
 
+web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
+
 # Overrides
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 log_level=WARN
+
+reverse_proxy_port=80

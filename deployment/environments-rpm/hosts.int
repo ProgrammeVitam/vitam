@@ -3,8 +3,8 @@
 [hosts:children]
 vitam
 reverse
-library
 hosts-mongo-express
+
 
 
 ########### Tests environments specifics ###########
@@ -15,9 +15,6 @@ vitam-iaas-reverse-01.vitam
 
 ########### Extra VITAM applications ###########
 
-[library] # EXTRA : Library server
-vitam-iaas-ext-01.int
-
 [hosts-mongo-express]
 vitam-iaas-ext-01.int
 
@@ -25,12 +22,24 @@ vitam-iaas-ext-01.int
 ########### VITAM services ###########
 
 [vitam:children]
+hosts-ihm-recette
+library
 zone-external
 zone-access
 zone-applicative
 zone-storage
 zone-data
 zone-admin
+
+##### IHM recette
+
+[hosts-ihm-recette]
+vitam-iaas-ext-01.int
+
+##### EXTRA : library
+
+[library] # EXTRA : Library server
+vitam-iaas-ext-01.int
 
 
 ##### Zone externe
@@ -94,6 +103,7 @@ vitam-iaas-storage-01.int
 
 [hosts-worker]
 vitam-iaas-worker-01.int
+
 
 
 ##### Zone storage
@@ -176,3 +186,6 @@ days_to_delete_topbeat=20
 days_to_delete_local=30
 dns_servers=["172.16.1.21"]
 log_level=WARN
+
+web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
+reverse_proxy_port=8080

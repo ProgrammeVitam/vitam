@@ -96,37 +96,60 @@
 				</a>
 				<div class="panel-body">
 
-					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Mongo express</div>
-						<div class="col-md-2"><a href="/mongo-express" class="btn btn-primary btn-xs" target="_blank">mongo express</a></div>
-					</p>
 
+{% if groups['hosts-log-server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Kibana</div>
-						<div class="col-md-2"><a href="/app/kibana" class="btn btn-primary btn-xs" target="_blank">kibana</a> <a href="/api/status" class="btn btn-primary btn-xs" target="_blank">Statut</a></div>
+						<div class="col-md-2"><a href="/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a> <a href="/api/status" class="btn btn-primary btn-xs" target="_blank">Statut</a></div>
 					</p>
+{% endif %}
 
+{% if groups['library']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Documentation</div>
 						<div class="col-md-2"><a href="/doc" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
 					</p>
+{% endif %}
 
+{% if groups['hosts-consul-server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Consul</div>
 						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a></div>
 					</p>
+{% endif %}
+
+
+{% if groups['hosts-mongo-express']|length >0 %}
 					<p class="row" style="vertical-align: middle">
-						<div class="col-md-3">Elasticsearch</div>
+						<div class="col-md-3">MongoDB</div>
+						<div class="col-md-2"><a href="/mongo-express" class="btn btn-primary btn-xs" target="_blank">Mongo express</a></div>
+					</p>
+{% endif %}
+
+{% if groups['hosts-elasticsearch-log']|length >0 %}
+					<p class="row" style="vertical-align: middle">
+						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
-							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Visualisation HEAD</a>
-							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-log</a>
-							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-data</a>
-							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Elasticsearch logs</a>
-							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé Elasticsearch logs</a>
-							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Elasticsearch data</a>
-							<a href="/elasticsearch-data/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé Elasticsearch data</a>
+							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Plugin Kopf</a>
+							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">API</a>
+							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
 					</p>
+{% endif %}
+
+{% if groups['hosts-elasticsearch-data']|length >0 %}
+					<p class="row" style="vertical-align: middle">
+						<div class="col-md-3">Elasticsearch data</div>
+						<div class="col-md-9">
+							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_external_dns}}/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Plugin Kopf</a>
+							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">API</a>
+							<a href="/elasticsearch-data/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
+						</div>
+					</p>
+{% endif %}
+
 				</div>
 			</div>
 		</div>

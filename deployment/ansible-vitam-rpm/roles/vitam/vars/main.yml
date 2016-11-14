@@ -7,4 +7,4 @@ vitam_folder_lib: "{{vitam_folder_root}}/lib/{{vitam_component}}"
 vitam_folder_log: "{{vitam_folder_root}}/log/{{vitam_component}}"
 vitam_folder_scripts: "{{vitam_folder_root}}/script/{{vitam_component}}"
 vitam_folder_tmp: "{{vitam_folder_root}}/tmp/{{vitam_component}}"
-
+vitam_folder_app: "{{vitam_folder_root}}/app/{{vitam_component}}"

@@ -1,0 +1,86 @@
+<div id="global" class="container-fluid" >
+
+  <div class="text-justify">
+    <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="launchTests()">
+      <i class="material-icons pull-left">delete_choix</i>
+      <span>Lancer les tests</span>
+    </button>
+    <div ng-if="pending"><span>Test SOAP-UI en cours ...</span></div>
+    <div ng-if="finished"><span>Test SOAP-UI terminés</span></div>
+  </div>
+
+  <div class="text-justify">
+    <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="getLastResult()">
+      <i class="material-icons pull-left">delete_choix</i>
+      <span>Récupération résultats</span>
+    </button>
+  </div>
+  <div ng-if="!!report">
+    <div id="leftColumn">
+      <div id="navcolumn">
+        <h5>##</h5>
+        <ul>
+          <li class="collapsed">
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div id="bodyColumn">
+      <div id="contentBox">
+        <div class="section">
+          <h2>
+            Summary
+
+          </h2>
+          <br />
+          <table class="w3-table w3-centered w3-xlarge  w3-bordered ">
+            <tr class="a">
+              <th >Nb Tests</th>
+              <th>Succes</th>
+              <th>Failures</th>
+            </tr>
+            <tr class="w3-xlarge">
+              <td class="w3-large"><b>{{report.size}}</b></td>
+              <td class="w3-large w3-text-green"><b>{{report.success}}</b></td>
+              <td class="w3-large w3-text-red"><b>{{report.errors}}</b></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div class="section">
+
+          <div class="w3-container">
+            <h2>
+              TestSuite
+            </h2>
+            <table class="w3-table w3-centered w3-xlarge  w3-bordered">
+              <tr>
+                <th></th>
+                <th>Nom</th>
+                <th>Sip</th>
+                <th>Catégorie</th>
+                <th>Attendu</th>
+                <th>Observé</th>
+              </tr>
+              <tr class='trtab' ng-repeat="item in report.results">
+                <td  class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >
+                  <img src='images/icon_error_sml.gif'alt='' />
+                </td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.testName}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.sipName}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.category}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.expected}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.observed}}</td>
+              </tr>
+            </table>
+          </div>
+          <br />
+        </div>
+      </div>
+    </div>
+    <div class="clear">
+      <hr />
+    </div>
+  </div>
+</div>
