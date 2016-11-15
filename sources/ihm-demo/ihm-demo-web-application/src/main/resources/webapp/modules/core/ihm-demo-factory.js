@@ -84,6 +84,10 @@ angular.module('core')
         headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
   };
 
+  dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
+    return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId + '?usage=' + encodeURIComponent(options.usage) + '&version=' + encodeURIComponent(options.version) + '&filename=' + encodeURIComponent(options.filename);
+  };
+  
   // LifeCycle details
   dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
     if (IHM_URLS.UNIT_LIFECYCLE_TYPE == lifeCycleType) {
