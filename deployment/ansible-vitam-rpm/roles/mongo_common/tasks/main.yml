@@ -26,14 +26,12 @@
 
 - name: enable the new tuned profile
   command: tuned-adm profile no-thp
-  become: true
-  become_user: root
   when: tuned_service_status.stat.exists
 
 - name: restart tuned
   service:
     name: tuned
-    state: started
+    state: restarted
   when: tuned_service_status.stat.exists
 
 - name: add systemd service unit to disable THP
