@@ -1,4 +1,3 @@
-package fr.gouv.vitam.ihmrecette.appserver;
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -30,4 +29,4 @@ package fr.gouv.vitam.ihmrecette.appserver;
  * App server package for ihm recette
  * 
  */
-
+package fr.gouv.vitam.ihmrecette.appserver;

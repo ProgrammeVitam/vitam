@@ -142,6 +142,8 @@ function generateclientcertificate {
 		-out ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.crt \
 		-in ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.req \
 		-name CA_intermediate -extensions CLIENT_RSA_SSL -batch
+	# cat ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.key > ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.pem
+	# cat ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.crt >> ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.pem
 }
 
 function crtkey2p12 {
@@ -159,7 +161,8 @@ function crtkey2p12 {
 		-out "${BASEFILE}.p12" \
 		-passout pass:"${MDP_P12}";
 
-	openssl pkcs12 -in ${BASEFILE}.p12 -passin pass:"${MDP_P12}" -passout pass:"${MDP_P12}" -out ${BASEFILE}.pem
+	echo "PEM from P12..."
+	openssl pkcs12 -nodes -in ${BASEFILE}.p12 -passin pass:"${MDP_P12}" -out ${BASEFILE}.pem
 }
 
 
@@ -253,5 +256,3 @@ function addcainjks {
 		-noprompt \
 		-alias ${ALIAS}
 }
-
-

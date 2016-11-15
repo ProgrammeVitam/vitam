@@ -30,13 +30,15 @@ package fr.gouv.vitam.ihmrecette.appserver;
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Matchers.anyObject;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -45,64 +47,67 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
-import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
+import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
-    IngestExternalClientFactory.class, JsonTransformer.class, WebApplicationConfig.class})
+    IngestExternalClientFactory.class, SoapUiClientFactory.class})
 // FIXME Think about Unit tests
 public class WebApplicationResourceTest {
 
-    private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
-    private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
-    private static final String CREDENTIALS_NO_VALID =
-        "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
-    private static final String DEFAULT_HOST = "localhost";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
+    // take it from conf file
+    private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String FAKE_OPERATION_ID = "1";
-    private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
-    private static final String SIP_DIRECTORY = "sip";
     private static JunitHelper junitHelper;
     private static int port;
 
-    private static ServerApplication application;
+    private static ServerApplicationWithoutMongo application;
+
+    private static File adminConfigFile;
 
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        final WebApplicationConfig webApplicationConfig =
-            (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
-                .setSecure(false)
-                .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
-                .setJettyConfig(JETTY_CONFIG);
-        // FIXME Fix mongo conf in order to be able to run Unit tests
-        application = new ServerApplication(webApplicationConfig);
-        application.start();
+        final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
+        final WebApplicationConfig realAdminConfig =
+            PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
+        realAdminConfig.setSipDirectory(Thread.currentThread().getContextClassLoader().getResource("sip").getPath());
+        realAdminConfig.setSecure(false);
+        adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
+        PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
+
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
+
+        try {
+            application = new ServerApplicationWithoutMongo(adminConfigFile.getAbsolutePath());
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
+        } catch (final VitamApplicationServerException e) {
+
+            throw new IllegalStateException(
+                "Cannot start the Logbook Application Server", e);
+        }
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        // FIXME Fix mongo conf in order to be able to run Unit tests
         application.stop();
         junitHelper.releasePort(port);
     }
@@ -112,34 +117,7 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(UserInterfaceTransactionManager.class);
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
-    }
-
-    @Test
-    public void givenNoSecureServerLoginUnauthorized() {
-        given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode())
-            .when()
-            .post("login");
-        given().contentType(ContentType.JSON).body(CREDENTIALS_NO_VALID).expect()
-            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
-            .post("login");
-    }
-
-    @Test
-    @Ignore //FIXME  do unit test
-    public void testSuccessStatus() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("status");
-    }
-
-    @Test
-    @Ignore //FIXME  do unit test
-    public void testDeleteFormatOK() throws Exception {
-        // TODO to do
-    }
-
-    @Test
-    @Ignore //FIXME  do unit test
-    public void testDeleteRulesFileOK() throws Exception {
-        // TODO to do
+        PowerMockito.mockStatic(SoapUiClientFactory.class);
     }
 
     @Test
@@ -227,5 +205,82 @@ public class WebApplicationResourceTest {
         // Reset WebApplicationConfiguration
         application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
+    
+    @Test
+    public void testLaunchSoapUiTestSuccess() throws IOException, InterruptedException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doNothing().when(soapuiClient).launchTests();
+
+        given().expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/soapui/launch");
+    }
+    
+    @Test
+    public void testLaunchSoapUiTestWhenThrowIOException() throws IOException, InterruptedException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
+
+        given().expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .get("/soapui/launch");
+    }
+    
+    @Test
+    public void testLaunchSoapUiTestWhenThrowInterruptedException() throws IOException, InterruptedException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doThrow(InterruptedException.class).when(soapuiClient).launchTests();
+
+        given().expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .get("/soapui/launch");
+    }
+    
+
+    
+    @Test
+    public void testGetLastReportWhenThrowIOException() throws InvalidParseOperationException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doReturn(null).when(soapuiClient).getLastTestReport();
+
+        given().expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/soapui/result");
+    }
+    
+    @Test
+    public void testGetLastReportWhenThrowInterruptedException() throws InvalidParseOperationException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doThrow(InvalidParseOperationException.class).when(soapuiClient).getLastTestReport();
+
+        given().expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .get("/soapui/result");
+    }
+    
 }

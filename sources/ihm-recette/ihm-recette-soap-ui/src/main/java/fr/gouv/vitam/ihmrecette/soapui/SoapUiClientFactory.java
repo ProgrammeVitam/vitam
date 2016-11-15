@@ -35,31 +35,19 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 /**
  * SoapUI Client factory
  */
-public final class SoapUiClientFactory {
+public class SoapUiClientFactory {
 
-    /**
-     * Default client operation type
-     */
-    private static SoapUiClientType defaultClientType;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientFactory.class);
     private static final SoapUiClientFactory SOAP_UI_CLIENT_FACTORY = new SoapUiClientFactory();
     private static final String CONFIGURATION_FILENAME = "soapui.conf";
     protected SoapUiConfig clientConfiguration;
-
-    private SoapUiClientFactory() {
-        changeConfiguration(CONFIGURATION_FILENAME);
-    }
+    private SoapUiClientType clientType = SoapUiClientType.MOCK;
 
     /**
-     * @param configuration
+     * Initialize the factory configuration 
      */
-    public static final void changeMode(SoapUiConfig configuration) {
-        if (configuration == null) {
-            changeDefaultClientType(SoapUiClientType.MOCK);
-        } else {
-            changeDefaultClientType(SoapUiClientType.NORMAL);
-            getInstance().clientConfiguration = configuration;
-        }
+    private SoapUiClientFactory() {
+        changeConfiguration(CONFIGURATION_FILENAME);
     }
 
     /**
@@ -78,7 +66,7 @@ public final class SoapUiClientFactory {
      */
     public SoapUiClient getClient() {
         SoapUiClient client;
-        switch (defaultClientType) {
+        switch (clientType) {
             case MOCK:
                 client = new SoapUiClientMock();
                 break;
@@ -96,8 +84,8 @@ public final class SoapUiClientFactory {
      *
      * @return the default SoapUI client type
      */
-    public static SoapUiClientType getDefaultSoapUIClientType() {
-        return defaultClientType;
+    public SoapUiClientType getClientType() {
+        return clientType;
     }
 
     /**
@@ -106,11 +94,11 @@ public final class SoapUiClientFactory {
      * @param type the client type to set
      * @throws IllegalArgumentException if type null
      */
-    static void changeDefaultClientType(SoapUiClientType type) {
+    void changeClientType(SoapUiClientType type) {
         if (type == null) {
             throw new IllegalArgumentException();
         }
-        defaultClientType = type;
+        clientType = type;
     }
 
     /**
@@ -119,25 +107,27 @@ public final class SoapUiClientFactory {
      * @param configurationPath
      */
     public final void changeConfiguration(String configurationPath) {
-        changeDefaultClientType(SoapUiClientType.MOCK);
+        changeClientType(SoapUiClientType.MOCK);
         SoapUiConfig configuration = null;
-        String configurationNewPath = configurationPath;
-        if (configurationNewPath == null) {
-            configurationNewPath = CONFIGURATION_FILENAME;
+        
+        if (configurationPath == null) {
+        	LOGGER.error("Error when retrieving configuration file {}, using mock",
+                    configurationPath);
+        	return;
         }
 
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationNewPath), SoapUiConfig.class);
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), SoapUiConfig.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationNewPath, fnf);
+            		configurationPath, fnf);
         }
 
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationNewPath);
+            		configurationPath);
         } else {
-            changeDefaultClientType(SoapUiClientType.NORMAL);
+            changeClientType(SoapUiClientType.NORMAL);
             clientConfiguration = configuration;
         }
     }

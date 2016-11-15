@@ -29,12 +29,15 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
 
+import java.io.File;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 /**
@@ -42,27 +45,23 @@ import fr.gouv.vitam.common.junit.JunitHelper;
  */
 // FIXME Think about Unit tests
 public class WebApplicationResourceAuthTest {
+    // Take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String OPTIONS = "{name: \"myName\"}";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
-    private static final String DEFAULT_HOST = "localhost";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     private static JunitHelper junitHelper;
     private static int port;
     private static String sessionId;
-    private static ServerApplication application;
+    private static ServerApplicationWithoutMongo application;
 
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        application = new ServerApplication(
-            ((WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
-                .setSecure(true).setJettyConfig(JETTY_CONFIG)));
+        final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
+        application = new ServerApplicationWithoutMongo(adminConfig.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

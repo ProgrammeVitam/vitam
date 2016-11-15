@@ -40,19 +40,19 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * SoapUI Client Command
+ * Implementation of Soap UI Client that use command line executable
+ * Use a SoapUiConfig as configuration
  */
 public class SoapUiClientCommand implements SoapUiClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientCommand.class);
     private static final String SOAP_UI_DESC_FILE = "story-tests.xml";
-    private static final String REPORTING_TEMPLATE_FILE = "reporting_template.html";
     
     private SoapUiConfig clientConfiguration;
     
     /**
-     * Constructor
+     * Constructor : Create a new SoapUi client with the given configuration
      * 
-     * @param clientConfiguration
+     * @param clientConfiguration The client configuration
      */
     public SoapUiClientCommand(SoapUiConfig clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
@@ -62,9 +62,9 @@ public class SoapUiClientCommand implements SoapUiClient {
     public void launchTests() throws IOException, InterruptedException {
         String executablePath = clientConfiguration.getSoapUiExecutable();
 
-        String logbookProtocol = clientConfiguration.getLogbookProtocol();
-        String logbookHostName = clientConfiguration.getLogbookHost();
-        int logbookPort = clientConfiguration.getLogbookPort();
+        String logbookProtocol = clientConfiguration.getAccessExternalProtocol();
+        String logbookHostName = clientConfiguration.getAccessExternalHost();
+        int logbookPort = clientConfiguration.getAccessExternalPort();
         String logbookHost = logbookProtocol + "://" + logbookHostName + ":" + logbookPort + "/";
 
         String ingestProtocol = clientConfiguration.getIngestProtocol();
@@ -78,14 +78,12 @@ public class SoapUiClientCommand implements SoapUiClient {
         String configDir = clientConfiguration.getConfigDir();
 
         String soapUiDescFilePath = PropertiesUtils.findFile(SOAP_UI_DESC_FILE).getAbsolutePath();
-        String reportingTemplateFilePath = PropertiesUtils.findFile(REPORTING_TEMPLATE_FILE).getAbsolutePath();
         
         StringBuilder cmdBuilder = new StringBuilder().append(executablePath);
         cmdBuilder.append(" -P ingestHost=").append(ingestHost);
         cmdBuilder.append(" -P logbookHost=").append(logbookHost);
         cmdBuilder.append(" -P certfile=").append(certfile);
         cmdBuilder.append(" -P dataDir=").append(dataDir);
-        cmdBuilder.append(" -P reportingTemplate=").append(reportingTemplateFilePath);
         cmdBuilder.append(" -P reportingDir=").append(reportingDir);
         cmdBuilder.append(" -P configDir=").append(configDir);
         cmdBuilder.append(" ").append(soapUiDescFilePath);

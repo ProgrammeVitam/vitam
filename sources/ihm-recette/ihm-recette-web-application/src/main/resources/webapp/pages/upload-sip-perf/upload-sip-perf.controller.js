@@ -34,7 +34,7 @@ angular.module('upload.sip.perf')
       number = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
   }})
-  .controller('UploadSipPerfController', function($scope, ihmDemoFactory){
+  .controller('UploadSipPerfController', function($scope, uploadSipPerfResource){
     $scope.sipList = [];
     $scope.ingestOperationId = '';
     $scope.uploadLaunched = false;
@@ -43,10 +43,10 @@ angular.module('upload.sip.perf')
     $scope.sipFound = true;
 
     $scope.getAvailableSipForUpload = function getAvailableSipForUpload(){
-      ihmDemoFactory.getAvailableSipForUpload()
+      uploadSipPerfResource.getAvailableSipForUpload()
       .then(function (response) {
         $scope.sipList = response.data;
-        if($scope.sipList.length > 0){
+        if ($scope.sipList.length > 0){
           $scope.sipFound = true;
         } else {
           $scope.sipFound = false;
@@ -65,7 +65,7 @@ angular.module('upload.sip.perf')
       $scope.uploadLaunched = true;
       $scope.uploadFinished = false;
       $scope.uploadFailed = false;
-      ihmDemoFactory.uploadSelectedSip(fileName)
+      uploadSipPerfResource.uploadSelectedSip(fileName)
       .then(function (response) {
         $scope.ingestOperationId = response.data;
         $scope.uploadFinished = true;
@@ -84,7 +84,7 @@ angular.module('upload.sip.perf')
 
     // Generate Operation Statistics
     $scope.generateOperationStatistics = function generateOperationStatistics(operationId) {
-      ihmDemoFactory.generateIngestStatReport(operationId)
+      uploadSipPerfResource.generateIngestStatReport(operationId)
       .then(function (response) {
         var a = document.createElement("a");
         document.body.appendChild(a);

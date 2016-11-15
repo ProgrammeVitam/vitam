@@ -36,9 +36,8 @@ import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 /**
  * MetaDataConfiguration contains database access informations
  */
-public final class MetaDataConfiguration extends DbConfigurationImpl {
+public class MetaDataConfiguration extends DbConfigurationImpl {
 
-    private String jettyConfig;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
@@ -49,67 +48,40 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
      * @param dbName database name
      * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
-     * @param jettyConfig jetty config fiel name
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig) {
+        List<ElasticsearchNode> elasticsearchNodes) {
         super(mongoDbNodes, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
-        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
-        this.jettyConfig = jettyConfig;
     }
 
     /**
      * MetaDataConfiguration constructor with authentication
-     * 
+     *
      * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
      * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
-     * @param jettyConfig jetty config fiel name
      * @param dbAuthentication
      * @param dbUserName
      * @param dbPassword
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName,
-        String dbPassword) {
+        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
-        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
-        this.jettyConfig = jettyConfig;
     }
 
     /**
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
     public MetaDataConfiguration() {}
-
-    /**
-     * getter jettyConfig
-     *
-     * @return return the jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config
-     * @return return the jettyConfig
-     */
-    public MetaDataConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
 
 
     /**

@@ -25,46 +25,38 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for administration operation
-angular.module('core')
-  .service('adminService', function(adminResource) {
+package fr.gouv.vitam.common.exception;
 
-    var AdminService = this;
+/**
+ * Generic database exception throws by database services
+ */
+public class DatabaseException extends VitamException {
 
-    AdminService.deleteFileFormat = function(successCallback, errorCallback) {
-      adminResource.deleteFormats().then(successCallback, errorCallback);
-    };
+    /**
+     * Basic constructor to indicate a simple error message without stacktrace
+     *
+     * @param message message to log
+     */
+    public DatabaseException(String message) {
+        super(message);
+    }
 
-    AdminService.deleteRulesFile = function(successCallback, errorCallback) {
-      adminResource.deleteRules().then(successCallback, errorCallback);
-    };
+    /**
+     * Constructor used to encapsulate a previously thrown exception. A generic message is used.
+     *
+     * @param cause the originating exception
+     */
+    public DatabaseException(Throwable cause) {
+        super(cause);
+    }
 
-    AdminService.deleteAccessionRegisters = function(successCallback, errorCallback) {
-      adminResource.deleteAccessionRegisters().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteLogbooks = function(successCallback, errorCallback) {
-      adminResource.deleteLogbooks().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteUnitLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteUnitLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteOGLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteOGLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteArchiveUnits = function(successCallback, errorCallback) {
-      adminResource.deleteArchiveUnits().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteObjectGroups = function(successCallback, errorCallback) {
-      adminResource.deleteObjectGroups().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAll = function(successCallback, errorCallback) {
-      adminResource.deleteAll().then(successCallback, errorCallback);
-    };
-
-  });
+    /**
+     * Constructor used to encapsulate a previously thrown exception but with a custom meaningful message
+     *
+     * @param message the message to log throw threw
+     * @param cause the originating exception
+     */
+    public DatabaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

@@ -24,15 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import java.util.List;
+
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 /**
  * Web Application Configuration class
  */
-public class WebApplicationConfig extends DbConfigurationImpl {
+public class WebApplicationConfig extends MetaDataConfiguration {
 
     private int port;
     private String serverHost;
@@ -40,39 +44,28 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     private String staticContent;
     private boolean secure;
     private String sipDirectory;
+    private String masterdataDbName;
+    private String logbookDbName;
+    private String metadataDbName;
 
     /**
-     * @return port
+     * Constructor for tests
      */
-    public int getPort() {
-        return port;
+    WebApplicationConfig() {
+        super();
     }
 
     /**
-     * @param port port of the web application
-     * @return WebApplicationConfig
+     * Default constructor (keep it ?)
+     *
+     * @param mongoDbNodes nodes mongoDb
+     * @param dbName mongoDb name
+     * @param clusterName elastic search cluster name
+     * @param elasticsearchNodes nodes elastic search
      */
-    public WebApplicationConfig setPort(int port) {
-        ParametersChecker.checkParameter("port is mandatory", port);
-        this.port = port;
-        return this;
-    }
-
-    /**
-     * @return serverHost
-     */
-    public String getServerHost() {
-        return serverHost;
-    }
-
-    /**
-     * @param serverHost server host of the web application
-     * @return WebApplicationConfig
-     */
-    public WebApplicationConfig setServerHost(String serverHost) {
-        ParametersChecker.checkParameter("serverHost is mandatory", serverHost);
-        this.serverHost = serverHost;
-        return this;
+    public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes) {
+        super(mongoDbNodes, dbName, clusterName, elasticsearchNodes);
     }
 
     /**
@@ -83,17 +76,14 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     /**
-     * @param baseUrl url of the base
-     * @return WebApplicationConfig
+     * @param baseUrl the base url
      */
-    public WebApplicationConfig setBaseUrl(String baseUrl) {
-        ParametersChecker.checkParameter("baseUrl is mandatory", baseUrl);
+    public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-        return this;
     }
 
     /**
-     * @return staticContent
+     * @return static content
      */
     public String getStaticContent() {
         return staticContent;
@@ -101,28 +91,23 @@ public class WebApplicationConfig extends DbConfigurationImpl {
 
     /**
      * @param staticContent static content from server
-     * @return WebApplicationConfig
      */
-    public WebApplicationConfig setStaticContent(String staticContent) {
-        ParametersChecker.checkParameter("staticContent is mandatory", staticContent);
+    public void setStaticContent(String staticContent) {
         this.staticContent = staticContent;
-        return this;
     }
 
     /**
-     * @return secure value
+     * @return true if athentication needed, false otherwise
      */
     public boolean isSecure() {
         return secure;
     }
 
     /**
-     * @param secure value
-     * @return WebApplicationConfig object
+     * @param secure the secure access value
      */
-    public WebApplicationConfig setSecure(boolean secure) {
+    public void setSecure(boolean secure) {
         this.secure = secure;
-        return this;
     }
 
     /**
@@ -133,11 +118,79 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     /**
-     * @param sipDirectory directory that contains SIPs ready for upload
-     * @return WebApplicationConfig object
+     * @param sipDirectory the directory path that contains SIPs ready for upload
      */
-    public WebApplicationConfig setSipDirectory(String sipDirectory) {
+    public void setSipDirectory(String sipDirectory) {
         this.sipDirectory = sipDirectory;
-        return this;
+    }
+
+    /**
+     * @return the server host
+     */
+    public String getServerHost() {
+        return serverHost;
+    }
+
+    /**
+     * @param serverHost the server host
+     */
+    public void setServerHost(String serverHost) {
+        this.serverHost = serverHost;
+    }
+
+    /**
+     * @return the port number
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * @param port the port number
+     */
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    /**
+     * @return masterdata database name
+     */
+    public String getMasterdataDbName() {
+        return masterdataDbName;
+    }
+
+    /**
+     * @param masterdataDbName masterdata database name
+     */
+    public void setMasterdataDbName(String masterdataDbName) {
+        this.masterdataDbName = masterdataDbName;
+    }
+
+    /**
+     * @return logbook database name
+     */
+    public String getLogbookDbName() {
+        return logbookDbName;
+    }
+
+    /**
+     * @param logbookDbName logbook database name
+     */
+    public void setLogbookDbName(String logbookDbName) {
+        this.logbookDbName = logbookDbName;
+    }
+
+    /**
+     * @return metadata database name
+     */
+    public String getMetadataDbName() {
+        return metadataDbName;
+    }
+
+    /**
+     * @param metadataDbName metadata database name
+     */
+    public void setMetadataDbName(String metadataDbName) {
+        this.metadataDbName = metadataDbName;
     }
 }

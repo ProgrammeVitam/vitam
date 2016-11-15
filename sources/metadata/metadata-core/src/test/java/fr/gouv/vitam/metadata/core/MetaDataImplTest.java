@@ -62,6 +62,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
@@ -70,7 +71,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({DbRequestFactoryImpl.class})
+@PrepareForTest({DbRequestFactoryImpl.class, MongoDbAccessMetadataFactory.class})
 public class MetaDataImplTest {
 
     private MetaData metaDataImpl;
@@ -130,6 +131,7 @@ public class MetaDataImplTest {
     @Before
     public void setUp() throws Exception {
         request = mock(DbRequest.class);
+        PowerMockito.mockStatic(MongoDbAccessMetadataFactory.class);
         mongoDbAccessFactory = mock(MongoDbAccessMetadataFactory.class);
         PowerMockito.mockStatic(DbRequestFactoryImpl.class);
         dbRequestFactory = mock(DbRequestFactoryImpl.class);

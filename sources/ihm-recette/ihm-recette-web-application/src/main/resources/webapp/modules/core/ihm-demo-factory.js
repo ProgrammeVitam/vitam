@@ -28,8 +28,7 @@
 angular.module('core')
   .constant('IHM_URLS', {
     'IHM_DEFAULT_URL':'/adminHome',
-    'IHM_BASE_URL':'/ihm-recette/v1/api',
-    'GENERATE_STAT_URL': '/stat/'
+    'IHM_BASE_URL':'/ihm-recette/v1/api'
   })
 
   /*ihmDemoCLient create a configured restangular client*/

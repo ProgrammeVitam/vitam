@@ -119,7 +119,7 @@ public class MongoDbAccessFactoryTest {
         List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = new MongoDbAccessMetadataFactory()
-            .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG));
+            .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

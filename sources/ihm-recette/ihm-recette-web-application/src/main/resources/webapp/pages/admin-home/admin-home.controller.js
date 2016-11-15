@@ -27,42 +27,134 @@
 
 // Define controller for admin_home
 angular.module('admin.home')
-  .controller('adminHomeController', function($scope, $route, $mdDialog, adminService) {
+  .controller('adminHomeController', function($scope, $filter, adminService, messageService) {
 
     /**
-     * Init the successCallback for the http accession-register getSummary function.
-     *
-     * @param title String The alert title
-     * @param message String The alert title
+     * Prefix code for callback message of this page
+     * @type {string}
      */
-    var deleteDefaultCallback = function(title, message) {
-      var alert = $mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-        .title(title)
-        .textContent(message)
-        .ok("OK");
-      $mdDialog.show(alert).then(function(){
-        $route.reload();
-      });
-    };
+    var CODE_PREFIX = 'admin.delete.';
 
-    var getSpecificCallback = function(title, message) {
-      return function() {
-        deleteDefaultCallback(title, message);
+    /**
+     * Prefix code for delete confirmation popup
+     * @type {string}
+     */
+    var CONFIRM_PREFIX = 'confirm.admin.delete.';
+
+    /**
+     * Format and display an error with the list of deletion failure
+     *
+     * @param response The http response
+     */
+    var displayDeleteAllError = function(response) {
+    	
+      var template = '<md-dialog aria-label="List dialog" class="md-default-theme">' +
+        '  <md-dialog-content class="md-dialog-content">'+
+        '    <h2 class="md-title ng-binding">{{title}}</h2>' +
+        '    <md-list>'+
+        '      <div class="_md-dialog-content-body ng-scope">' +
+        '      <p class="ng-binding">{{message}}</p>' +
+        '      <md-list-item ng-repeat="error in errorList">'+
+        '       <p>{{error}}</p>' +
+        '      </md-list-item>' +
+        '    </md-list>'+
+        '  </md-dialog-content>' +
+        '  <md-dialog-actions>' +
+        '    <button ng-click="closeDialog()" class="md-primary md-button md-default-theme md-ink-ripple" md-autofocus="true">OK</button>' +
+        '  </md-dialog-actions>' +
+        '</md-dialog>';
+
+      var locals = {
+        errorList: response.data,
+        title: $filter('translate')(CODE_PREFIX + 'all.title.error'),
+        message: $filter('translate')(CODE_PREFIX + 'all.message.error')
       };
+
+      var controller = function($scope, $mdDialog, errorList, message, title) {
+        $scope.errorList = errorList;
+        $scope.message = message;
+        $scope.title = title;
+        $scope.closeDialog = function() {
+          $mdDialog.hide();
+        }
+      };
+
+      messageService.specificTemplateMessageAlert(template, locals, controller);
     };
 
-    // Init summaryData & operationArray
+    /**
+     * Display a delete confirmation message and launch deletion if user confirm.
+     *
+     * @param deleteFunction {Function} The deletion function called if user confirm action
+     * @param deleteMessageCode {String} The message code corresponding to the type of item how must be deleted
+     */
+    $scope.deleteConfirm = function(deleteFunction, deleteMessageCode) {
+      if (messageService.typedMessageConfirm(CONFIRM_PREFIX, deleteMessageCode, deleteFunction)) {
+        deleteFunction();
+      }
+    };
+
     $scope.deleteFormats = function () {
       adminService.deleteFileFormat(
-        getSpecificCallback('Test Format Title Success', 'Test Format Message Success'),
-        getSpecificCallback('Test Format Title Error', 'Test Format Message Error')
+        messageService.typedMessageAlert(CODE_PREFIX, 'format', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'format', false)
       );
     };
 
     $scope.deleteRules = function () {
       adminService.deleteRulesFile(
-        getSpecificCallback('Test Rule Title Success', 'Test Rule Message Success'),
-        getSpecificCallback('Test Rule Title Error', 'Test Rule Message Error')
+        messageService.typedMessageAlert(CODE_PREFIX, 'rule', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'rule', false)
       );
     };
+
+    $scope.deleteAccessionRegisters = function () {
+      adminService.deleteAccessionRegisters(
+        messageService.typedMessageAlert(CODE_PREFIX, 'accessionRegister', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'accessionRegister', false)
+      );
+    };
+
+    $scope.deleteLogbooks = function () {
+      adminService.deleteLogbooks(
+        messageService.typedMessageAlert(CODE_PREFIX, 'logbook', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'logbook', false)
+      );
+    };
+
+    $scope.deleteUnitLifeCycles = function () {
+      adminService.deleteUnitLifeCycles(
+        messageService.typedMessageAlert(CODE_PREFIX, 'unitLifeCycle', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'unitLifeCycle', false)
+      );
+    };
+
+    $scope.deleteOGLifeCycles = function () {
+      adminService.deleteOGLifeCycles(
+        messageService.typedMessageAlert(CODE_PREFIX, 'objectGroupLifeCycle', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'objectGroupLifeCycle', false)
+      );
+    };
+
+    $scope.deleteArchiveUnits = function() {
+      adminService.deleteArchiveUnits(
+        messageService.typedMessageAlert(CODE_PREFIX, 'archiveUnit', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'archiveUnit', false)
+      );
+    };
+
+    $scope.deleteObjectGroups = function () {
+      adminService.deleteObjectGroups(
+        messageService.typedMessageAlert(CODE_PREFIX, 'objectGroup', true),
+        messageService.typedMessageAlert(CODE_PREFIX, 'objectGroup', false)
+      );
+    };
+
+    $scope.deleteAll = function() {
+      adminService.deleteAll(
+        messageService.typedMessageAlert(CODE_PREFIX, 'all', true),
+        displayDeleteAllError
+      );
+    };
+
   });

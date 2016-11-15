@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -73,6 +74,12 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "FileFormat";
+
+    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
+    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
+    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
+    private static final String MESSAGE_LOGBOOK_DELETE_KO = "Le Référentiel de format n'a pas ou a partiellement été " +
+        "vidé";
 
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
     private static final String STP_REFERENTIAL_FORMAT_DELETE = "STP_REFERENTIAL_FORMAT_DELETE";
@@ -177,14 +184,22 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                 LOGGER.error(e);
             }
 
-            mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-
             final GUID eip1 = GUIDFactory.newGUID();
-            final LogbookOperationParameters logbookParametersEnd =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip1, STP_REFERENTIAL_FORMAT_DELETE, eip,
-                    LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.OK), eip1);
+
+            LogbookOperationParameters logbookParametersEnd;
+            try {
+                mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+                logbookParametersEnd =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        eip1, STP_REFERENTIAL_FORMAT_DELETE, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.OK), eip1);
+            } catch (DatabaseException exc) {
+                LOGGER.error(exc);
+                logbookParametersEnd =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        eip1, STP_REFERENTIAL_FORMAT_DELETE, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.KO), eip1);
+            }
 
             try {
                 client.update(logbookParametersEnd);

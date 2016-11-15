@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
  * All collections
  *
  */
-enum LogbookCollections {
+public enum LogbookCollections {
     /**
      * Operation Collection
      */

@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
@@ -142,8 +143,10 @@ public class MetaDataResourceTest {
 
         List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
+        // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
 
         application = new MetaDataApplication(configuration);

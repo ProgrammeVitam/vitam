@@ -74,7 +74,6 @@ public class MongoDbAccessMetadataFactoryTest {
     private static List<MongoDbNode> mongoDbNodes;
 
     private static final String DATABASE_HOST = "localhost";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     static MongoDbAccessMetadataImpl mongoDbAccess;
     private static JunitHelper junitHelper;
     private static int port;
@@ -135,7 +134,7 @@ public class MongoDbAccessMetadataFactoryTest {
     @Test
     public void testCreateMetadataMongoAccessWithAuthentication() {
         MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG, true, user, pwd);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, true, user, pwd);
         mongoDbAccess = new MongoDbAccessMetadataFactory()
             .create(config);
         assertNotNull(mongoDbAccess);
@@ -148,14 +147,14 @@ public class MongoDbAccessMetadataFactoryTest {
         final List<ElasticsearchNode> nodesEmpty = new ArrayList<ElasticsearchNode>();
         final MongoDbAccessMetadataImpl mongoDbAccessError = new MongoDbAccessMetadataFactory()
             .create(
-                new MetaDataConfiguration(mongoDbNodes, "vitam-test", CLUSTER_NAME, nodesEmpty, JETTY_CONFIG));
+                new MetaDataConfiguration(mongoDbNodes, "vitam-test", CLUSTER_NAME, nodesEmpty));
         mongoDbAccessError.close();
     }
 
     @Test(expected = com.mongodb.MongoCommandException.class)
     public void shouldThrowExceptionWhenGetDatabaseNames() {
         MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);
@@ -188,7 +187,7 @@ public class MongoDbAccessMetadataFactoryTest {
     @Test
     public void shouldHavePermissions() throws MetaDataException{        
         MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);

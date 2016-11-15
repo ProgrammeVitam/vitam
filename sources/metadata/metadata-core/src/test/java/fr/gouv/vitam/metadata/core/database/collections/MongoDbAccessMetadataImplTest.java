@@ -118,7 +118,7 @@ public class MongoDbAccessMetadataImplTest {
         List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = mongoDbAccessFactory
-            .create(new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG));
+            .create(new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes));
 
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);

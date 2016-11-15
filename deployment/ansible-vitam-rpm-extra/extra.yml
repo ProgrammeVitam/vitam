@@ -23,7 +23,7 @@
 
 - hosts: hosts-ihm-recette
   roles:
-    - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", secret_platform: "false" }
+    - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", secret_platform: "false", cluster_name: elasticsearch-data }
     - soapui_get_tests
 
 - hosts: reverse
