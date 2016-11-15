@@ -1,13 +1,19 @@
 ---
 # Installation order
 #
-# 	1. Consul
-#	2. Elasticsearch Log
-#	3. Log server
-#	4. rsyslog
-#	5. Elasticsearch Data
-#	6. Mongo
-#	7. Vitam applications
+#   1. Normalize
+# 	2. Consul
+#	3. Elasticsearch Log
+#	4. Log server
+#	5. rsyslog
+#	6. Elasticsearch Data
+#	7. Mongo
+#	8. Vitam applications
+
+### HOSTS NORMALIZATION ###
+- hosts: vitam
+  roles:
+    - normalize-host
 
 ### CONSUL INSTALLATION ###
 # KWA : TODO : installer les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
@@ -31,7 +37,6 @@
 # TODO : à régler properment
 - hosts: vitam
   roles:
-    - normalize-host
     - rsyslog
 
 ### ELASTICSEARCH DATA INSTALLATION ###

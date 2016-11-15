@@ -4,10 +4,9 @@
   yum:
     name: "{{consul_service}}"
     state: latest
-    update_cache: yes
 
-- name: Check that the consul directories exist 
-  file: 
+- name: Check that the consul directories exist
+  file:
     path: "/vitam/{{ item }}/{{consul_component}}"
     state: directory
     owner: "{{ vitam_user}}"
@@ -18,7 +17,7 @@
     - bin
     - conf
     - lib
-    - log 
+    - log
     - data
     - tmp
 
@@ -34,7 +33,7 @@
     - "consul.json"
 
 - name: (re-)start consul
-  service: 
+  service:
     name: "{{consul_service}}"
     enabled: true
   notify:
