@@ -120,11 +120,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
         JsonNode result = null;
-        JsonNode queryJson = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(queryJson);
-                result = accessModule.selectUnit(queryJson);
+                SanityChecker.checkJsonAll(queryDsl);
+                result = accessModule.selectUnit(queryDsl);
             } else {
                 throw new AccessInternalExecutionException(THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER);
             }
