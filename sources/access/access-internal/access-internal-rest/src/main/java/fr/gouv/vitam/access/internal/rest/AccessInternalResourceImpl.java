@@ -303,7 +303,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             AccessBinaryData receivedAbd =
-                accessModule.getOneObjectFromObjectGroup(idObjectGroup, query, xQualifier,
+                accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
                     Integer.valueOf(xVersion), xTenantId);
             helper = new AsyncInputStreamHelper(asyncResponse, receivedAbd.getOriginalResponse());
             ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, xQualifier)

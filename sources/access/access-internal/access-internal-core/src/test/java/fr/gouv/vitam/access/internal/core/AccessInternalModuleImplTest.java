@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -93,7 +94,7 @@ public class AccessInternalModuleImplTest {
     private LogbookOperationsClient logbookOperationClient;
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private StorageClient storageClient;
-
+    private static AsyncResponseJunitTest asynResponse = new AsyncResponseJunitTest();
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -107,10 +108,10 @@ public class AccessInternalModuleImplTest {
     private static final String FAKE_METADATA_RESULT = "{$result:[{'_id':123}]}";
     private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$result:[{'_id':123}, {'_id':124}]}";
     private static final Update updateQuery = new Update();
-
+    
    
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Exception {        
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         HOST += serverPort;
@@ -420,9 +421,9 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
             anyObject()))
-                .thenReturn(responseMock);
+                .thenReturn(responseMock);        
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
         assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
@@ -435,13 +436,13 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -451,7 +452,7 @@ public class AccessInternalModuleImplTest {
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
             anyObject()))
                 .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
 }

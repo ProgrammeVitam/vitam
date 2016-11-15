@@ -484,7 +484,7 @@ public class AccessInternalResourceImplTest {
             MediaType.APPLICATION_OCTET_STREAM, headers);
         AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenReturn(abd);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -497,7 +497,7 @@ public class AccessInternalResourceImplTest {
             MediaType.APPLICATION_OCTET_STREAM, headers);
         abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenReturn(abd);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -514,7 +514,7 @@ public class AccessInternalResourceImplTest {
             MediaType.APPLICATION_OCTET_STREAM, headers);
         AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenReturn(abd);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(BODY_TEST)
@@ -568,7 +568,7 @@ public class AccessInternalResourceImplTest {
     public void getObjectStreamNotFound() throws Exception {
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -577,7 +577,7 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new MetaDataNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -590,7 +590,7 @@ public class AccessInternalResourceImplTest {
     public void getObjectStreamInternalServerError() throws Exception {
         reset(mock);
         when(
-            mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)

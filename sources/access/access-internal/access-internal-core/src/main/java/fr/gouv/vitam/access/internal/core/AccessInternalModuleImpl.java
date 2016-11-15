@@ -29,8 +29,11 @@ package fr.gouv.vitam.access.internal.core;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -40,6 +43,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -60,6 +64,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -212,7 +217,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public AccessBinaryData getOneObjectFromObjectGroup(String idObjectGroup,
+    public AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
         JsonNode queryJson, String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
@@ -269,6 +274,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
+            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, qualifier)
+                .header(GlobalDataRest.X_VERSION, version)
+                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                .type(mimetype);
+            helper.writeResponse(responseBuilder);
             return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
