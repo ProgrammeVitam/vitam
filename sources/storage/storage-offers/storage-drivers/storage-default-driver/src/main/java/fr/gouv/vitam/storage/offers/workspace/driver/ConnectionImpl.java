@@ -133,9 +133,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
                     final GetObjectResult result =
-                        new GetObjectResult(request.getTenantId(), streamClosedAutomatically);
+                        new GetObjectResult(request.getTenantId(), response);
                     return result;
                 case NOT_FOUND:
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +

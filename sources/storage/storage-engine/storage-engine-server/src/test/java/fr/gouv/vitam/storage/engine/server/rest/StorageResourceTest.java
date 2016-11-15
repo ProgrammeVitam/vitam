@@ -29,10 +29,14 @@ package fr.gouv.vitam.storage.engine.server.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.jetty.server.Handler;
@@ -51,6 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -58,6 +63,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.BasicVitamServer;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
@@ -934,8 +940,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId,
-            DataCategory category)
+        public Response getContainerByCategory(String tenantId, String strategyId, String objectId,
+            DataCategory category, AsyncResponse asyncResponse)
             throws StorageNotFoundException, StorageTechnicalException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Object not found");
@@ -943,8 +949,14 @@ public class StorageResourceTest {
             if (TENANT_ID_A_E.equals(tenantId)) {
                 throw new StorageTechnicalException("Technical exception");
             }
-
-            return null;
+            
+            Response response = new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            
+            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            helper.writeResponse(responseBuilder);
+            return response;
         }
 
         @Override

@@ -46,6 +46,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -58,7 +59,6 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  *
@@ -294,19 +294,19 @@ public class StorageDistributionImplTest {
     @Test
     public void testGetContainerByCategoryIllegalArgumentException() throws Exception {
         try {
-            simpleDistribution.getContainerByCategory(null, null, null, null);
+            simpleDistribution.getContainerByCategory(null, null, null, null, new AsyncResponseJunitTest());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(TENANT_ID + this, null, null, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID + this, null, null, null, new AsyncResponseJunitTest());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, null, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, null, null, new AsyncResponseJunitTest());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -315,7 +315,7 @@ public class StorageDistributionImplTest {
 
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
-        simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, "0", DataCategory.OBJECT);
+        simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, "0", DataCategory.OBJECT, new AsyncResponseJunitTest());
     }
 
     @Test(expected = UnsupportedOperationException.class)

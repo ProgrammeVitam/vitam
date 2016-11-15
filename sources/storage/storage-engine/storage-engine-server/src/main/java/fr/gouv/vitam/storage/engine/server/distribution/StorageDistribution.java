@@ -28,6 +28,9 @@ package fr.gouv.vitam.storage.engine.server.distribution;
 
 import java.io.InputStream;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
@@ -136,13 +139,14 @@ public interface StorageDistribution {
      * @param tenantId id of the tenant
      * @param strategyId id of the strategy
      * @param objectId id of the object
-     * @param category 
-     * @return an object as an InputStream
+     * @param category
+     * @param asyncResponse asyncResponse  
+     * @return an object as a Response with an InputStream
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
     //TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    InputStream getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category)
+    Response getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category, AsyncResponse asyncResponse)
         throws StorageNotFoundException, StorageTechnicalException;
 
     /**

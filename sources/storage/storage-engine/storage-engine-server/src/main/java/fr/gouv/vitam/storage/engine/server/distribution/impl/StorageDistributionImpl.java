@@ -36,6 +36,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
@@ -55,6 +59,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -502,9 +507,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    // FIXME P0 must return Response
-    public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId,
-        DataCategory category)
+    public Response getContainerByCategory(String tenantId, String strategyId, String objectId,
+        DataCategory category, AsyncResponse asyncResponse)
         throws StorageNotFoundException, StorageTechnicalException {
         // Check input params
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
@@ -519,14 +523,14 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final GetObjectResult result = getGetObjectResult(tenantId, objectId, category, offerReferences);
+            final GetObjectResult result = getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
     private GetObjectResult getGetObjectResult(String tenantId, String objectId, DataCategory type,
-        List<OfferReference> offerReferences)
+        List<OfferReference> offerReferences, AsyncResponse asyncResponse)
         throws StorageTechnicalException, StorageNotFoundException {
         GetObjectResult result;
         for (final OfferReference offerReference : offerReferences) {
@@ -538,6 +542,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, type.getFolder());
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
+                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
+                    ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+                    helper.writeResponse(responseBuilder);
                     return result;
                 }
             } catch (final StorageDriverException exc) {
