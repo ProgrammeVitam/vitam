@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -134,6 +136,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         this.webApplicationConfig = webApplicationConfig;
     }
+
     /**
      * Retrieve all the messages for logbook
      * 
@@ -360,7 +363,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
-        }        
+        }
         return Response.status(Status.fromStatusCode(response.getStatus())).entity(responseXml)
             .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
             .header(GlobalDataRest.X_REQUEST_ID, guid)
@@ -635,32 +638,37 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     }
 
+
     /**
      * Retrieve an Object data as an input stream
      *
      * @param objectGroupId the object group Id
-     * @param options additional parameters like usage and version
+     * @param usage additional mandatory parameters usage
+     * @param version additional mandatory parameters version
+     * @param filename additional mandatory parameters filename
      * @return a response containing the input stream
      */
-    @POST
+    @GET
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, String options) {
+    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, @QueryParam("usage") String usage,
+        @QueryParam("version") String version, @QueryParam("filename") String filename) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            final String usage = optionsMap.get("usage");
-            final String version = optionsMap.get("version");
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(version));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(usage));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(filename));
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, filename);
             final HashMap<String, String> emptyMap = new HashMap<>();
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             final InputStream stream =
                 UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
                     Integer.parseInt(version));
-            return Response.status(Status.OK).entity(stream).build();
+            return Response.status(Status.OK).header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
+                .entity(stream).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -905,7 +913,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
             final List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-                .collect(Collectors.toList());
+                    .collect(Collectors.toList());
             final String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query

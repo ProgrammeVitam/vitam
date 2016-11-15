@@ -682,7 +682,7 @@ public class WebApplicationResourceTest {
 
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .post("/archiveunit/objects/download/idOG");
+            .get("/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
     @Test
@@ -692,9 +692,8 @@ public class WebApplicationResourceTest {
             UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
             .thenReturn(IOUtils.toInputStream("Vitam Test"));
 
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.OK.getStatusCode()).when()
-            .post("/archiveunit/objects/download/idOG");
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get("/archiveunit/objects/download/idOG?usage=Dissamination&version=1&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
     @Test
@@ -702,10 +701,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
             .thenReturn(IOUtils.toInputStream("Vitam Test"));
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body("{usage: \"Dissemination\", version: \"KO\"}").expect().statusCode(Status.BAD_REQUEST.getStatusCode())
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
             .when()
-            .post("/archiveunit/objects/download/idOG");
+            .get("/archiveunit/objects/download/idOG?usage=Dissemination&version=KO&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
     @Test
@@ -716,7 +714,7 @@ public class WebApplicationResourceTest {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-            .post("/archiveunit/objects/download/idOG");
+            .get("/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
     @Test
@@ -724,10 +722,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
             .thenThrow(new NullPointerException());
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body(OPTIONS_DOWNLOAD).expect()
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-            .post("/archiveunit/objects/download/idOG");
+            .get("/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
     @Test

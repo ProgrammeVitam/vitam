@@ -547,23 +547,8 @@ angular.module('archive.unit')
       var options = {};
       options.usage = usage;
       options.version = version;
-      ihmDemoFactory.getObjectAsInputStream(objGId, options)
-        .then(function (response) {
-          var a = document.createElement("a");
-          document.body.appendChild(a);
-          var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream' }));
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          setTimeout(function() {
-            window.URL.revokeObjectURL(url);
-          }, 100);
-        },function (error) {
-          console.log('ERROR : '+error);
-          var title = $filter('translate')('archiveUnit.detail.download.error.title');
-          var msg = $filter('translate')('archiveUnit.detail.download.error.message');
-          self.showAlert($event, title, msg);
-        });
+      options.filename = fileName;
+      window.location.href = ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options);
     };
     // **************************************************************************** //
 
