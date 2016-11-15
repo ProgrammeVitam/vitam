@@ -42,10 +42,3 @@ Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été dé
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
 
 
-.. include:: ../archi/technique/10-it-services.rst
-
-Mise en place du déploiement VITAM
-==================================
-
-* Sur la machine "ansible", décompacter le tar.gz livré.
-* Sur le repository "VITAM", récupérer depuis le tar.gz les rpm et les faire prendre en compte par le repository.

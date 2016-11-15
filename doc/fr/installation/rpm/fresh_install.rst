@@ -102,9 +102,7 @@ Déploiement
 
 Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
-
-Il sera alors demandé le mot de passe correspondant au fichier ``vault.yml``.
+ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 Import automatique d'objets dans Kibana
 ---------------------------------------

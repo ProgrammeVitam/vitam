@@ -41,6 +41,11 @@ Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term
 Génération des certificats
 ==========================
 
+Editer le fichier ``environnements-rpm/group_vars/all/vault.yml`` ( qui est un fichier protégé par mot de passe ) pour indiquer les mots de passe nécessaires.
+
+Pour simplifier les étapes (empêcher de demander le mot de passe à chaque accès au fichier ``environnements-rpm/group_vars/all/vault.yml``), éditer avec le bon mot de passe en clair le fichier ``./vault_pass.txt``.
+
+
 Cas de certificats inexistants
 -------------------------------
 
@@ -55,7 +60,7 @@ Editer le fichier ``environnements-rpm/<inventaire>``  pour indiquer les serveur
 
 Puis, dans le répertoire de déploiement, lancer le script : ``./generate_certs <environnement>``
 
-.. note:: Ce script utilise le fichier ``environnements-rpm/group_vars/all/vault.yml``. Le mot de passe de ce fichier sera demandé plusieurs fois et génèrera des certificats et stores adéquats au contenu du fichier yml.
+.. note:: Ce script utilise le fichier ``environnements-rpm/group_vars/all/vault.yml`` et, s'il existe, le fichier ``./vault_pass.txt`` qui contient le mot de passe du fichier ``vault``. Si ``vault_pass.txt`` n'existe pas, le mot de passe de ``environnements-rpm/group_vars/all/vault.yml`` sera demandé plusieurs fois et génèrera des certificats adéquats au contenu du fichier yml.
 
 Ce script génère sous ``PKI/certificats`` les certificats (format p12) nécessaires pour un bon fonctionnement dans VITAM.
 
@@ -69,16 +74,14 @@ Cas de certificats déjà créés par le client
 Génération des stores
 =====================
 
-Editer le fichier ``environnements-rpm/group_vars/all/vault.yml`` ( qui est un fichier protégé par mot de passe ) pour indiquer les mots de passe nécessaires.
-
-.. info:: Pour éditer le fichier, lancer la commande sous le répertoire deployment : ``ansible-vault edit environnements-rpm/group_vars/all/vault.yml``
+.. note:: Pour éditer le fichier, lancer la commande sous le répertoire deployment : ``ansible-vault edit environnements-rpm/group_vars/all/vault.yml``
 
 
 Editer le fichier ``environnements-rpm/<inventaire>``  pour indiquer les serveurs associé à chaque service.
 
 Puis, dans le répertoire de déploiement, lancer le script : ``./generate_stores.sh <environnement>``
 
-.. note:: Ce script utilise le fichier ``environnements-rpm/group_vars/all/vault.yml``. Le mot de passe de ce fichier sera demandé plusieurs fois et génèrera des certificats et stores adéquats au contenu du fichier yml.
+.. note:: Ce script génère des stores adéquats au contenu du fichier yml.
 
 Ce script génère sous ``PKI/certificats`` les  les stores (jks) associés pour un bon fonctionnement dans VITAM.
 

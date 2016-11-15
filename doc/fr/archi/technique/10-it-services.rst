@@ -65,15 +65,17 @@ Sauvegarde MongoDB de base dite "Shardée"
 
 A 8h du matin, redémarrage de tous les services.
 
-.. figure:: images/backup_Vitam_full_process.*
+.. figure:: /technique/images/backup-vitam-full-process.*
     :align: center
-    
-    Vue d'ensemble de la procédure de sauvegarde Vitam.
+    :height: 20 cm
+
+    Procédure de sauvegarde
+
 
 Ci-dessous un script shell reprenant la procédure de sauvegarde décrite ci-dessus.
-Ce dernier peux servir de démonstration dans un environnement Vitam tout en un.
+Ce dernier peut servir de démonstration dans un environnement Vitam "tout-en-un".
 
-Ce script est disponible dans deployment/demo_backup_vitam.sh
+Ce script est disponible sous ``deployment/demo_backup_vitam.sh``
 
 .. literalinclude:: ../../../../deployment/demo_backup_vitam.sh
   :language: shell
