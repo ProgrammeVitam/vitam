@@ -15,7 +15,7 @@ Typologie de consommation de resources :
 
 .. todo : à confirmer l'usage de disque faible (cache local des fichiers de travail ?)
 
-.. seealso:: Ce composant fait également appel :doc:`au composant Siegfried <siegfried>` pour l'identification des formats de fichier.
+.. seealso:: Ce composant fait également appel :doc:`au composant Siegfried <Siegfried>` pour l'identification des formats de fichier.
 
 Particularités
 ==============
