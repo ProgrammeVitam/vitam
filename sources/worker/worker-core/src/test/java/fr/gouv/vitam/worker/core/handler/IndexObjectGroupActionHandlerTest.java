@@ -47,6 +47,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -114,7 +115,7 @@ public class IndexObjectGroupActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
         throws Exception {
-        when(metadataClient.insertObjectGroup(anyObject())).thenReturn("");
+        when(metadataClient.insertObjectGroup(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
         WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
@@ -173,7 +174,7 @@ public class IndexObjectGroupActionHandlerTest {
     @Test
     public void testWorkspaceException()
         throws Exception {
-        when(metadataClient.insertObjectGroup(anyObject())).thenReturn("");
+        when(metadataClient.insertObjectGroup(anyObject())).thenReturn(JsonHandler.createObjectNode());
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));

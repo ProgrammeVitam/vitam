@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
-// FIXME P0 : Do not use logbookCLient, Call access-internal instead
 /**
  * AccessResourceImpl implements AccessResource
  */

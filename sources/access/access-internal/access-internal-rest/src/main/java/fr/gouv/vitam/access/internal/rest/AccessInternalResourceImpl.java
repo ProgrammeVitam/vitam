@@ -114,7 +114,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 JsonNode en argument pour toutes les "query"
     public Response getUnits(JsonNode queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);

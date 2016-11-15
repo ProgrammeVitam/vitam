@@ -35,7 +35,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 

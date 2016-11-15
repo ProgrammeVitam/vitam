@@ -46,7 +46,7 @@ public interface MetaDataClient extends BasicClient {
     /**
      * @param insertQuery as String <br>
      *        null is not allowed
-     * @return
+     * @return the result as JsonNode
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
@@ -54,7 +54,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    String insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
@@ -127,7 +127,7 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * @param insertQuery as String
-     * @return response as String contains the request result
+     * @return response as JsonNode contains the request result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
@@ -135,6 +135,6 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    String insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
 }

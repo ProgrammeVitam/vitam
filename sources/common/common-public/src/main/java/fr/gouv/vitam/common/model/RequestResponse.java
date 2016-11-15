@@ -26,10 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Abstract RequestResponse for all request response in Vitam
  *
  */
 public abstract class RequestResponse {
 
+    /**
+     * @return True if this RequestResponse is an Ok response
+     */
+    @JsonIgnore
+    public boolean isOk() {
+        return this instanceof RequestResponseOK;
+    }
 }

@@ -128,7 +128,9 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
         final List<String> ogList = new ArrayList<>();
 
+        @SuppressWarnings("unchecked")
         final Map<String, Object> objectGroupToUnitStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
+        @SuppressWarnings("unchecked")
         final Map<String, Object> objectGroupToGuidStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
 
         final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();

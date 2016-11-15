@@ -47,11 +47,10 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
     }
 
     /**
-     * setter jettConfig
-     *
-     * @param jettyConfig
-     * @return this
-     * */
+     * 
+     * @param message
+     * @param cause
+     */
     public WorkspaceClientServerException(String message, Throwable cause) {
         super(message, cause);
     }

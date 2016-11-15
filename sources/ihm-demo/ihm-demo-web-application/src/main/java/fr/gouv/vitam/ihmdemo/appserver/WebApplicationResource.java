@@ -667,7 +667,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final InputStream stream =
                 UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
                     Integer.parseInt(version));
-            return Response.status(Status.OK).header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
+            return Response.status(Status.OK)
+                .header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
                 .entity(stream).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
@@ -857,6 +858,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Get the detail of an accessionregister matching options query
      * 
+     * @param id
      * @param options query criteria
      * @return accession register details
      */

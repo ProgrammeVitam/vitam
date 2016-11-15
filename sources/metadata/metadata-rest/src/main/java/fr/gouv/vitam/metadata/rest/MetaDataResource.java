@@ -85,7 +85,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Insert unit with json request
      * 
-     * @param request
+     * @param insertRequest
      * @param xhttpOverride
      * @return Response
      */
@@ -93,16 +93,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertOrSelectUnit(JsonNode request) {
-        return insertUnit(request);
-    }
-
-    /**
-     * Create unit with json request
-     * 
-     * @return Response
-     */
-    private Response insertUnit(JsonNode insertRequest) {
+    public Response insertUnit(JsonNode insertRequest) {
         Status status;
 
         try {
@@ -183,7 +174,6 @@ public class MetaDataResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response selectUnit(JsonNode request) {
         return selectUnitsByQuery(request);
     }

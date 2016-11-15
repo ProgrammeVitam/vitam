@@ -49,8 +49,10 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param documentType
      * @param stream
-     * @return
+     * @return the status
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessExternalClientException
+     * @throws AccessExternalClientServerException 
      */
     Status checkDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, 
     AccessExternalClientException, AccessExternalClientServerException; 
@@ -61,6 +63,8 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param documentType
      * @param stream
+     * @return the status
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessExternalClientException
      */
     Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException; 
@@ -71,6 +75,8 @@ public interface AdminExternalClient extends BasicClient {
      * deleteDocuments
      * 
      * @param documentType
+     * @return the status
+     * @throws AccessExternalClientNotFoundException 
      * @throws AccessExternalClientException
      */
     Status deleteDocuments(AdminCollections documentType) throws AccessExternalClientNotFoundException, AccessExternalClientException; 
@@ -80,7 +86,10 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param documentType
      * @param select
-     * @return
+     * @return the JsonNode results
+     * @throws AccessExternalClientNotFoundException 
+     * @throws AccessExternalClientException 
+     * @throws InvalidParseOperationException 
      */
     JsonNode findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
     
@@ -89,7 +98,7 @@ public interface AdminExternalClient extends BasicClient {
      * 
      * @param documentType
      * @param documentId
-     * @return
+     * @return the JsonNode results
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */

@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Strings;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;

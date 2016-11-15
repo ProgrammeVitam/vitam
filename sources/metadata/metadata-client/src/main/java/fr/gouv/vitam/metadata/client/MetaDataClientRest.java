@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -65,7 +66,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     // FIXME P0 changer String en JsonNode pour toutes les Query
-    public String insertUnit(String insertQuery)
+    public JsonNode insertUnit(String insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
@@ -88,7 +89,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
-            return response.readEntity(String.class);
+            return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
@@ -215,7 +216,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public String insertObjectGroup(String insertQuery)
+    public JsonNode insertObjectGroup(String insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
@@ -235,7 +236,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
-            return response.readEntity(String.class);
+            return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);

@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -175,7 +176,7 @@ public class StorageResource extends ApplicationStatusResource {
      */
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
     public Response getContainer(@Context HttpHeaders headers) throws IOException {
         return Response.status(Status.NOT_IMPLEMENTED).build();
@@ -262,12 +263,12 @@ public class StorageResource extends ApplicationStatusResource {
      *
      * @param headers http header
      * @param objectId the id of the object
-     * @return Response NOT_IMPLEMENTED
+     * @param asyncResponse 
      * @throws IOException throws an IO Exception
      */
     @Path("/objects/{id_object}")
     @GET
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
         @Suspended final AsyncResponse asyncResponse)
         throws IOException {
@@ -354,13 +355,13 @@ public class StorageResource extends ApplicationStatusResource {
      *
      * @param headers http headers
      * @param objectId the object identifier to retrieve
-     * @return Precondtion failed or not yet implemented for now
+     * @param asyncResponse 
      * @throws IOException in case of any i/o exception
      */
     @Path("/objects/{id_object}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM + "; qs=0.3", StorageConstants.APPLICATION_ZIP + "; qs=0.3"})
+    @Produces({MediaType.APPLICATION_OCTET_STREAM + "; qs=0.3", CommonMediaType.ZIP + "; qs=0.3"})
     public void getObjectWithPost(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
         @Suspended final AsyncResponse asyncResponse)
         throws IOException {
@@ -660,7 +661,7 @@ public class StorageResource extends ApplicationStatusResource {
      */
     @Path("/objectgroups/{id_md}")
     @GET
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
@@ -797,12 +798,12 @@ public class StorageResource extends ApplicationStatusResource {
      *
      * @param headers http header
      * @param objectId the id of the object
-     * @return Response NOT_IMPLEMENTED
+     * @param asyncResponse 
      * @throws IOException throws an IO Exception
      */
     @Path("/reports/{id_report}")
     @GET
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
 
     public void getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {

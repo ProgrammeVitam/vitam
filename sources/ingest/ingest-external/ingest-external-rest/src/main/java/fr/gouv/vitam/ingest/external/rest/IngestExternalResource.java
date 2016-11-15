@@ -39,7 +39,6 @@ import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.core;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**

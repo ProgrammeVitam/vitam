@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -131,7 +132,7 @@ public class IndexUnitActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
-        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -159,7 +160,7 @@ public class IndexUnitActionHandlerTest {
 
     @Test
     public void testWorkspaceException() throws Exception {
-        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -179,7 +180,7 @@ public class IndexUnitActionHandlerTest {
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 
-        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);

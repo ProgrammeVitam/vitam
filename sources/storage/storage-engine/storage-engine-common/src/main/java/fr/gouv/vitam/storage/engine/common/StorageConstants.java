@@ -31,10 +31,6 @@ package fr.gouv.vitam.storage.engine.common;
  * Common storage values
  */
 public final class StorageConstants {
-
-    // TODO P1 : move to common public VITAM
-    public static final String APPLICATION_ZIP = "application/zip";
-
     /**
      * X-Command header INIT value
      */

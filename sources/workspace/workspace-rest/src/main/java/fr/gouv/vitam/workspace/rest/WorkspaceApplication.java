@@ -45,6 +45,9 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
     private static String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    /**
+     * For Junit
+     */
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.workspace.port";
 
     /**
@@ -70,7 +73,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     /**
      * runs the APPLICATION
      *
-     * @param configuration Workspace Configuration
+     * @param args Workspace Configuration
      * @throws VitamApplicationServerException 
      * @throws Exception Thrown if something goes wrong
      */
