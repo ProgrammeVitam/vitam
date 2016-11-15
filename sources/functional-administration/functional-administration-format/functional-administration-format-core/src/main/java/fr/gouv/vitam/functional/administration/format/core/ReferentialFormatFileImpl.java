@@ -143,8 +143,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             } catch (final ReferentialException e) {
                 LOGGER.error(e.getMessage());
                 final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
                 try {
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
