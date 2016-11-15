@@ -38,7 +38,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.xml.stream.XMLEventFactory;
@@ -53,6 +52,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
@@ -406,11 +406,11 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
     private JsonNode getRuleNodeByID(String ruleId, JsonNode jsonResult) {
         if (jsonResult != null) {
-            for (Iterator<JsonNode> iteRule = jsonResult.iterator(); iteRule.hasNext();) {
-                JsonNode jsonNode = iteRule.next();
-                String ruleIdFromList = jsonNode.get(FileRules.RULEID).asText();
-                if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
-                    return jsonNode;
+        	 ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
+             for (JsonNode rule : rulesResult) {
+                 String ruleIdFromList = rule.get(FileRules.RULEID).asText();
+                 if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
+                    return rule;
                 }
             }
         }

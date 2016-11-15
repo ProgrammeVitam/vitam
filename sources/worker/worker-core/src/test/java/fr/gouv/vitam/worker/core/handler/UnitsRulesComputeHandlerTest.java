@@ -171,7 +171,10 @@ public class UnitsRulesComputeHandlerTest {
         root1.add(accessRule);
         root1.add(reuseRule);
         root1.add(reuseRule2);
-        return root1;
+        
+        final ObjectNode result = JsonHandler.createObjectNode();
+        result.put("$results", root1);
+        return result;
     }
 
 
