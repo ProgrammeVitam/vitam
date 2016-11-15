@@ -37,7 +37,11 @@ import javax.ws.rs.core.StreamingOutput;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
-import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -104,6 +108,8 @@ public class AsyncInputStreamHelper implements StreamingOutput {
     private final Response receivedResponse;
     private InputStream inputStream;
     private final AsyncInputStreamHelper self = this;
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AsyncInputStreamHelper.class);
 
     /**
      * Constructor using received response containing an InputStream to forward
@@ -176,8 +182,8 @@ public class AsyncInputStreamHelper implements StreamingOutput {
                 try {
                     inputStream = receivedResponse.readEntity(InputStream.class);
                 } catch (IllegalStateException e) {
-                    // Probably a Junit bad Outbound Response
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    LOGGER.error(e);
+                    writeErrorAsyncResponse(asyncResponse, getResponseError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
                 }
             }
             asyncResponse.resume(responseBuilder.entity(self).build());
@@ -185,7 +191,7 @@ public class AsyncInputStreamHelper implements StreamingOutput {
             DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
     }
-    
+
     /**
      * Call this to finalize your operation in case of Error message while no remote client operation is done.</br>
      * </br>
@@ -199,4 +205,15 @@ public class AsyncInputStreamHelper implements StreamingOutput {
         ParametersChecker.checkParameter("ErrorResponse should not be null", errorResponse);
         asyncResponse.resume(errorResponse);
     }
+
+    private Response getResponseError(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus())
+            .entity(new VitamError(VitamCodeHelper.getCode(vitamCode)).setContext(vitamCode.getService().getName())
+                .setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage())
+                .setDescription(vitamCode.getMessage())
+                .toString())
+            .build();
+    }
+
 }
