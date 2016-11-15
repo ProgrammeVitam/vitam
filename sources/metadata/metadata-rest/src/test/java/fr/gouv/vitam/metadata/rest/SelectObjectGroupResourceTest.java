@@ -46,6 +46,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -57,10 +58,11 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
@@ -80,7 +82,7 @@ public class SelectObjectGroupResourceTest {
 
 
     private static final String OBJECT_GROUP_ID = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
-    private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
+    private static final String QUERY_PATH = "{ \"$path\" :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
     private static final String DATA_URI = "/metadata/v1";
     private static final String OBJECT_GROUPS_URI = "/objectgroups";
     private static final String DATABASE_NAME = "vitam-test";
@@ -97,12 +99,14 @@ public class SelectObjectGroupResourceTest {
     private static MetaDataApplication application;
 
     private static final String BAD_QUERY_TEST =
-        "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$badRquest : 'mavar3'}, " +
-            "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "]}";
+        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"_id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
+            "   {\"$badRquest\" : \"mavar3\"}, " +
+            "   {\"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST =
+        "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -159,6 +163,7 @@ public class SelectObjectGroupResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -169,8 +174,9 @@ public class SelectObjectGroupResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ \"\" ], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
 
 
@@ -196,8 +202,8 @@ public class SelectObjectGroupResourceTest {
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        given().contentType(ContentType.JSON)
-            .body(BODY_TEST).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
+        given().header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET).contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.OK.getStatusCode());
     }
 
@@ -243,9 +249,9 @@ public class SelectObjectGroupResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/").then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .post("/units/").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -262,7 +268,7 @@ public class SelectObjectGroupResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)

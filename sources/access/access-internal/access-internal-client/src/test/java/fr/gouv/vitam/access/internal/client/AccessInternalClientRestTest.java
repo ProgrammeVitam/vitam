@@ -53,12 +53,15 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
@@ -71,9 +74,9 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     protected AccessInternalClientRest client;
 
     final String queryDsql =
-        "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-            " $filter : { $orderby : { '#id' } }," +
-            " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
@@ -138,7 +141,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/units")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnits(String queryDsl,
+        public Response getUnits(JsonNode queryDsl,
             @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
@@ -148,7 +151,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitById(String queryDsl,
+        public Response getUnitById(JsonNode queryDsl,
             @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
             @PathParam("id_unit") String id_unit) {
             return expectedResponse.post();
@@ -159,7 +162,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitById(String queryDsl, @PathParam("id_unit") String id_unit) {
+        public Response updateUnitById(JsonNode queryDsl, @PathParam("id_unit") String id_unit) {
             return expectedResponse.put();
         }
 
@@ -175,7 +178,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, JsonNode query) {
             return expectedResponse.get();
         }
 
@@ -185,7 +188,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
+            @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
             return expectedResponse.post();
         }
 
@@ -196,7 +199,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public void getObjectStreamAsync(@Context HttpHeaders headers,
             @PathParam("id_object_group") String idObjectGroup,
-            String query, @Suspended final AsyncResponse asyncResponse) {
+            JsonNode query, @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.get());
         }
 
@@ -206,7 +209,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public void getObjectStreamPostAsync(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup, String query,
+            @PathParam("id_object_group") String idObjectGroup, JsonNode query,
             @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.post());
         }
@@ -216,40 +219,38 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : { '#id' } }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
+        
 
-        assertThat(client.selectUnits(queryDsql)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
-        throws AccessInternalClientNotFoundException, AccessInternalClientServerException, InvalidParseOperationException {
+        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
+        InvalidParseOperationException {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : { '#id' } }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
+        
 
-        assertThat(client.selectUnits(queryDsql)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThat(client.selectUnits(queryDsql)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenRequestBlank_whenSelectUnit_ThenRaiseAnException()
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankRequest_whenSelectUnit_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.selectUnits("")).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString("");
+        assertThat(client.selectUnits(queryJson)).isNotNull();
 
     }
     // Select Unit By Id
@@ -258,69 +259,72 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : { '#id' } }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
 
-        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = AccessInternalClientNotFoundException.class)
-    public void givenRessourceNotFound_whenSelectUnitById_ThenRaiseAnException()
-        throws AccessInternalClientNotFoundException, AccessInternalClientServerException, InvalidParseOperationException {
+    public void givenResourceNotFound_whenSelectUnitById_ThenRaiseAnException()
+        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
+        InvalidParseOperationException {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final String queryDsql =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : { '#id' } }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
-                " }";
 
-        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.selectUnitbyId(queryDsql, ID);
+
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.selectUnitbyId(queryJson, ID);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankRequest_whenSelectUnitById_ThenRaiseAnException()
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+
+        JsonNode queryJson = JsonHandler.getFromString("");
+        assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenRequestBlank_whenSelectUnitById_ThenRaiseAnException()
+    public void givenBlankID_whenSelectUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.selectUnitbyId("", "")).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenIDBlank_whenSelectUnitById_ThenRaiseAnException()
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankRequest_IDFilledwhenSelectUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.selectUnitbyId(queryDsql, "")).isNotNull();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenrEQUESTBlank_IDFilledwhenSelectUnitById_ThenRaiseAnException()
-        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
-        assertThat(client.selectUnitbyId("", ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString("");
+        assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenRequestBlank_whenUpdateUnitById_ThenRaiseAnException()
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankRequest_whenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.updateUnitbyId("", "")).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString("");
+        assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
     }
 
 
@@ -328,29 +332,35 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.updateUnitbyId(queryDsql, "")).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
     }
 
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenrEquestBlank_IDFilledwhenUpdateUnitById_ThenRaiseAnException()
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenBlankRequest_IDFilledWhenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        assertThat(client.updateUnitbyId("", ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString("");
+        assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = AccessInternalClientServerException.class)
     public void given500_whenUpdateUnit_ThenRaiseAnException()
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -361,31 +371,36 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.selectObjectbyId(queryDsql, ID);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.selectObjectbyId(queryJson, ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.selectObjectbyId(queryDsql, ID);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.selectObjectbyId(queryJson, ID);
     }
 
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectObjectbyId(queryDsql, ID);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.selectObjectbyId(queryJson, ID);
     }
 
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.selectObjectbyId(queryDsql, ID);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.selectObjectbyId(queryJson, ID);
     }
 
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
-        assertThat(client.selectObjectbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -396,31 +411,36 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getObject(queryDsql, ID, USAGE, VERSION);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.getObject(queryDsql, ID, USAGE, VERSION);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getObject(queryDsql, ID, USAGE, VERSION);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getObject(queryDsql, ID, USAGE, VERSION);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getObject(queryDsql, ID, USAGE, VERSION).readEntity(InputStream.class);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final InputStream stream = client.getObject(queryJson, ID, USAGE, VERSION).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

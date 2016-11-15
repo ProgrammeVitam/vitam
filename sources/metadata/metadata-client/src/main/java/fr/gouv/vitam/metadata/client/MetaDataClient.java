@@ -70,7 +70,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnits(String selectQuery) throws MetaDataExecutionException, MetaDataDocumentSizeException,
+    JsonNode selectUnits(JsonNode selectQuery) throws MetaDataExecutionException, MetaDataDocumentSizeException,
         InvalidParseOperationException, MetaDataClientServerException;
 
     /**

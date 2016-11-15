@@ -46,7 +46,9 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -71,9 +73,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.server2.BasicVitamServer;
 import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -83,11 +85,14 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AccessInternalClientFactory.class, AdminManagementClientFactory.class})
 public class AccessExternalResourceImplTest {
+    @Rule
+    public ExpectedException thrownException = ExpectedException.none();
+
     private static final String ACCESS_CONF = "access-external-test.conf";
     // URI
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
-    private static AccessExternalApplication application; 
+    private static AccessExternalApplication application;
     private static VitamServer vitamServer;
 
     // LOGGER
@@ -96,21 +101,22 @@ public class AccessExternalResourceImplTest {
     private static int port = junitHelper.findAvailablePort();;
     private static AccessInternalClient clientAccessInternal;
 
-    private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    static String request = "{ $query: {} }, $projection: {}, $filter: {} }";
-    static String bad_request = "{ $query:\\ {} }, $projection: {}, $filter: {} }";
+    private static final String BODY_TEST =
+        "{\"$query\": {\"$eq\": {\"aa\" : \"vv\" }}, \"$projection\": {}, \"$filter\": {}}";
+    static String request = "{ \"$query\": {} }, \"$projection\": {}, \"$filter\": {} }";
+    static String bad_request = "{ \"$query\":\\ {} }, \"$projection\": {}, \"$filter\": {} }";
     static String good_id = "goodId";
     static String bad_id = "badId";
 
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
-    private static final String QUERY_TEST = "{ $query : [ { $eq : { \"title\" : \"test\" } } ], " +
-        " $filter : { $orderby : [ \"#id\" ] }," +
-        " $projection : {$fields : {\"#id\" : 1, \"title\":2, \"transacdate\":1}}" +
+    private static final String QUERY_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], " +
+        " \"$filter\" : { \"$orderby\" : [ \"#id\" ] }," +
+        " \"$projection\" : {\"$fields\" : {\"#id\" : 1, \"title\":2, \"transacdate\":1}}" +
         " }";
 
-    private static final String QUERY_SIMPLE_TEST = "{ $query : [ { $eq : { 'title' : 'test' } } ] }";
+    private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
-    private static final String BAD_QUERY_TEST = "{ $query ; [ { $eq : { 'title' : 'test' } } ] }";
+    private static final String BAD_QUERY_TEST = "{ \"$query\" ; [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
@@ -121,6 +127,8 @@ public class AccessExternalResourceImplTest {
     private static final String DATA_TEST =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"title\": \"test\"," + "\"data\": \"data1\" }";
 
+    private static final String DATA_HTML =
+        "{ \"_id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
 
     private static final String ID = "identifier4";
     // LOGGER
@@ -131,8 +139,8 @@ public class AccessExternalResourceImplTest {
     private static final String OBJECT_ID = "objectId";
     private static final String OBJECTS_URI = "/objects/";
     private static final String ACCESSION_REGISTER_URI = "/" + AccessCollections.ACCESSION_REGISTER.getName();
-    private static final String ACCESSION_REGISTER_DETAIL_URI = AccessCollections.ACCESSION_REGISTER.getName() + 
-        "/" + good_id +"/" + 
+    private static final String ACCESSION_REGISTER_DETAIL_URI = AccessCollections.ACCESSION_REGISTER.getName() +
+        "/" + good_id + "/" +
         AccessCollections.ACCESSION_REGISTER_DETAIL.getName();
     private static AdminManagementClient adminCLient;
 
@@ -163,7 +171,7 @@ public class AccessExternalResourceImplTest {
         AccessInternalClientFactory clientAccessInternalFactory = PowerMockito.mock(AccessInternalClientFactory.class);
         PowerMockito.when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
         PowerMockito.when(AccessInternalClientFactory.getInstance().getClient())
-        .thenReturn(clientAccessInternal);
+            .thenReturn(clientAccessInternal);
 
     }
 
@@ -184,19 +192,23 @@ public class AccessExternalResourceImplTest {
      * 
      * @param data
      * @return query DSL with Options
+     * @throws InvalidParseOperationException
      */
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ \"\" ], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
 
     /**
      * 
      * @param data
      * @return query DSL with id as Roots
+     * @throws InvalidParseOperationException
      */
 
-    private static final String buildDSLWithRoots(String data) {
-        return "{ $roots : [ " + data + " ], $query : [ '' ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithRoots(String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ '' ], \"$data\" : " + data + " }");
     }
 
     private Map<String, Object> getStreamHeaders() {
@@ -215,9 +227,9 @@ public class AccessExternalResourceImplTest {
     @Test
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
-        .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(buildDSLWithOptions(QUERY_TEST, DATA2))
-        .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -229,50 +241,142 @@ public class AccessExternalResourceImplTest {
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectById_UnsupportedMediaType()
         throws Exception {
         given()
-        .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(buildDSLWithRoots(ID))
-        .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots("\"" + ID + "\"").asText())
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
-    public void given_queryThatThrowException_when_updateByID() {
+    public void given_queryThatThrowException_when_updateByID() throws InvalidParseOperationException {
 
         given()
-        .contentType(ContentType.JSON)
-        .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
-        .when()
-        .put("/units/" + ID)
-        .then()
-        .statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+            .when()
+            .put("/units/" + ID)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
 
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-        .body(BODY_TEST)
-        .when()
-        .post("/units/" + ID_UNIT)
-        .then()
-        .statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(BODY_TEST)
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
     public void given_pathWithId_when_get_SelectByID()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
-        PowerMockito.when(clientAccessInternal.selectObjectbyId(QUERY_TEST, ID_UNIT))
-        .thenReturn(JsonHandler.getFromString(DATA_TEST));
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+        PowerMockito.when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString(QUERY_TEST), ID_UNIT))
+            .thenReturn(JsonHandler.getFromString(DATA_TEST));
 
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(QUERY_TEST)
-        .when()
-        .post("/units/" + ID_UNIT)
-        .then()
-        .statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(QUERY_TEST)
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    /**
+     * Checks if he sent parameter contains HTML tags in getUnitById function
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getUnitById_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /**
+     * Checks if he sent parameter contains HTML tags in createOrSelectUnitById function
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_createOrSelectUnitById_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /**
+     * Checks if he sent parameter contains HTML tags in updateUnitById function
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_updateUnitById_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .put("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+
+    /**
+     * Checks if he sent parameter contains HTML tags in getObjectGroup function
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroup_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .get("/objects/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /**
+     * Checks if he sent parameter contains HTML tags in getObjectGroupPost function
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_getObjectGroupPost_PreconditionFailed()
+        throws Exception {
+        // HERE
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
+            .post("/objects/" + ID_UNIT)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -280,108 +384,130 @@ public class AccessExternalResourceImplTest {
 
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-        .thenReturn(JsonHandler.getFromString(DATA_TEST));
+            .thenReturn(JsonHandler.getFromString(DATA_TEST));
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(QUERY_TEST)
-        .when()
-        .get(ACCESS_UNITS_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(QUERY_TEST)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .when()
-        .post(ACCESS_UNITS_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when()
+            .post(ACCESS_UNITS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void testErrorSelectUnitsById()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {        
+        
+        try {
+            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
+            .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(BAD_QUERY_TEST).when().get("units/goodId").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
 
-        PowerMockito.doThrow(new InvalidParseOperationException(""))
-        .when(clientAccessInternal).selectUnitbyId(BAD_QUERY_TEST, good_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body(BAD_QUERY_TEST).when().get("units/goodId").then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
-        .when(clientAccessInternal).selectUnitbyId(BAD_QUERY_TEST, bad_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body(BAD_QUERY_TEST).when().get("units/badId").then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        try {
+            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
+            .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body(BAD_QUERY_TEST).when().get("units/badId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
 
-        PowerMockito.doThrow(new AccessInternalClientServerException(""))
-        .when(clientAccessInternal).selectUnitbyId("INTERAL_SEVER_ERROR", bad_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body("INTERAL_SEVER_ERROR").when().get("units/badId").then()
-        .statusCode(Status.UNAUTHORIZED.getStatusCode());
+        try {
+            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body("INTERAL_SEVER_ERROR").when().get("units/badId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
     }
 
 
     @Test
     public void testErrorsUpdateUnitsById()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
 
-        PowerMockito.doThrow(new InvalidParseOperationException(""))
-        .when(clientAccessInternal).updateUnitbyId(BAD_QUERY_TEST, good_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body(BAD_QUERY_TEST).when().put("units/goodId").then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        try {
+            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body(BAD_QUERY_TEST).when().put("units/goodId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
 
-        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
-        .when(clientAccessInternal).updateUnitbyId(BAD_QUERY_TEST, bad_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body(BAD_QUERY_TEST).when().put("units/badId").then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        try {
+            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body(BAD_QUERY_TEST).when().put("units/badId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
 
-        PowerMockito.doThrow(new AccessInternalClientServerException(""))
-        .when(clientAccessInternal).updateUnitbyId("INTERAL_SEVER_ERROR", bad_id);
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-        .body("INTERAL_SEVER_ERROR").when().put("units/badId").then()
-        .statusCode(Status.UNAUTHORIZED.getStatusCode());
+        try {
+            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (InvalidParseOperationException e) {
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+                .body("INTERAL_SEVER_ERROR").when().put("units/badId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        }
     }
 
 
     @Test
     public void testErrorsSelectUnits()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
 
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body("{BAD_QUERY_TEST_UNITS}")
-        .when()
-        .get(ACCESS_UNITS_URI)
-        .then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         PowerMockito.doThrow(new AccessInternalClientServerException(""))
-        .when(clientAccessInternal).selectUnits(anyObject());
+            .when(clientAccessInternal).selectUnits(anyObject());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(BODY_TEST)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .when()
-        .post(ACCESS_UNITS_URI)
-        .then()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when()
+            .post(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
-        .when(clientAccessInternal).selectUnits(anyObject());
+            .when(clientAccessInternal).selectUnits(anyObject());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(BODY_TEST)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .when()
-        .post(ACCESS_UNITS_URI)
-        .then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when()
+            .post(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
 
@@ -390,29 +516,34 @@ public class AccessExternalResourceImplTest {
     public void getObjectGroupPost() throws Exception {
         reset(clientAccessInternal);
         JsonNode result = JsonHandler.getFromString(BODY_TEST);
-        when(clientAccessInternal.selectObjectbyId(anyString(), anyString())).thenReturn(result);
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenReturn(result);
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .when().post(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-        .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "GET")
-        .when().post(OBJECTS_URI + OBJECT_ID).then()
-        .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "PUT")
+            .when().post(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-        .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "PUT")
-        .when().post(OBJECTS_URI + OBJECT_ID).then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         reset(clientAccessInternal);
-        when(clientAccessInternal.selectObjectbyId(anyString(), anyString()))
-        .thenThrow(new AccessInternalClientServerException(""));
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new AccessInternalClientServerException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-        .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "GET")
-        .when().post(OBJECTS_URI + OBJECT_ID).then()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .when().post(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
 
@@ -422,43 +553,50 @@ public class AccessExternalResourceImplTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
         reset(clientAccessInternal);
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), 
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM, headers);
+        JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
 
-        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyString(), anyInt()))
-        .thenReturn(response);
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-        .headers(getStreamHeaders()).body(BODY_TEST).when().get("units/goodId/object").then()
-        .statusCode(Status.OK.getStatusCode());
+        PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
+            .thenReturn(response);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-        .body(BODY_TEST).when().get("units/goodId/object").then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .headers(getStreamHeaders()).body(JsonHandler.getFromString(BODY_TEST)).when().get("units/goodId/object")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-        .headers(getStreamHeaders()).body(BODY_TEST).when().post("units/goodId/object").then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get("units/goodId/object").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(getStreamHeaders()).body(JsonHandler.getFromString(BODY_TEST)).when().post("units/goodId/object")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-        .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "PUT").body(BODY_TEST).when().post("units/goodId/object").then()
-        .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "PUT")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().post("units/goodId/object").then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
     }
 
     @Test
     public void testErrorsGetObjects()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+        JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
 
-        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyString(), anyInt()))
-        .thenThrow(new InvalidParseOperationException(""));
+        PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
+            .thenThrow(new InvalidParseOperationException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-        .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "GET").body(BODY_TEST).when().get("units/goodId/object").then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .body(JsonHandler.getFromString(BODY_TEST)).when().get("units/goodId/object").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 
@@ -469,36 +607,36 @@ public class AccessExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
 
         given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_URI)
-        .then().statusCode(Status.OK.getStatusCode());
-        
-        given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
-        given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
-        .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_URI)
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_DETAIL_URI)
-        .then().statusCode(Status.OK.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_DETAIL_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
+            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 
@@ -515,36 +653,38 @@ public class AccessExternalResourceImplTest {
         select.setQuery(eq("Id", "APP-00001"));
 
         given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_DETAIL_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getAccessionRegisterDetail(anyObject());
-
-        given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_URI)
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
+            .getAccessionRegister(anyObject());
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
+            .getAccessionRegisterDetail(anyObject());
 
         given()
-        .contentType(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(select.getFinalSelect())
-        .when().post(ACCESSION_REGISTER_DETAIL_URI)
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(select.getFinalSelect())
+            .when().post(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
 

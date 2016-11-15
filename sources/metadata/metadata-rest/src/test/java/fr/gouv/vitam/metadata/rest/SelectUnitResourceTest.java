@@ -45,10 +45,9 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -59,7 +58,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
@@ -87,16 +88,16 @@ public class SelectUnitResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    
+
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final String BAD_QUERY_TEST =
-        "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$badRquest : 'mavar3'}, " +
-            "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "]}";
+        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"_id\"}, " + "   {\"$missing\" : \"mavar2\"}, " + "   {\"$badRquest\" : \"mavar3\"}, " +
+            "   { \"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST = "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -155,6 +156,7 @@ public class SelectUnitResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -165,8 +167,8 @@ public class SelectUnitResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
 
 
@@ -196,9 +198,9 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
-            .get("/units").then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .body(JsonHandler.getFromString(DATA2)).when()
+            .post("/units").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 
@@ -209,8 +211,7 @@ public class SelectUnitResourceTest {
             .when()
             .get("/units")
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
-
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
 
@@ -226,12 +227,12 @@ public class SelectUnitResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-    @Test
-    public void given_emptyQuery_when_Select_thenReturn_BadRequest() {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_emptyQuery_when_Select_thenReturn_BadRequest() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body("")
+            .body(JsonHandler.getFromString(""))
             .when()
             .get("/units")
             .then()
@@ -244,9 +245,9 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/").then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .post("/units/").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -269,18 +270,18 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
+            .body(JsonHandler.getFromString(BODY_TEST)).when()
             .get("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
 
-    @Test
-    public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body("")
+            .body(JsonHandler.getFromString(""))
             .when()
             .get("/units/" + ID_UNIT)
             .then()
@@ -288,24 +289,36 @@ public class SelectUnitResourceTest {
     }
 
     @Test
-    public void shouldReturn_Request_Entity_Too_Large_If_DocumentIsTooLarge() throws Exception {
+    public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() throws InvalidParseOperationException {
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Test
+    public void shouldReturn_Bad_Request_If_DocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .post("/units/" + ID_UNIT).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
 
     @Test
-    public void given_pathWithId_when_get_SelectByID_thenReturn_Found() {
+    public void given_pathWithId_when_get_SelectByID_thenReturn_Found() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .get("/units/" + ID_UNIT)
             .then()
@@ -320,15 +333,15 @@ public class SelectUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .post("/units/" + ID_UNIT).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
 
 
-    @Test
-    public void shouldReturnErrorRequestBadRequest() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void shouldRaiseErrorOnBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()

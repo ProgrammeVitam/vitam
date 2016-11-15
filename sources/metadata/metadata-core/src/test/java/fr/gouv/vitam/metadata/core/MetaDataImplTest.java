@@ -86,19 +86,22 @@ public class MetaDataImplTest {
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String REQUEST_TEST =
-        "{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
-            "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-            "{ $ne : { 'mavar9' : 'ab' } }, " +
-            "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
-            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
-            "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
+        "{ \"$roots\" : [ \"id0\" ], \"$query\" : [ " + "{ \"$path\" : [ \"id1\", \"id2\"] }," +
+            "{ \"$and\" : [ " + "{\"$exists\" : \"mavar1\"}, " + "{\"$missing\" : \"mavar2\"}, " +
+            "{\"$isNull\" : \"mavar3\"}, " +
+            "{ \"$or\" : [ " +
+            "{\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " +
+            "{ \"$nin\" : { \"mavar5\" : [\"maval2\", true] } } ] } ] }," +
+            "{ \"$not\" : [ " + "{ \"$size\" : { \"mavar5\" : 5 } }, " + "{ \"$gt\" : { \"mavar6\" : 7 } }, " +
+            "{ \"$lte\" : { \"mavar7\" : 8 } } ] , \"$exactdepth\" : 4}," + "{ \"$not\" : [ " +
+            "{ \"$eq\" : { \"mavar8\" : 5 } }, " +
+            "{ \"$ne\" : { \"mavar9\" : \"ab\" } }, " +
+            "{ \"$range\" : { \"mavar10\" : { \"$gte\" : 12, \"$lte\" : 20} } } ], \"$depth\" : 1}, " +
+            "{ \"$and\" : [ { \"$term\" : { \"mavar14\" : \"motMajuscule\", \"mavar15\" : \"simplemot\" } } ] }, " +
+            "{ \"$regex\" : { \"mavar14\" : \"^start?aa.*\" } } " + "], " +
+            "\"$filter\" : {\"$offset\" : 100, \"$limit\" : 1000, \"$hint\" : [\"cache\"], " +
+            "\"$orderby\" : { \"maclef1\" : 1 , \"maclef2\" : -1,  \"maclef3\" : 1 } }," +
+            "\"$projection\" : {\"$fields\" : {\"#dua\" : 1, \"#all\" : 1}, \"$usage\" : \"abcdef1234\" } }";
 
 
 
@@ -236,14 +239,14 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsByQuery(REQUEST_TEST);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(REQUEST_TEST));
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
-    public void given_SelectUnitWhenStringTooLong_Then_Throw_MetaDataDocumentSizeException() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_SelectUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.selectUnitsByQuery(createLongString(1001));
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(createLongString(1001)));
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -251,7 +254,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
 
@@ -260,19 +263,19 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
     @Test
     public void given_filled_query_When_SelectUnitById_() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsById(QUERY, "unitId");
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test
     public void given_filled_query_When_UpdateUnitById_() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -280,13 +283,13 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsByQuery("");
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(""));
     }
 
 
@@ -302,13 +305,13 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_selectUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsById("", "unitId");
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(""), "unitId");
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_updateUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId("", "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -316,7 +319,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -325,7 +328,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -334,7 +337,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.selectUnitsById(QUERY, "unitId");
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -342,20 +345,20 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()
         throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId("", "");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "");
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
-    public void given_UpdateUnitWhenStringTooLong_Then_Throw_MetaDataDocumentSizeException() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_UpdateUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.updateUnitbyId(createLongString(1001), "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -363,7 +366,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(REQUEST_TEST, "");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(REQUEST_TEST), "");
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -371,7 +374,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test
@@ -382,7 +385,7 @@ public class MetaDataImplTest {
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final JsonNode jsonNode = metaDataImpl.selectObjectGroupById(QUERY, "ogId");
+        final JsonNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
         final ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
         assertEquals(1, resultArray.size());
         final ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
@@ -424,9 +427,10 @@ public class MetaDataImplTest {
         when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
             secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final JsonNode ret = metaDataImpl.updateUnitbyId("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}",
-            "unitId");
+        final JsonNode ret = metaDataImpl
+            .updateUnitbyId(JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
+                "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}"),
+                "unitId");
 
         assertEquals(wanted, ret.toString());
     }

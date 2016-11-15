@@ -35,9 +35,12 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Test for access operation client
@@ -45,9 +48,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public class AccessInternalClientMockTest {
 
     final String queryDsql =
-        "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-            " $filter : { $orderby : { '#id' } }," +
-            " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
     final String ID = "identifier1";
 
@@ -68,8 +71,9 @@ public class AccessInternalClientMockTest {
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
-
-        assertThat(client.selectUnits(queryDsql)).isNotNull();
+        
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @Test
@@ -81,7 +85,8 @@ public class AccessInternalClientMockTest {
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test
@@ -93,7 +98,8 @@ public class AccessInternalClientMockTest {
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test
@@ -105,7 +111,8 @@ public class AccessInternalClientMockTest {
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        assertThat(client.selectObjectbyId(queryDsql, ID)).isNotNull();
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
 
     @Test
@@ -115,7 +122,8 @@ public class AccessInternalClientMockTest {
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final InputStream stream = client.getObject(queryDsql, ID, "usage", 1).readEntity(InputStream.class);
+        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final InputStream stream = client.getObject(queryJson, ID, "usage", 1).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

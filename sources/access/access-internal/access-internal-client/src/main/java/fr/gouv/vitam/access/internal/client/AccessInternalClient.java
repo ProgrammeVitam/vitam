@@ -50,7 +50,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnits(String selectQuery)
+    JsonNode selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
 
     /**
@@ -63,7 +63,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnitbyId(String sqlQuery, String id)
+    JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
 
     /**
@@ -76,7 +76,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode updateUnitbyId(String updateQuery, String unitId)
+    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
 
     /**
@@ -89,7 +89,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
-    JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
+    JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
 
     /**
@@ -104,7 +104,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
-    Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
+    Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
     
 

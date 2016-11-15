@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.MarshalException;
 
 import org.jhades.JHades;
 import org.junit.After;
@@ -47,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -179,8 +181,8 @@ public class MetaDataResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws Exception {
+        return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -214,8 +216,8 @@ public class MetaDataResourceTest {
      * Test insert Unit endpoint
      */
 
-    @Test
-    public void shouldReturnErrorBadRequestIfBodyIsNotCorrect() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void shouldRaiseExceptionIfBodyIsNotCorrect() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("invalid", DATA)).when()
@@ -285,7 +287,7 @@ public class MetaDataResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
     }
 
-    @Test
+    @Test(expected = MarshalException.class)
     public void shouldReturnErrorIfContentTypeIsNotJson() throws Exception {
         given()
             .contentType("application/xml")
@@ -310,7 +312,7 @@ public class MetaDataResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
@@ -324,12 +326,12 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(generateResponseOK(new DatabaseCursor(1, 0, 1),
-                JsonHandler.getFromString(buildDSLWithOptions("", DATA)))))
+                buildDSLWithOptions("", DATA))))
             .statusCode(Status.CREATED.getStatusCode());
     }
 
     // Test object group
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
@@ -377,7 +379,7 @@ public class MetaDataResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
             .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());

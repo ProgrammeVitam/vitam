@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.metadata.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +45,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
@@ -104,7 +104,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
     @Path("/metadata/v1")
     @javax.ws.rs.ApplicationPath("webresources")
-    public static class MockResource  extends ApplicationStatusResource {
+    public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -241,34 +241,35 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             fail("Should NOT raized an exception");
         }
     }
-    @Test(expected = MetaDataExecutionException.class)
+
+    @Test(expected = InvalidParseOperationException.class)
     public void selectUnitShouldRaiseExceptionWhenExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        client.selectUnits(QUERY);
+        client.selectUnits(JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_InvalidRequest_When_Select_ThenReturn_BadRequest() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
-        client.selectUnits(QUERY);
+        client.selectUnits(JsonHandler.getFromString(QUERY));
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_EntityTooLargeRequest_When_select_ThenReturn_RequestEntityTooLarge() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.REQUEST_ENTITY_TOO_LARGE).build());
-        client.selectUnits(QUERY);
+        client.selectUnits(JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_EntityTooLargeRequest_When_Select_ThenReturn_not_acceptable() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
-        client.selectUnits(QUERY);
+        client.selectUnits(JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_blankQuery_whenSelectUnit_ThenReturn_MetadataInvalidSelectException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_ACCEPTABLE).build());
-        client.selectUnits("");
+        client.selectUnits(JsonHandler.getFromString(""));
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -347,12 +348,12 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         client.selectObjectGrouptbyId(QUERY, "ogId");
     }
 
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void selectUnitTest()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException {
         when(mock.get()).thenReturn(Response.status(Response.Status.FOUND).entity("true").build());
-        client.selectUnits(QUERY);
+        client.selectUnits(JsonHandler.getFromString(QUERY));
     }
 
     @Test

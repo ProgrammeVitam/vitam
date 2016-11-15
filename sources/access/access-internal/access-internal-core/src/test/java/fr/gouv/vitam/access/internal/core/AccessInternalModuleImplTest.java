@@ -272,8 +272,9 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_selectUnit_ThenThrows_InvalidParseOperationException()
         throws Exception {
+        JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .selectUnits(FromStringToJson(QUERY).toString());
+            .selectUnits(jsonQuery);
         accessModuleImpl.selectUnit(FromStringToJson(QUERY));
     }
 

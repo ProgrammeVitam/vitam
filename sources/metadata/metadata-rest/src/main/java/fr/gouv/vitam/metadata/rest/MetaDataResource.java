@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
@@ -92,8 +93,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 changer String en JsonNode pour toutes les Query
-    public Response insertOrSelectUnit(String request) {
+    public Response insertOrSelectUnit(JsonNode request) {
         return insertUnit(request);
     }
 
@@ -102,13 +102,12 @@ public class MetaDataResource extends ApplicationStatusResource {
      * 
      * @return Response
      */
-    private Response insertUnit(String insertRequest) {
+    private Response insertUnit(JsonNode insertRequest) {
         Status status;
-        JsonNode queryJson;
 
         try {
-            queryJson = JsonHandler.getFromString(insertRequest);
-            metaDataImpl.insertUnit(queryJson);
+            SanityChecker.checkJsonAll(insertRequest);
+            metaDataImpl.insertUnit(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             // Unprocessable Entity not implemented by Jersey
@@ -169,7 +168,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         return Response.status(Status.CREATED)
             .entity(new RequestResponseOK()
                 .setHits(1, 0, 1)
-                .setQuery(queryJson))
+                .setQuery(insertRequest))
             .build();
     }
 
@@ -185,7 +184,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     // FIXME P0 changer String en JsonNode pour toutes les Query
-    public Response selectUnit(String request) {
+    public Response selectUnit(JsonNode request) {
         return selectUnitsByQuery(request);
     }
 
@@ -195,7 +194,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param selectRequest
      * @return
      */
-    private Response selectUnitsByQuery(String selectRequest) {
+    private Response selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
         JsonNode jsonResultNode;
         try {
@@ -243,7 +242,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitById(String selectRequest, @PathParam("id_unit") String unitId) {
+    public Response getUnitById(JsonNode selectRequest, @PathParam("id_unit") String unitId) {
         return selectUnitById(selectRequest, unitId);
     }
 
@@ -261,7 +260,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId) {
+    public Response updateUnitbyId(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         JsonNode jsonResultNode;
         try {
@@ -298,7 +297,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Selects unit by request and unit id
      */
     // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
-    private Response selectUnitById(String selectRequest, String unitId) {
+    private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
         JsonNode jsonResultNode;
         try {
@@ -440,7 +439,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupById(String selectRequest, @PathParam("id_og") String objectGroupId) {
+    public Response getObjectGroupById(JsonNode selectRequest, @PathParam("id_og") String objectGroupId) {
         try {
             ParametersChecker.checkParameter("Request select required", selectRequest);
         } catch (final IllegalArgumentException exc) {
@@ -460,7 +459,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Selects unit by request and unit id
      */
     // FIXME P0 : maybe produce NOT_FOUND when objectGroup is not found?
-    private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
+    private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
         JsonNode jsonResultNode;
         try {
