@@ -50,7 +50,7 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 /**
  * The Ingest External Resource
  */
-@Path("/ingest-ext/v1")
+@Path("/ingest-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);

@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class IngestExternalSslResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);
 
-    private static final String RESOURCE_URI = "/ingest-ext/v1";
+    private static final String RESOURCE_URI = "/ingest-external/v1";
     private static final String STATUS_URI = "/status";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl-test.conf";
 

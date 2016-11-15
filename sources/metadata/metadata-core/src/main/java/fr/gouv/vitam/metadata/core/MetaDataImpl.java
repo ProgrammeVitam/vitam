@@ -222,7 +222,7 @@ public class MetaDataImpl implements MetaData {
             }
             // Execute DSL request
             result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest, selectQuery);
 
         } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
             MetaDataNotFoundException e) {
@@ -269,7 +269,7 @@ public class MetaDataImpl implements MetaData {
             final Map<String, List<String>> diffs = new HashMap<>();
             diffs.put(unitId, getConcernedDiffLines(getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs, updateQuery);
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;

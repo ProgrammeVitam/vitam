@@ -386,7 +386,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         final JsonNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
-        final ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
+        final ArrayNode resultArray = (ArrayNode) jsonNode.get("$results");
         assertEquals(1, resultArray.size());
         final ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
         final String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
@@ -396,10 +396,12 @@ public class MetaDataImplTest {
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +
-            "\\n-    description : description\\n+    title : MODIFIED title" +
-            "\\n+    description : MODIFIED description\"}]}";
+        final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
+        "\"$context\":{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
+        "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\",\"description\":\"MODIFIED DESCRIPTION\"}}]}," +
+        "\"$results\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +
+        "\\n-    description : description\\n+    title : MODIFIED title" +
+        "\\n+    description : MODIFIED description\"}]}";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");

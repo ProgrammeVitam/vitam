@@ -27,12 +27,10 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,15 +48,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
-import com.jayway.restassured.response.ValidatableResponse;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
@@ -76,7 +70,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 public class IngestExternalResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResourceTest.class);
 
-    private static final String RESOURCE_URI = "/ingest-ext/v1";
+    private static final String RESOURCE_URI = "/ingest-external/v1";
     private static final String STATUS_URI = "/status";
     private static final String UPLOAD_URI = "/ingests";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";

@@ -336,7 +336,7 @@ public class IngestInternalIT {
             select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
             JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.warn(JsonHandler.prettyPrint(node));
-            JsonNode result = node.get("$result");
+            JsonNode result = node.get("$results");
             assertNotNull(result);
             JsonNode unit = result.get(0);
             assertNotNull(unit);
@@ -350,7 +350,7 @@ public class IngestInternalIT {
                     "," +
                     "1]},\"_id\":0," + "\"_qualifiers.BinaryMaster.versions._id\":1}}");
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect().toString(), og);
-            final List<String> valuesAsText = jsonResponse.get("$result").findValuesAsText("_id");
+            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
             final String objectId = valuesAsText.get(0);
             StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage = storageClient.getContainerAsync("0", "default", objectId,
