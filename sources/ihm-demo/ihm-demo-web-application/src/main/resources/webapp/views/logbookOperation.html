@@ -63,10 +63,11 @@
 			<div class="table-responsive">
 				<table class="table">
 					<tr>
+                        <th>Catégorie d'opération</th>
 						<th>Opération</th>
 						<th>Date</th>
 						<th>Statut</th>
-						<th>Message</th>
+                        <th>Message</th>
 
 						<!-- Dynamic columns -->
 						<th ng-repeat="column in logctrl.selectedObjects">{{column.label}}</th>
@@ -74,6 +75,7 @@
 
 					<tbody ng-repeat='log in logctrl.operationList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage'>
 					<tr ng-click="logctrl.goToDetails(log.evIdProc)">
+                        <td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
 						<td>{{log.evDateTime}}</td>
 
