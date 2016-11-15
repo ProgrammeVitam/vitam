@@ -13,11 +13,15 @@ eval $(ansible-vault view $(dirname $0)/environments-rpm/group_vars/all/vault.ym
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo --ask-vault-pass| sed "1 d"); do
 	echo "Génération du keystore de ihm-demo"
 	echo "	Génération pour ${i}..."
-	echo "Génération du truststore de ${j}-external..."
+	echo "Génération du truststore de ihm-demo..."
 	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-	echo "	Import des CA server dans truststore de ${j}-external..."
+	echo "	Import des CA server dans truststore de ihm-demo..."
 	echo "		... import CA server root..."
 	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
+	echo "a"
+	env
+	$(eval "echo \$TrustStore_ihm_demo_password")
+	echo "b"
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
 	echo "		... import CA server intermediate..."
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
@@ -26,16 +30,16 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 	echo "		... import CA client intermediate..."
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
 
-	echo "Fin de génération du trustore de ${j}-external"
+	echo "Fin de génération du trustore de ihm-demo"
 	echo "------------------------------------------------"
 done
 
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette --ask-vault-pass| sed "1 d"); do
-	echo "Génération du keystore de ihm-demo"
+	echo "Génération du keystore de ihm-recette"
 	echo "	Génération pour ${i}..."
-	echo "Génération du truststore de ${j}-external..."
+	echo "Génération du truststore de ihm-recette..."
 	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-	echo "	Import des CA server dans truststore de ${j}-external..."
+	echo "	Import des CA server dans truststore de ihm-recette..."
 	echo "		... import CA server root..."
 	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
@@ -46,7 +50,7 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 	echo "		... import CA client intermediate..."
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
 
-	echo "Fin de génération du trustore de ${j}-external"
+	echo "Fin de génération du trustore de ihm-recette"
 	echo "------------------------------------------------"
 done
 
