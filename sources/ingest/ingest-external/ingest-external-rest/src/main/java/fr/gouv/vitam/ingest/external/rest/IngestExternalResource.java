@@ -82,7 +82,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     // TODO P2 : add file name
     public void upload(InputStream uploadedInputStream, @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getInstance().execute(() -> uploadAsync(asyncResponse, uploadedInputStream));
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, uploadedInputStream));
     }
 
     private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream) {

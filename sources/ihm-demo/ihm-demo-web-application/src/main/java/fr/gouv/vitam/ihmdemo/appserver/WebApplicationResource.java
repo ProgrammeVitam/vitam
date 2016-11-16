@@ -352,7 +352,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void upload(InputStream stream, @Suspended final AsyncResponse asyncResponse) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-        VitamThreadPoolExecutor.getInstance().execute(() -> uploadAsync(asyncResponse, stream));
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, stream));
     }
 
     private void uploadAsync(final AsyncResponse asyncResponse, InputStream stream) {
