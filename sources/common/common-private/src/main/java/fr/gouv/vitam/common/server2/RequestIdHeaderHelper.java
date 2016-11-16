@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.List;
 
 /**
  * Helper class to manage the X_REQUEST_ID and VitamSession links
@@ -75,7 +76,20 @@ public class RequestIdHeaderHelper {
     public static void putRequestIdFromHeaderInSession(MultivaluedMap<String, String> requestHeaders, Context ctx) {
         try {
 
-            final String requestId = requestHeaders.getFirst(GlobalDataRest.X_REQUEST_ID);
+            // TODO: find a better check ; we should detect and act accordingly with multiple incoming headers
+            String requestId = requestHeaders.getFirst(GlobalDataRest.X_REQUEST_ID);
+
+            /* Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with values separated by commas
+               Example : X-REQUEST-ID: header-1,header-2-should-not-be-take
+               Note : Cf. the last paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+               TODO: Jetty bug ?
+              */
+            // KWA TODO: beurk.
+            if (requestId != null) {
+                requestId = requestId.split(",")[0];
+            }
+            // KWA TODO: end beurk.
+
             final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
 
             if (vitamSession.getRequestId() != null && !vitamSession.getRequestId().equals(requestId)) {
@@ -104,10 +118,17 @@ public class RequestIdHeaderHelper {
         try {
             final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             if (requestId != null) {
-                headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
-                LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
+                if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
+                    // TODO: should be warn here.
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.", GlobalDataRest.X_REQUEST_ID, ctx);
+                    // TODO: is it really the best way to react to this situation ?
+                } else {
+                    headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+                    LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
+                }
             } else {
-                LOGGER.warn("No RequestId found in session (somebody should have set it) ! {} header will not be set in the http {}.", GlobalDataRest.X_REQUEST_ID, ctx);
+                // TODO: should be warn here.
+                LOGGER.info("No RequestId found in session (somebody should have set it) ! {} header will not be set in the http {}.", GlobalDataRest.X_REQUEST_ID, ctx);
             }
         } catch (VitamThreadAccessException e) {
             LOGGER.warn("Got an exception while trying to get the requestId from the current session ; exception was : {}", e.getMessage());
