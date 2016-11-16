@@ -4,6 +4,6 @@
 =================================
 
 * The mounted repository is in /code (default working directory)
-* The command to build the local repository is : vitam-build-repo (to execute in /code)
-* The command to deploy VITAM is : vitam-deploy (to execute in /code)
- 
+* The command to build all components in the local repository is : vitam-build-repo (to execute in /code)
+* The command to build only the vitam code is : vitam-maven-build-only (to execute in /code)
+* The command to deploy VITAM is : vitam-deploy [local|fulllocal] (to execute in /code)

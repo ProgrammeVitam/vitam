@@ -1,5 +1,13 @@
 ---
 # tasks file for rsyslog
+
+- name: Wait for the logstash port to be open
+  wait_for:
+    host: "{{vitam_logstash_host}}"
+    port: "{{vitam_logstash_port}}"
+    timeout: 10
+  run_once: true
+
 - name: ensure rsyslog package is installed
   yum:
     name: rsyslog
@@ -12,22 +20,24 @@
     owner: root
     mode: 0644
   when: groups['hosts-log-server']|length > 0
+  notify:
+    - restart rsyslog
 
 - name: activate UDP in rsyslog
   replace:
-    dest: /etc/rsyslog.conf 
+    dest: /etc/rsyslog.conf
     regexp: '^#\$ModLoad imudp.*$'
     replace: "$ModLoad imudp"
 
 - name: activate port 514 in rsyslog
   replace:
-    dest: /etc/rsyslog.conf 
+    dest: /etc/rsyslog.conf
     regexp: '^#\$UDPServerRun 514.*$'
     replace: "$UDPServerRun 514"
-  
+
 
 - name: ensure service is started on boot && restart service
-  service: 
+  service:
     name: rsyslog
     enabled: true
   notify:
