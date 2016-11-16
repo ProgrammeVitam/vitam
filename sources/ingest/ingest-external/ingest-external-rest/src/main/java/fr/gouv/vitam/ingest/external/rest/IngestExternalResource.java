@@ -32,16 +32,19 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
@@ -70,39 +73,40 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param stream data input stream
-     * @param header method for entry data
+     * @param uploadedInputStream data input stream
      * @return Response
-     * @throws XMLStreamException
      */
-    // TODO P2 : add file name
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response upload(InputStream stream) throws XMLStreamException {
-        Response response;
-        try {
-            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            response = ingestExtern.upload(stream);
-        } catch (final IngestExternalException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            try {
-                return Response.status(status)
-                    .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(), "Unknown", "Unknown", e.getMessage()))
-                    .type(MediaType.APPLICATION_XML_TYPE)
-                    .build();
-            } catch (IngestExternalException e1) {
-                // Really bad
-                LOGGER.error(e1);
-                return Response.status(status).build();
-            }
-        }
-        // FIXME P0 Move to Async
-        return Response.status(response.getStatus()).entity(response.getEntity())
-            .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
+    // TODO P2 : add file name
+    public void upload(InputStream uploadedInputStream, @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getInstance().execute(() -> uploadAsync(asyncResponse, uploadedInputStream));
+    }
 
+    private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream) {
+        try {
+            // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
+            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+            ingestExtern.upload(uploadedInputStream, asyncResponse);
+        } catch (final IngestExternalException exc) {
+            LOGGER.error(exc);
+            try {
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
+                            "Unknown", "Unknown", exc.getMessage()))
+                        .type(MediaType.APPLICATION_XML_TYPE).build());
+            } catch (IngestExternalException e) {
+                // Really bad
+                LOGGER.error(e);
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            }
+        } finally {
+            StreamUtils.closeSilently(uploadedInputStream);
+        }
     }
 
 }

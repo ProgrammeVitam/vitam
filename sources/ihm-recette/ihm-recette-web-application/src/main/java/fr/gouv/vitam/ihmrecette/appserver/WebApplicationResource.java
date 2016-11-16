@@ -251,7 +251,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
                 .build();
-        } catch (FileNotFoundException | XMLStreamException e) {
+        } catch (FileNotFoundException e) {
             LOGGER.error("The selected file is not found", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();

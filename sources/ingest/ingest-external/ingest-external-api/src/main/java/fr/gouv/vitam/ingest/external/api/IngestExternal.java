@@ -28,6 +28,7 @@ package fr.gouv.vitam.ingest.external.api;
 
 import java.io.InputStream;
 
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 /**
@@ -39,9 +40,10 @@ public interface IngestExternal {
      * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
      *
      * @param input the file
+     * @param asyncResponse the async Response
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
 	//TODO P0 add the file name as param from a header
-    Response upload(InputStream input) throws IngestExternalException;
+    Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException;
 }

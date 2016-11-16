@@ -30,12 +30,16 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -51,6 +55,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
@@ -102,7 +107,7 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     @Override
-    public Response upload(InputStream input) throws IngestExternalException {
+    public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
         // Store in local
@@ -326,16 +331,26 @@ public class IngestExternalImpl implements IngestExternal {
                 // TODO Response async
                 ingestClient.uploadInitialLogbook(ingestGuid, helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
-                    return ingestClient.upload(ingestGuid, inputStream, CommonMediaType.valueOf(mimeType));
+                    Response response = ingestClient.upload(ingestGuid, inputStream, CommonMediaType.valueOf(mimeType));
+                    AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
+                    ResponseBuilder responseBuilder =
+                        Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM).header(
+                            GlobalDataRest.X_REQUEST_ID, response.getHeaders().getFirst(GlobalDataRest.X_REQUEST_ID));
+                    asyncHelper.writeResponse(responseBuilder);
+                    return response;
                 }
                 // throw new IngestExternalException("File upload " + (isFileInfected ? "is infected" : "has a
                 // unsupported Format: " + mimeType));
                 // FIXME P1 later on real ATR KO
-                return Response.status(Status.BAD_REQUEST).entity(
+                Response response = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
                     AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
-                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)))
-                    .type(MediaType.APPLICATION_XML_TYPE)
-                    .build();
+                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
+                    MediaType.APPLICATION_XML_TYPE, null);
+                AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
+                ResponseBuilder responseBuilder =
+                    Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+                asyncHelper.writeResponse(responseBuilder);
+                return response;
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
