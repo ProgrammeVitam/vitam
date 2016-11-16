@@ -214,3 +214,14 @@ web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
 
 # For reverse proxy use
 reverse_proxy_port=80
+
+# For metrics
+# curator job : days before closing
+days_to_close_metrics=7
+# curator job : days before deleting
+days_to_delete_metrics=30
+# Installation ClamAV ? true/false
+installation_clamav=true
+
+# cas de l'appel au webDAV pour récupérer les jeux de tests
+http_proxy_environnement=

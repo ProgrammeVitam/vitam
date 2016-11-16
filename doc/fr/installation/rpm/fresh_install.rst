@@ -28,7 +28,7 @@ Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(
 
 .. warning:: indiquer les contre-indications !
 
-Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les valeurs comme décrit :
+Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
    :header: "Clé", "Description","Valeur d'exemple"
@@ -50,6 +50,10 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les vale
    "log_level","Niveau de log de logback","WARN"
    "web_dir_soapui_tests","URL pour récupérer data.json et les tests pour SoapUI","http://vitam-prod-ldap-1.internet.agri:8083/webdav"
    "reverse_proxy_port","port du reverse proxy pour configuration du vhost","8080"
+   "days_to_close_metrics","Période de grâce avant fermeture des index des métriques JVM","7"
+   "days_to_delete_metrics","Période de grâce avant destruction des index fermés des métriques JVM","30"
+   "installation_clamav","Choix d'installation de ClamAV (true/false)","true"
+   "http_proxy_environnement","Cas particulier de la récupération des jeux de tests ; URL de squid",""
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :

@@ -167,3 +167,12 @@ web_dir_soapui_tests=
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 log_level=WARN
+
+reverse_proxy_port=80
+
+days_to_close_metrics=7
+days_to_delete_metrics=30
+
+installation_clamav=true
+
+http_proxy_environnement=

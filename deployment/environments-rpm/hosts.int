@@ -189,3 +189,10 @@ log_level=WARN
 
 web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
 reverse_proxy_port=8080
+
+days_to_close_metrics=7
+days_to_delete_metrics=30
+
+installation_clamav=true
+
+http_proxy_environnement=http://10.220.23.1:3128
