@@ -474,7 +474,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     public void getObject(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName,
         @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {

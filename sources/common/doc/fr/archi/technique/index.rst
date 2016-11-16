@@ -11,3 +11,4 @@ Architecture Technique
    certs-auth.rst
    format-identifier.rst
    messages.rst
+   requestID.rst

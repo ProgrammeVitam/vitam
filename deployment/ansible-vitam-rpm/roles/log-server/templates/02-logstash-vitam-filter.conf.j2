@@ -122,7 +122,7 @@ filter
             keep_empty_captures => true
             match => [
                 "message",
-                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<module_name>.*)\]\]%{SPACE}%{LOGLEVEL:err_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
+                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<module_name>.*)\]\]%{SPACE}\[(?<request_id>.*)\]%{SPACE}%{LOGLEVEL:err_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
             ]
             match => [
                 "msg_data",

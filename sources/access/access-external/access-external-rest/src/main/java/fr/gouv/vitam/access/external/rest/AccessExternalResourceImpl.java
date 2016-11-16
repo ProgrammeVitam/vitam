@@ -446,7 +446,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {
@@ -468,7 +468,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {

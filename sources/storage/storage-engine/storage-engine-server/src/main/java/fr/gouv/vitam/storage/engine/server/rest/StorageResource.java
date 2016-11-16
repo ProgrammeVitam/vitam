@@ -272,7 +272,7 @@ public class StorageResource extends ApplicationStatusResource {
     public void getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
         @Suspended final AsyncResponse asyncResponse)
         throws IOException {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {
@@ -807,7 +807,7 @@ public class StorageResource extends ApplicationStatusResource {
 
     public void getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {

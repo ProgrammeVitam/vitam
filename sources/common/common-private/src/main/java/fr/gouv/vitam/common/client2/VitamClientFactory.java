@@ -121,7 +121,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private VitamClientType vitamClientType = VitamClientType.MOCK;
     PoolingHttpClientConnectionManager chunkedPoolingManager;
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
-    VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getInstance();
+    VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
     SSLConfiguration sslConfiguration = null;
     private boolean useAuthorizationFilter = true;
 

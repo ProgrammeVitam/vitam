@@ -88,7 +88,9 @@ abstract class AbstractCommonClient implements BasicClient {
     protected AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
         clientFactory = (VitamClientFactory<?>) factory;
         client = clientFactory.getHttpClient();
+        client.register(RequestIdClientFilter.class);
         clientNotChunked = clientFactory.getHttpClient(false);
+        clientNotChunked.register(RequestIdClientFilter.class);
     }
 
     @Override
