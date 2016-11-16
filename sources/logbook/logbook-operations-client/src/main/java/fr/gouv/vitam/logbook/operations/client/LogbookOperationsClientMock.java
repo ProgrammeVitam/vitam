@@ -93,6 +93,13 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
+    
+    @Override
+    public JsonNode  traceability() throws InvalidParseOperationException{
+        LOGGER.debug("calling traceability " );
+        return ClientMockResultHelper.getLogbookOperation();
+      
+    }
 
     @Override
     public void createDelegate(LogbookOperationParameters parameters) throws LogbookClientAlreadyExistsException {

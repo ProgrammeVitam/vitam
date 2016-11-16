@@ -86,7 +86,7 @@ public class LogbookResourceTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
-
+    private static final String TRACEABILITY_URI = "/operations/traceability";
     private static int databasePort;
     private static int serverPort;
     private static LogbookApplication application;
@@ -102,7 +102,7 @@ public class LogbookResourceTest {
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
-    private static LogbookConfiguration realLogbook; 
+    private static LogbookConfiguration realLogbook;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -186,6 +186,20 @@ public class LogbookResourceTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
+    }
+
+    @Test
+    public final void testTraceability() {
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        given()
+            .body(logbookParametersAppend)
+            .post(TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
     }
 
     @Test

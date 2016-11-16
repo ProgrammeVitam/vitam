@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
@@ -252,6 +253,23 @@ public class LogbookResource extends ApplicationStatusResource {
         return finalResponse;
     }
 
+    /**
+     * Run traceability secure   operation for logbook
+     * @return the response with a specific HTTP status
+     * 
+     */
+    @POST
+    @Path("/operations/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceability () {
+        final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+        resultAsJson.add("OK"); 
+       return  Response.status(Status.OK)
+             .entity(new RequestResponseOK()
+            .setHits(1, 0, 0)
+            .addAllResults(resultAsJson))
+        .build();
+    }
     /**
      * Select a list of operations
      * 

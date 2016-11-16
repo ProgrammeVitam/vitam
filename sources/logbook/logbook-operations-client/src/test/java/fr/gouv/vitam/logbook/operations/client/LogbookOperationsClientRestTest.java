@@ -143,6 +143,13 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         }
 
         @POST
+        @Path("/operations/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceability() {
+            return expectedResponse.post();
+        }
+
+        @POST
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -208,6 +215,40 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         final LogbookOperationParameters log = getComplete();
         client.create(log);
     }
+
+    @Test
+    public void traceability() throws Exception {
+        when(mock.post())
+            .thenReturn(
+                Response.status(Status.OK).entity(
+                    "{"
+                        +"    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
+                        +"    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
+                        +"    \"evType\" : \"PROCESS_SIP_UNITARY\","
+                        +"    \"evDateTime\" : \"2016-10-27T13:37:05.646\","
+                        +"    \"evDetData\" : null,"
+                        +"    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
+                        +"    \"evTypeProc\" : \"INGEST\","
+                        +"    \"outcome\" : \"STARTED\","
+                        +"    \"outDetail\" : null,"
+                        +"    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
+                        +"    \"agIdApp\" : null,"
+                        +"    \"agIdAppSession\" : null,"
+                        +"    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
+                        +"    \"agIdSubm\" : null,"
+                        +"    \"agIdOrig\" : null,"
+                        +"    \"obId\" : null,"
+                        +"    \"obIdReq\" : null,"
+                        +"    \"obIdIn\" : null,"
+                        +"    \"events\" : [ "
+                        +"        "
+                        +"    ],"
+                        +"    \"_tenant\" : 0"
+                        +"}"
+               ).build());
+        client.traceability();
+    }
+
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenUpdateThenReturnIllegalArgumentException() throws Exception {

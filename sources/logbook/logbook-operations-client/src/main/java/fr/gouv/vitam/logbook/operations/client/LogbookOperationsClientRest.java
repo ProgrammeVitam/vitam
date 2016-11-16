@@ -60,6 +60,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
+    private static final String TRACEABILITY_URI = "/operations/traceability";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -291,5 +292,32 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         super.close();
         helper.clear();
     }
+
+    @Override
+    public JsonNode traceability()  throws   LogbookClientServerException, InvalidParseOperationException {
+            Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, TRACEABILITY_URI,null, MediaType.APPLICATION_JSON_TYPE); 
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        }
+        catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } 
+        finally {
+            consumeAnyEntityAndClose(response);
+        }
+      
+    }
+
 
 }

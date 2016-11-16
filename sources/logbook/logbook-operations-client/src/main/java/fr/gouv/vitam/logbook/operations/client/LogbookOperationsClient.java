@@ -170,4 +170,14 @@ public interface LogbookOperationsClient extends BasicClient {
     void commitUpdateDelegate(String eventIdProc) 
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
+
+    /**
+     * Call traceability logbook operation <br>
+     * <br>
+     * @return logbook operation as String
+     * @throws LogbookClientServerException 
+     * @throws InvalidParseOperationException 
+     */
+    JsonNode traceability() throws  LogbookClientServerException, InvalidParseOperationException ;
+
 }
