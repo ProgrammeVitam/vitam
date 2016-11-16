@@ -85,7 +85,7 @@ public final class JsonTransformer {
         ParametersChecker.checkParameter("Result cannot be empty", searchResult);
         final ObjectNode resultNode = JsonHandler.createObjectNode();
         long nbObjects = 0;
-        final JsonNode result = searchResult.get("$result").get(0);
+        final JsonNode result = searchResult.get("$results").get(0);
         final JsonNode qualifiers = result.get("_qualifiers");
         final List<JsonNode> versions = qualifiers.findValues("versions");
         final Map<String, Integer> usages = new HashMap<>();

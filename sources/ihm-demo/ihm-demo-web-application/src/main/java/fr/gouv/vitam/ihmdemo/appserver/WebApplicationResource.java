@@ -1041,8 +1041,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         try {
             final JsonNode logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
-            if (logbookOperationResult != null && logbookOperationResult.has("result")) {
-                final JsonNode logbookOperation = logbookOperationResult.get("result");
+            if (logbookOperationResult != null && logbookOperationResult.has("$results")) {
+                final JsonNode logbookOperation = logbookOperationResult.get("$results");
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream =
                     JsonTransformer.buildLogbookStatCsvFile(logbookOperation);

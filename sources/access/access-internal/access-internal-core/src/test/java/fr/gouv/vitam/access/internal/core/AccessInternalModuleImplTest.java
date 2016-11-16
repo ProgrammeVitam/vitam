@@ -105,8 +105,8 @@ public class AccessInternalModuleImplTest {
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String QUERY_UPDATE =
         "{\"$root\": { },\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$action\": {}}";
-    private static final String FAKE_METADATA_RESULT = "{$result:[{'_id':123}]}";
-    private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$result:[{'_id':123}, {'_id':124}]}";
+    private static final String FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
+    private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$results:[{'_id':123}, {'_id':124}]}";
     private static final Update updateQuery = new Update();
     
    
@@ -323,14 +323,14 @@ public class AccessInternalModuleImplTest {
         // Mock select unit response
         when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hint" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
             "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}"));
         // Mock update unit response
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hint" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"_diff\":\"-    \\\"Title\\\" : " +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"_diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
