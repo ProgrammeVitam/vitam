@@ -27,9 +27,9 @@
 package fr.gouv.vitam.common.security.merkletree;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+
+import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -40,8 +40,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 public class MerkleTreeAlgo {
 
     private DigestType digestType;
-    private Map<Integer, List<MerkleTree>> myClassListMap = new LinkedHashMap<Integer, List<MerkleTree>>();
-    private List<MerkleTree> niveau0 = new ArrayList<>();
+    private List<MerkleTree> currentList = new ArrayList<>();
 
     /**
      * 
@@ -62,7 +61,7 @@ public class MerkleTreeAlgo {
         tree.setRoot(digest.update(str.getBytes()).digest());
         tree.setL(null);
         tree.setR(null);
-        niveau0.add(tree);
+        currentList.add(tree);
     }
 
     /**
@@ -93,13 +92,12 @@ public class MerkleTreeAlgo {
      * adds padding when sheet number isn't 2^n
      * 
      */
-    public void addPadding() {
-        if (!isPowerOfTwo(niveau0)) {
-            while (!isPowerOfTwo(niveau0)) {
-                niveau0.add(new MerkleTree());
+    private void addPadding() {
+        if (!isPowerOfTwo(currentList)) {
+            while (!isPowerOfTwo(currentList)) {
+                currentList.add(new MerkleTree());
             }
         }
-        myClassListMap.put(Integer.valueOf(0), niveau0);
     }
 
     /**
@@ -108,23 +106,19 @@ public class MerkleTreeAlgo {
      */
     public MerkleTree generateMerkle() {
         addPadding();
-        MerkleTree arbre = new MerkleTree();
-        Double niv = (Math.log(niveau0.size()) / Math.log(2));
-        int n = 0;
-        do {
-            List<MerkleTree> arbreNiveau = new ArrayList<>();
-            for (int i = 0; i < myClassListMap.get(n).size(); i = i + 2) {
-                List<MerkleTree> niveau = myClassListMap.get(n);
-                arbre = new MerkleTree();
-                arbre.setRoot(compute(niveau.get(i).getRoot(), niveau.get(i + 1).getRoot()));
-                arbre.setR(niveau.get(i + 1));
-                arbre.setL(niveau.get(i));
-                arbreNiveau.add(arbre);
+        MerkleTree tree = Iterables.getFirst(currentList, null);
+        while (currentList.size() > 1) {
+            List<MerkleTree> nextList = new ArrayList<>();
+            for (int i = 0; i < currentList.size(); i = i + 2) {
+                tree = new MerkleTree();
+                tree.setRoot(compute(currentList.get(i).getRoot(), currentList.get(i + 1).getRoot()));
+                tree.setR(currentList.get(i + 1));
+                tree.setL(currentList.get(i));
+                nextList.add(tree);
             }
-            n++;
-            myClassListMap.put(Integer.valueOf(n), arbreNiveau);
-        } while (n < niv.intValue());
-        return arbre;
+            currentList = nextList;
+        }
+        return tree;
     }
 
 }

@@ -26,11 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.security.merkletree;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.digest.DigestType;
@@ -44,9 +45,19 @@ public class MerkleTreeAlgoTest {
         mta.addSheet("b");
         mta.addSheet("c");
         MerkleTree mt = mta.generateMerkle();
-        Assertions.assertThat(mt.getRoot()).isEqualTo(
+        assertThat(mt.getRoot()).isEqualTo(
             Base64.decodeBase64(
                 "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
+    }
+
+    @Test
+    public void shoud_compute_merkle_tree_for_one_element() throws IOException, NoSuchAlgorithmException {
+        MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
+        mta.addSheet("a");
+        MerkleTree mt = mta.generateMerkle();
+        assertThat(mt.getRoot()).isEqualTo(
+            Base64.decodeBase64(
+                "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
     }
 
 }

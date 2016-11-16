@@ -36,34 +36,71 @@ public class MerkleTree {
     private MerkleTree r;
 
 
+    /**
+     * MerkleTree empty constructor
+     */
     public MerkleTree() {}
 
+    /**
+     * Initialize the needed parameters for MerkleTree constructor
+     * 
+     * @param root : the root of the MerkleTree
+     * @param l : the left sheet of the MerkleTree
+     * @param r : the right sheet of the MerkleTree
+     */
     public MerkleTree(byte[] root, MerkleTree l, MerkleTree r) {
         this.root = root;
         this.l = l;
         this.r = r;
     }
 
+    /**
+     * 
+     * @return root for type byte[]
+     */
     public byte[] getRoot() {
         return root;
     }
 
+    /**
+     * setter root
+     * 
+     * @param root
+     */
     public void setRoot(byte[] root) {
         this.root = root;
     }
 
+    /**
+     * 
+     * @return left sheet for type MerkleTree
+     */
     public MerkleTree getL() {
         return l;
     }
 
+    /**
+     * setter left sheet
+     * 
+     * @param l
+     */
     public void setL(MerkleTree l) {
         this.l = l;
     }
 
+    /**
+     * 
+     * @return right sheet for type MerkleTree
+     */
     public MerkleTree getR() {
         return this.r;
     }
 
+    /**
+     * setter right sheet
+     * 
+     * @param r
+     */
     public void setR(MerkleTree r) {
         this.r = r;
     }
