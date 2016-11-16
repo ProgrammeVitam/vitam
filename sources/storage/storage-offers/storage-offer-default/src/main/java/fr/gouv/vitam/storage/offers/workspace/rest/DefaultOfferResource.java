@@ -45,13 +45,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
@@ -61,6 +63,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -268,32 +271,39 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     private void getObjectAsync(String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
-
-        InputStream stream = null;
-        AsyncInputStreamHelper helper = null;
         try {
-
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
             }
-            stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
-
-            helper = new AsyncInputStreamHelper(asyncResponse, stream);
-            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
-            helper.writeResponse(responseBuilder);
-
+            DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId, asyncResponse);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                Response.status(Status.NOT_FOUND).entity(objectId).build());
+            buildErrorResponseAsync(VitamCode.STORAGE_NOT_FOUND, asyncResponse);
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build());
+            buildErrorResponseAsync(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, asyncResponse);
         }
 
     }
+
+    /**
+     * Add error response in async response using with vitamCode
+     * 
+     * @param vitamCode vitam error Code
+     * @param asyncResponse asynchronous response
+     */
+    private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
+                new VitamError(VitamCodeHelper.getCode(vitamCode))
+                    .setContext(vitamCode.getService().getName())
+                    .setState(vitamCode.getDomain().getName())
+                    .setMessage(vitamCode.getMessage())
+                    .setDescription(vitamCode.getMessage()))
+                .toString()).build());
+    }
+
 }

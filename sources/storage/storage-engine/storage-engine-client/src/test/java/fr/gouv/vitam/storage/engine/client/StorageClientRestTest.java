@@ -51,7 +51,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -77,7 +76,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected StorageClientRest client;
 
- // ************************************** //
+    // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
     public StorageClientRestTest() {
@@ -101,7 +100,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException("Cannot start the application", e);
         }
-        
+
         return new StartApplicationResponse<AbstractApplication>()
             .setServerPort(application.getVitamServer().getPort())
             .setApplication(application);
@@ -123,8 +122,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     }
-    
-    
+
+
     @Path("/storage/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
@@ -495,25 +494,26 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test(expected = StorageNotFoundException.class)
     public void failsGetContainerObjectExecutionWhenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
+        final InputStream stream = client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS)
+            .readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

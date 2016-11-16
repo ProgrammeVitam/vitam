@@ -33,7 +33,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -52,7 +55,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -265,7 +268,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     @Override
-    public InputStream getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         try {
@@ -280,7 +283,13 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
-                return blob.getPayload().openStream();
+                return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            } else {
+                LOGGER.error(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
         } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -294,7 +303,45 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } finally {
             context.close();
         }
-        return SingletonUtils.singletonInputStream();
+    }
+    
+    @Override
+    public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
+        throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        try {
+            final BlobStore blobStore = context.getBlobStore();
+
+            if (!isExistingObject(containerName, objectName)) {
+                LOGGER.error(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            }
+
+            final Blob blob = blobStore.getBlob(containerName, objectName);
+            if (null != blob) {
+                return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            } else {
+                LOGGER.error(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            }
+        } catch (final ContainerNotFoundException e) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(e);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        } catch (final Exception e) {
+            LOGGER.error(e.getMessage());
+            throw new ContentAddressableStorageException(e);
+        } finally {
+            context.close();
+        }
     }
 
     @Override
@@ -324,7 +371,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try (final InputStream stream = getObject(containerName, objectName)) {
+        try (final InputStream stream = (InputStream) getObject(containerName, objectName).getEntity()) {
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();

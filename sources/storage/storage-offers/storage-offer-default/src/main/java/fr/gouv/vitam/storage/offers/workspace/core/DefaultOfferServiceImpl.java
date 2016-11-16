@@ -32,6 +32,12 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -41,6 +47,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -92,9 +99,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public InputStream getObject(String containerName, String objectId) throws ContentAddressableStorageException {
-        return defaultStorage.getObject(containerName, objectId);
+    public Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
+        throws ContentAddressableStorageException {
+        Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
+        AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+        ResponseBuilder responseBuilder =
+            Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+        helper.writeResponse(responseBuilder);
+        return response;
     }
+
+
 
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)

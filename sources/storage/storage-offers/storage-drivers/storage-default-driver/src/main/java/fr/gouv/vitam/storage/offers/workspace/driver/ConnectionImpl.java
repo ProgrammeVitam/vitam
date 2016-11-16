@@ -128,7 +128,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {

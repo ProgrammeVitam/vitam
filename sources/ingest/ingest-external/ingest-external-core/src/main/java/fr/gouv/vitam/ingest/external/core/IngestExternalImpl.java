@@ -298,7 +298,8 @@ public class IngestExternalImpl implements IngestExternal {
 
                 if (isSupportedMedia) {
                     try {
-                        inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
+                        inputStream = (InputStream) workspaceFileSystem
+                            .getObject(containerName.getId(), objectName.getId()).getEntity();
                     } catch (final ContentAddressableStorageException e) {
                         LOGGER.error(e.getMessage());
                         throw new IngestExternalException(e);
@@ -327,7 +328,8 @@ public class IngestExternalImpl implements IngestExternal {
                 if (!isFileInfected && isSupportedMedia) {
                     return ingestClient.upload(ingestGuid, inputStream, CommonMediaType.valueOf(mimeType));
                 }
-                //throw new IngestExternalException("File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType));
+                // throw new IngestExternalException("File upload " + (isFileInfected ? "is infected" : "has a
+                // unsupported Format: " + mimeType));
                 // FIXME P1 later on real ATR KO
                 return Response.status(Status.BAD_REQUEST).entity(
                     AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",

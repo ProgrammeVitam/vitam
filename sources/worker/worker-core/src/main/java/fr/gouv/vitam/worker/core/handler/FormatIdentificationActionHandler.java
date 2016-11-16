@@ -492,8 +492,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
      */
     private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
         throws ProcessingException {
-        try (InputStream is =
-            workspaceClient.getObject(containerId, jsonFilePath)) {
+        try (InputStream is = (InputStream) workspaceClient.getObject(containerId, jsonFilePath).getEntity()) {
             if (is != null) {
                 return JsonHandler.getFromInputStream(is, JsonNode.class);
             } else {

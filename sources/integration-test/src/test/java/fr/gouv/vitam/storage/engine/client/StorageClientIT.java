@@ -158,7 +158,7 @@ public class StorageClientIT {
             workspaceClient.putObject(CONTAINER_2,
                 REPORT,
                 stream);
-            StreamUtils.closeSilently(workspaceClient.getObject(CONTAINER_1, OBJECT_ID));
+            StreamUtils.closeSilently(workspaceClient.getObject(CONTAINER_1, OBJECT_ID).readEntity(InputStream.class));
         } catch (final Exception e) {
             LOGGER.error("Error getting or putting object : " + e);
         }
@@ -254,7 +254,8 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainer("0", "default", OBJECT_ID, StorageCollectionType.OBJECTS);
+                    storageClient.getContainerAsync("0", "default", OBJECT_ID, StorageCollectionType.OBJECTS)
+                        .readEntity(InputStream.class);
                 assertNotNull(stream);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
@@ -262,7 +263,8 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainer("0", "default", REPORT, StorageCollectionType.REPORTS);
+                    storageClient.getContainerAsync("0", "default", REPORT, StorageCollectionType.REPORTS)
+                        .readEntity(InputStream.class);
                 assertNotNull(stream);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
                 LOGGER.error(svce);
@@ -271,7 +273,8 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainer("0", "default", MANIFEST, StorageCollectionType.MANIFESTS);
+                    storageClient.getContainerAsync("0", "default", MANIFEST, StorageCollectionType.MANIFESTS)
+                        .readEntity(InputStream.class);
                 assertNotNull(stream);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
                 LOGGER.error(svce);

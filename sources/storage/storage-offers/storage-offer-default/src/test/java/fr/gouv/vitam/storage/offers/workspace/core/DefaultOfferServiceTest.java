@@ -41,6 +41,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Ignore;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -248,10 +251,9 @@ public class DefaultOfferServiceTest {
 
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
-        final InputStream streamGet =
-            offerService.getObject(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID_2);
-        assertNotNull(streamGet);
-        assertTrue(OBJECT_ID_2_CONTENT.equals(IOUtils.toString(streamGet, "UTF-8")));
+        
+        final Response response = offerService.getObject(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID_2, new AsyncResponseJunitTest());
+        assertNotNull(response);
     }
 
     private ObjectInit getObjectInit(boolean algo) throws IOException {

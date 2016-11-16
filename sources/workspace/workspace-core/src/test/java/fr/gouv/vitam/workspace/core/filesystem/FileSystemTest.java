@@ -243,7 +243,7 @@ public class FileSystemTest {
 
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"));
         assertEquals(getInputStream("file2.pdf").available(),
-            workspace.getObject(CONTAINER_NAME, OBJECT_NAME).available());
+            ((InputStream) workspace.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
 
     }
 
@@ -313,7 +313,7 @@ public class FileSystemTest {
 
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         assertEquals(getInputStream("file1.pdf").available(),
-            workspace.getObject(CONTAINER_NAME, OBJECT_NAME).available());
+            ((InputStream) workspace.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
     }
 
     @Test

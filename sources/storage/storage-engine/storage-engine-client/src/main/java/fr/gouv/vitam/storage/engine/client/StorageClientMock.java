@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.InputStream;
 import java.time.LocalDateTime;
 
 import javax.ws.rs.core.MediaType;
@@ -96,10 +95,6 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return true;
     }
 
-    @Override
-    public InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type) {
-        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
-    }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
         final StoredInfoResult result = new StoredInfoResult();

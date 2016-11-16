@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -164,10 +165,11 @@ public class IndexUnitActionHandler extends ActionHandler {
         InputStream input;
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            input =
-                workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+            Response response = workspaceClient
+                .getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);            
 
-            if (input != null) {
+            if (response != null) {
+                input = (InputStream) response.getEntity();
                 final Insert insertQuery = new Insert();
 
                 final List<Object> archiveDetailsRequiredTForIndex =

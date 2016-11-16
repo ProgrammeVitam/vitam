@@ -521,8 +521,8 @@ public class WorkerIT {
     private String unitName() {
         String unitName = "";
         try {
-            final InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
-                "UnitsLevel/ingestLevelStack.json");
+            final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
+                "UnitsLevel/ingestLevelStack.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
             @SuppressWarnings("rawtypes")
@@ -539,8 +539,8 @@ public class WorkerIT {
     private String objectGroupName() {
         String objectName = "";
         try {
-            final InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
-                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json");
+            final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
+                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (final Exception e) {

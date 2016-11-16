@@ -34,6 +34,8 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
@@ -41,7 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -74,7 +75,7 @@ public class ExtractObjectNumSedaTest {
     public ExtractObjectNumSedaTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
     }
-    
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -87,7 +88,7 @@ public class ExtractObjectNumSedaTest {
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
-        when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
+        when(client.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         utils = SedaUtilsFactory.create(handlerIO);

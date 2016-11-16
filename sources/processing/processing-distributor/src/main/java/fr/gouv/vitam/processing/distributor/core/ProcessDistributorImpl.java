@@ -167,8 +167,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                         // get the file to retrieve the GUID
                         final InputStream levelFile =
-                            workspaceClient.getObject(workParams.getContainerName(),
-                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                            (InputStream) workspaceClient.getObject(workParams.getContainerName(),
+                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK).getEntity();
                         final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
                         while (iteratorlLevelFile.hasNext()) {
