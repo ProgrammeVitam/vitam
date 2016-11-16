@@ -1,13 +1,6 @@
 ---
 # tasks file for rsyslog
 
-- name: Wait for the logstash port to be open
-  wait_for:
-    host: "{{vitam_logstash_host}}"
-    port: "{{vitam_logstash_port}}"
-    timeout: 10
-  run_once: true
-
 - name: ensure rsyslog package is installed
   yum:
     name: rsyslog
