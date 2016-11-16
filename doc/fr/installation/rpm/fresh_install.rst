@@ -31,7 +31,7 @@ Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(
 Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
-   :header: "Clé", "Description","Valeur"
+   :header: "Clé", "Description","Valeur d'exemple"
    :widths: 10, 10,10
 
    "ansible_ssh_user","Utilisateurs ansible sur les machines sur lesquelles VITAM sera déployé",""
@@ -48,6 +48,8 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 216), renseigner les vale
    "days_to_delete_local","Période de grâce des log VITAM - logback (valeur en jours)",""
    "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
    "log_level","Niveau de log de logback","WARN"
+   "web_dir_soapui_tests","URL pour récupérer data.json et les tests pour SoapUI","http://vitam-prod-ldap-1.internet.agri:8083/webdav"
+   "reverse_proxy_port","port du reverse proxy pour configuration du vhost","8080"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
@@ -82,6 +84,11 @@ Se reporter à l'étape "PKI" du déploiement, décrite plus bas.
 
 Déploiement
 ===========
+
+Fichier de mot de passe
+-----------------------
+
+Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environnements-rpm/group_vars/all/vault.yml``, le mot de passe ne sera pas demandé. Si le fichier est absent, le mot de passe du "vault" sera demandé.
 
 PKI
 ---
