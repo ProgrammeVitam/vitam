@@ -87,9 +87,10 @@ public class StreamUtils {
      * Close silently the InputStream, first consuming any bytes available, ignoring IOException or null object.
      *
      * @param inputStream
+     * @return the length in bytes that were read before closing
      */
-    public static final void closeSilently(InputStream inputStream) {
-        consumeInputStream(inputStream);
+    public static final long closeSilently(InputStream inputStream) {
+        return consumeInputStream(inputStream);
     }
 
     private static class RemainingReadOnCloseInputStream extends InputStream {

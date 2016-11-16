@@ -113,7 +113,20 @@ public final class RequestResponseOK extends RequestResponse{
      */
     @JsonSetter("$hits")
     public RequestResponseOK setHits(int total, int offset, int limit) {
-        hits = new DatabaseCursor(total, offset, limit);
+        hits = new DatabaseCursor(total, offset, limit, total);
+        return this;
+    }
+
+    /**
+     * @param total of units inserted/modified as integer
+     * @param offset of unit in database as integer
+     * @param limit of unit per response as integer
+     * @param size of unit per response
+     * @return the RequestReponseOK with the hits are setted
+     */
+    @JsonSetter("$hits")
+    public RequestResponseOK setHits(int total, int offset, int limit, int size) {
+        hits = new DatabaseCursor(total, offset, limit, size);
         return this;
     }
 
@@ -141,30 +154,6 @@ public final class RequestResponseOK extends RequestResponse{
             this.query = query;
         }
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return JsonHandler.unprettyPrintLowerCamelCase(this);
-    }
-
-    /**
-     * 
-     * @return the Json representation
-     * @throws InvalidParseOperationException
-     */
-    public JsonNode toJsonNode() throws InvalidParseOperationException {
-        return JsonHandler.getFromString(this.toString());
-    }
-
-    /**
-     * 
-     * @param string
-     * @return the corresponding VitamError
-     * @throws InvalidParseOperationException
-     */
-    public static RequestResponseOK getFromString(String string) throws InvalidParseOperationException {
-        return JsonHandler.getFromString(string, RequestResponseOK.class);
     }
 
     /**

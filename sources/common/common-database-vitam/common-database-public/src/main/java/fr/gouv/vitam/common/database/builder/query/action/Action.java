@@ -243,6 +243,6 @@ public class Action {
 
     @Override
     public String toString() {
-        return currentAction.toString();
+        return JsonHandler.unprettyPrint(currentAction);
     }
 }

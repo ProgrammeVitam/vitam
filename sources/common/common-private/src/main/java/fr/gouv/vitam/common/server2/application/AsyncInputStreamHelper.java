@@ -184,6 +184,7 @@ public class AsyncInputStreamHelper implements StreamingOutput {
                 } catch (IllegalStateException e) {
                     LOGGER.error(e);
                     writeErrorAsyncResponse(asyncResponse, getResponseError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
+                    return;
                 }
             }
             asyncResponse.resume(responseBuilder.entity(self).build());

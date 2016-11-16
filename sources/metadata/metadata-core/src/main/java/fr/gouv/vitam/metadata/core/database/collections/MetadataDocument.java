@@ -38,6 +38,7 @@ import com.mongodb.client.model.UpdateOptions;
 
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -97,7 +98,7 @@ public abstract class MetadataDocument<E> extends Document {
      * @param content
      */
     public MetadataDocument(JsonNode content) {
-        super(Document.parse(content.toString()));
+        super(Document.parse(JsonHandler.unprettyPrint(content)));
         checkId();
     }
 

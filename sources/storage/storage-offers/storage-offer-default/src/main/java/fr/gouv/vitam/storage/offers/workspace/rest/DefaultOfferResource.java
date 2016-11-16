@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -131,6 +132,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @GET
     @Path("/objects/{id:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getObject(@PathParam("id") String objectId, @Context HttpHeaders headers,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
 
@@ -277,6 +279,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
+                return;
             }
             DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId, asyncResponse);
         } catch (final ContentAddressableStorageNotFoundException e) {

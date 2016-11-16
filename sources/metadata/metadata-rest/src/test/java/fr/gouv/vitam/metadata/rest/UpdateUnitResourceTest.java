@@ -222,30 +222,16 @@ public class UpdateUnitResourceTest {
     }
 
     @Test
-    public void shouldReturn_Internal_Server_Error_If_DocumentIsTooLarge() throws Exception {
+    public void shouldReturn_REQUEST_ENTITY_TOO_LARGE_If_DocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
-
-    @Test
-    public void shouldReturnInternalServerErrorIfDocumentIsTooLarge() throws Exception {
-        final int limitRequest = GlobalDatasParser.limitRequest;
-        GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
-    }
-
-
 
     @Test(expected = InvalidParseOperationException.class)
     public void shouldReturnErrorRequestBadRequest() throws Exception {

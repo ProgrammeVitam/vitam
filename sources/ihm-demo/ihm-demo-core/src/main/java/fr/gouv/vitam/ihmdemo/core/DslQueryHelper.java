@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -188,8 +189,8 @@ public final class DslQueryHelper {
             query.add(queryOr);
         }
         select.setQuery(query);
-        LOGGER.debug(select.getFinalSelect().toString());
-        return select.getFinalSelect().toString();
+        LOGGER.debug("{}", select.getFinalSelect());
+        return JsonHandler.unprettyPrint(select.getFinalSelect());
     }
 
     /**
@@ -241,7 +242,7 @@ public final class DslQueryHelper {
             select.addQueries(booleanQueries);
         }
 
-        return select.getFinalSelect().toString();
+        return JsonHandler.unprettyPrint(select.getFinalSelect());
     }
 
     /**
@@ -334,7 +335,7 @@ public final class DslQueryHelper {
                 select.addQueries(booleanQueries);
             }
         }
-        return select.getFinalSelect().toString();
+        return JsonHandler.unprettyPrint(select.getFinalSelect());
     }
 
     /**
@@ -363,7 +364,7 @@ public final class DslQueryHelper {
             // Add Actions
             update.addActions(new SetAction(searchKeys, searchValue));
         }
-        return update.getFinalUpdate().toString();
+        return JsonHandler.unprettyPrint(update.getFinalUpdate());
     }
 
     /**
@@ -406,7 +407,7 @@ public final class DslQueryHelper {
             selectParentsDetails.addQueries(inParentsIdListQuery);
         }
 
-        return selectParentsDetails.getFinalSelect().toString();
+        return JsonHandler.unprettyPrint(selectParentsDetails.getFinalSelect());
     }
 
 

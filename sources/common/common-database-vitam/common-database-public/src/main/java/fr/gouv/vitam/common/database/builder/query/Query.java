@@ -341,6 +341,6 @@ public class Query {
 
     @Override
     public String toString() {
-        return currentQuery.toString();
+        return JsonHandler.unprettyPrint(currentQuery);
     }
 }

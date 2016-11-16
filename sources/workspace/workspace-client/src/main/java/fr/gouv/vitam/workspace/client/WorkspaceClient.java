@@ -308,15 +308,14 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         try {
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            if (response.getStatus() == 200) {
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
                 ResponseBuilder responseBuilder =
                     Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                 helper.writeResponse(responseBuilder);
-            }
-            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response;
-            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+            }
+            if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {

@@ -175,9 +175,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
 
         final ArrayNode matches = (ArrayNode) file.get("matches");
         for (final JsonNode match : matches) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Check match " + match.toString());
-            }
+            LOGGER.debug("Check match {}", match);
             final String formatId = match.get("id").asText();
             final String namespace = match.get("ns").asText();
             if (formatResolved(formatId, namespace)) {

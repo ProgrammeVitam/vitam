@@ -80,7 +80,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         try {
             response =
                 performRequest(HttpMethod.GET, "/",
-                    getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE);
+                    getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
             String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -129,7 +129,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, "/",
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (VitamClientInternalException e) {
             String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -153,7 +153,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (VitamClientInternalException e) {
             String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -172,7 +172,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/",
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (VitamClientInternalException e) {
             String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -197,7 +197,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (VitamClientInternalException e) {
             String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);

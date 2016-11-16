@@ -81,6 +81,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private final String driverName;
+    @SuppressWarnings("unused")
     private final Properties parameters;
 
     /**

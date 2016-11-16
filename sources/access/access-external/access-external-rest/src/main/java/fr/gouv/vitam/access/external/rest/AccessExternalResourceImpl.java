@@ -111,6 +111,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      */
     @GET
     @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getUnits(JsonNode queryJson) {
         Status status;
         JsonNode result = null;
@@ -520,12 +522,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
                             .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                    return;
                 }
                 final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                             .toString()).build());
+                    return;
                 }
             }
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
@@ -535,12 +539,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
                         .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                return;
             }
         } catch (IllegalArgumentException e) {
             Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
                 .build();
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            return;
         }
 
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
@@ -639,6 +645,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      */
     @POST
     @Path("/accession-register/{id_document}/accession-register-detail")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {

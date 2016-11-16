@@ -64,7 +64,6 @@ import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -280,10 +279,7 @@ public class StorageResource extends ApplicationStatusResource {
             }
         });
 
-
-
     }
-
 
     private void getByCategoryAsync(String objectId, HttpHeaders headers, DataCategory category,
         AsyncResponse asyncResponse) {
@@ -294,6 +290,7 @@ public class StorageResource extends ApplicationStatusResource {
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 distribution.getContainerByCategory(tenantId, strategyId, objectId, category, asyncResponse);
+                return;
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
@@ -804,7 +801,6 @@ public class StorageResource extends ApplicationStatusResource {
     @Path("/reports/{id_report}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
-
     public void getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {

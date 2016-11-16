@@ -28,17 +28,31 @@ package fr.gouv.vitam.common.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -46,6 +60,15 @@ public class RequestResponseOKTest {
 
     private ArrayNode results;
     private JsonNode query;
+
+    private static final String ERROR_JSON =
+        "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+        "[{\"httpCode\":0,\"code\":\"1\"}]}";
+
+    private static final String OK_JSON =
+        "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
+            "\"$results\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
 
     @Test
     public final void testRequestResponseOKConstructor() {
@@ -67,8 +90,7 @@ public class RequestResponseOKTest {
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
 
         assertEquals(
-            "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
-                "\"$results\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            OK_JSON,
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
             RequestResponseOK copy =
@@ -80,6 +102,12 @@ public class RequestResponseOKTest {
         requestResponseOK.addResult(query);
         requestResponseOK.addResult(query);
         requestResponseOK.getHits().setTotal(2).setLimit(2);
+        assertEquals(
+            "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+                "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            JsonHandler.unprettyPrint(requestResponseOK));
+        requestResponseOK.setHits(2, 0, 2, 0);
         assertEquals(
             "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
@@ -101,4 +129,92 @@ public class RequestResponseOKTest {
         requestResponseOK.addAllResults(null);
     }
 
+    @Test
+    public void testOtherPojo() {
+        StatusCode code = StatusCode.FATAL;
+        assertTrue(code.isGreaterOrEqualToFatal());
+        assertTrue(code.isGreaterOrEqualToKo());
+        code = StatusCode.KO;
+        assertFalse(code.isGreaterOrEqualToFatal());
+        assertTrue(code.isGreaterOrEqualToKo());
+        code = StatusCode.WARNING;
+        assertFalse(code.isGreaterOrEqualToFatal());
+        assertFalse(code.isGreaterOrEqualToKo());
+    }
+    @Test
+    public void testFromResponse() throws InvalidParseOperationException {
+        results = JsonHandler.createArrayNode();
+        final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
+        query = JsonHandler.getFromString(json);
+        final RequestResponseOK requestResponseOK = new RequestResponseOK();
+        requestResponseOK.setQuery(query);
+        requestResponseOK.addAllResults(results);
+        Response response = getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
+        RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+        assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
+        assertTrue(requestResponse.isOk());
+        response = getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
+        requestResponse = RequestResponse.parseRequestResponseOk(response);
+        assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
+        
+        VitamError error = new VitamError("0");
+        error.setMessage("message");
+        error.setDescription("description");
+        error.setState("state");
+        error.setContext("context");
+        error.addAllErrors(Collections.singletonList(new VitamError("1")));
+        response = getOutboundResponse(Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
+        requestResponse = RequestResponse.parseFromResponse(response);
+        assertEquals(ERROR_JSON, JsonHandler.unprettyPrint(requestResponse));
+        assertFalse(requestResponse.isOk());
+        response = getOutboundResponse(Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
+        requestResponse = RequestResponse.parseVitamError(response);
+        assertEquals(ERROR_JSON, JsonHandler.unprettyPrint(requestResponse));
+        
+        response = getOutboundResponse(Status.BAD_GATEWAY, null, MediaType.APPLICATION_JSON, null);
+        requestResponse = RequestResponse.parseFromResponse(response);
+        assertTrue(requestResponse instanceof VitamError);
+        assertEquals(Status.BAD_GATEWAY.getStatusCode(), ((VitamError) requestResponse).getHttpCode());
+        assertEquals("", ((VitamError) requestResponse).getCode());
+        assertFalse(requestResponse.isOk());
+        
+        // Bad response
+        response = getOutboundResponse(Status.BAD_GATEWAY, "{ \"notcorrect\": 1}", MediaType.APPLICATION_JSON, null);
+        try {
+            requestResponse = RequestResponse.parseFromResponse(response);
+            System.err.println(requestResponse.toString());
+            fail("Should raized an exception");
+        } catch (IllegalStateException e) {
+            // Correct
+        }
+    }
+    
+    
+    public static Response getOutboundResponse(Status status, Object entity, String contentType,
+        Map<String, String> headers) {
+        if (status == null) {
+            throw new IllegalArgumentException("status cannot be null");
+        }
+        final Response response = Mockito.mock(Response.class);
+        when(response.getStatus()).thenReturn(status.getStatusCode());
+        if (entity == null) {
+            when(response.readEntity(Mockito.any(Class.class))).thenReturn("");
+        } else {
+            when(response.readEntity(Mockito.any(Class.class))).thenReturn(entity);
+        }
+        boolean contentTypeFound = false;
+        if (!Strings.isNullOrEmpty(contentType)) {
+            when(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).thenReturn(contentType);
+            contentTypeFound = true;
+        }
+        if (headers != null) {
+            for (Entry<String, String> entry : headers.entrySet()) {
+                when(response.getHeaderString(entry.getKey())).thenReturn(entry.getValue());
+            }
+        }
+        if (!contentTypeFound) {
+            when(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).thenReturn(MediaType.APPLICATION_JSON);
+        }
+        return response;
+    }
 }

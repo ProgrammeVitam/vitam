@@ -58,6 +58,9 @@ public class VitamSession {
     private final VitamThreadFactory.VitamThread owningThread;
 
 
+    /**
+     * @param owningThread
+     */
     public VitamSession(VitamThreadFactory.VitamThread owningThread) {
         this.owningThread = owningThread;
     }
@@ -68,6 +71,9 @@ public class VitamSession {
         }
     }
 
+    /**
+     * @return the current X-Request-Id
+     */
     public String getRequestId() {
         return requestId;
     }

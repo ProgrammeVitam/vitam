@@ -293,7 +293,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         final BooleanQuery query = and();
         query.add(exists(RULEID));
         select.setQuery(query);
-        result = JsonHandler.getFromString(select.getFinalSelect().toString());
+        result = select.getFinalSelect();
         return result;
     }
 

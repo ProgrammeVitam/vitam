@@ -37,7 +37,6 @@ import java.util.Map.Entry;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -90,14 +89,13 @@ implements MongoDbAccessReferential {
         final List<VitamDocument> vitamDocumentList = new ArrayList<>();
         try {
             for (final JsonNode objNode : arrayNode) {
-                final ObjectMapper mapper = new ObjectMapper();
                 VitamDocument obj;
 
-                obj = (VitamDocument) mapper.readValue(objNode.toString(), collection.getClasz());
+                obj = (VitamDocument) JsonHandler.getFromJsonNode(objNode, collection.getClasz());
 
                 vitamDocumentList.add(obj);
             }
-        } catch (final IOException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }

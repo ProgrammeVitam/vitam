@@ -120,7 +120,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
                 Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
-                objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).toString();
+                objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).asText();
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
                     HANDLER_ID);

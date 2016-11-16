@@ -41,12 +41,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -275,12 +273,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
                         .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+                return;
             }
             final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
             if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                         .toString()).build());
+                return;
             }
         }
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
@@ -291,25 +291,18 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+            return;
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
         final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
-        AsyncInputStreamHelper helper = null;
         try {
             SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            AccessBinaryData receivedAbd =
-                accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
-                    Integer.valueOf(xVersion), xTenantId);
-            helper = new AsyncInputStreamHelper(asyncResponse, receivedAbd.getOriginalResponse());
-            ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, xQualifier)
-                .header(GlobalDataRest.X_VERSION, xVersion)
-                .header("Content-Disposition", "attachment; filename=\"" + receivedAbd.getFilename() + "\"")
-                .type(receivedAbd.getMimetype());
-            helper.writeResponse(responseBuilder);
+            accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
+                Integer.valueOf(xVersion), xTenantId);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
