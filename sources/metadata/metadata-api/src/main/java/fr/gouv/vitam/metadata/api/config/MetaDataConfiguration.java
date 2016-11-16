@@ -39,16 +39,15 @@ import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 public final class MetaDataConfiguration extends DbConfigurationImpl {
 
     private String jettyConfig;
-    private String clusterName; 
+    private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
     /**
      * MetaDataConfiguration constructor
-     *
-     * @param host database server IP address
-     * @param port database server port
+     * 
+     * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName 
+     * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
      * @param jettyConfig jetty config fiel name
      */
@@ -62,22 +61,22 @@ public final class MetaDataConfiguration extends DbConfigurationImpl {
         this.elasticsearchNodes = elasticsearchNodes;
         this.jettyConfig = jettyConfig;
     }
-    
+
     /**
      * MetaDataConfiguration constructor with authentication
-     *
-     * @param host database server IP address
-     * @param port database server port
+     * 
+     * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName 
+     * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
      * @param jettyConfig jetty config fiel name
-     * @param dbAuthentication 
-     * @param dbUserName 
-     * @param dbPassword 
+     * @param dbAuthentication
+     * @param dbUserName
+     * @param dbPassword
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName, String dbPassword) {
+        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName,
+        String dbPassword) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);

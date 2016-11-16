@@ -164,20 +164,23 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode getAccessionRegisterSummary(JsonNode query) throws InvalidParseOperationException, AccessExternalClientServerException,
-    AccessExternalClientNotFoundException;
+    JsonNode getAccessionRegisterSummary(JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
     /**
      * Get the accession register details matching the given query
      * 
+     * @param id
      * @param query The DSL Query as a JSON Node
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode getAccessionRegisterDetail(String id, JsonNode query) throws InvalidParseOperationException, AccessExternalClientServerException,
-    AccessExternalClientNotFoundException;
+    JsonNode getAccessionRegisterDetail(String id, JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
 }
 

@@ -28,10 +28,19 @@
 package fr.gouv.vitam.processing.common.model;
 
 /**
- * Step io Type
+ * HandlerIO argument Types
  */
 public enum UriPrefix {
+    /**
+     * Workspace based argument
+     */
     WORKSPACE,
+    /**
+     * Memory based argument
+     */
     MEMORY,
+    /**
+     * Fixe value based argument
+     */
     VALUE
 }

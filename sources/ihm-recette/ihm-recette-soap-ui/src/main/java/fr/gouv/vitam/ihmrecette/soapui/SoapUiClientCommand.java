@@ -39,6 +39,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
+/**
+ * SoapUI Client Command
+ */
 public class SoapUiClientCommand implements SoapUiClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientCommand.class);
     private static final String SOAP_UI_DESC_FILE = "story-tests.xml";
@@ -46,6 +49,11 @@ public class SoapUiClientCommand implements SoapUiClient {
     
     private SoapUiConfig clientConfiguration;
     
+    /**
+     * Constructor
+     * 
+     * @param clientConfiguration
+     */
     public SoapUiClientCommand(SoapUiConfig clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
     }

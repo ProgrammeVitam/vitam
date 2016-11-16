@@ -392,6 +392,7 @@ public class IngestInternalIT {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         Response response = client.upload(operationGuid, zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
         assertNotNull(response);
+        // FIXME in error but not for good reason (Logbook issue)
         assertEquals(500, response.getStatus());
         assertNotNull(response.getEntity());
     }

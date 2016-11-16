@@ -154,7 +154,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     private static final String BINARY_DATA_OBJECT_VERSION_MUST_BE_UNIQUE =
         "ERROR: BinaryDataObject version must be unique";
-    public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";

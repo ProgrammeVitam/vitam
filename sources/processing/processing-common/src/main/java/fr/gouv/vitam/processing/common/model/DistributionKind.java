@@ -31,7 +31,13 @@ package fr.gouv.vitam.processing.common.model;
  */
 public enum DistributionKind {
     // TODO P1 comment on each lines + since each is the same enum = String, remove String
+    /**
+     * Distribution by reference, so 1 item only
+     */
     REF("REF"),
+    /**
+     * Distribution by List (workspace or other kind of lists)
+     */
     LIST("LIST");
 
     private String value;

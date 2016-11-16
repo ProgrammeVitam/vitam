@@ -44,8 +44,6 @@ public class RegisterValueDetail {
 
     /**
      * @param originatingAgency the originatingAgency to set
-     * @return
-     *
      * @return this
      */
     public RegisterValueDetail setOriginatingAgency(String originatingAgency) {

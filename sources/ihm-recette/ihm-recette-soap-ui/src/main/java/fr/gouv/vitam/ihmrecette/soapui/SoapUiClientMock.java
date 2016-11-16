@@ -30,6 +30,11 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+
+/**
+ * SoapUI Client Mock
+ */
 public class SoapUiClientMock implements SoapUiClient {
 
     @Override
@@ -40,7 +45,7 @@ public class SoapUiClientMock implements SoapUiClient {
     @Override
     public JsonNode getLastTestReport() {
         // FIXME Write some code
-        return null;
+        return JsonHandler.createObjectNode();
     }
 
 }

@@ -34,6 +34,9 @@ import java.util.List;
  */
 public class SedaConstants {
 
+    /**
+     * SEDA Namespace
+     */
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
 
     /**

@@ -104,7 +104,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        // FIXME P0 register for default offer: usefull ?
+        // FIXME P2 register for default offer: useful ?
         resourceConfig.register(new StorageResource(getConfiguration()));
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }

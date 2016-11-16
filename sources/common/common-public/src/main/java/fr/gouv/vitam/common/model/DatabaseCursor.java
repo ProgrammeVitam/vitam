@@ -56,9 +56,9 @@ public class DatabaseCursor {
     /**
      * DatabaseCursor constructor
      *
-     * @param total total of units inserted/modified
-     * @param offset the offset of unit in database
-     * @param limit number limit of unit per response
+     * @param total total of inserted/modified/selected items
+     * @param offset the offset of items in database
+     * @param limit number limit of items per response
      */
     public DatabaseCursor(int total, int offset, int limit) {
         this.total = total;
@@ -70,9 +70,10 @@ public class DatabaseCursor {
     /**
      * DatabaseCursor constructor
      *
-     * @param total total of units inserted/modified
-     * @param offset the offset of unit in database
-     * @param limit number limit of unit per response
+     * @param total total of inserted/modified/selected items
+     * @param offset the offset of items in database 
+     * @param limit number limit of items per response
+     * @param size size of the current response
      */
     public DatabaseCursor(int total, int offset, int limit, int size) {
         this.total = total;

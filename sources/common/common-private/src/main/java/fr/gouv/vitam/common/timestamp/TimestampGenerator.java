@@ -42,20 +42,25 @@ import java.math.BigInteger;
 import java.security.cert.CertificateEncodingException;
 
 /**
- * generate a time stamp token for a specific hash
+ * Generate a time stamp token for a specific hash
  */
 public class TimestampGenerator {
 
     private TimeStampSignature timeStampSignature;
 
+    /**
+     * Constructor
+     * 
+     * @param timeStampSignature
+     */
     public TimestampGenerator(TimeStampSignature timeStampSignature) {
         this.timeStampSignature = timeStampSignature;
     }
 
     /**
-     * @param hash       the hash to timestamp
+     * @param hash the hash to timestamp
      * @param digestType algorithm use to generate the hash
-     * @param nonce      unique id to secure a timestamp request, can be null
+     * @param nonce unique id to secure a timestamp request, can be null
      * @return timestamp token
      * @throws TSPException
      * @throws CertificateEncodingException

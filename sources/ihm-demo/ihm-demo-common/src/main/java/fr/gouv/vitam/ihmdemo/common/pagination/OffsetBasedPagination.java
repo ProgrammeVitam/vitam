@@ -63,7 +63,7 @@ public class OffsetBasedPagination {
     }
 
     /**
-     * @param request
+     * @param headers
      * @throws VitamException
      */
     public OffsetBasedPagination(HttpHeaders headers) throws VitamException {

@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -135,6 +132,10 @@ public final class RequestResponseOK extends RequestResponse{
         return query;
     }
     
+    /**
+     * @param query
+     * @return this
+     */
     public RequestResponseOK setQuery(JsonNode query) {
         if (query != null) {
             this.query = query;

@@ -40,13 +40,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 
 /**
  * VitamError class
  *
  */
-public class VitamError {
+public class VitamError extends RequestResponse {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
 
     @JsonProperty("httpCode")

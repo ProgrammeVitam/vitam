@@ -197,7 +197,8 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
     @Test
     public void insertUnitTest() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        when(mock.post())
+            .thenReturn(Response.status(Response.Status.CREATED).entity(JsonHandler.createObjectNode()).build());
         client.insertUnit(QUERY);
     }
 
@@ -233,7 +234,8 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
     @Test
     public void insertObjectGroupTest() {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        when(mock.post())
+            .thenReturn(Response.status(Response.Status.CREATED).entity(JsonHandler.createObjectNode()).build());
         try {
             client.insertObjectGroup(QUERY);
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException |

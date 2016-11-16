@@ -77,6 +77,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private final WebApplicationConfig webApplicationConfig;
 
+    /**
+     * Constructor
+     * 
+     * @param webApplicationConfig
+     */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         super(new BasicVitamStatusServiceImpl());
         /*DbConfigurationImpl adminConfiguration;

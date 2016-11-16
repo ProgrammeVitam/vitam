@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.external.api;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
 /**
  * IngestExtern interface

@@ -257,7 +257,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param options
-     * @return
+     * @return JsonNode result
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -275,7 +275,7 @@ public class UserInterfaceTransactionManager {
     /**
      * @param id
      * @param options
-     * @return
+     * @return JsonNode result
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException

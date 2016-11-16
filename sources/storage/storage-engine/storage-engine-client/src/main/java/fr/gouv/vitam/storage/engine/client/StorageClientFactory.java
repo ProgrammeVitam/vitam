@@ -67,6 +67,9 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient>  {
     private static final String CONFIGURATION_FILENAME = "storage-client.conf";
     private static final StorageClientFactory STORAGE_CLIENT_FACTORY = new StorageClientFactory();
 
+    /**
+     * Default path
+     */
     public static final String RESOURCE_PATH = "/storage/v1";
     
     private StorageClientFactory() {

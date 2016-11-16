@@ -148,6 +148,10 @@ public class ClientMockResultHelper {
 
     private ClientMockResultHelper() {}
 
+    /**
+     * @return a default Logbook Result
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode createLogbookResult() throws InvalidParseOperationException {
         StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
@@ -159,10 +163,19 @@ public class ClientMockResultHelper {
         result.append("]}");
         return JsonHandler.getFromString(result.toString());
     }  
+    /**
+     * @return a default Logbook Operation
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler.getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
     }
 
+    /**
+     * @param s the original object to be included in response
+     * @return a default response
+     * @throws InvalidParseOperationException
+     */
     private static JsonNode createReponse(String s) throws InvalidParseOperationException {
         RequestResponseOK response = new RequestResponseOK();
         response.setHits(1, 0, 1);
@@ -171,26 +184,56 @@ public class ClientMockResultHelper {
         return JsonHandler.toJsonNode(response);
     }
 
+    /**
+     * 
+     * @return a default Access Register Summary
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getAccessionRegisterSummary() throws InvalidParseOperationException {
         return createReponse(ACCESSION_SUMMARY);
     }
 
+    /**
+     * 
+     * @return a default Access Register Detail
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getAccessionRegisterDetail() throws InvalidParseOperationException {
         return createReponse(ACCESSION_DETAIL);
     }
 
+    /**
+     * 
+     * @return a default Format
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getFormat() throws InvalidParseOperationException {
         return createReponse(FORMAT);
     }
 
+    /**
+     * 
+     * @return a default Rule
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getRule() throws InvalidParseOperationException {
         return createReponse(RULE);
     }
 
+    /**
+     * 
+     * @return a default list of Formats
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getFormatList() throws InvalidParseOperationException {
         return createReponse(FORMAT);
     }
 
+    /**
+     * 
+     * @return a default list of Rules
+     * @throws InvalidParseOperationException
+     */
     public static JsonNode getRuleList() throws InvalidParseOperationException {
         return createReponse(RULE);
     }

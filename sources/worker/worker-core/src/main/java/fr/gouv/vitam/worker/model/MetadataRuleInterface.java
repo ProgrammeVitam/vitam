@@ -27,9 +27,19 @@
 
 package fr.gouv.vitam.worker.model;
 
+/**
+ * Metadata Rule Interface
+ */
 public interface MetadataRuleInterface {
 
+    /**
+     * @return the RuleId
+     */
     public String getRuleId();
+    /**
+     * @param id
+     * @return ??
+     */
     public String setRuleId(String id);
 
 

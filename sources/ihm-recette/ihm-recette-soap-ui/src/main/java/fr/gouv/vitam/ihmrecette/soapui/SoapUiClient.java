@@ -32,6 +32,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+/**
+ * SoapUI Client interface
+ */
 public interface SoapUiClient {
 
     /**

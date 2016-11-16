@@ -106,12 +106,11 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query
      * 
-     * @param queryDsl
+     * @param queryJson
      * @return Response
      */
     @GET
     @Path("/units")
-    // FIXME P0 quand une query (partout), argument au format JsonNode natif en réception
     public Response getUnits(JsonNode queryJson) {
         Status status;
         JsonNode result = null;
@@ -288,7 +287,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * update archive units by Id with Json query
      * 
-     * @param queryJson, null not allowed
+     * @param queryJson null not allowed
      * @param idUnit units identifier
      * @return a archive unit result list
      */
@@ -583,8 +582,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findDocuments
      * 
-     * @param collection
      * @param select
+     * @param xhttpOverride 
      * @return Response
      */
     @Path("/accession-register")
@@ -633,8 +632,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findAccessionRegisterDetail
      * 
-     * @param collection
      * @param documentId
+     * @param select 
+     * @param xhttpOverride 
      * @return Response
      */
     @POST
