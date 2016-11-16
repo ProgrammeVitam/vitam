@@ -134,7 +134,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public void getObject(@PathParam("id") String objectId, @Context HttpHeaders headers,
         @Suspended final AsyncResponse asyncResponse) throws IOException {
 
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
             public void run() {

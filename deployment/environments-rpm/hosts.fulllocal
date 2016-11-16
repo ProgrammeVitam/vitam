@@ -16,7 +16,6 @@ localhost
 
 [library] # EXTRA : Library server
 
-
 [hosts-mongo-express]
 localhost
 
@@ -162,11 +161,9 @@ dns_servers=["10.100.211.222","8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m"
 
-
 web_dir_soapui_tests=
 
 # Overrides
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 log_level=WARN
-reverse_proxy_port=80

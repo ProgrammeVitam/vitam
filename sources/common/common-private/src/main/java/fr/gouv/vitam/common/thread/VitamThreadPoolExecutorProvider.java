@@ -49,7 +49,7 @@ import org.glassfish.jersey.spi.ThreadPoolExecutorProvider;
  */
 @ManagedAsyncExecutor
 public class VitamThreadPoolExecutorProvider extends ThreadPoolExecutorProvider {
-    VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getInstance();
+    VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
     /**
      * @param name
      */
