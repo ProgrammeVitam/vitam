@@ -19,6 +19,7 @@
    get_version
    rpm/_toc
    validation_deploiement
+   troubleshooting
    contacts
 
 .. only:: latex

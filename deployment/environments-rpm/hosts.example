@@ -197,7 +197,7 @@ rpm_version=
 #	Days before deletion on log management cluster; 365 for production environment
 days_to_delete=
 
-#	Days before claosing "old" indexes on log management cluster; 30 for production environment
+#	Days before closing "old" indexes on log management cluster; 30 for production environment
 days_to_close=
 
 #	Days before deletion for topbeat index only on log management cluster; 365 for production environment

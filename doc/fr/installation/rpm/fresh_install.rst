@@ -93,15 +93,39 @@ Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe 
 PKI
 ---
 
-1. paramétrer le fichier ``environnements-rpm/group_vars/all/vault.yml``et le fichier d'inventaire de la plate-forme sous ``environnements-rpm`` (se baser sur le fichier hosts.example)
+1. paramétrer le fichier ``environnements-rpm/group_vars/all/vault.yml`` et le fichier d'inventaire de la plate-forme sous ``environnements-rpm`` (se baser sur le fichier hosts.example)
 
-2. Lancer le script ``pki-generate-ca.sh`` : en cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
+2. Lancer le script
 
-3. Lancer la script ``generate_certs.sh <environnement>`` . Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
+.. code-block:: bash
 
-3. Lancer la script ``generate_stores.sh <environnement>`` . Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores nécessaires au bon fonctionnement de VITAM.
+   pki-generate-ca.sh
 
-4. Lancer le script ``copie_fichiers_vitam.sh <environnement>`` pour recopier dans les bons répertoires d'ansiblerie les certificats et stores précédemment créés.
+En cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
+
+3. Lancer le script 
+
+.. code-block:: bash
+
+   generate_certs.sh <environnement>
+
+Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
+
+3. Lancer le script 
+
+.. code-block:: bash
+
+   generate_stores.sh <environnement>
+
+Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores nécessaires au bon fonctionnement de VITAM.
+
+4. Lancer le script 
+
+.. code-block:: bash
+
+   copie_fichiers_vitam.sh <environnement>
+
+pour recopier dans les bons répertoires d'ansiblerie les certificats et stores précédemment créés.
 
 
 Déploiement
@@ -109,7 +133,9 @@ Déploiement
 
 Une fois l'étape de PKI effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --vault-password-file vault_pass.txt
+.. code-block:: bash
+
+   ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 Import automatique d'objets dans Kibana
 ---------------------------------------
