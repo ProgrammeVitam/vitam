@@ -21,6 +21,3 @@ Particularités
 ==============
 
 Les workers utilisent des outils externes pouvant avoir des pré-requis importants sur les OS utilisés ; pour réduire l'impact sur les systèmes, ces outils pourront être à terme packagés dans des conteneurs Docker. Cependant, aucun conteneur Docker n'est fourni ni supporté dans cette version de la solution VITAM.
-
-.. caution:: Dans la version bêta du système VITAM, le composant Worker se connecte à la base de données MongoDB (base de données logbook).
-

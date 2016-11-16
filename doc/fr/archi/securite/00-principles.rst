@@ -34,9 +34,9 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
 * Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides ;
 
-    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et est bien présent dan le référentiel d’authentification des certificats valides (qui est un fichier keystore contenant la liste des certificats valides) 
+    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et est bien présent dan le référentiel d’authentification des certificats valides (qui est un fichier keystore contenant la liste des certificats valides)
 
-    .. note:: Pour la bêta VITAM, la liste des certificats reconnus est stockée dans un keystore Java 
+    .. note:: Pour la bêta VITAM, la liste des certificats reconnus est stockée dans un keystore Java
 
 * Filtrage exhaustif des données et requêtes entrant dans le système basés sur :
 
@@ -60,8 +60,6 @@ Dans le cas de MongoDB, le cloisonnement est logique. Chaque service hébergeant
 Un utilisateur technique "root" est également créé pour les besoins de l'installation et de la configuration de MongoDB.
 
 Chaque base de données doit être accédée que par les instances d'un seul service (ex: le service logbook est le seul à accéder à la base de données logbook).
-
-.. warning:: Dans la version beta du système VITAM, il existe une exception à cette règle : le composant worker accès en lecture à la base de données logbook, via le même utilsateur que le service logbook.
 
 Enfin, l'accès anonyme à MongoDB est désactivé, et les utilisateurs sont authentifié par le couple utilisateur / mot de passe.
 
