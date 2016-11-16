@@ -84,13 +84,13 @@ Si un reporter de métriques ElasticSearch est utilisé, celles-ci seront stock�
     - ``.kibana`` pour le stockage des paramètres (et notamment des dashboards) Kibana.
 
 
-.. Gestion des index
-.. +++++++++++++++++
+Gestion des index
++++++++++++++++++
 
-.. La création des templates d'index et des index doit être réalisée par l'application à l'origine de l'écriture dans Elasticsearch (kibana pour l'index ``.kibana``, logstash pour les autres index). La gestion des index est réalisée par l'application `Curator <https://www.elastic.co/guide/en/elasticsearch/client/curator/4.0/index.html>`_. Par défaut, l'outil est livré avec la configuration suivante :
+La gestion des index est réalisée par l'application `Curator <https://www.elastic.co/guide/en/elasticsearch/client/curator/4.0/index.html>`_. Par défaut, l'outil est livré avec la configuration suivante :
 
-.. * Durée de maintien des index "online" : 30 jours ; cela signifie qu'au bout de 30 jours, les index seront fermés, et n'apparaîtront donc plus dans l'IHM de suivi des logs. Cependant, ils sont conservés, et pourront donc être réouverts en cas de besoin.
-.. * Durée de conservation des index : 365 jours ; au bout de cette durée, les index seront supprimés.
+* Durée de maintien des index "online" : 7 jours ; cela signifie qu'au bout de 7 jours, les index seront fermés, et n'apparaîtront donc plus dans l'IHM de suivi des logs. Cependant, ils sont conservés, et pourront donc être réouverts en cas de besoin.
+* Durée de conservation des index : 30 jours ; au bout de cette durée, les index seront supprimés.
 
 
 Visualisation des métriques

@@ -231,6 +231,7 @@
     - "curator.yml"
     - "delete_index.yml"
     - "close_index.yml"
+    - "metrics_index.yml"
   when: ansible_virtualization_type != 'docker'
 
 - name: create root crontab entry for curator for deleting old indexes
@@ -250,6 +251,16 @@
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'
+
+- name: create root crontab entry for curator for closing old indexes on metrics
+  cron:
+    name="curator close & delete old metrics index"
+    minute="09"
+    hour="0"
+    user="root"
+    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/metrics_index.yml"
+  when: ansible_virtualization_type != 'docker'
+
 
 - name: load dashboards into Elasticsearch log .kibana index
   when: "{{ (groups['hosts-log-server'] | length) > 0}}"  

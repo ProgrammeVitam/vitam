@@ -129,7 +129,7 @@
   roles:
     - siegfried
     - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", port_https: "{{vitam_ingestexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{KeyStorePassword_ingest_external}}", password_manager_keystore: "{{KeyManagerPassword_ingest_external}}", password_truststore: "{{TrustStorePassword_ingest_external}}" }
-    - ingest-external
+    - {role: clamav, when: installation_clamav=="true"}
 
 - hosts: hosts-ihm-demo
   roles:
