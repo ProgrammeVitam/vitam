@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -49,7 +48,6 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -63,7 +61,7 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 public class IngestExternalClientRestTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/ingest-ext/v1";
+    protected static final String PATH = "/ingest-external/v1";
     protected IngestExternalClientRest client;
     private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
@@ -117,7 +115,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Path("/ingest-ext/v1")
+    @Path("/ingest-external/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
 

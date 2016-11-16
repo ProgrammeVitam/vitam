@@ -93,12 +93,12 @@ angular
        .then(
         function(response) {
 
-         if (response.data.$result == null || response.data.$result == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+         if (response.data.$results == null || response.data.$results == undefined || response.data.$hint == null || response.data.$hint == undefined) {
           $scope.error = true;
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
          } else {
-          $scope.archiveUnitsSearchResult = response.data.$result;
+          $scope.archiveUnitsSearchResult = response.data.$results;
           $scope.showResult = true;
           $scope.error = false;
 
@@ -165,7 +165,7 @@ angular
      };
 
      var displayFormCallBack = function(data) {
-      if (data.$result == null || data.$result == undefined || data.$hint == null || data.$hint == undefined) {
+      if (data.$results == null || data.$results == undefined || data.$hint == null || data.$hint == undefined) {
        $scope.error = true;
        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
        $scope.showAlert($event, "Erreur", $scope.errorMessage);
@@ -187,16 +187,16 @@ angular
           .then(
            function(response) {
             $scope.archiveDetailsConfig = response.data;
-            openArchiveDetailsWindow(data.$result);
+            openArchiveDetailsWindow(data.$results);
            },
            function(error) {
             console
              .log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
             $scope.archiveDetailsConfig = {};
-            openArchiveDetailsWindow(data.$result);
+            openArchiveDetailsWindow(data.$results);
            });
         } else {
-         openArchiveDetailsWindow(data.$result);
+         openArchiveDetailsWindow(data.$results);
         }
        }
       }
@@ -328,13 +328,13 @@ angular
         .then(
          function(response) {
 
-          if (response.data.$result == null || response.data.$result == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+          if (response.data.$results == null || response.data.$results == undefined || response.data.$hint == null || response.data.$hint == undefined) {
            $scope.error = true;
            $scope.showResult = false;
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
           } else {
-           $scope.archiveUnitsSearchResult = response.data.$result;
+           $scope.archiveUnitsSearchResult = response.data.$results;
            $scope.showResult = true;
            $scope.error = false;
 

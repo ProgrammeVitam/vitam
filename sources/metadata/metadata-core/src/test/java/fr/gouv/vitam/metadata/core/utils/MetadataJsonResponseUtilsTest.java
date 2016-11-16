@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 
@@ -51,12 +52,12 @@ public class MetadataJsonResponseUtilsTest {
     @Test
     public void given_resultwith_nbreresult_0_thenReturn_JsonNode() throws Exception {
         final JsonNode jsonNode =
-            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(0), new SelectParserMultiple());
+            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(0), new SelectParserMultiple(), JsonHandler.createObjectNode());
         assertNotNull(jsonNode);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {
-        MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple());
+        MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple(), JsonHandler.createObjectNode());
     }
 }

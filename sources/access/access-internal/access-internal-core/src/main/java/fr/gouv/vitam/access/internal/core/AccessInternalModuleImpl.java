@@ -241,21 +241,21 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
         // FIXME P0: do not use direct access but POJO
-        final List<String> valuesAsText = jsonResponse.get("$result").findValuesAsText("_id");
+        final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             throw new AccessInternalExecutionException("More than one object founds. Ids are : " + ids);
         }
         String mimetype = null;
         String filename = null;
-        JsonNode node = jsonResponse.get("$result").get("FormatIdentification");
+        JsonNode node = jsonResponse.get("$results").get("FormatIdentification");
         if (node != null) {
             node = node.get("MimeType");
             if (node != null) {
                 mimetype = node.asText();
             }
         }
-        node = jsonResponse.get("$result").get("FileInfo");
+        node = jsonResponse.get("$results").get("FileInfo");
         if (node != null) {
             node = node.get("Filename");
             if (node != null) {
@@ -458,7 +458,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (diff == null) {
             return "";
         }
-        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$result");
+        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$results");
         if (arrayNode == null) {
             return "";
         }

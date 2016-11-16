@@ -44,7 +44,7 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
     private static final String CONFIGURATION_FILENAME = "ingest-external-client.conf";
 
 
-    private static final String RESOURCE_PATH = "/ingest-ext/v1";
+    private static final String RESOURCE_PATH = "/ingest-external/v1";
 
     private IngestExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);

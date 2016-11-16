@@ -232,13 +232,13 @@ angular.module('archive.unit')
           // Archive unit updated: send new select query to back office
           // Find archive unit details
           var displayUpdatedArchiveCallBack = function (data) {
-            if(data.$result == null || data.$result == undefined ||
+            if(data.$results == null || data.$results == undefined ||
               data.$hint == null || data.$hint == undefined) {
               console.log("Erreur survenue à la mise à jour de l'archive unit");
               self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
             } else {
               // Archive unit found
-              self.archiveFields = data.$result[0];
+              self.archiveFields = data.$results[0];
               //get archive object groups informations to be displayed in the table
               ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
                 .then(function (response) {
@@ -281,12 +281,12 @@ angular.module('archive.unit')
 // ************ Diplay Archive Unit Form dynamically ************* /
     self.refreshArchiveDetails = function () {
       var displayUpdatedArchiveCallBack = function (data) {
-        if(data.$result == null || data.$result == undefined ||
+        if(data.$results == null || data.$results == undefined ||
           data.$hint == null || data.$hint == undefined) {
           console.log("errorMsg");
         } else {
           // Archive unit found
-          self.archiveFields = data.$result[0];
+          self.archiveFields = data.$results[0];
 
           //get archive object groups informations to be displayed in the table
           ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)

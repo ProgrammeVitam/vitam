@@ -573,7 +573,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileAccessionRegistersDetail.size(), 0, fileAccessionRegistersDetail.size())
-                .addResult(resultArrayNode))
+                .addAllResults(resultArrayNode))
             .build();
     }
 
