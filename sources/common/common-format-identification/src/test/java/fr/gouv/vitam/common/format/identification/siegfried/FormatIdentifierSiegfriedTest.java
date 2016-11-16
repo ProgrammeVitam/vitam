@@ -56,7 +56,7 @@ public class FormatIdentifierSiegfriedTest {
 
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";
     private static final String SAMPLE_OK_RESPONSE = "ok-response.json";
-    private static final String SAMPLE_UNKNOW_RESPONSE = "unknow-response.json";
+    private static final String SAMPLE_UNKNOW_RESPONSE = "unknown-response.json";
     private static final String SAMPLE_BAD_REQUEST_RESPONSE = "bad-request-response.json";
 
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);

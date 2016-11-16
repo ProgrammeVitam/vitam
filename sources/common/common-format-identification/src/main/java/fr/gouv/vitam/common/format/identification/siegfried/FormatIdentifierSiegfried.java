@@ -62,7 +62,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     /**
      * Unknown namespace
      */
-    public static final String UNKNOW_NAMESPACE = "UNKNOW";
+    public static final String UNKNOW_NAMESPACE = "UNKNOWN";
     private final SiegfriedClient client;
     // FIXME P1 Unused
     private final Path rootPath;
