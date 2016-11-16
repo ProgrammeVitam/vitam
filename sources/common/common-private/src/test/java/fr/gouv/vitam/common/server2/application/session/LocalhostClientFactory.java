@@ -79,7 +79,10 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
         }
 
         public String doRequest(final String subResource) {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            return doRequest(subResource,  new MultivaluedHashMap<>());
+        }
+
+        public String doRequest (final String subResource, final MultivaluedHashMap<String, Object> headers) {
             Response response = null;
             try {
                 response = performRequest(HttpMethod.GET, subResource, headers,

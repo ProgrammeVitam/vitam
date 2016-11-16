@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.server2.application.session;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,6 +37,10 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+
+import static org.junit.Assert.fail;
 
 /**
  * Tests for the requestId propagation between servers.
@@ -132,10 +137,22 @@ public class VitamRequestIdFiltersIT {
         Assert.assertEquals("id-from-server-1-with-threadpool", propagatedId);
     }
 
+    /**
+     * Test purpose : check requestId propagation in responses
+     */
     @Test
     public void testServer2SetRequestIdInResponsePropagation() {
         final String propagatedId = server1ClientFactory.getClient().doRequest("callToGetRequestIdInResponse");
         Assert.assertEquals("id-from-server-2", propagatedId);
+    }
+
+    @Test
+    public void testTwoHeaders() {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_REQUEST_ID, "header-1");
+        headers.add(GlobalDataRest.X_REQUEST_ID, "header-2-should-not-be-taken");
+        final String propagatedId = server1ClientFactory.getClient().doRequest("directResponse", headers);
+        Assert.assertEquals("header-1", propagatedId);
     }
 
 }

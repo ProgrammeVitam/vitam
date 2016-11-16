@@ -105,5 +105,10 @@ public class Server1TestApplication extends AbstractTestApplication {
             return reqId;
         }
 
+        @GET
+        @Path("/directResponse")
+        public String directResponse() throws VitamThreadAccessException {
+            return VitamThreadUtils.getVitamSession().getRequestId();
+        }
     }
 }
