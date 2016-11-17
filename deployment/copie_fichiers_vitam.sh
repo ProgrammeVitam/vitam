@@ -35,6 +35,7 @@ echo "------------------------"
 echo "	Recopie pour ihm-recette..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/ihm-recette
 cp ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-recette/keystore_ihm-recette.p12
+cp ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/*pem ansible-vitam-rpm/roles/vitam/files/ihm-recette/keystore_ihm-recette.pem
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette --ask-vault-pass| sed "1 d"); do
 	# FIXME : be more restrictive on jks files
 	cp ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-recette/

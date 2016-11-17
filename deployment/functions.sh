@@ -153,6 +153,8 @@ function crtkey2p12 {
 		-passin pass:"${MDP_KEY}" \
 		-out "${BASEFILE}.p12" \
 		-passout pass:"${MDP_P12}";
+
+	openssl pkcs12 -in ${BASEFILE}.p12 -passin pass:"${MDP_P12}" -passout pass:"${MDP_P12}" -out ${BASEFILE}.pem
 }
 
 
