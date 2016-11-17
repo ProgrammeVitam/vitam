@@ -36,11 +36,12 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * Format identifier interface
  */
-public interface FormatIdentifier {
+public interface FormatIdentifier extends VitamAutoCloseable {
 
     /**
      * Get format identifier status

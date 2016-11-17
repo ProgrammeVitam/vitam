@@ -204,4 +204,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         }
         return true;
     }
+
+    @Override
+    public void close() {
+        client.close();
+    }
 }

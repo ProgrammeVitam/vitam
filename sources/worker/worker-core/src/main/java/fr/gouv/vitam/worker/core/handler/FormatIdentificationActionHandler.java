@@ -582,6 +582,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
     @Override
     public void close() {
-        // Empty
+        if (formatIdentifier != null) {
+            formatIdentifier.close();
+        }
     }
 }

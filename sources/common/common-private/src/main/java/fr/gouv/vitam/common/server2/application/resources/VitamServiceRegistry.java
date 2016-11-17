@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -134,8 +135,8 @@ public class VitamServiceRegistry {
      */
     public boolean getResourcesStatus() {
         for (VitamClientFactoryInterface<?> factory : clientFactories) {
-            try {
-                factory.getClient().checkStatus();
+            try (MockOrRestClient client = factory.getClient()) {
+                client.checkStatus();
             } catch (VitamApplicationServerException e) {
                 LOGGER.info("Can't connect to factory: " + factory.toString(), e);
                 return false;
@@ -190,8 +191,8 @@ public class VitamServiceRegistry {
             test++;
             String name = StringUtils.getClassName(factory);
             VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
-            try {
-                factory.getClient().checkStatus();
+            try (MockOrRestClient client = factory.getClient()) {
+                client.checkStatus();
                 sub.setDescription(name + SERVICE_IS_AVAILABLE)
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
@@ -210,8 +211,8 @@ public class VitamServiceRegistry {
             test++;
             String name = StringUtils.getClassName(factory);
             VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
-            try {
-                factory.getClient().checkStatus();
+            try (MockOrRestClient client = factory.getClient()) {
+                client.checkStatus();
                 sub.setDescription(name + SERVICE_IS_AVAILABLE)
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
