@@ -152,7 +152,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 final ObjectNode json = (ObjectNode) JsonHandler.getFromInputStream(input);
                 json.remove(SedaConstants.PREFIX_WORK);
                 final Insert insertRequest = new Insert().addData(json);
-                metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
+                metadataClient.insertObjectGroup(JsonHandler.unprettyPrint(insertRequest.getFinalInsert()));
                 itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Object group not found");

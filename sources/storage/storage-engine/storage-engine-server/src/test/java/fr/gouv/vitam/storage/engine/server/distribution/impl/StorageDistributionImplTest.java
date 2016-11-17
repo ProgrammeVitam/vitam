@@ -335,7 +335,8 @@ public class StorageDistributionImplTest {
 
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
-        simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, "0", DataCategory.OBJECT, new AsyncResponseJunitTest());
+        simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, "0", DataCategory.OBJECT,
+            new AsyncResponseJunitTest());
     }
 
     @Test(expected = UnsupportedOperationException.class)

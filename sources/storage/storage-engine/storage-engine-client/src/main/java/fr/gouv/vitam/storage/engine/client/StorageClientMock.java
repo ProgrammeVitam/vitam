@@ -53,7 +53,18 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
     static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
-    static final String MOCK_GET_FILE_CONTENT = "Vitam test";
+    static final String MOCK_GET_FILE_CONTENT =
+        "Vitam test of long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long file";
 
     @Override
     public JsonNode getStorageInformation(String tenantId, String strategyId)

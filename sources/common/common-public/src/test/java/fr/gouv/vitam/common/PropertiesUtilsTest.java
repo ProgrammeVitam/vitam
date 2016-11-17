@@ -132,6 +132,13 @@ public class PropertiesUtilsTest {
         } catch (final IOException e) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try (InputStream inputStream = PropertiesUtils.getConfigAsStream(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES)) {
+            //
+        } catch (FileNotFoundException e) {
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        } catch (IOException e) {
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
     }
 
     static class ConfigurationTest {

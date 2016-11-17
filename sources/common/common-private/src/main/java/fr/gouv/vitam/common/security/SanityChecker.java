@@ -157,9 +157,13 @@ public class SanityChecker {
      */
     public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
         final String jsonish = JsonHandler.writeAsString(json);
-        final String wellFormedJson = JsonSanitizer.sanitize(jsonish);
-        if (!wellFormedJson.equals(jsonish)) {
-            throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+        try {
+            final String wellFormedJson = JsonSanitizer.sanitize(jsonish);
+            if (!wellFormedJson.equals(jsonish)) {
+                throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+            }
+        } catch (RuntimeException e) {
+            throw new InvalidParseOperationException("Json is not valid from Sanitize check", e);
         }
         checkJsonFileSize(jsonish);
         checkJsonSanity(json);
@@ -172,9 +176,13 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     public static final void checkJsonAll(String json) throws InvalidParseOperationException {
-        final String wellFormedJson = JsonSanitizer.sanitize(json);
-        if (!wellFormedJson.equals(json)) {
-            throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+        try {
+            final String wellFormedJson = JsonSanitizer.sanitize(json);
+            if (!wellFormedJson.equals(json)) {
+                throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+            }
+        } catch (RuntimeException e) {
+            throw new InvalidParseOperationException("Json is not valid from Sanitize check", e);
         }
         checkJsonFileSize(json);
         checkJsonSanity(JsonHandler.getFromString(json));

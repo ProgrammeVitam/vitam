@@ -54,7 +54,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
  * Check SIP - Object and Archiveunit Consistency handler

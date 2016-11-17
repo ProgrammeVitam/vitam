@@ -141,6 +141,7 @@ public class UserInterfaceTransactionManager {
     public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage,
         int version)
         throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        // FIXME P0 DO ASYNC using AsyncResponse
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.getObject(selectObjectQuery, objectGroupId, usage, version).readEntity(InputStream.class);
         }

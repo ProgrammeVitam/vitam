@@ -182,7 +182,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     insertQuery.addRoots(parents);
                 }
 
-                final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
+                final String insertRequest = JsonHandler.unprettyPrint(insertQuery.addData((ObjectNode) json).getFinalInsert());
                 metadataClient.insertUnit(insertRequest);
                 itemStatus.increment(StatusCode.OK);
             } else {

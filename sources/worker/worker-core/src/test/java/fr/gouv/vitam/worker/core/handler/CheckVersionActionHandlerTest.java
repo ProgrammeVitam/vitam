@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +52,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -72,6 +73,11 @@ public class CheckVersionActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
     }
 
+    @After
+    public void clean() {
+        handlerIO.partialClose();
+    }
+
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
         throws ProcessingException, IOException, URISyntaxException {
@@ -80,7 +86,6 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        handlerIO.close();
     }
 
     @Test
@@ -92,7 +97,6 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        handlerIO.close();
     }
 
     @Test
@@ -102,6 +106,5 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-        handlerIO.close();
     }
 }

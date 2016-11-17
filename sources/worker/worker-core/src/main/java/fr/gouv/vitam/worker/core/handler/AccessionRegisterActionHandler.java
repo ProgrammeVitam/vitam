@@ -61,7 +61,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
  * Accession Register Handler

@@ -665,6 +665,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, filename);
             final HashMap<String, String> emptyMap = new HashMap<>();
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            // FIXME P0 Doit utiliser Async + Doit retourner le nom fournit par Response (Content-Disposition) et le
+            // MimeType (fournit également)
             final InputStream stream =
                 UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
                     Integer.parseInt(version));

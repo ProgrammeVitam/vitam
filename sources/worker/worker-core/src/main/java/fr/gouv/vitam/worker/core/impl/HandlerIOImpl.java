@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.api;
+package fr.gouv.vitam.worker.core.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -78,7 +78,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     private final String workerId;
     private final File localDirectory;
     private final Map<String, Object> memoryMap = new HashMap<>();
-
+    private final WorkspaceClient client;
 
     /**
      * Constructor with local root path
@@ -91,6 +91,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         this.workerId = workerId;
         this.localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
+        client = WorkspaceClientFactory.getInstance().getClient();
     }
 
     /**
@@ -156,11 +157,18 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     /**
      * Clear the HandlerIO, including temporary files and directories at the end of the step Workflow execution
-     * 
-     * @throws IOException
      */
     @Override
     public void close() {
+        client.close();
+        partialClose();
+    }
+
+    /**
+     * Close the HandlerIO, including temporary files and directories at the end of the step Workflow execution, but do
+     * not close the WorkspaceClient
+     */
+    public void partialClose() {
         reset();
         memoryMap.clear();
         if (!FileUtil.deleteRecursive(localDirectory)) {
@@ -341,8 +349,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         if (!sourceFile.canRead()) {
             throw new ProcessingException("Cannot found source file: " + sourceFile);
         }
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient();
-            FileInputStream inputStream = new FileInputStream(sourceFile)) {
+        try (FileInputStream inputStream = new FileInputStream(sourceFile)) {
             client.putObject(containerName, workspacePath, inputStream);
             if (toDelete && !sourceFile.delete()) {
                 LOGGER.warn("File could not be deleted: " + sourceFile);
@@ -381,7 +388,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
                 file = null;
             }
         } else {
-            try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            try {
                 file = getFileFromWorkspace(objectName);
             } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e) {
@@ -446,15 +453,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
-            try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-                try {
-                    response = client.getObject(containerName, objectName);
-                    if (response != null) {
-                        StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
-                    }
-                } finally {
-                    client.consumeAnyEntityAndClose(response);
+            try {
+                response = client.getObject(containerName, objectName);
+                if (response != null) {
+                    StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
                 }
+            } finally {
+                client.consumeAnyEntityAndClose(response);
             }
         }
         return new FileInputStream(file);

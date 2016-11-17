@@ -29,6 +29,7 @@ import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -137,7 +138,6 @@ public class HandlerIOTest {
         Object object2 = io2.getInput(0);
         assertEquals(File.class, object2.getClass());
         assertTrue(((File) object2).exists());
-
         io.close();
         assertFalse(((File) object).exists());
         assertTrue(((File) object2).exists());

@@ -419,7 +419,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         final BooleanQuery query = and();
         query.add(eq("RuleId", rulesId));
         select.setQuery(query);
-        result = JsonHandler.getFromString(select.getFinalSelect().toString());
+        result = select.getFinalSelect();
         return result;
     }
 

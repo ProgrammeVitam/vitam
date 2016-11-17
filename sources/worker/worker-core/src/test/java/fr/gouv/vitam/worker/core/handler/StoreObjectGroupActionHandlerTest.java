@@ -59,7 +59,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -101,7 +101,7 @@ public class StoreObjectGroupActionHandlerTest {
 
     @After
     public void clean() {
-        action.close();
+        action.partialClose();
     }
 
     @Test

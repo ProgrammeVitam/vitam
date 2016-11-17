@@ -84,7 +84,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.model.ArchiveUnitReplyTypeRoot;
 import fr.gouv.vitam.worker.model.DataObjectTypeRoot;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -515,8 +515,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
             JsonNode elmt = node.get("$results").get(0);
             if (elmt == null) {
-                LOGGER.error("Error while loading logbook operation: " + node.toString());
-                throw new ProcessingException("Error while loading logbook operation: " + node.toString());
+                LOGGER.error("Error while loading logbook operation: no result");
+                throw new ProcessingException("Error while loading logbook operation: no result");
             }
             logbookOperation = new LogbookOperation(elmt);
         } catch (LogbookClientException e) {

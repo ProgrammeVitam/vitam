@@ -138,7 +138,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      */
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         rootNode = jsonRequest;
-        sourceRequest = jsonRequest.toString();
+        sourceRequest = JsonHandler.unprettyPrint(jsonRequest);
     }
 
     /**

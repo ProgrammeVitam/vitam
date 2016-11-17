@@ -38,8 +38,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 
 
@@ -48,7 +46,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
  *
  */
 public class VitamError extends RequestResponse {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
 
     @JsonProperty("httpCode")
     private int httpCode;
@@ -212,35 +209,6 @@ public class VitamError extends RequestResponse {
     @JsonGetter("errors")
     public List<VitamError> getErrors() {
         return errors;
-    }
-
-    @Override
-    public String toString() {
-        return JsonHandler.unprettyPrint(this);
-    }
-
-    /**
-     * 
-     * @return the Json representation
-     * @throws InvalidParseOperationException
-     */
-    public JsonNode toJsonNode() {
-        try {
-            return JsonHandler.getFromString(this.toString());
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * 
-     * @param string
-     * @return the corresponding VitamError
-     * @throws InvalidParseOperationException
-     */
-    public static VitamError getFromString(String string) throws InvalidParseOperationException {
-        return JsonHandler.getFromString(string, VitamError.class);
     }
 
     /**

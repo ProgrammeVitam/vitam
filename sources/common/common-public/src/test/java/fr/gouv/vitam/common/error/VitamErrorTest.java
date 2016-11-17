@@ -94,7 +94,6 @@ public class VitamErrorTest {
         error.setState("state");
         error.setContext("context");
         error.addAllErrors(Collections.singletonList(new VitamError("1")));
-        System.err.println(error.toString());
         assertEquals(ERROR_JSON, error.toString());
     }
 }

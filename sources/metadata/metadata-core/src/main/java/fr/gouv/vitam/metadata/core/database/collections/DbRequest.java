@@ -363,8 +363,7 @@ public class DbRequest {
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         if (GlobalDatasDb.PRINT_REQUEST) {
-            final String query = realQuery.getCurrentQuery().toString();
-            LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + query);
+            LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
         }
         final QUERY type = realQuery.getQUERY();
         final FILTERARGS collectionType = requestToMongodb.model();

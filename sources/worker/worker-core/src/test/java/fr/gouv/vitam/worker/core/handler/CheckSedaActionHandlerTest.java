@@ -61,8 +61,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -87,7 +87,7 @@ public class CheckSedaActionHandlerTest {
 
     @After
     public void clean() {
-        action.close();
+        action.partialClose();
     }
 
     @Test
@@ -102,7 +102,6 @@ public class CheckSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        action.close();
     }
 
     @Test
@@ -114,7 +113,6 @@ public class CheckSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-        action.close();
     }
 
     @Test
@@ -126,7 +124,6 @@ public class CheckSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        action.close();
     }
 
     @Test
@@ -138,7 +135,6 @@ public class CheckSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        action.close();
     }
 
     @Test
@@ -150,7 +146,6 @@ public class CheckSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final CompositeItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        action.close();
     }
 
 }

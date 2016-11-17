@@ -39,6 +39,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +61,7 @@ import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -146,6 +147,11 @@ public class CheckObjectsNumberActionHandlerTest {
         extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
     }
 
+    @After
+    public void clean() {
+        handlerIO.partialClose();
+    }
+
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
@@ -163,7 +169,6 @@ public class CheckObjectsNumberActionHandlerTest {
         final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        handlerIO.close();
     }
 
     @Test
@@ -179,7 +184,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1);
-        handlerIO.close();
     }
 
     @Test
@@ -201,7 +205,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
-        handlerIO.close();
     }
 
     @Test
@@ -222,7 +225,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
-        handlerIO.close();
     }
 
 
@@ -247,7 +249,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
-        handlerIO.close();
     }
 
     @Test
@@ -270,7 +271,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
-        handlerIO.close();
     }
 
     @Test
@@ -293,6 +293,5 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
-        handlerIO.close();
     }
 }

@@ -38,11 +38,15 @@ import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 
+/**
+ * Utility to get access to VitamSession of the current Thread
+ */
 public class VitamThreadUtils {
 
 	/**
 	 * Extracts the VitamSession from the local thread and returns it
 	 * @return VitamSession
+	 * @throws VitamThreadAccessException 
 	 */
 	public static VitamSession getVitamSession() throws VitamThreadAccessException  {
 		final VitamSession session;

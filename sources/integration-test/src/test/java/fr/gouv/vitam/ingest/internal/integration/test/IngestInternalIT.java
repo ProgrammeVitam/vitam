@@ -55,6 +55,9 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.rest.AccessInternalApplication;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -119,13 +122,15 @@ public class IngestInternalIT {
     private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
     private static final int PORT_SERVICE_LOGBOOK = 8099;
     private static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
-
+    private static final int PORT_SERVICE_ACCESS_INTERNAL = 8100;
+    
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
+    private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
@@ -135,6 +140,7 @@ public class IngestInternalIT {
     private static String CONFIG_LOGBOOK_PATH = "";
     private static String CONFIG_SIEGFRIED_PATH = "";
     private static String CONFIG_INGEST_INTERNAL_PATH = "";
+    private static String CONFIG_ACCESS_INTERNAL_PATH = "";
 
     // private static VitamServer workerApplication;
     private static MetaDataApplication medtadataApplication;
@@ -169,6 +175,8 @@ public class IngestInternalIT {
 
         CONFIG_INGEST_INTERNAL_PATH =
             PropertiesUtils.getResourcePath("integration-ingest-internal/ingest-internal.conf").toString();
+        CONFIG_ACCESS_INTERNAL_PATH =
+            PropertiesUtils.getResourcePath("integration-ingest-internal/access-internal.conf").toString();
 
         // ES
         config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
@@ -357,8 +365,30 @@ public class IngestInternalIT {
                 StorageCollectionType.OBJECTS);
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
-            StreamUtils.closeSilently(sizedInputStream);
-            assertTrue(sizedInputStream.getSize() > 1);
+            long size = StreamUtils.closeSilently(sizedInputStream);
+            LOGGER.warn("read: " + size);
+            
+            assertTrue(size > 1000);
+            
+            SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
+            AccessInternalApplication accessInternalApplication = new AccessInternalApplication(CONFIG_ACCESS_INTERNAL_PATH);
+            accessInternalApplication.start();
+            SystemPropertyUtil.clear("jetty.access-internal.port");
+            AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
+            RestAssured.port = PORT_SERVICE_ACCESS_INTERNAL;
+            RestAssured.basePath = ACCESS_INTERNAL_PATH;
+            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+
+            // Now redo Object with access internal
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            responseStorage = accessClient.getObject(new Select().getFinalSelect(), og, "BinaryMaster", 0);
+            inputStream = responseStorage.readEntity(InputStream.class);
+   
+            sizedInputStream = new SizedInputStream(inputStream);
+            long size2 = StreamUtils.closeSilently(sizedInputStream);
+            LOGGER.warn("read: " + size2);
+            assertTrue(size2 == size);
+            accessInternalApplication.stop();
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
