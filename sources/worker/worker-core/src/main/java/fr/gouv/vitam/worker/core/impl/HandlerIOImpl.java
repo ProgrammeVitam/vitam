@@ -421,15 +421,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
-            try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
-                try {
-                    response = client.getObject(containerName, objectName);
-                    if (response != null) {
-                        StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
-                    }
-                } finally {
-                    client.consumeAnyEntityAndClose(response);
+            try {
+                response = client.getObject(containerName, objectName);
+                if (response != null) {
+                    StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
                 }
+            } finally {
+                client.consumeAnyEntityAndClose(response);
             }
         }
         return file;

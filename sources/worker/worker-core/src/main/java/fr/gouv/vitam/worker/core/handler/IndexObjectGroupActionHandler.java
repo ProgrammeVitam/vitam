@@ -141,9 +141,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (// TODO : whould use worker configuration instead of the processing configuration
-            final WorkspaceClient workspaceClient = WorkspaceClientFactory
-                .getInstance().getClient();            
+        try (
+            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();            
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             Response response = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
             if (response != null) {
