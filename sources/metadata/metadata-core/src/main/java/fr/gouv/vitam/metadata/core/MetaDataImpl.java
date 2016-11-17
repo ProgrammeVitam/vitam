@@ -248,7 +248,7 @@ public class MetaDataImpl implements MetaData {
         }
         try {
             // parse Update request
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple();
+            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
             updateRequest.parse(updateQuery);
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
@@ -256,6 +256,7 @@ public class MetaDataImpl implements MetaData {
                 if (request != null) {
                     LOGGER.debug("Reset $roots unit_id by :" + unitId);
                     request.resetRoots().addRoots(unitId);
+                    LOGGER.debug("DEBUG: {}", request);
                 }
             }
 

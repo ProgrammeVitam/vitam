@@ -246,7 +246,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
-            RequestResponseOK responseEntity = new RequestResponseOK().setHits(fileFormatList.size(), 0, fileFormatList.size());
+            RequestResponseOK responseEntity = new RequestResponseOK()
+                .setHits(fileFormatList.size(), 0, fileFormatList.size())
+                .setQuery(select);
             for (FileFormat format : fileFormatList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(format));
             }
@@ -440,7 +442,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
-            RequestResponseOK responseEntity = new RequestResponseOK().setHits(filerulesList.size(), 0, filerulesList.size());
+            RequestResponseOK responseEntity = new RequestResponseOK()
+                .setHits(filerulesList.size(), 0, filerulesList.size())
+                .setQuery(select);
             for (FileRules rule : filerulesList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(rule));
             }
@@ -531,6 +535,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
+                .setQuery(select)
                 .addAllResults(resultArrayNode))
             .build();
     }
@@ -573,6 +578,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileAccessionRegistersDetail.size(), 0, fileAccessionRegistersDetail.size())
+                .setQuery(select)
                 .addAllResults(resultArrayNode))
             .build();
     }

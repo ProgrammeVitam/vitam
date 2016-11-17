@@ -161,7 +161,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final String id, final String json) {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
         return client.prepareIndex(collection.getName().toLowerCase(), type, id)
-            .setSource(json).setOpType(OpType.INDEX).get()
+            .setSource(json).setOpType(OpType.INDEX).setRefresh(true).get()
             .getVersion() > 0;
     }
 
@@ -182,7 +182,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             bulkRequest.add(client.prepareIndex(collection.getName().toLowerCase(), type,
                 val.getKey()).setSource(val.getValue()));
         }
-        return bulkRequest.execute(); // new thread
+        return bulkRequest.setRefresh(true).execute(); // new thread
     }
 
     /**
@@ -286,7 +286,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final String id, final String json) throws Exception {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
         return client.prepareUpdate(collection.getName().toLowerCase(), type, id)
-            .setDoc(json).execute()
+            .setDoc(json).setRefresh(true).execute()
             .actionGet().getVersion() > 0;
     }
 
@@ -310,36 +310,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             bulkRequest.add(client.prepareUpdate(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
                 id).setDoc(dbObject.toString()));
         }
-        final BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES previous update in error: " + bulkResponse.buildFailureMessage());
-        }
-    }
-
-    /**
-     * 
-     * updateBulkOGEntriesIndexes
-     * 
-     * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
-     * 
-     * @param cursor :containing all OG to be indexed
-     */
-    final void updateBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) {
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        while (cursor.hasNext()) {
-            final ObjectGroup objectGroup = cursor.next();
-
-            final String id = objectGroup.getId();
-            objectGroup.remove(VitamDocument.ID);
-
-            final String mongoJson = objectGroup.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-
-            bulkRequest.add(
-                client.prepareUpdate(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
-                    id).setDoc(dbObject.toString()));
-        }
-        final BulkResponse bulkResponse = bulkRequest.execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES previous update in error: " + bulkResponse.buildFailureMessage());
         }
@@ -616,7 +587,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final DeleteRequestBuilder builder = client.prepareDelete(collections.getName().toLowerCase(), type, id);
         final DeleteResponse response;
         try {
-            response = builder.get();
+            response = builder.setRefresh(true).get();
         } catch (final Exception e) {
             LOGGER.debug(e.getMessage(), e);
             throw new MetaDataExecutionException(e.getMessage(), e);
