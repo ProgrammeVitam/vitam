@@ -69,7 +69,7 @@ public class DisableAutomaticRetryTest extends JerseyTest {
     public void setUp() throws Exception {
         executor.submit(server);
         Thread.yield();
-        Thread.sleep(100);
+        Thread.sleep(10);
         Assume.assumeTrue("Cant start server using Jersey", server.run);
     }
 
