@@ -86,6 +86,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
     private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
+    private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
@@ -111,24 +112,37 @@ public class IngestExternalImpl implements IngestExternal {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
         // Store in local
-        GUID containerName = guid;
+        final GUID containerName = guid;
         final GUID objectName = guid;
         final GUID ingestGuid = guid;
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
 
         try {
+
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                INGEST_EXT,
-                containerName,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
-                containerName);
+                ingestGuid, INGEST_WORKFLOW, containerName,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
+                ingestGuid);
+
             // TODO P1 should be the file name from a header
-            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
+            if (objectName != null) {
+                startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
+                    objectName.getId());
+            }
             helper.createDelegate(startedParameters);
+
+            final LogbookOperationParameters sipSanityParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    ingestGuid,
+                    INGEST_EXT,
+                    containerName,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
+                    containerName);
+            helper.updateDelegate(sipSanityParameters);
 
             workspaceFileSystem =
                 new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
@@ -136,19 +150,24 @@ public class IngestExternalImpl implements IngestExternal {
             final long timeoutScanDelay = config.getTimeoutScanDelay();
 
             try {
-                workspaceFileSystem.createContainer(containerName.toString());
+                if (containerName != null) {
+                    workspaceFileSystem.createContainer(containerName.toString());
+                }
             } catch (final ContentAddressableStorageAlreadyExistException e) {
                 LOGGER.error("Can not store file", e);
                 throw new IngestExternalException(e);
             }
             try {
-                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+                if (containerName != null) {
+                    workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+                }
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error("Can not store file", e);
                 throw new IngestExternalException(e);
             }
-
-            final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
+            String containerNamePath = containerName != null ? containerName.getId() : "containerName";
+            String objectNamePath = objectName != null ? objectName.getId() : "objectName";
+            final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
             File file = new File(filePath);
             if (!file.canRead()) {
                 LOGGER.error("Can not read file");
@@ -359,12 +378,16 @@ public class IngestExternalImpl implements IngestExternal {
         } finally {
             if (workspaceFileSystem != null) {
                 try {
-                    workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                    if (containerName != null) {
+                        workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                    }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);
                 }
                 try {
-                    workspaceFileSystem.deleteContainer(containerName.getId());
+                    if (containerName != null) {
+                        workspaceFileSystem.deleteContainer(containerName.getId());
+                    }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);
                 }

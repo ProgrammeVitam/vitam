@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -105,7 +106,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-    private static final String EVENT_TYPE = "Update_archive_unit_unitary";
+    
+    private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
 
     // TODO P1 setting in other place
     private final Integer tenantId = 0;
@@ -339,7 +341,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             // Create logbook operation
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.STARTED, "update archiveunit:" + idUnit, idGUID);
+                StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID);
             logbookOperationClient.create(logbookOpParamStart);
 
             // update logbook lifecycle
@@ -351,7 +353,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             final JsonNode jsonNode = metaDataClient.updateUnitbyId(JsonHandler.unprettyPrint(newQuery), idUnit);
 
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, "update archiveunit:" + idUnit, idGUID);
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID);
             logbookOperationClient.update(logbookOpParamEnd);
 
             // update logbook lifecycle
@@ -417,7 +419,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             final LogbookOperationParameters logbookOpParamEnd =
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.KO, "Echec de l'écriture de la mise à jour des métadonnées", objectIdentifier);
+                    StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), objectIdentifier);
             logbookOperationClient.update(logbookOpParamEnd);
             final LogbookLifeCycleUnitParameters logbookParametersEnd =
                 getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
@@ -436,7 +438,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         StatusCode logbookOutcome, GUID objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, EVENT_TYPE,
+        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
             eventIdentifierProcess,
             eventTypeProcess, logbookOutcome, "update archive unit",
             "update unit " + objectIdentifier, objectIdentifier);
@@ -445,10 +447,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier,
         GUID eventIdentifierProcess, StatusCode logbookOutcome,
         String outcomeDetailMessage, GUID eventIdentifierRequest) {
-        final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                EVENT_TYPE, eventIdentifierProcess, eventTypeProcess, logbookOutcome, outcomeDetailMessage,
+                STP_UPDATE_UNIT, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome, outcomeDetailMessage,
                 eventIdentifierRequest);
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest.getId());
         return parameters;
