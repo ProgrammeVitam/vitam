@@ -806,6 +806,9 @@ public class DbRequest {
      */
     private void indexFieldsUpdated(Result last) throws Exception {
         final Bson finalQuery;
+        if (last.getCurrentIds().isEmpty()) {
+            return;
+        }
         if (last.getCurrentIds().size() == 1) {
             finalQuery = eq(Unit.ID, last.getCurrentIds().iterator().next());
         } else {

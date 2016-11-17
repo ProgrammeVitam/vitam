@@ -319,7 +319,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new IllegalArgumentException("Request is not an update operation");
         }
         // eventidentifierprocess for lifecycle
-        final GUID updateOpGuidStart = GUIDFactory.newEventGUID(tenant);
+        final GUID updateOpGuidStart = GUIDFactory.newOperationLogbookGUID(tenant);
         JsonNode newQuery = queryJson;
         try {
             newQuery = ((UpdateParserMultiple) parser).getRequest()

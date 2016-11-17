@@ -35,6 +35,10 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.CustomMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -46,6 +50,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -65,6 +70,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class UpdateUnitResourceTest {
@@ -90,7 +96,10 @@ public class UpdateUnitResourceTest {
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String BODY_TEST = "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
+    private static final String BODY_TEST =
+        "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+    private static final String REAL_UPDATE_BODY_TEST =
+        "{\"$query\": {\"$eq\": {\"data\" : \"data3\" }}, \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -98,6 +107,7 @@ public class UpdateUnitResourceTest {
     private static MetaDataApplication application;
 
     private static ElasticsearchTestConfiguration config = null;
+    private static ElasticsearchAccessMetadata esClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -113,6 +123,7 @@ public class UpdateUnitResourceTest {
 
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
         dataBasePort = junitHelper.findAvailablePort();
 
@@ -149,6 +160,7 @@ public class UpdateUnitResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -161,6 +173,12 @@ public class UpdateUnitResourceTest {
 
     private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
         return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
+    }
+
+    private static final JsonNode buildDSLWithOptionsRoot(String query, String data, String root)
+        throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ $roots : [ '" + root + "' ], $query : [ " + query + " ], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -186,15 +204,51 @@ public class UpdateUnitResourceTest {
 
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptionsRoot("", DATA, ID_UNIT)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
+        String compareTo = "";
+        Matcher matcher = new BaseMatcher() {
+
+            @Override
+            public boolean matches(Object item) {
+                if (item instanceof String) {
+                    try {
+                        System.err.println(item);
+                        JsonNode node = JsonHandler.getFromString((String) item);
+                        ArrayNode array = (ArrayNode) node.get("$results");
+                        if (array != null) {
+                            return array.get(0).get("_diff").asText().equals(compareTo);
+                        }
+                    } catch (InvalidParseOperationException e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Check if diff equals");
+            }
+        };
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        // FIXME Should not be empty!!!
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.FOUND.getStatusCode()).body(matcher);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+
+        // FIXME Should not be empty!!!
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
+            .put("/units/" + ID_UNIT).then()
+            .statusCode(Status.FOUND.getStatusCode()).body(matcher);
     }
 
     @Test(expected = InvalidParseOperationException.class)
