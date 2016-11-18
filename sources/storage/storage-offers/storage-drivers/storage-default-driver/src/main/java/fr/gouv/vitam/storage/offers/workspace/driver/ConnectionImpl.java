@@ -118,7 +118,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    // FIXME P0 GetObjectResult should have Response and not InputStream in it in order to allow async on caller side
     public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -255,7 +254,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     status.getReasonPhrase());
             case NOT_FOUND:
-                // FIXME P0 : make a *NotFoundException for this case
+                // FIXME P1 : clean useless case
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
                     .getReasonPhrase());
             case SERVICE_UNAVAILABLE:

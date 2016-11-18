@@ -222,7 +222,7 @@ public interface StorageDistribution {
      * @return a JsonNode containing informations about units of the requested container
      * @throws StorageNotFoundException Thrown if the Container does not exist
      */
-    //TODO P0 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
+    //TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
     JsonNode getContainerUnits(String tenantId, String strategyId) throws StorageNotFoundException;
 
 
