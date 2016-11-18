@@ -7,7 +7,7 @@
 
 - hosts: vitam
   roles:
-    - packetbeat
+     - {role: packetbeat, when: "ansible_virtualization_type != 'docker'"}
 
 - hosts: vitam
   roles:
