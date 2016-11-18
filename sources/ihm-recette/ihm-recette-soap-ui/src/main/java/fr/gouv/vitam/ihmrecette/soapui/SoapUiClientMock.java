@@ -26,26 +26,41 @@
  */
 package fr.gouv.vitam.ihmrecette.soapui;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * SoapUI Client Mock
+ * SoapUI Client Mock - Used for Unit Tests
+ *
  */
 public class SoapUiClientMock implements SoapUiClient {
-
+	private static final String JSON_REPORT_PATH = "soapui/report/reporting.json";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientMock.class);
+	
     @Override
     public void launchTests() throws IOException, InterruptedException {
-       // FIXME Write some code
+    	// Nothing to mock (No params / no returns / No specific code)
     }
 
     @Override
-    public JsonNode getLastTestReport() {
-        // FIXME Write some code
-        return JsonHandler.createObjectNode();
+    public JsonNode getLastTestReport() throws InvalidParseOperationException {
+    	File report;
+    	try {
+    		report = PropertiesUtils.findFile(JSON_REPORT_PATH);
+    	} catch (FileNotFoundException fnfe) {
+    		LOGGER.debug("Json file not found: " + JSON_REPORT_PATH);
+    		return null;
+    	}
+    	// return JsonHandler.createObjectNode();
+        return JsonHandler.getFromFile(report);
     }
 
 }

@@ -37,9 +37,9 @@ public class SoapUiConfig {
     private int ingestPort;
     private String ingestHost;
     
-    private String logbookProtocol;
-    private int logbookPort;
-    private String logbookHost;
+    private String accessExternalProtocol;
+    private int accessExternalPort;
+    private String accessExternalHost;
 
     private String certfile;
     private String dataDir;
@@ -99,53 +99,53 @@ public class SoapUiConfig {
     }
 
     /**
-     * @return ingestPort
+     * @return access external port
      */
-    public int getLogbookPort() {
-        return logbookPort;
+    public int getAccessExternalPort() {
+        return accessExternalPort;
     }
 
     /**
-     * @param logbookPort port of the logbook module
+     * @param accessExternalPort port of the logbook module
      * @return SoapUiConfig
      */
-    public SoapUiConfig setLogbookPort(int logbookPort) {
-        ParametersChecker.checkParameter("logbookPort is mandatory", logbookPort);
-        this.logbookPort = logbookPort;
+    public SoapUiConfig setAccessExternalPort(int accessExternalPort) {
+        ParametersChecker.checkParameter("logbookPort is mandatory", accessExternalPort);
+        this.accessExternalPort = accessExternalPort;
         return this;
     }
 
     /**
-     * @return logbookHost
+     * @return access external Host
      */
-    public String getLogbookHost() {
-        return logbookHost;
+    public String getAccessExternalHost() {
+        return accessExternalHost;
     }
 
     /**
-     * @param logbookHost host of the logbook module
+     * @param accessExternalHost host of the logbook module
      * @return SoapUiConfig
      */
-    public SoapUiConfig setLogbookHost(String logbookHost) {
-        ParametersChecker.checkParameter("logbookHost is mandatory", logbookHost);
-        this.logbookHost = logbookHost;
+    public SoapUiConfig setAccessExternalHost(String accessExternalHost) {
+        ParametersChecker.checkParameter("logbookHost is mandatory", accessExternalHost);
+        this.accessExternalHost = accessExternalHost;
         return this;
     }
 
     /**
-     * @return logbookProtocol
+     * @return access external Protocol
      */
-    public String getLogbookProtocol() {
-        return logbookProtocol;
+    public String getAccessExternalProtocol() {
+        return accessExternalProtocol;
     }
 
     /**
-     * @param logbookProtocol protocol used to call the logbook module
+     * @param accessExternalProtocol protocol used to call the logbook module
      * @return SoapUiConfig
      */
-    public SoapUiConfig setLogbookProtocol(String logbookProtocol) {
-        ParametersChecker.checkParameter("logbookProtocol is mandatory", logbookProtocol);
-        this.logbookProtocol = logbookProtocol;
+    public SoapUiConfig setAccessExternalProtocol(String accessExternalProtocol) {
+        ParametersChecker.checkParameter("logbookProtocol is mandatory", accessExternalProtocol);
+        this.accessExternalProtocol = accessExternalProtocol;
         return this;
     }
 

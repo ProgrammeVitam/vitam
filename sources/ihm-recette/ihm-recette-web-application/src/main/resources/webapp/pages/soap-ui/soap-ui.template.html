@@ -1,7 +1,7 @@
 <div id="global" class="container-fluid" >
 
   <div class="text-justify">
-    <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="launchTests()">
+    <button class="btn btn-primary btn-success btn-s" type="button" ng-click="launchTests()">
       <i class="material-icons pull-left">delete_choix</i>
       <span>Lancer les tests</span>
     </button>
@@ -10,7 +10,7 @@
   </div>
 
   <div class="text-justify">
-    <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="getLastResult()">
+    <button class="btn btn-primary btn-success btn-s" type="button" ng-click="getLastResult()">
       <i class="material-icons pull-left">delete_choix</i>
       <span>Récupération résultats</span>
     </button>
@@ -63,9 +63,10 @@
                 <th>Attendu</th>
                 <th>Observé</th>
               </tr>
-              <tr class='trtab' ng-repeat="item in report.results">
+              <!-- TODO : Check error / success and display good HTML -->
+              <tr ng-if="!item.result" class='trtab' ng-repeat="item in report.results">
                 <td  class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >
-                  <img src='images/icon_error_sml.gif'alt='' />
+                  <img src='images/icon_error_sml.gif' alt='' />
                 </td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.testName}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.sipName}}</td>
@@ -73,6 +74,18 @@
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.expected}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.observed}}</td>
               </tr>
+
+              <tr ng-if="item.result" class='trtab' ng-repeat="item in report.results">
+                <td  class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >
+                  <img src='images/icon_success_sml.gif' alt='' />
+                </td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.testName}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.sipName}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.category}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.expected}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.observed}}</td>
+              </tr>
+
             </table>
           </div>
           <br />

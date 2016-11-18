@@ -99,7 +99,9 @@ public class MetaDataApplicationTest {
 
         List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
         mongo_nodes.add(new MongoDbNode("localhost", port));
-        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG);
+        // TODO: using configuration file ? Why not ?
+        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        config.setJettyConfig(JETTY_CONFIG);
     }
 
     @AfterClass

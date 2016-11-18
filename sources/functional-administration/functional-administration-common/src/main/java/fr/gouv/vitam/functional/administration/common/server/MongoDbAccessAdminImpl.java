@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bouncycastle.asn1.dvcs.Data;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,6 +44,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
@@ -51,6 +54,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -79,11 +83,7 @@ implements MongoDbAccessReferential {
         }
     }
 
-    /**
-     * insertDocuments implement
-     */
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException {
         final List<VitamDocument> vitamDocumentList = new ArrayList<>();
@@ -102,28 +102,32 @@ implements MongoDbAccessReferential {
         collection.getCollection().insertMany(vitamDocumentList);
     }
 
-    /**
-     * deleteCollection implement
-     */
-    // FIXME P0 delete the collection without any check on legal to do so (does any object using this referential ?) ?
-    // Fonctionnalité demandé par les POs pour la démo
+    // Not check, test feature !
     @Override
-    public void deleteCollection(FunctionalAdminCollections collection) {
-        collection.getCollection().drop();
+    public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException {
+        long count = collection.getCollection().count();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(collection.getName() + " count before: " + count);
+        }
+        if (count > 0) {
+            DeleteResult result = collection.getCollection().deleteMany(new Document());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
+            }
+            if (result.getDeletedCount() != count) {
+                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
+                    .getDeletedCount(), count));
+            }
+
+        }
     }
 
-    /**
-     * getDocumentById implement
-     */
     @Override
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException {
         return (VitamDocument<?>) collection.getCollection().find(eq(VitamDocument.ID, id)).first();
     }
 
-    /**
-     * select implement
-     */
     @Override
     public MongoCursor<?> select(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException {
@@ -142,7 +146,6 @@ implements MongoDbAccessReferential {
      * @return the Closeable MongoCursor on the find request based on the given collection
      * @throws InvalidParseOperationException when query is not correct
      */
-    @SuppressWarnings("rawtypes")
     private MongoCursor selectExecute(final FunctionalAdminCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
@@ -180,7 +183,6 @@ implements MongoDbAccessReferential {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void insertDocument(JsonNode json, FunctionalAdminCollections collection) throws ReferentialException {
         try {

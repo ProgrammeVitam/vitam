@@ -30,12 +30,17 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-format-core</artifactId>
+			<artifactId>functional-administration-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-rules-core</artifactId>
+			<artifactId>logbook-common-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -104,6 +109,11 @@
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

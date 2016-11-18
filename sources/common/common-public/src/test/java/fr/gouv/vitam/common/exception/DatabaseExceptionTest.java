@@ -24,47 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.common.exception;
 
-// Define service in order to process the resource promise for administration operation
-angular.module('core')
-  .service('adminService', function(adminResource) {
+import static org.junit.Assert.assertFalse;
 
-    var AdminService = this;
+import org.junit.Test;
 
-    AdminService.deleteFileFormat = function(successCallback, errorCallback) {
-      adminResource.deleteFormats().then(successCallback, errorCallback);
-    };
+public class DatabaseExceptionTest {
 
-    AdminService.deleteRulesFile = function(successCallback, errorCallback) {
-      adminResource.deleteRules().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAccessionRegisters = function(successCallback, errorCallback) {
-      adminResource.deleteAccessionRegisters().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteLogbooks = function(successCallback, errorCallback) {
-      adminResource.deleteLogbooks().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteUnitLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteUnitLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteOGLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteOGLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteArchiveUnits = function(successCallback, errorCallback) {
-      adminResource.deleteArchiveUnits().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteObjectGroups = function(successCallback, errorCallback) {
-      adminResource.deleteObjectGroups().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAll = function(successCallback, errorCallback) {
-      adminResource.deleteAll().then(successCallback, errorCallback);
-    };
-
-  });
+    @Test
+    public void testConstruct() {
+        DatabaseException exception0 = new DatabaseException("");
+        DatabaseException invalidParseOperationException1 = new DatabaseException("", exception0);
+        assertFalse(exception0.equals(invalidParseOperationException1));
+        exception0 = new DatabaseException("");
+        invalidParseOperationException1 = new DatabaseException(exception0);
+        assertFalse(exception0.equals(invalidParseOperationException1));
+        exception0 = new DatabaseException("");
+        invalidParseOperationException1 = new DatabaseException("", exception0);
+        assertFalse(invalidParseOperationException1.equals(exception0));
+    }
+}

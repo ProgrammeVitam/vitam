@@ -25,46 +25,29 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for administration operation
-angular.module('core')
-  .service('adminService', function(adminResource) {
+package fr.gouv.vitam.ihmrecette.appserver;
 
-    var AdminService = this;
+import org.glassfish.jersey.server.ResourceConfig;
 
-    AdminService.deleteFileFormat = function(successCallback, errorCallback) {
-      adminResource.deleteFormats().then(successCallback, errorCallback);
-    };
+/**
+ * Application server without mongo and elasticsearch
+ *
+ * For tests purpose ONLY
+ */
+class ServerApplicationWithoutMongo extends ServerApplication {
 
-    AdminService.deleteRulesFile = function(successCallback, errorCallback) {
-      adminResource.deleteRules().then(successCallback, errorCallback);
-    };
+    /**
+     * ServerApplication constructor
+     *
+     * @param configuration
+     */
+    public ServerApplicationWithoutMongo(String configuration) {
+        super(configuration);
+    }
 
-    AdminService.deleteAccessionRegisters = function(successCallback, errorCallback) {
-      adminResource.deleteAccessionRegisters().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteLogbooks = function(successCallback, errorCallback) {
-      adminResource.deleteLogbooks().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteUnitLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteUnitLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteOGLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteOGLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteArchiveUnits = function(successCallback, errorCallback) {
-      adminResource.deleteArchiveUnits().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteObjectGroups = function(successCallback, errorCallback) {
-      adminResource.deleteObjectGroups().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAll = function(successCallback, errorCallback) {
-      adminResource.deleteAll().then(successCallback, errorCallback);
-    };
-
-  });
+    @Override
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        WebApplicationResource resource = new WebApplicationResource(getConfiguration());
+        resourceConfig.register(resource);
+    }
+}

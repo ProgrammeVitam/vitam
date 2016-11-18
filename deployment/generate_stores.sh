@@ -20,10 +20,6 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 	echo "	Import des CA server dans truststore de ihm-demo..."
 	echo "		... import CA server root..."
 	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
-	echo "a"
-	env
-	$(eval "echo \$TrustStore_ihm_demo_password")
-	echo "b"
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
 	echo "		... import CA server intermediate..."
 	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt

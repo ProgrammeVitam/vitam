@@ -26,9 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Indexes.hashed;
 
 import java.util.ArrayList;
@@ -63,6 +61,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -793,5 +792,24 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException {
         updateBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItems);
+    }
+
+    // Not check, test feature !
+    @Override
+    public void deleteCollection(LogbookCollections collection) throws DatabaseException {
+        long count = collection.getCollection().count();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(collection.getName() + " count before: " + count);
+        }
+        if (count > 0) {
+            DeleteResult result = collection.getCollection().deleteMany(new Document());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
+            }
+            if (result.getDeletedCount() != count) {
+                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
+                    .getDeletedCount(), count));
+            }
+        }
     }
 }

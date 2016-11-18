@@ -25,46 +25,30 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for administration operation
+// Define resources in order to call WebApp http endpoints for soap-ui
 angular.module('core')
-  .service('adminService', function(adminResource) {
+  .factory('uploadSipPerfResource', function($http, IHM_URLS) {
+    var GENERATE_STAT_URL = '/stat/';
+    var UPLOAD_SELECTED_SIP_URL = '/upload/';
+    var SIP_TO_UPLOAD_URL = '/upload/fileslist';
 
-    var AdminService = this;
+    var UploadSipPerfResource = {};
 
-    AdminService.deleteFileFormat = function(successCallback, errorCallback) {
-      adminResource.deleteFormats().then(successCallback, errorCallback);
+
+    //Get Available SIP on server for upload
+    UploadSipPerfResource.getAvailableSipForUpload = function(){
+      return $http.get(IHM_URLS.IHM_BASE_URL + SIP_TO_UPLOAD_URL);
     };
 
-    AdminService.deleteRulesFile = function(successCallback, errorCallback) {
-      adminResource.deleteRules().then(successCallback, errorCallback);
+    // upload selected SIP
+    UploadSipPerfResource.uploadSelectedSip = function(selectedFile){
+      return $http.get(IHM_URLS.IHM_BASE_URL + UPLOAD_SELECTED_SIP_URL + selectedFile);
     };
 
-    AdminService.deleteAccessionRegisters = function(successCallback, errorCallback) {
-      adminResource.deleteAccessionRegisters().then(successCallback, errorCallback);
+    // Generate INGEST statistics report
+    UploadSipPerfResource.generateIngestStatReport = function(operationId){
+      return $http.get(IHM_URLS.IHM_BASE_URL + GENERATE_STAT_URL + operationId);
     };
 
-    AdminService.deleteLogbooks = function(successCallback, errorCallback) {
-      adminResource.deleteLogbooks().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteUnitLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteUnitLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteOGLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteOGLifeCycles().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteArchiveUnits = function(successCallback, errorCallback) {
-      adminResource.deleteArchiveUnits().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteObjectGroups = function(successCallback, errorCallback) {
-      adminResource.deleteObjectGroups().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAll = function(successCallback, errorCallback) {
-      adminResource.deleteAll().then(successCallback, errorCallback);
-    };
-
+    return UploadSipPerfResource;
   });

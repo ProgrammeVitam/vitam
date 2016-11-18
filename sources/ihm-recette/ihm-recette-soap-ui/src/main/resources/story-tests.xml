@@ -104,7 +104,7 @@ if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
  * Upload File 
  **/
 
-def url  = context.ingest+"ingest-ext/v1/upload/"
+def url  = context.ingest+"ingest-external/v1/ingests/"
 log.info 'Url for ingest' + url
 def cert = context.certfile 
 def file =context.dataDir+context.sipName
@@ -115,7 +115,7 @@ def header2 =  "--header Content-Type:application/octet-stream "
 def upload =  "-X POST --data-binary "+ " @"+  file  
 def activateStatutCodes = "-o /dev/null  -w %{http_code}"
 def options =activateStatutCodes+ " " +header1 +  " " + header2
-def curl  = "curl -k --key " + cert + " " + url + " " + upload + " " +options 
+def curl  = "curl -k -E " + cert + " " + url + " " + upload + " " +options 
 log.info 'curl executed for ingest: ' + curl
 proc = curl.execute();
 // starting 
@@ -141,48 +141,61 @@ if (!statusOk  ){
 }
 //assert statusOk</script></con:config></con:testStep><con:testStep type="groovy" name="find" id="6a107074-b274-44d8-b933-c4003dba2ac9"><con:settings/><con:config><script>//curl -X POST -H "X-HTTP-Method-Override: GET" -H "Content-Type: application/json" -H "Cache-Control: no-cache"  -d '
 import groovy.json.JsonSlurper
-
-def url  = context.logbook+"logbook/v1/operations"
+log.info 'Enter in find'
+def url  = context.logbook+"access-external/v1/operations"
 //Content-Type:application/octet-stream
 def header1 =  "--header X-HTTP-Method-Override:GET"
 def header2 =  "--header Content-Type:application/json"
 def header3 =  "--header Cache-Control:no-cache "
+def header4 =  "--header Transfer-Encoding:chunked "
 def activateStatutCodes = "-o /dev/null  -w '%{http_code}'"
 //activateStatutCode =" "
 
-def json =('{$query:{},$filter:{$limit:1,$orderby:{evDateTime:-1}},$projection:{}}')
-def options =header1+ " " +header2 +  " " + header3
-def curl  = "curl -v -d "+json + " "+url +" " +options 
+log.info 'After set header: ' + header1 + ' ' + header2 + ' ' + header3 + ' ' + activateStatutCodes
+def cert = context.certfile
+def json =('{"$query":{},"$filter":{"$limit":1,"$orderby":{"evDateTime":-1}},"$projection":{}}')
+log.info 'json: ' + json
+def options = header1+ " " +header2 +  " " + header3 + " " + header4
+log.info 'options: ' + options
+def curl = "curl -k -E " + cert + " -d " + json + " " + url + " " + options 
+log.info 'Curl for access-external: ' + curl
 proc = curl.execute();
 
 Thread.start { System.err &lt;&lt; proc.err } 
 proc.waitFor()
 
 def slup = new JsonSlurper()// $.result[*]
+// def procText = proc.text
+// log.info 'Proc Error: ' + proc.err.text
+// log.info 'Proc text: ' + procText
 def result =slup.parseText(proc.text)
+log.info 'Results events: ' + result['$results'].size
 
-assert  result.result.size == 1 
-def id = result.result[0]._id
+// assert  result['$results'].size == 1
+def id = result['$results'][0]._id
 context.ope_id = id </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>
 import com.eviware.soapui.support.XmlHolder
 import groovy.json.JsonSlurper 
 def host = "http://localhost:9002"
-def url  = context.logbook+"logbook/v1/operations/"+context.ope_id
+def url  = context.logbook+"access-external/v1/operations/"+context.ope_id
 def options = "" 
-def curl  = "curl "+url +" " +options 
-log.info curl
-proc = curl.execute();
+def cert = context.certfile
+def curl  = "curl -k -E " + cert + " " + url + " " +options 
+log.info 'Curl in details: ' + curl
+proc = curl.execute()
 Thread.start { System.err &lt;&lt; proc.err } 
 proc.waitFor()
 
 def slup = new JsonSlurper()// $.result[*]
 result =slup.parseText(proc.text)
-log.info result
-def size = result.result.events.size 
+def size = result.$results[0].events.size
 
-resultat =  result.result.events[size-1].outcome == context.expected
+log.info 'Size / Last elem: ' + size + ' / ' + size-1
+log.info 'Item -1: ' + result.$results[0].events[size-1].evType
+log.info 'Outcome: ' + result.$results[0].events[size-1].outcome
+resultat =  result.$results[0].events[size-1].outcome == context.expected
 
-log.info "------------------------------------->resultat observé  "+ result.result.events[size-1].outcome
+log.info "------------------------------------->resultat observé  "+ result.$results[0].events[size-1].outcome
 
 if (resultat ){
 	context.nbsuccess= 	context.nbsuccess+ 1 
@@ -195,9 +208,8 @@ def i = context.iteration
 
 context.inputJSON.params[i].result = resultat
 context.inputJSON.params[i].expected = context.expected
-context.inputJSON.params[i].observed = result.result.events[size-1].outcome	
-
-assert resultat
+context.inputJSON.params[i].observed = result.$results[0].events[size-1].outcome
+// assert resultat
 </script></con:config></con:testStep><con:testStep type="groovy" name="while" id="80a3a8e4-bc73-41e7-a411-48982e666a01"><con:settings/><con:config><script>
 def inputJSON = context.inputJSON 
 //log.info("ddd"+ inputJSON)
@@ -219,50 +231,6 @@ def  inputJSON = context.inputJSON
 	log.info ' Nombre de tests '+context.inputJSON.params.size
 	
 if ( context.inputJSON!= null && 0 < context.inputJSON.params.size  ) {
-	def ok_image = "images/icon_success_sml.gif"
-	def ko_image = "images/icon_error_sml.gif"
-	def replaceText =""
-	context.inputJSON.params.each {
-		def image
-		def result = "${it['sipName']}"
-		def name = "${it['testName'] }"
-		def category = "${it['category'] }"
-		def observed = "${it['observed'] }"
-		def expected = "${it['expected'] }"
-		def w3class
-		if ( it['result']==true ) 
-		{	
-			image= ok_image 
-			w3class = "class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green'"
-
-		}
-		else {
-		 image= ko_image
-		 w3class = "class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red'"
-		}
-		// w3class =""
-
-		replaceText <<="<tr class='trtab'>" // open tr 
-		replaceText <<= " <td  "+ w3class + " >   <img src='"+ image +"'alt='' />  </td> " // td image 
-		replaceText <<= " <td "+ w3class + " >"+ name+ "</td>"  // td name 
-		replaceText <<= "<td "+ w3class + " >"+result+ "</td>" // td result 
-		replaceText <<= "<td "+ w3class + " >"+category+ "</td>" // td result 
-		replaceText <<= "<td "+ w3class + " >"+observed+ "</td>" // td result 
-		replaceText <<= "<td "+ w3class + " >"+expected+ "</td>" // td result 
-		replaceText <<="</tr>"// close tr 
-	}
-
-	def reportingTemplate = context.expand('${#Project#reportingTemplate}')
-	String fileContents = new File(reportingTemplate).text
-	fileContents= fileContents.replaceAll( '##NBTESTS##', context.inputJSON.params.size+"" )
-	fileContents= fileContents.replaceAll( '##TESTS##', replaceText.toString()+"" )
-	fileContents= fileContents.replaceAll( '##SUCCESS##', context.nbsuccess+"" )
-	fileContents= fileContents.replaceAll( '##NBFAILLURES##', context.nbFail+"" )
-	
-	def out = context.expand('${#Project#reportingDir}') + 'reporting.html'
-	File file = new File(out)
-	file.text= fileContents
-	
 	def jsonOut = context.expand('${#Project#reportingDir}') + 'reporting.json'
 	File jsonFile = new File(jsonOut)
 	jsonFile.text= JsonOutput.toJson(context.inputJSON)

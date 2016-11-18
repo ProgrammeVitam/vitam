@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -84,16 +83,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         super(new BasicVitamStatusServiceImpl());
-        /*DbConfigurationImpl adminConfiguration;
-        if (webApplicationConfig.isDbAuthentication()) {
-            adminConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(), webApplicationConfig.getDbName(),
-                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
-        } else {
-            adminConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getDbName());
-        }*/
         LOGGER.debug("init Admin Management Resource server");
         this.webApplicationConfig = webApplicationConfig;
     }
@@ -108,52 +97,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookMessages() {
         // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
-    }
-
-    /**
-     * Delete the referential format in the base
-     *
-     * @return Response
-     */
-    @Path("/format/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() {
-    	// FIXME : To do
-/*        mongoAccess.setDatabase("masterdata");
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
-            formatManagement.deleteCollection();
-            return Response.status(Status.OK).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        } */
-    	return null;
-    }
-
-    /**
-     * Delete the referential rules in the base
-     *
-     * @return Response
-     */
-    @Path("/rules/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRulesFile() {
-    	// FIXME : To do
-    	/*
-        mongoAccess.setDatabase("masterdata");
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
-            rulesFileManagement.deleteCollection();
-            return Response.status(Status.OK).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        }
-        */
-    	return null;
     }
 
     /**
@@ -265,7 +208,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Launch soap UI test
      * 
-     * @return the response
+     * @return the response status (no entity)
      */
     @GET
     @Path("/soapui/launch")

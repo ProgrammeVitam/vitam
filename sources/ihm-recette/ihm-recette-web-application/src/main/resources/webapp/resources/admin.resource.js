@@ -29,9 +29,15 @@
 angular.module('core')
   .factory('adminResource', function($http, IHM_URLS) {
 
-    var FORMAT_ROOT = '/format/';
+    var DELETE_ROOT = '/delete';
+    var FORMAT_ROOT = '/formats/';
     var RULE_ROOT = '/rules/';
-    var DELETE_API_POINT = 'delete/';
+    var ACCESSION_REGISTER_ROOT = '/accessionregisters';
+    var LOGBOOK_ROOT = '/logbook/operation';
+    var OBJECT_GROUP_LIFE_CYCLE_ROOT = '/logbook/lifecycle/objectgroup';
+    var UNIT_LIFE_CYCLE_ROOT = '/logbook/lifecycle/unit';
+    var OBJECT_GROUP_ROOT = '/metadata/objectgroup';
+    var ARCHIVE_UNIT_ROOT = '/metadata/unit';
     var AdminResource = {};
 
     /** Delete all the formats (DELETE method)
@@ -39,7 +45,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteFormats = function () {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + FORMAT_ROOT + DELETE_API_POINT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + FORMAT_ROOT);
     };
 
     /** Delete all the rules (DELETE method)
@@ -47,7 +53,63 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteRules = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + RULE_ROOT + DELETE_API_POINT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + RULE_ROOT);
+    };
+
+    /** Delete all the accession register (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteAccessionRegisters = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ACCESSION_REGISTER_ROOT);
+    };
+
+    /** Delete all the logbooks (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteLogbooks = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + LOGBOOK_ROOT);
+    };
+
+    /** Delete all the archive unit lifeCycle (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteUnitLifeCycles = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + UNIT_LIFE_CYCLE_ROOT);
+    };
+
+    /** Delete all the object group life cycles (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteOGLifeCycles = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_LIFE_CYCLE_ROOT);
+    };
+
+    /** Delete all the archive units (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteArchiveUnits = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ARCHIVE_UNIT_ROOT);
+    };
+
+    /** Delete all the object groups (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteObjectGroups = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_ROOT);
+    };
+
+    /** Delete all the mongo collections (DELETE method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    AdminResource.deleteAll = function() {
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT);
     };
 
     return AdminResource;

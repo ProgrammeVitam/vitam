@@ -24,47 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.ihmrecette.soapui;
 
-// Define service in order to process the resource promise for administration operation
-angular.module('core')
-  .service('adminService', function(adminResource) {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-    var AdminService = this;
+import java.io.IOException;
 
-    AdminService.deleteFileFormat = function(successCallback, errorCallback) {
-      adminResource.deleteFormats().then(successCallback, errorCallback);
-    };
+import org.junit.Before;
+import org.junit.Test;
 
-    AdminService.deleteRulesFile = function(successCallback, errorCallback) {
-      adminResource.deleteRules().then(successCallback, errorCallback);
-    };
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
-    AdminService.deleteAccessionRegisters = function(successCallback, errorCallback) {
-      adminResource.deleteAccessionRegisters().then(successCallback, errorCallback);
-    };
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
-    AdminService.deleteLogbooks = function(successCallback, errorCallback) {
-      adminResource.deleteLogbooks().then(successCallback, errorCallback);
-    };
+public class SoapUiClientMockTest {
+	private SoapUiClient client;
 
-    AdminService.deleteUnitLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteUnitLifeCycles().then(successCallback, errorCallback);
-    };
+	@Before
+	public void initTests() {
+		SoapUiClientFactory.getInstance().changeConfiguration(null);
+		client = SoapUiClientFactory.getInstance().getClient();
+	}
 
-    AdminService.deleteOGLifeCycles = function(successCallback, errorCallback) {
-      adminResource.deleteOGLifeCycles().then(successCallback, errorCallback);
-    };
+	@Test
+	public void testLaunchTest() {
+		try {
+			client.launchTests();
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 
-    AdminService.deleteArchiveUnits = function(successCallback, errorCallback) {
-      adminResource.deleteArchiveUnits().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteObjectGroups = function(successCallback, errorCallback) {
-      adminResource.deleteObjectGroups().then(successCallback, errorCallback);
-    };
-
-    AdminService.deleteAll = function(successCallback, errorCallback) {
-      adminResource.deleteAll().then(successCallback, errorCallback);
-    };
-
-  });
+	@Test
+	public void testGetReport() throws InvalidParseOperationException {
+		JsonNode response = client.getLastTestReport();
+		JsonNode params = response.get("params");
+		assertTrue(params.isArray());
+		
+		ArrayNode array = (ArrayNode) params;
+		assertEquals(2, array.size());
+	}
+}

@@ -30,9 +30,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -440,4 +442,11 @@ public interface LogbookDbAccess {
     MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(Select select)
         throws LogbookDatabaseException;
 
+    /**
+     * Delete logbook collection
+     *
+     * @param collection the logbook collection to delete
+     * @throws DatabaseException thrown when error on delete
+     */
+    void deleteCollection(LogbookCollections collection) throws DatabaseException;
 }

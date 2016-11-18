@@ -132,8 +132,10 @@ public class SelectUnitResourceTest {
 
         List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
+        // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
 
         application = new MetaDataApplication(configuration);
