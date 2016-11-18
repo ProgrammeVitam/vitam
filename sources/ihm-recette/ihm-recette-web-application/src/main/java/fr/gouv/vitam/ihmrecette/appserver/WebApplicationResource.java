@@ -56,6 +56,8 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
@@ -140,9 +142,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         try {
-            final JsonNode logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
-            if (logbookOperationResult != null && logbookOperationResult.has("result")) {
-                final JsonNode logbookOperation = logbookOperationResult.get("result");
+            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has("$results")) {
+                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get("$results");
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream =
                     JsonTransformer.buildLogbookStatCsvFile(logbookOperation);

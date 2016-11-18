@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -59,7 +60,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
-    public static JsonNode searchUnits(String parameters)
+    public static RequestResponse searchUnits(String parameters)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnits(parameters);
@@ -79,7 +80,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
-    public static JsonNode getArchiveUnitDetails(String preparedDslQuery, String unitId)
+    public static RequestResponse getArchiveUnitDetails(String preparedDslQuery, String unitId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitbyId(preparedDslQuery, unitId);
@@ -98,7 +99,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
-    public static JsonNode updateUnits(String parameters, String unitId)
+    public static RequestResponse updateUnits(String parameters, String unitId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.updateUnitbyId(parameters, unitId);
@@ -117,7 +118,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessClientServerException if the server encountered an exception
      * @throws AccessClientNotFoundException if the requested object does not exist
      */
-    public static JsonNode selectObjectbyId(String preparedDslQuery, String objectId)
+    public static RequestResponse selectObjectbyId(String preparedDslQuery, String objectId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectById(preparedDslQuery, objectId);
@@ -214,7 +215,7 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException 
      * @throws LogbookClientException 
      */
-    public static JsonNode selectUnitLifeCycleById(String unitLifeCycleId) throws LogbookClientException, InvalidParseOperationException {
+    public static RequestResponse selectUnitLifeCycleById(String unitLifeCycleId) throws LogbookClientException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitLifeCycleById(unitLifeCycleId);
         }
@@ -226,7 +227,7 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException 
      * @throws LogbookClientException 
      */
-    public static JsonNode selectOperation(String query) throws LogbookClientException, InvalidParseOperationException {
+    public static RequestResponse selectOperation(String query) throws LogbookClientException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperation(query);
         }
@@ -238,7 +239,7 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException 
      * @throws LogbookClientException 
      */
-    public static JsonNode selectOperationbyId(String operationId) throws LogbookClientException, InvalidParseOperationException {
+    public static RequestResponse selectOperationbyId(String operationId) throws LogbookClientException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperationbyId(operationId);
         }
@@ -250,7 +251,7 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException 
      * @throws LogbookClientException 
      */
-    public static JsonNode selectObjectGroupLifeCycleById(String objectGroupLifeCycleId) throws LogbookClientException, InvalidParseOperationException {
+    public static RequestResponse selectObjectGroupLifeCycleById(String objectGroupLifeCycleId) throws LogbookClientException, InvalidParseOperationException {
         try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         }
@@ -265,7 +266,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientNotFoundException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode findAccessionRegisterSummary(String options) throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
+    public static RequestResponse findAccessionRegisterSummary(String options) throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             String query = DslQueryHelper.createSingleQueryDSL(optionsMap);
@@ -282,7 +283,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientNotFoundException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode findAccessionRegisterDetail(String id, String options) throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
+    public static RequestResponse findAccessionRegisterDetail(String id, String options) throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidCreateOperationException {
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             String query = DslQueryHelper.createSingleQueryDSL(optionsMap);

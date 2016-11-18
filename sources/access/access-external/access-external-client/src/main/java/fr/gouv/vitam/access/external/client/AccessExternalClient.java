@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -50,7 +51,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode selectUnits(String selectQuery)
+    RequestResponse selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -64,7 +65,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode selectUnitbyId(String selectQuery, String unitId)
+    RequestResponse selectUnitbyId(String selectQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -78,7 +79,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode updateUnitbyId(String updateQuery, String unitId)
+    RequestResponse updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -108,7 +109,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode selectObjectById(String selectQuery, String unitId)
+    RequestResponse selectObjectById(String selectQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -120,7 +121,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectOperationbyId
@@ -130,7 +131,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
@@ -140,7 +141,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectObjectGroupLifeCycleById
@@ -150,7 +151,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycleById(String idObject)
+    RequestResponse selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException;
 
 
@@ -164,7 +165,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode getAccessionRegisterSummary(JsonNode query)
+    RequestResponse getAccessionRegisterSummary(JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -178,7 +179,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    JsonNode getAccessionRegisterDetail(String id, JsonNode query)
+    RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 

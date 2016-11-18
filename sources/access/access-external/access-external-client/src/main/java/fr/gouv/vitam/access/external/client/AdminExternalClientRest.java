@@ -18,9 +18,9 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -88,7 +88,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public JsonNode findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientException, InvalidParseOperationException {
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -102,7 +102,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -112,7 +112,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public JsonNode findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException {
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -124,7 +124,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

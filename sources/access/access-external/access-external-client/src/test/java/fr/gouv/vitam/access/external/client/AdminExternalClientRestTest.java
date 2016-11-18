@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -195,11 +197,9 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
     @Test
     public void testFindDocuments()
         throws Exception {
-        final JsonNode result = JsonHandler.getFromString(queryDsql);
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(result).build());
-        assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, result),
-            result);
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
+        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString()
+            , ClientMockResultHelper.getFormatList().toString());
     }
     
     @Test(expected=AccessExternalClientNotFoundException.class)
@@ -218,11 +218,10 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
     @Test
     public void testFindDocumentById()
         throws Exception {
-        final JsonNode result = JsonHandler.getFromString(queryDsql);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(result).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, ID),
-            result);
+            client.findDocumentById(AdminCollections.FORMATS, ID).toString(),
+            ClientMockResultHelper.getFormat().toString());
     }
     
     @Test(expected=AccessExternalClientNotFoundException.class)

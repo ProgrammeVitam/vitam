@@ -12,6 +12,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -37,7 +38,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public JsonNode findDocuments(AdminCollections documentType, JsonNode select)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
             return ClientMockResultHelper.getRuleList();
@@ -49,7 +50,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public JsonNode findDocumentById(AdminCollections documentType, String documentId)
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
         throws AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
             return ClientMockResultHelper.getRule();

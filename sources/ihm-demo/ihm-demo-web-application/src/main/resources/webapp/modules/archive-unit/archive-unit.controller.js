@@ -233,7 +233,7 @@ angular.module('archive.unit')
           // Find archive unit details
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$results == null || data.$results == undefined ||
-              data.$hint == null || data.$hint == undefined) {
+              data.$hits == null || data.$hits == undefined) {
               console.log("Erreur survenue à la mise à jour de l'archive unit");
               self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
             } else {
@@ -282,7 +282,7 @@ angular.module('archive.unit')
     self.refreshArchiveDetails = function () {
       var displayUpdatedArchiveCallBack = function (data) {
         if(data.$results == null || data.$results == undefined ||
-          data.$hint == null || data.$hint == undefined) {
+          data.$hits == null || data.$hits == undefined) {
           console.log("errorMsg");
         } else {
           // Archive unit found

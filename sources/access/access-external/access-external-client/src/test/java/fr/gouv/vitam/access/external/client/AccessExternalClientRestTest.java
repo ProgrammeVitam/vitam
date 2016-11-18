@@ -261,7 +261,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenRessourceOKWhenSelectTehnReturnOK()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertThat(client.selectUnits(queryDsql)).isNotNull();
     }
 
@@ -438,8 +438,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
-        JsonNode result = JsonHandler.getFromString(MOCK_LOGBOOK_RESULT);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(result).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getEmptyResult()).build());
         assertThat(client.selectObjectById(queryDsql, ID)).isNotNull();
     }
 
@@ -487,7 +486,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     
     @Test
     public void selectLogbookOperations() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.getFromString(MOCK_LOGBOOK_RESULT)).build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
         assertThat(client.selectOperation(queryDsql)).isNotNull();
     }
 
@@ -510,7 +509,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      ***/
     @Test
     public void selectLogbookOperationByID() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.getFromString(MOCK_LOGBOOK_RESULT)).build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
         assertThat(client.selectOperationbyId(ID)).isNotNull();
     }
 
@@ -534,7 +533,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      ***/
     @Test
     public void selectLogbookLifeCyclesUnit() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(JsonHandler.getFromString(MOCK_LOGBOOK_RESULT)).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
         assertThat(client.selectUnitLifeCycleById(ID)).isNotNull();
     }
 
@@ -557,7 +556,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      ***/
     @Test
     public void selectLogbookLifeCyclesObject() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(JsonHandler.getFromString(MOCK_LOGBOOK_RESULT)).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
         assertThat(client.selectObjectGroupLifeCycleById(ID)).isNotNull();
     }
 

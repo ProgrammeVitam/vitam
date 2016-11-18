@@ -66,6 +66,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
@@ -354,7 +356,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
                 result = client.selectObjectbyId(queryJson, idObjectGroup);
                 return Response.status(Status.OK)
-                    .entity(result)
+                    .entity(RequestResponseOK.getFromJsonNode(result))
                     .build();
             }
         } catch (InvalidParseOperationException e) {

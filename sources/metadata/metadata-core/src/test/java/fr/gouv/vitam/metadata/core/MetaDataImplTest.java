@@ -398,7 +398,7 @@ public class MetaDataImplTest {
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
+        final String wanted = "{\"$hits\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
         "\"$context\":{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
         "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\",\"description\":\"MODIFIED DESCRIPTION\"}}]}," +
         "\"$results\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +

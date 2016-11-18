@@ -100,7 +100,7 @@ public final class MetadataJsonResponseUtils {
             hitsNode.put("size", result.getNbResult());
             hitsNode.put("limit", result.getNbResult());
             hitsNode.put("time_out", false);
-            jsonListResponse.set("$hint", hitsNode);
+            jsonListResponse.set("$hits", hitsNode);
             final ObjectNode contextNode = (ObjectNode) query; 
             jsonListResponse.set("$context", contextNode);
         }
