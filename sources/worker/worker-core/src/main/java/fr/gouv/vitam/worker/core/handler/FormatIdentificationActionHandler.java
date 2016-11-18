@@ -30,7 +30,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -80,8 +79,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * FormatIdentification Handler.<br>
@@ -159,9 +156,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
             File file = null;
-            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            try {
                 // Get objectGroup metadatas
-                final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
+                final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
                 final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
@@ -211,7 +208,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                             return params.getObjectName();
                         }
                     }) {
-                        workspaceClient.putObject(params.getContainerName(),
+                        handlerIO.transferInputStreamToWorkspace(
                             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
                             isos);
                     } catch (IOException e) {
@@ -220,10 +217,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 }
 
             } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            } catch (final ContentAddressableStorageServerException e) {
-                // workspace error
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             } finally {
@@ -479,33 +472,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             }
         }
         return null;
-    }
-
-    /**
-     * Retrieve a json file as a {@link JsonNode} from the workspace.
-     *
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param jsonFilePath path in workspace of the json File
-     * @return JsonNode of the json file
-     * @throws ProcessingException throws when error occurs
-     */
-    private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
-        throws ProcessingException {
-        try (InputStream is = (InputStream) workspaceClient.getObject(containerId, jsonFilePath).getEntity()) {
-            if (is != null) {
-                return JsonHandler.getFromInputStream(is, JsonNode.class);
-            } else {
-                LOGGER.error("Object group not found");
-                throw new ProcessingException("Object group not found");
-            }
-        } catch (InvalidParseOperationException | IOException e) {
-            LOGGER.debug("Json wrong format", e);
-            throw new ProcessingException(e);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.debug("Workspace Server Error", e);
-            throw new ProcessingException(e);
-        }
     }
 
     private File loadFileFromWorkspace(String filePath)

@@ -78,7 +78,7 @@ public class VitamConfiguration {
     /**
      * Default Connection timeout
      */
-    private static final int CONNECT_TIMEOUT = 1000;
+    private static final int CONNECT_TIMEOUT = 2000;
     /**
      * Default Read Timeout
      */
@@ -87,11 +87,11 @@ public class VitamConfiguration {
     /**
      * Max total concurrent clients
      */
-    private static final int MAX_TOTAL_CLIENT = 100;
+    private static final int MAX_TOTAL_CLIENT = 500;
     /**
      * Max concurrent clients associated to one host
      */
-    private static final int MAX_CLIENT_PER_HOST = 50;
+    private static final int MAX_CLIENT_PER_HOST = 100;
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
@@ -103,15 +103,15 @@ public class VitamConfiguration {
     /**
      * Max delay to get a client (Apache Only)
      */
-    private static final int DELAY_GET_CLIENT = 2000;
+    private static final int DELAY_GET_CLIENT = 10000;
     /**
      * Specify the delay where connections returned to pool will be checked (Apache Only)
      */
-    private static final int INTERVAL_DELAY_CHECK_IDLE = 30000;
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 5000;
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
      */
-    private static final int MAX_DELAY_UNUSED_CONNECTION = 30000;
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 10000;
     /**
      * General Admin path
      */

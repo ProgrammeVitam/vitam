@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +35,7 @@ import org.apache.commons.io.FilenameUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
@@ -64,10 +60,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * StoreObjectGroup Handler.<br>
@@ -97,6 +89,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_STORAGE_BDO_KO_MSG = "Stockage de l'objet en erreur";
     private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
 
+    private HandlerIO handlerIO;
+
     /**
      * Constructor
      */
@@ -123,6 +117,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
+        handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try (
             LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
@@ -227,12 +222,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         final JsonNode jsonOG;
-        // WorkspaceClientFactory.changeMode(params.getUrlWorkspace());
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            // Get objectGroup objects ids
-            jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
-        }
+        // Get objectGroup objects ids
+        jsonOG = handlerIO.getJsonFromWorkspace(
+            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
         final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
@@ -253,34 +245,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         }
 
         return binaryObjectsToStore;
-    }
-
-    /**
-     * Retrieve a json file as a {@link JsonNode} from the workspace.
-     *
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param jsonFilePath path in workspace of the json File
-     * @return JsonNode of the json file
-     * @throws ProcessingException throws when error occurs
-     */
-    public JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
-        throws ProcessingException {
-        try (InputStream is = (InputStream) workspaceClient.getObject(containerId, jsonFilePath).getEntity()) {
-            if (is != null) {
-                return JsonHandler.getFromInputStream(is, JsonNode.class);
-            } else {
-                LOGGER.error("Object group not found");
-                throw new ProcessingException("Object group not found");
-            }
-
-        } catch (InvalidParseOperationException | IOException e) {
-            LOGGER.debug("Json wrong format", e);
-            throw new ProcessingException(e);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.debug("Workspace Server Error", e);
-            throw new ProcessingException(e);
-        }
     }
 
     /**

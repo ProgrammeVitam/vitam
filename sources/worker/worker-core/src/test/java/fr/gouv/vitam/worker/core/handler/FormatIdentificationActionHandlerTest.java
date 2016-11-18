@@ -5,13 +5,13 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.eq;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -20,7 +20,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -32,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client2.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
@@ -68,7 +68,7 @@ public class FormatIdentificationActionHandlerTest {
     private InputStream objectGroup;
     private InputStream objectGroup2;
     private WorkspaceClientFactory workspaceClientFactory;
-    private WorkspaceClient workspaceClient;    
+    private WorkspaceClient workspaceClient;
     private HandlerIOImpl handlerIO;
     private GUID guid;
 
@@ -82,7 +82,7 @@ public class FormatIdentificationActionHandlerTest {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
@@ -155,11 +155,11 @@ public class FormatIdentificationActionHandlerTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
@@ -188,11 +188,11 @@ public class FormatIdentificationActionHandlerTest {
 
         assertEquals(FormatIdentificationActionHandler.getId(), HANDLER_ID);
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());                
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
         final AdminManagementClient adminManagementClient =
@@ -214,11 +214,11 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup2).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
         final AdminManagementClient adminManagementClient =
@@ -241,11 +241,11 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -267,8 +267,8 @@ public class FormatIdentificationActionHandlerTest {
         when(adminManagementClient.getFormats(anyObject())).thenThrow(new ReferentialException(""));
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -285,7 +285,10 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierTechnicalException(""));
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
 
@@ -300,11 +303,11 @@ public class FormatIdentificationActionHandlerTest {
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build())
-            .thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("VitamTest")).build());
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();

@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
@@ -134,6 +138,18 @@ public interface HandlerIO extends VitamAutoCloseable {
         throws ProcessingException;
 
     /**
+     * Helper to write an InputStream to Workspace<br/>
+     * <br/>
+     * To be used when not specified within the Output Parameters
+     * 
+     * @param workspacePath path within the workspath, without the container (implicit)
+     * @param inputStream the source InputStream to write
+     * @throws ProcessingException
+     */
+    void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream)
+        throws ProcessingException;
+
+    /**
      * Helper to load a file from Workspace (or local cache) and save it into local cache.<br/>
      * <br/>
      * To be used when not specified within the Input parameters
@@ -165,6 +181,36 @@ public interface HandlerIO extends VitamAutoCloseable {
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException;
 
+    /**
+     * Helper to get an InputStream (without cache) from Workspace<br/>
+     * <br/>
+     * To be used when not specified within the Input parameters
+     * 
+     * @param objectName
+     * @return the InputStream
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     */
+    Response getInputStreamNoCachedFromWorkspace(String objectName)
+        throws ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException;
+    
+    /**
+     * Consume any entity and close response
+     * 
+     * @param response
+     */
+    void consumeAnyEntityAndClose(Response response);
+
+    /**
+     * Retrieve a json file as a {@link JsonNode} from the workspace.
+     *
+     * @param jsonFilePath path in workspace of the json File
+     * @return JsonNode of the json file
+     * @throws ProcessingException throws when error occurs
+     */
+    JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException;
+    
     /**
      * Helper to delete a local file<br/>
      * <br/>

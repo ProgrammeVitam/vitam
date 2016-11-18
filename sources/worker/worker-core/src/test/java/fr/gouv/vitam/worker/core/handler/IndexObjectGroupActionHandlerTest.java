@@ -62,6 +62,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.common.ErrorMessage;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -75,7 +76,7 @@ public class IndexObjectGroupActionHandlerTest {
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
     private WorkspaceClientFactory workspaceClientFactory;
-    final HandlerIOImpl handlerIO = new HandlerIOImpl("IndexObjectGroupActionHandlerTest", "workerId");
+    HandlerIOImpl handlerIO;
 
     public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -89,6 +90,7 @@ public class IndexObjectGroupActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        handlerIO = new HandlerIOImpl("IndexObjectGroupActionHandlerTest", "workerId");
         metadataClient = mock(MetaDataClientRest.class);
     }
 
@@ -101,13 +103,13 @@ public class IndexObjectGroupActionHandlerTest {
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseWARNING()
         throws Exception {
         handler = new IndexObjectGroupActionHandler();
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         assertEquals(IndexObjectGroupActionHandler.getId(), HANDLER_ID);
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage()));
+
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -123,9 +125,6 @@ public class IndexObjectGroupActionHandlerTest {
         when(metadataClient.insertObjectGroup(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -146,9 +145,6 @@ public class IndexObjectGroupActionHandlerTest {
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -169,9 +165,6 @@ public class IndexObjectGroupActionHandlerTest {
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -192,9 +185,6 @@ public class IndexObjectGroupActionHandlerTest {
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);

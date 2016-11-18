@@ -200,7 +200,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     protected void disableUseAuthorizationFilter() {
         useAuthorizationFilter = false;
     }
-    
+
     boolean useAuthorizationFilter() {
         return useAuthorizationFilter;
     }
@@ -266,7 +266,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
         this.initialisation(clientConfiguration.setServerPort(port), getResourcePath());
     }
-    
+
 
     @Override
     public VitamClientType getVitamClientType() {
@@ -482,6 +482,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                         // Close expired connections
                         factory.chunkedPoolingManager.closeExpiredConnections();
                         factory.notChunkedPoolingManager.closeExpiredConnections();
+                        factory.chunkedPoolingManager.closeIdleConnections(
+                            VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
+                        factory.notChunkedPoolingManager.closeIdleConnections(
+                            VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
                     }
                 }
             } catch (final InterruptedException ex) {
