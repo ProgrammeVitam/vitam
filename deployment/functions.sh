@@ -5,8 +5,13 @@ REPERTOIRE_CA=${REPERTOIRE_ROOT}/PKI/CA
 REPERTOIRE_CONFIG=${REPERTOIRE_ROOT}/PKI/config
 TEMP_CERTS=${REPERTOIRE_ROOT}/PKI/newcerts
 PARAM_KEY_CHIFFREMENT="rsa:4096"
+ANSIBLE_VAULT_PASSWD="--ask-vault-pass"
 
-
+function check_password_file {
+	if [ -f vault_pass.txt ]; then
+		export ANSIBLE_VAULT_PASSWD="--vault-password-file vault_pass.txt"
+	fi
+}
 function generate_ca_root {
 	# Arguments
 	MDP_CAROOT_KEY=${1}
