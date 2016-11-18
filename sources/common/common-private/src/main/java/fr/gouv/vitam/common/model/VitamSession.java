@@ -35,6 +35,8 @@
 package fr.gouv.vitam.common.model;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
@@ -51,12 +53,8 @@ import javax.validation.constraints.NotNull;
 public class VitamSession {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamSession.class);
-
-
-    // Thread owner management
-
     private final VitamThreadFactory.VitamThread owningThread;
-
+    private String requestId = null;
 
     /**
      * @param owningThread
@@ -65,11 +63,26 @@ public class VitamSession {
         this.owningThread = owningThread;
     }
 
+    /**
+     * Build a clone of the original VitamSession, attached to the same thread.
+     * @param origin VitamSession to clone
+     * @return A new session
+     */
+    public static VitamSession from(VitamSession origin) {
+        final VitamSession newSession = new VitamSession(origin.owningThread);
+        newSession.requestId = origin.getRequestId();
+        return newSession;
+    }
+
+    // Thread owner management
+
     private void checkCallingThread() {
         if (Thread.currentThread() != owningThread) {
-            throw new IllegalStateException("VitamSession should only be called by the thread that owns it ; here, caller was "+Thread.currentThread()+", and owner was ");
+            throw new IllegalStateException("VitamSession should only be called by the thread that owns it ; here, caller was " + Thread.currentThread() + ", and owner was ");
         }
     }
+
+    // Internal state management
 
     /**
      * @return the current X-Request-Id
@@ -77,10 +90,6 @@ public class VitamSession {
     public String getRequestId() {
         return requestId;
     }
-
-    // Internal state management
-
-    private String requestId = null;
 
     /**
      * Set the request id and saves it to the MDC
@@ -99,7 +108,16 @@ public class VitamSession {
     }
 
     /**
+     * Sets the request id from the guid
+     * @param guid
+     */
+    public void setRequestId(GUID guid) {
+        setRequestId(guid.getId());
+    }
+
+    /**
      * Get the content of a given VitamSession and copy its internal values to the current instance
+     *
      * @param newSession Source session
      */
     public void mutateFrom(@NotNull VitamSession newSession) {
@@ -117,9 +135,20 @@ public class VitamSession {
         mutateFrom(new VitamSession(owningThread));
     }
 
+    /**
+     * Check if the session contains a valid request id
+     *
+     * @throws IllegalArgumentException
+     */
+    public void checkValidRequestId() {
+        ParametersChecker.checkParameter("Request-Id should be defined !", requestId);
+    }
+
 
     @Override
     public String toString() {
         return Integer.toHexString(hashCode()) + "{requestId='" + requestId + '\'' + '}';
     }
+
+
 }

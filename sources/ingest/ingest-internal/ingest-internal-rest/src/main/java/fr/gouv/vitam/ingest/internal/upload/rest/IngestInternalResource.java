@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -138,7 +139,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Allow to create a logbook by delegation
      * 
-     * @param xRequestId X-Request-Id must have the very same value than eventProcessusId
      * @param queue list of LogbookOperationParameters, first being the created master
      * @return the status of the request (CREATED meaning OK)
      */
@@ -146,13 +146,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/logbooks")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delegateCreateLogbookOperation(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
-        Queue<LogbookOperationParameters> queue) {
+    public Response delegateCreateLogbookOperation(Queue<LogbookOperationParameters> queue) {
         try (LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-            ParametersChecker.checkParameter("X-Request-Id is a Mandatory parameter", xRequestId);
+            VitamThreadUtils.getVitamSession().checkValidRequestId();
             ParametersChecker.checkParameter("list is a Mandatory parameter", queue);
-            client.bulkCreate(xRequestId, queue);
+            client.bulkCreate(VitamThreadUtils.getVitamSession().getRequestId(), queue);
             return Response.status(Status.CREATED).build();
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
@@ -169,7 +168,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Allow to update a logbook by delegation
      * 
-     * @param xRequestId X-Request-Id must have the very same value than eventProcessusId
      * @param queue list of LogbookOperationParameters in append mode (created already done before)
      * @return the status of the request (OK)
      */
@@ -177,12 +175,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/logbooks")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delegateUpdateLogbookOperation(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
-        Queue<LogbookOperationParameters> queue) {
+    public Response delegateUpdateLogbookOperation(Queue<LogbookOperationParameters> queue) {
         try (LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().checkValidRequestId();
             ParametersChecker.checkParameter("list is a Mandatory parameter", queue);
-            client.bulkUpdate(xRequestId, queue);
+            client.bulkUpdate(VitamThreadUtils.getVitamSession().getRequestId(), queue);
             return Response.status(Status.OK).build();
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
@@ -202,7 +200,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Will return {@link Response} containing an InputStream for the ArchiveTransferReply (OK or KO) except in
      * INTERNAL_ERROR (no body)
      * 
-     * @param xRequestId X-Request-Id must have the very same value than eventProcessusId
      * @param contentType the header Content-Type (zip, tar, ...)
      * @param uploadedInputStream the stream to upload
      * @param asyncResponse
@@ -213,29 +210,22 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void uploadSipAsStream(@HeaderParam(GlobalDataRest.X_REQUEST_ID) String xRequestId,
-        @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream,
+    public void uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                ingestAsync(asyncResponse, xRequestId, contentType, uploadedInputStream);
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> ingestAsync(asyncResponse, contentType, uploadedInputStream));
     }
 
-    private void ingestAsync(final AsyncResponse asyncResponse, String xRequestId, String contentType,
-        InputStream uploadedInputStream) {
+    private void ingestAsync(final AsyncResponse asyncResponse, String contentType,
+                             InputStream uploadedInputStream) {
         LogbookOperationParameters parameters = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
 
             try {
-                ParametersChecker.checkParameter("xRequestId is a Mandatory parameter", xRequestId);
+                VitamThreadUtils.getVitamSession().checkValidRequestId();
                 ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
 
-                final GUID containerGUID = GUIDReader.getGUID(xRequestId);
+                final GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
 
                 parameters = logbookInitialisation(containerGUID, containerGUID);
 
@@ -278,8 +268,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         }
                     }
 
-                    helper.writeResponse(Response.status(finalStatus)
-                        .header(GlobalDataRest.X_REQUEST_ID, xRequestId));
+                    helper.writeResponse(Response.status(finalStatus));
                 }
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 if (parameters != null) {

@@ -44,8 +44,10 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -58,6 +60,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public class LogbookExternalResourceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
+    private int tenantId = 0;
 
     /**
      * Constructor
@@ -79,6 +82,8 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperationbyId(operationId);
@@ -114,6 +119,8 @@ public class LogbookExternalResourceImpl {
     public Response selectOperationByPost(@PathParam("id_op") String operationId,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
@@ -144,6 +151,8 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperation(JsonNode query)
         throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperation(query);
@@ -178,6 +187,8 @@ public class LogbookExternalResourceImpl {
     public Response selectOperationWithPostOverride(JsonNode query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         if (xhttpOverride != null && ("GET").equals(xhttpOverride)) {
             return selectOperation(query);
@@ -213,6 +224,8 @@ public class LogbookExternalResourceImpl {
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
@@ -246,6 +259,8 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
         throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);

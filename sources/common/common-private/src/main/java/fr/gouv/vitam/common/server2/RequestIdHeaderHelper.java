@@ -88,8 +88,8 @@ public class RequestIdHeaderHelper {
             final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
 
             if (vitamSession.getRequestId() != null && !vitamSession.getRequestId().equals(requestId)) {
-                LOGGER.warn(
-                    "Caution : the requestId stored in session was not empty and different from the received " +
+                LOGGER.info(
+                    "Note : the requestId stored in session was not empty and different from the received " +
                     "requestId before {} handling ! Some cleanup must have failed... " +
                     "Old requestId will be discarded in session.",
                     ctx);

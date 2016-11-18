@@ -45,9 +45,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -60,11 +62,10 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
+    private int tenantId = 0;
 
     /**
      * Constructor
-     *
-     * @param configuration config for constructing AdminManagement
      */
     public AdminManagementExternalResourceImpl() {
         LOGGER.debug("init Admin Management Resource server");
@@ -82,6 +83,8 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (AdminCollections.FORMATS.compareTo(collection)) {
@@ -114,6 +117,8 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importDocument(@PathParam("collection") String collection, InputStream document) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (AdminCollections.FORMATS.compareTo(collection)) {
@@ -149,6 +154,8 @@ public class AdminManagementExternalResourceImpl {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteDocuments(@PathParam("collection") String collection) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (AdminCollections.FORMATS.compareTo(collection)) {
                 client.deleteFormat();
@@ -178,7 +185,8 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
-        
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         ParametersChecker.checkParameter("select query is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (AdminCollections.FORMATS.compareTo(collection)) {
@@ -215,6 +223,8 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
         ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             if (AdminCollections.FORMATS.compareTo(collection)) {

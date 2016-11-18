@@ -109,7 +109,7 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
 
         final VitamRunnable vitamRunnable;
         if (currentThread instanceof VitamThread) {
-            final VitamSession session = ((VitamThread) currentThread).getVitamSession();
+            final VitamSession session = VitamSession.from(((VitamThread) currentThread).getVitamSession());
             vitamRunnable = new VitamRunnable(command, session);
             LOGGER.debug("VitamSession {} propagated from thread {} to runnable {}", session, currentThread.getName(), vitamRunnable);
         } else {

@@ -39,7 +39,11 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -70,6 +74,10 @@ public class IngestExternalImplTest {
     IngestExternalImpl ingestExternalImpl;
     private InputStream stream;
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+
     private static final long timeoutScanDelay = 60000;
 
     @Before
@@ -82,6 +90,7 @@ public class IngestExternalImplTest {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierNotFoundException() throws Exception {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
@@ -92,6 +101,7 @@ public class IngestExternalImplTest {
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryError() throws Exception {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
@@ -101,6 +111,7 @@ public class IngestExternalImplTest {
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierTechnicalException() throws Exception {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
@@ -111,6 +122,7 @@ public class IngestExternalImplTest {
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFileFormatNotFoundException() throws Exception {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
@@ -124,6 +136,7 @@ public class IngestExternalImplTest {
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierBadRequestException() throws Exception {
         FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
@@ -138,6 +151,7 @@ public class IngestExternalImplTest {
     }
 
 
+    @RunWithCustomExecutor
     @Test
     public void formatNotSupportedInInternalReferential() throws Exception {
         FormatIdentifierSiegfried siegfried =
@@ -148,6 +162,7 @@ public class IngestExternalImplTest {
     }
 
 
+    @RunWithCustomExecutor
     @Test
     public void formatSupportedInInternalReferential() throws Exception {
         FormatIdentifierSiegfried siegfried =
@@ -157,6 +172,7 @@ public class IngestExternalImplTest {
         ingestExternalImpl.upload(stream, new AsyncResponseJunitTest());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenFixedVirusFile()
         throws Exception {
@@ -167,6 +183,7 @@ public class IngestExternalImplTest {
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenUnFixedVirusFileAndSupportedMediaType()
         throws Exception {
@@ -184,6 +201,7 @@ public class IngestExternalImplTest {
         return list;
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenNoVirusFile() throws Exception {
         FormatIdentifierSiegfried siegfried =

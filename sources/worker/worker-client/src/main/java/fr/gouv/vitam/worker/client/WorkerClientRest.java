@@ -28,19 +28,19 @@ package fr.gouv.vitam.worker.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -51,7 +51,6 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 class WorkerClientRest extends DefaultClient implements WorkerClient {
     private static final String WORKER_INTERNAL_SERVER_ERROR = "Worker Internal Server Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
-    private static final String REQUEST_ID_MUST_HAVE_A_VALID_VALUE = "request id must have a valid value";
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
 
     WorkerClientRest(WorkerClientFactory factory) {
@@ -59,17 +58,15 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     }
 
     @Override
-    public ItemStatus submitStep(String requestId, DescriptionStep step)
+    public ItemStatus submitStep(DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException {
-        ParametersChecker.checkParameter(REQUEST_ID_MUST_HAVE_A_VALID_VALUE, requestId);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, "/" + "tasks", getDefaultHeaders(requestId), 
-                    JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final ItemStatus compositeItemStatus = handleCommonResponseStatus(requestId, step, response, ItemStatus.class);
-            return compositeItemStatus;
+                performRequest(HttpMethod.POST, "/" + "tasks", null, JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return handleCommonResponseStatus(step, response, ItemStatus.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
@@ -82,30 +79,16 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     }
 
     /**
-     * Generate the default header map
-     *
-     * @param asyncId the tenant id
-     * @return header map
-     */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
-        return headers;
-    }
-
-
-    /**
      * Common method to handle status responses
      *
-     * @param requestId the current requestId
+     * @param <R> response type parameter
      * @param step the current step
      * @param response the JAX-RS response from the server
      * @param responseType the type to map the response into
-     * @param <R> response type parameter
      * @return the Response mapped as an POJO
      * @throws VitamClientException the exception if any from the server
      */
-    protected <R> R handleCommonResponseStatus(String requestId, DescriptionStep step, Response response, Class<R> responseType)
+    protected <R> R handleCommonResponseStatus(DescriptionStep step, Response response, Class<R> responseType)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         switch (status) {
@@ -114,8 +97,12 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
             case NOT_FOUND:
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
-                LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " + requestId
-                    + " Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                try {
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " + VitamThreadUtils.getVitamSession().getRequestId()
+                        + " Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                } catch (VitamThreadAccessException e) {
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of <unknown request id> Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR);
         }
     }

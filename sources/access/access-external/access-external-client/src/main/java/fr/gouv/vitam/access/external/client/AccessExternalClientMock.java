@@ -42,8 +42,6 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
-
-
     @Override
     public JsonNode selectObjectById(String selectQuery, String unitId) throws InvalidParseOperationException {
         return JsonHandler.getFromString(

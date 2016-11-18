@@ -39,10 +39,11 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -106,6 +107,9 @@ public class IngestInternalIT {
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -309,10 +313,12 @@ public class IngestInternalIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -333,9 +339,9 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(operationGuid, params);
+            final Response response2 = client.uploadInitialLogbook(params);
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            Response response = client.upload(operationGuid, zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
             assertEquals(200, response.getStatus());
 
             // Try to check AU
@@ -396,9 +402,12 @@ public class IngestInternalIT {
     }
 
 
+    @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -418,9 +427,9 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(operationGuid, params);
+        final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        Response response = client.upload(operationGuid, zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+        Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
         assertNotNull(response);
         // FIXME in error but not for good reason (Logbook issue)
         assertEquals(500, response.getStatus());

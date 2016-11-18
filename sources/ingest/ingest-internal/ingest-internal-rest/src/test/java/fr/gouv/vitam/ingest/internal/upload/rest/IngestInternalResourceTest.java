@@ -37,6 +37,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.server2.RequestIdContainerFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -44,10 +45,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -105,7 +103,7 @@ public class IngestInternalResourceTest {
         port = junitHelper.findAvailablePort();
         try {
             vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
+            vitamServer.start();
 
             RestAssured.port = port;
             RestAssured.basePath = REST_URI;
@@ -123,7 +121,7 @@ public class IngestInternalResourceTest {
         LOGGER.debug("Ending tests");
         try {
             if (vitamServer != null) {
-                ((BasicVitamServer) vitamServer).stop();
+                vitamServer.stop();
             }
             junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
@@ -165,7 +163,7 @@ public class IngestInternalResourceTest {
                 StatusCode.STARTED,
                 "Start Ingest internal",
                 ingestGuid);
-        operationList = new ArrayList<LogbookParameters>();
+        operationList = new ArrayList<>();
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
         operationList.add(externalOperationParameters3);
@@ -197,13 +195,14 @@ public class IngestInternalResourceTest {
                 StatusCode.OK,
                 "End Ingest internal",
                 ingestGuid);
-        operationList2 = new ArrayList<LogbookParameters>();
+        operationList2 = new ArrayList<>();
         operationList2.add(externalOperationParameters4);
         operationList2.add(externalOperationParameters5);
         operationList2.add(externalOperationParameters6);
     }
 
 
+    // TODO P1: It would be better to use the test server / application here.
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
         final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
         workspaceClient = mock(WorkspaceClient.class);
@@ -217,6 +216,7 @@ public class IngestInternalResourceTest {
         configuration.setProcessingUrl("http://localhost:9999");
 
         resourceConfig.register(new IngestInternalResource(workspaceClient, processingClient));
+        resourceConfig.register(RequestIdContainerFilter.class);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -234,6 +234,7 @@ public class IngestInternalResourceTest {
     public void givenStartedServer_WhenGetStatus_ThenReturnStatusNoContent() throws Exception {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
+
 
     @Test
     public void givenAllServicesAvailableAndVirusWhenUploadSipAsAsyncStreamThenReturnOK() throws Exception {

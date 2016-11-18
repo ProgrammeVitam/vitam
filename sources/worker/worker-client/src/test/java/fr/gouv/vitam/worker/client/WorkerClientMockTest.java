@@ -68,7 +68,7 @@ public class WorkerClientMockTest {
         final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();
         final DescriptionStep descriptionStep = new DescriptionStep(step, workParams);
         final String requestId = "requestId";
-        final ItemStatus result = client.submitStep(requestId, descriptionStep);
+        final ItemStatus result = client.submitStep(descriptionStep);
 
         assertNotNull(result);
         assertEquals(result.getItemsStatus().size(), 1);

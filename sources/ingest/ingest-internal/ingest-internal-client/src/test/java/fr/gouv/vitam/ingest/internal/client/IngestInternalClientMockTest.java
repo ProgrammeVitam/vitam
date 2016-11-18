@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
@@ -96,9 +95,9 @@ public class IngestInternalClientMockTest {
         InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response = client.uploadInitialLogbook(conatinerGuid, operationList);
+        final Response response = client.uploadInitialLogbook(operationList);
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
-        final Response response2 = client.upload(conatinerGuid, inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response2 = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
         assertEquals(response2.getStatus(), Status.OK.getStatusCode());
 
         try {

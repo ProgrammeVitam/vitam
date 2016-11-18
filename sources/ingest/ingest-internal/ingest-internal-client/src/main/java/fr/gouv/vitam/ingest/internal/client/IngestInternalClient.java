@@ -29,13 +29,15 @@ package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -45,36 +47,33 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 public interface IngestInternalClient extends MockOrRestClient {
 
     /**
-     * 
+     *
      * Upload compressed SIP as stream
-     * 
-     * @param guid
+     *
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
      * @throws VitamException if stream is null
      * @return Response {@link Response}
-     * 
+     *
      */
-    Response upload(GUID guid, InputStream inputStream, MediaType archiveType) throws VitamException;
+    Response upload(InputStream inputStream, MediaType archiveType) throws VitamException;
 
     /**
      * Create only Logbook
      * 
-     * @param guid
      * @param logbookParametersList
      * @return Response as just CREATED
      * @throws VitamException
      */
-    Response uploadInitialLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+    Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamException;
 
     /**
      * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
      * 
-     * @param guid
      * @param logbookParametersList
      * @throws VitamClientException
      */
-    void uploadFinalLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+    void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException;
 }
