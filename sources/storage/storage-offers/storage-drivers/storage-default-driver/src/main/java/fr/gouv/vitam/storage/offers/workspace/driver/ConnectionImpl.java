@@ -61,7 +61,6 @@ import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFa
 /**
  * Workspace Connection Implementation
  */
-// FIXME P0: always close javax.ws.rs.core.Response (because can make problems)
 public class ConnectionImpl extends DefaultClient implements Connection {
 
 
@@ -81,7 +80,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private final String driverName;
-    @SuppressWarnings("unused")
+
     private final Properties parameters;
 
     /**
