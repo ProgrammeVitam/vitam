@@ -238,7 +238,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 final GUID containerGUID = GUIDReader.getGUID(xRequestId);
 
                 parameters = logbookInitialisation(containerGUID, containerGUID);
-                parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
 
                 MediaType mediaType = CommonMediaType.valueOf(contentType);
                 String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
@@ -333,7 +332,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
         return LogbookParametersFactory.newLogbookOperationParameters(
-            ingestGuid, INGEST_WORKFLOW, containerGUID,
+            ingestGuid, INGEST_INT_UPLOAD, containerGUID,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
             ingestGuid);

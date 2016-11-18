@@ -56,7 +56,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -64,13 +64,13 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
+import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -89,19 +89,33 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAutoCloseable {
 
+    
+    private static final String RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER = "rulesFileStreamis a mandatory parameter";
+    private static final String FILE_RULES_COLLECTION_IS_NOT_EMPTY = "File rules collection is not empty";
+    private static final String RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER = "rulesFileStream is a mandatory parameter";
+    private static final String THE_COLLECTION_IS_NOT_EMPTY = "The Collection is Not Empty";
+    private static final String INVALID_CSV_FILE = "Invalid CSV File :";
+    private static final String ALREADY_EXISTS = " Already exists";
+    private static final String FILE_RULE_WITH_RULE_ID = "File Rule with Rule Id";
+    private static final String RULES_NOT_FOUND = "Rules not found";
+    private static final String TXT = ".txt";
+    private static final String TMP = "tmp";
+    private static final String RULE_MEASUREMENT = "RuleMeasurement";
+    private static final String RULE_DURATION = "RuleDuration";
+    private static final String RULE_DESCRIPTION = "RuleDescription";
+    private static final String RULE_VALUE = "RuleValue";
+    private static final String RULE_TYPE = "RuleType";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "RulesFile";
 
-    private static final String MESSAGE_LOGBOOK_IMPORT = "Référentiel des règles de gestion importé avec succès ";
-    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Echec de l'import du référentiel de règle de gestion";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Référentiel des règles de gestion purgé avec succès";
     private static final String RULEID = "RuleId";
 
     private LogbookOperationsClient client;
-    private static String EVENT_TYPE_CREATE = "Import du référentiel des règles de gestion";
-    private static String EVENT_TYPE_DELETE = "Suppression du référentiel de règle de gestion";
-    private static LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
+    private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
+    private static String STP_IMPORT_RULES_EXIST = "STP_IMPORT_RULES.EXIST";
+
+    private static String STP_DELETE_RULES = "STP_DELETE_RULES";
     private static String INVALIDPARAMETERS = "Invalid Parameters Value";
     private static String MANDATORYRULEPARAMETERISMISSING = "Check Parameters : Mandatory rule Parameters is missing";
 
@@ -119,7 +133,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     @Override
     public void importFile(InputStream rulesFileStream)
         throws DatabaseConflictException, IOException, InvalidParseOperationException, ReferentialException {
-        ParametersChecker.checkParameter("rulesFileStreamis a mandatory parameter", rulesFileStream);
+        ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File csvFile = null;
         try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
             this.client = client2;
@@ -127,34 +141,37 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                    "Lancement de l’import du référentiel des règles de gestion ", eip);
+                    eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
             createLogBookEntry(logbookParametersStart);
 
             final GUID eip1 = GUIDFactory.newGUID();
             try {
                 final ArrayNode rulesManagerList = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFile);
+
                 if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
                     mongoAccess.insertDocuments(rulesManagerList, FunctionalAdminCollections.RULES);
 
                     final LogbookOperationParameters logbookParametersEnd =
                         LogbookParametersFactory.newLogbookOperationParameters(
-                            eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK,
-                            MESSAGE_LOGBOOK_IMPORT,
+                            eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
                             eip1);
                     updateLogBookEntry(logbookParametersEnd);
                 } else {
                     final LogbookOperationParameters logbookParametersEnd =
-                        LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
-                            LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                        LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip,
+                            LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES_EXIST, StatusCode.KO), eip1);
                     updateLogBookEntry(logbookParametersEnd);
-                    throw new DatabaseConflictException("File rules collection is not empty");
+                    throw new DatabaseConflictException(FILE_RULES_COLLECTION_IS_NOT_EMPTY);
                 }
             } catch (final FileRulesException e) {
                 LOGGER.error(e.getMessage());
                 final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip,
+                        LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                        VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.KO), eip1);
                 updateLogBookEntry(logbookParametersEnd);
                 throw new FileRulesException(e);
             }
@@ -197,8 +214,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                    "Lancement de la purge du référentiel des règles de gestion ", eip);
+                    eip, STP_DELETE_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED), eip);
 
             createLogBookEntry(logbookParametersStart);
             mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
@@ -206,7 +223,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             final GUID eip1 = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersEnd =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
+                    eip1, STP_DELETE_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK),
                     eip1);
 
             updateLogBookEntry(logbookParametersEnd);
@@ -217,9 +235,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     @Override
     public void checkFile(InputStream rulesFileStream)
         throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
-        ParametersChecker.checkParameter("rulesFileStream is a mandatory parameter", rulesFileStream);
+        ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
         if (checkifTheCollectionIsEmptyBeforeImport()) {
-            throw new FileRulesException("The Collection is Not Empty");
+            throw new FileRulesException(THE_COLLECTION_IS_NOT_EMPTY);
         }
         File csvFileReader = null;
         try {
@@ -234,24 +252,24 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     try {
                         if (checkRecords(record)) {
                             final String ruleId = record.get(RULEID);
-                            final String ruleType = record.get("RuleType");
-                            final String ruleValue = record.get("RuleValue");
-                            final String ruleDuration = record.get("RuleDuration");
-                            final String ruleMeasurementValue = record.get("RuleMeasurement");
+                            final String ruleType = record.get(RULE_TYPE);
+                            final String ruleValue = record.get(RULE_VALUE);
+                            final String ruleDuration = record.get(RULE_DURATION);
+                            final String ruleMeasurementValue = record.get(RULE_MEASUREMENT);
 
                             checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration,
                                 ruleMeasurementValue);
                             checkRuleDurationIsInteger(ruleDuration);
                             if (ruleIdSet.contains(ruleId)) {
-                                throw new FileRulesException("File Rule with Rule Id" + ruleId + " Already exists");
+                                throw new FileRulesException(FILE_RULE_WITH_RULE_ID + ruleId + ALREADY_EXISTS);
                             }
                             ruleIdSet.add(ruleId);
                             if (!contains(ruleMeasurementValue)) {
-                                throw new InvalidParameterException(INVALIDPARAMETERS + " : ruleMeasurement");
+                                throw new InvalidParameterException(INVALIDPARAMETERS + " : " + RULE_MEASUREMENT);
                             }
                         }
                     } catch (final Exception e) {
-                        throw new FileRulesException("Invalid CSV File :" + e.getMessage());
+                        throw new FileRulesException(INVALID_CSV_FILE + e.getMessage());
                     }
                 }
             }
@@ -304,7 +322,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         try {
             Integer.parseInt(ruleDuration);
         } catch (final NumberFormatException e) {
-            throw new InvalidParameterException(INVALIDPARAMETERS + " : ruleDuration");
+            throw new InvalidParameterException(INVALIDPARAMETERS + ": " + RULE_DURATION);
         }
     }
 
@@ -334,9 +352,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @return
      */
     private boolean checkRecords(CSVRecord record) {
-        return record.get(RULEID) != null && record.get("RuleType") != null && record.get("RuleValue") != null &&
-            record.get("RuleDuration") != null && record.get("RuleDescription") != null &&
-            record.get("RuleMeasurement") != null;
+        return record.get(RULEID) != null && record.get(RULE_TYPE) != null && record.get(RULE_VALUE) != null &&
+            record.get(RULE_DURATION) != null && record.get(RULE_DESCRIPTION) != null &&
+            record.get(RULE_MEASUREMENT) != null;
     }
 
     /**
@@ -362,7 +380,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      */
     private File convertInputStreamToFile(InputStream rulesStream) throws IOException {
         try {
-            final File csvFile = File.createTempFile("tmp", ".txt", new File(VitamConfiguration.getVitamTmpFolder()));
+            final File csvFile = File.createTempFile(TMP, TXT, new File(VitamConfiguration.getVitamTmpFolder()));
             Files.copy(
                 rulesStream,
                 csvFile.toPath(),
@@ -386,7 +404,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 FunctionalAdminCollections.RULES)) {
             final List<FileRules> result = new ArrayList<>();
             if (rules == null || !rules.hasNext()) {
-                throw new FileRulesNotFoundException("Rules not found");
+                throw new FileRulesNotFoundException(RULES_NOT_FOUND);
             }
             while (rules.hasNext()) {
                 result.add(rules.next());
