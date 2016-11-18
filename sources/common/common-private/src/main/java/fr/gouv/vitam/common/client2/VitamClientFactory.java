@@ -100,6 +100,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * Global configuration for Apache: Idle Monitor
      */
+    static final AtomicBoolean STATIC_IDLE_MONITOR = new AtomicBoolean(false);
+    /**
+     * Global configuration for Apache: Idle Monitor
+     */
     final ExpiredConnectionMonitorThread idleMonitor;
 
     /**
@@ -176,6 +180,49 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         givenClient = null;
         idleMonitor = new ExpiredConnectionMonitorThread(this);
         startupMonitor();
+        if (configuration != null) {
+            useAuthorizationFilter = !configuration.isSecure();
+        }
+    }
+
+    /**
+     * Constructor to allow to enable Multipart support or Chunked mode.<br/>
+     * <br/>
+     * HACK: to support Storage DriverImpl!
+     *
+     * @param configuration The client configuration
+     * @param resourcePath the resource path of the server for the client calls
+     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
+     * @param multipart allow multipart and disabling chunked mode
+     * @param chunkedMode if multipart is false, one can managed here if the client is in default chunkedMode or not
+     * @param sharedMonitor If true, the Monitor is instantiate only once
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
+        boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode, boolean sharedMonitor) {
+        internalConfigure();
+        initialisation(configuration, resourcePath);
+        config.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
+        configNotChunked.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
+        this.chunkedMode = chunkedMode;
+        this.multipartMode = allowMultipart;
+        if (allowMultipart) {
+            this.chunkedMode = false;
+            LOGGER.warn("This client is using Multipart therefore not Chunked mode");
+        }
+        disableChunkMode(configNotChunked);
+        givenClient = null;
+        if (sharedMonitor) {
+            if (STATIC_IDLE_MONITOR.compareAndSet(false, true)) {
+                idleMonitor = new ExpiredConnectionMonitorThread(this);
+                startupMonitor();
+            } else {
+                idleMonitor = null;
+            }
+        } else {
+            idleMonitor = new ExpiredConnectionMonitorThread(this);
+            startupMonitor();
+        }
         if (configuration != null) {
             useAuthorizationFilter = !configuration.isSecure();
         }
@@ -392,8 +439,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Shutdown the global Connection Manager (cannot be restarted yet)
      */
     public void shutdown() {
-        idleMonitor.shutdown();
-        idleMonitor.interrupt();
+        if (idleMonitor != null) {
+            idleMonitor.shutdown();
+            idleMonitor.interrupt();
+        }
         if (chunkedPoolingManager != null) {
             chunkedPoolingManager.close();
             notChunkedPoolingManager.close();
@@ -416,8 +465,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     private void startupMonitor() {
         // Apache configuration
-        idleMonitor.setDaemon(true);
-        idleMonitor.start();
+        if (idleMonitor != null) {
+            idleMonitor.setDaemon(true);
+            idleMonitor.start();
+        }
     }
 
     void commonConfigure(ClientConfig config) {
@@ -459,7 +510,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * Monitor to check Expired Connection (staled). Idle connections are managed directly in the Pool
      */
-    private class ExpiredConnectionMonitorThread extends Thread {
+    private static class ExpiredConnectionMonitorThread extends Thread {
         volatile boolean shutdown;
         final VitamClientFactory<?> factory;
 

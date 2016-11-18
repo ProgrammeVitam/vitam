@@ -56,7 +56,7 @@ public class DriverImpl implements Driver {
         final Properties parameters;
         
         protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
-            super(configuration, resourcePath);
+            super(configuration, resourcePath, true, false, true, true);
             this.parameters = parameters;
         }
 
