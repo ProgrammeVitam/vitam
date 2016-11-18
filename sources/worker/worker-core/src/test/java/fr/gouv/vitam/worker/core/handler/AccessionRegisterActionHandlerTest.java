@@ -20,7 +20,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.model.IOParameter;
@@ -85,7 +85,7 @@ public class AccessionRegisterActionHandlerTest {
         action.addInIOParameters(in);
         accessionRegisterHandler = new AccessionRegisterActionHandler();
         assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = accessionRegisterHandler.execute(params, action);
+        final ItemStatus response = accessionRegisterHandler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 

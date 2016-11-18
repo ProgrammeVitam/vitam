@@ -35,12 +35,8 @@ import java.util.Map.Entry;
 
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -54,6 +50,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
@@ -93,7 +90,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
         handlerIO = handler;
@@ -112,7 +109,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
 
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -139,25 +136,21 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
             while (it.hasNext()) {
                 final Map.Entry<String, Object> objectGroup = it.next();
                 if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
-
-                    // Update logbook OG lifecycle
-                    final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
-                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                            GUIDReader.getGUID(params.getContainerName()),
-                            HANDLER_ID,
-                            GUIDFactory.newEventGUID(TENANT),
-                            LogbookTypeProcess.CHECK,
-                            StatusCode.WARNING,
-                            StatusCode.WARNING.toString(),
-                            // TODO P0 WORKFLOW
-                            VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" +
-                                objectGroup.getKey(),
-                            GUIDReader.getGUID(objectGroup.getValue().toString()));
                     try {
+                        // Update logbook OG lifecycle
+                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
-                        logbookLifeCycleClient.update(logbookOGParameter);
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient,
+                            logbookLifecycleObjectGroupParameters,
+                            params, HANDLER_ID, LogbookTypeProcess.INGEST);
+
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
+                            null, null);
+                        logbookLifeCycleClient.update(logbookLifecycleObjectGroupParameters);
+
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException e) {
+                        LogbookClientServerException | ProcessingException e) {
                         LOGGER.error("Can not update logbook lifcycle", e);
                     }
                     ogList.add(objectGroup.getKey());

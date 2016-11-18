@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -130,7 +130,7 @@ public class WorkerImpl implements Worker {
     }
 
     @Override
-    public CompositeItemStatus run(WorkerParameters workParams, Step step)
+    public ItemStatus run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, ProcessingException, ContentAddressableStorageServerException {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
@@ -143,8 +143,8 @@ public class WorkerImpl implements Worker {
             throw new IllegalArgumentException(EMPTY_LIST);
         }
 
-        final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
-
+        final ItemStatus responses = new ItemStatus(step.getStepName());
+        
         try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId)) {
             for (final Action action : step.getActions()) {
                 // Reset handlerIO for next execution
@@ -161,7 +161,7 @@ public class WorkerImpl implements Worker {
                 if (action.getActionDefinition().getOut() != null) {
                     handlerIO.addOutIOParameters(action.getActionDefinition().getOut());
                 }
-                final CompositeItemStatus actionResponse = actionHandler.execute(workParams, handlerIO);
+                final ItemStatus actionResponse = actionHandler.execute(workParams, handlerIO);
                 responses.setItemsStatus(actionResponse);
                 LOGGER.debug("STOP handler {} in step {}", action.getActionDefinition().getActionKey(),
                     step.getStepName());

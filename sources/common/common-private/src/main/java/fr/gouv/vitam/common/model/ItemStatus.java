@@ -28,10 +28,11 @@ package fr.gouv.vitam.common.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,12 +41,15 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Item Status (Step, Action, ...)
+ * Composite Item Status
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class ItemStatus {
 
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
+    // FIXME P0 should be Map of CompositeItemStatus
+    @JsonProperty("itemsStatus")
+    private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
 
     @JsonProperty("itemId")
     protected String itemId;
@@ -59,6 +63,7 @@ public class ItemStatus {
     protected Map<String, Object> data;
 
 
+    protected ItemStatus() {}
 
     /**
      * @param message
@@ -66,14 +71,13 @@ public class ItemStatus {
      * @param statusMeter
      * @param globalStatus
      * @param data
+     * @param itemsStatus
      */
-    @JsonCreator
-    public ItemStatus(@JsonProperty("itemId") String itemId,
-        @JsonProperty("message") String message,
+    public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
-        @JsonProperty("statusMeter") List<Integer> statusMeter,
-        @JsonProperty("data") Map<String, Object> data) {
-
+        @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
+        @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus) {
+        this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
         this.globalStatus = globalStatus;
@@ -244,6 +248,76 @@ public class ItemStatus {
         return computeMessage.toString();
     }
 
+
+    /**
+     * @return the itemsStatus
+     */
+    public Map<String, ItemStatus> getItemsStatus() {
+        return itemsStatus;
+    }
+
+    /**
+     * @param itemId
+     * @param statusDetails
+     *
+     * @return this
+     */
+    public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails) {
+
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId, statusDetails);
+        // update itemStatus
+
+        if (itemsStatus.containsKey(itemId)) {
+            itemsStatus.put(itemId, increment(itemsStatus.get(itemId), statusDetails));
+        } else {
+            itemsStatus.put(itemId, statusDetails);
+        }
+
+        // update globalStatus
+        globalStatus = globalStatus.compareTo(statusDetails.getGlobalStatus()) > 0
+            ? globalStatus : statusDetails.getGlobalStatus();
+        // update statusMeter
+        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
+            statusMeter.set(i, statusMeter.get(i) + statusDetails.getStatusMeter().get(i));
+        }
+
+        if (statusDetails.getData() != null) {
+            this.data.putAll(statusDetails.getData());
+        }
+
+        return this;
+    }
+
+    /**
+     * @param compositeItemStatus
+     *
+     * @return this
+     */
+    public ItemStatus setItemsStatus(ItemStatus compositeItemStatus) {
+
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, compositeItemStatus);
+        if ((compositeItemStatus.getItemsStatus() != null) && (!compositeItemStatus.getItemsStatus().isEmpty())) {
+            // update statusMeter, globalStatus
+            increment(compositeItemStatus.getGlobalStatus());
+
+            // update itemStatus
+            for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus()
+                .entrySet()) {
+                if (itemsStatus.containsKey(itemStatus.getKey())) {
+                    itemsStatus.put(itemStatus.getKey(),
+                        increment(itemsStatus.get(itemStatus.getKey()), itemStatus.getValue()));
+                } else {
+                    itemsStatus.put(itemStatus.getKey(), itemStatus.getValue());
+                }
+            }
+            // update data Map
+            if (compositeItemStatus.getData() != null) {
+                this.data.putAll(compositeItemStatus.getData());
+            }
+        }
+        return this;
+    }
+
     /**
      * 
      * @param blocking True if the step or handler is blocking
@@ -251,7 +325,8 @@ public class ItemStatus {
      */
     @JsonIgnore
     public boolean shallStop(boolean blocking) {
-        return getGlobalStatus().isGreaterOrEqualToFatal() || 
+        return getGlobalStatus().isGreaterOrEqualToFatal() ||
             (blocking && getGlobalStatus().isGreaterOrEqualToKo());
     }
+
 }

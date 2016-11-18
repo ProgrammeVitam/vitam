@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
@@ -118,7 +118,7 @@ public class WorkerResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a step description", descriptionStep);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
-            final CompositeItemStatus responses;
+            final ItemStatus responses;
             if (workerMocked == null) {
                 try (Worker worker = WorkerImplFactory.create()) {
                     responses =

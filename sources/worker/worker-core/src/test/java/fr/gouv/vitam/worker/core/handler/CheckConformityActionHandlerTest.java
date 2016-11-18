@@ -49,7 +49,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
@@ -120,7 +120,7 @@ public class CheckConformityActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         handlerIO.close();
     }

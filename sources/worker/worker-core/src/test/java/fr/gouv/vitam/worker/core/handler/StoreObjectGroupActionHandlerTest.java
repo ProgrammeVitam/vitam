@@ -49,7 +49,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -128,7 +128,7 @@ public class StoreObjectGroupActionHandlerTest {
         handler = new StoreObjectGroupActionHandler(storageClientFactory);
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
 
-        final CompositeItemStatus response = handler.execute(paramsObjectGroups, action);
+        final ItemStatus response = handler.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -160,7 +160,7 @@ public class StoreObjectGroupActionHandlerTest {
         handler = new StoreObjectGroupActionHandler(storageClientFactory);
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
 
-        final CompositeItemStatus response = handler.execute(paramsObjectGroups, action);
+        final ItemStatus response = handler.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 

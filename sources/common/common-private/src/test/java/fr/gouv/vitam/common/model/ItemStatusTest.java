@@ -75,7 +75,7 @@ public class ItemStatusTest {
         List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
 
         ItemStatus itemStatus4 = new ItemStatus(ITEM_ID_1, "message", StatusCode.OK,
-            statusMeter, new HashMap<>());
+            statusMeter, new HashMap<>(), null);
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
 
 

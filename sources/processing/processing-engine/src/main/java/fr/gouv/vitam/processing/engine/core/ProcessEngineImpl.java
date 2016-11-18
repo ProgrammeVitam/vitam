@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -159,7 +158,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                  * call process distribute to manage steps
                  */
                 boolean finished = true;
-                CompositeItemStatus stepResponse;
+                ItemStatus stepResponse;
                 for (final Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
                     final ProcessStep step = entry.getValue();
                     stepResponse = processStep(processId.getId(), step, entry.getKey(), workParams,
@@ -201,8 +200,9 @@ public class ProcessEngineImpl implements ProcessEngine {
         return workflowStatus;
     }
 
-    private CompositeItemStatus processStep(String processId, ProcessStep step, String uniqueId,
-        WorkerParameters workParams,
+
+
+    private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
         ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier,
         int tenantId, boolean finished)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
@@ -231,7 +231,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             if (processDistributor == null) {
                 processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
             }
-            final CompositeItemStatus stepResponse =
+            final ItemStatus stepResponse =
                 processDistributor.distribute(workParams, step, workflowId);
 
             // update workflow Status
@@ -239,7 +239,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
             for (Action action : step.getActions()) {
                 String hanlderId = action.getActionDefinition().getActionKey();
-                // Each handler could have a list itself => CompositeItemStatus
+                // Each handler could have a list itself => ItemStatus
                 ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
                 if (itemStatus != null) {
                     final LogbookOperationParameters actionParameters =
@@ -252,8 +252,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                             VitamLogbookMessages.getCodeOp(hanlderId, StatusCode.STARTED),
                             GUIDReader.getGUID(workParams.getContainerName()));
                     helper.updateDelegate(actionParameters);
-                    if (itemStatus instanceof CompositeItemStatus) {
-                        CompositeItemStatus actionStatus = (CompositeItemStatus) itemStatus;
+                    if (itemStatus instanceof ItemStatus) {
+                        ItemStatus actionStatus = (ItemStatus) itemStatus;
                         for (ItemStatus sub : actionStatus.getItemsStatus().values()) {
                             final LogbookOperationParameters sublogbook =
                                 LogbookParametersFactory.newLogbookOperationParameters(
@@ -267,6 +267,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                             helper.updateDelegate(sublogbook);
                         }
                     }
+
                     final LogbookOperationParameters sublogbook =
                         LogbookParametersFactory.newLogbookOperationParameters(
                             GUIDFactory.newEventGUID(tenantId),
@@ -321,3 +322,4 @@ public class ProcessEngineImpl implements ProcessEngine {
     }
 
 }
+

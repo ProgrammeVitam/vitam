@@ -50,7 +50,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -111,11 +112,9 @@ public class IndexObjectGroupActionHandlerTest {
             .thenThrow(new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage()));
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionHandlerTest");
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -130,11 +129,10 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionHandlerTest");
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final ItemStatus response = handler.execute(params, handlerIO);
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -150,11 +148,9 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionHandlerTest");
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -170,11 +166,9 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionHandlerTest");
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -190,11 +184,9 @@ public class IndexObjectGroupActionHandlerTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         handler = new IndexObjectGroupActionHandler();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionHandlerTest");
-        final CompositeItemStatus response = handler.execute(params, handlerIO);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("IndexObjectGroupActionHandlerTest");
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 }

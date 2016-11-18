@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.client;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -47,7 +47,7 @@ public interface WorkerClient extends MockOrRestClient {
      * @throws WorkerNotFoundClientException if the Server got a NotFound result
      * @throws WorkerServerClientException if the Server got an internal error
      */
-    CompositeItemStatus submitStep(String requestId, DescriptionStep step)
+    ItemStatus submitStep(String requestId, DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException;
 
 }

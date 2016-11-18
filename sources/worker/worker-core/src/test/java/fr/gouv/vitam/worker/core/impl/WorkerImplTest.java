@@ -38,7 +38,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -146,7 +146,7 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));      
+            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));      
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
@@ -177,7 +177,7 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));       
+            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));       
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
@@ -209,7 +209,7 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new CompositeItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);

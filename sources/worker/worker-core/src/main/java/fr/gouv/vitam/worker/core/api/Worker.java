@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.api;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -53,7 +53,7 @@ public interface Worker extends VitamAutoCloseable {
      * @throws ProcessingException throws when error in execution
      * @throws ContentAddressableStorageServerException 
      */
-    CompositeItemStatus run(WorkerParameters workParams, Step step)
+    ItemStatus run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, ContentAddressableStorageServerException;
 
 

@@ -57,7 +57,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -65,10 +64,14 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -91,10 +94,38 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 public class FormatIdentificationActionHandler extends ActionHandler implements VitamAutoCloseable {
 
+
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
 
+    /**
+     * Handler name
+     */
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
+
+    /**
+     * File format treatment
+     */
+    private static final String FILE_FORMAT = "FILE_FORMAT";
+    private static final String EVT_TYPE_FILE_FORMAT = HANDLER_ID + "." + FILE_FORMAT;
+
+    /**
+     * Error list for file format treatment
+     */
+    private static final String FILE_FORMAT_TOOL_DOES_NOT_ANSWER = "TOOL_DOES_NOT_ANSWER";
+    private static final String FILE_FORMAT_OBJECT_NOT_FOUND = "OBJECT_NOT_FOUND";
+    private static final String FILE_FORMAT_NOT_FOUND = "NOT_FOUND";
+    private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
+    private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
+    private static final String FILE_FORMAT_REFERENTIAL_ERROR = "REFERENTIAL_ERROR";
+
+
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+    /**
+     * 
+     */
+    private static final String RESULTS = "$results";
+
 
     private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters;
     private HandlerIO handlerIO;
@@ -118,7 +149,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         handlerIO = handler;
@@ -130,11 +161,11 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             try {
                 LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
                     logbookLifecycleObjectGroupParameters,
-                    params);
+                    params, EVT_TYPE_FILE_FORMAT, LogbookTypeProcess.INGEST);
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
             try {
@@ -143,17 +174,17 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
                     FORMAT_IDENTIFIER_ID), e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             } catch (final FormatIdentifierFactoryException e) {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
                     FORMAT_IDENTIFIER_ID), e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             } catch (final FormatIdentifierTechnicalException e) {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
                     e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
             File file = null;
             try {
@@ -185,8 +216,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                                     itemStatus.increment(result.getStatus());
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
-                                        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID,
-                                            itemStatus);
+                                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                                     }
                                 } finally {
                                     if (file != null) {
@@ -214,9 +244,27 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     } catch (IOException e) {
                         throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                     }
+
+                    logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
+                        FILE_FORMAT_UPDATED_FORMAT,
+                        StatusCode.WARNING, null, null);
+
+                    logbookClient.update(logbookLifecycleObjectGroupParameters);
                 }
 
             } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            } catch (LogbookClientBadRequestException e) {
+                // workspace error
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            } catch (LogbookClientNotFoundException e) {
+                // workspace error
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            } catch (LogbookClientServerException e) {
+                // workspace error
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             } finally {
@@ -247,7 +295,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             }
 
             LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
     }
 
@@ -259,10 +307,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
      */
     private void commitLifecycleLogbook(LogbookLifeCyclesClient logbookClient, ItemStatus itemStatus, String ogID)
         throws ProcessingException {
-        // TODO P0 WORKFLOW use the real message sub code
-        // FIXME P0 TODO WORKFLOW MUST BE itemStatus.getmESSAGE()
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
         LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
             logbookLifecycleObjectGroupParameters, itemStatus);
@@ -278,7 +322,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         File file, JsonNode version) {
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
         objectCheckFormatResult.setStatus(StatusCode.OK);
-        objectCheckFormatResult.setSubStatus("FILE_FORMAT_OK");
         try {
 
             // check the file
@@ -302,21 +345,16 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             if (result.size() == 0) {
                 // format not found in vitam referential
                 objectCheckFormatResult.setStatus(StatusCode.KO);
-                objectCheckFormatResult.setSubStatus("FILE_FORMAT_PUID_NOT_FOUND");
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    // FIXME P0 should use the message associated with substatus
-                    VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, objectCheckFormatResult.getStatus()));
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    "PUID trouvé : " + formatId);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                    objectCheckFormatResult.getStatus().name());
+                objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
+                logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT, FILE_FORMAT_PUID_NOT_FOUND,
+                    StatusCode.KO, null, null);
+
                 try {
                     logbookClient.update(logbookLifecycleObjectGroupParameters);
                 } catch (final LogbookClientException e) {
                     LOGGER.error(e);
                     objectCheckFormatResult.setStatus(StatusCode.FATAL);
-                    objectCheckFormatResult.setSubStatus("FILE_FORMAT_TECHNICAL_ERROR");
                 }
             } else {
                 // check formatIdentification
@@ -327,43 +365,43 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }
-        } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException |
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | FormatIdentifierTechnicalException |
             IOException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_REFERENTIAL_ERROR");
+            objectCheckFormatResult.setSubStatus(null);
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            objectCheckFormatResult.setStatus(StatusCode.KO);
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REFERENTIAL_ERROR);
         } catch (final FormatIdentifierBadRequestException e) {
             // path does not match a file
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_OBJECT_NOT_FOUND");
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_OBJECT_NOT_FOUND);
         } catch (final FileFormatNotFoundException e) {
             // format no found case
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_NOT_FOUND");
-            // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, objectCheckFormatResult.getStatus()));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                objectCheckFormatResult.getStatus().name());
-            try {
-                logbookClient.update(logbookLifecycleObjectGroupParameters);
-            } catch (final LogbookClientException exc) {
-                LOGGER.error(exc);
-                objectCheckFormatResult.setStatus(StatusCode.FATAL);
-                objectCheckFormatResult.setSubStatus("FILE_FORMAT_TECHNICAL_ERROR");
-            }
-        } catch (final FormatIdentifierTechnicalException e) {
-            // technical error
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_TECHNICAL_ERROR");
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND);
+
         } catch (final FormatIdentifierNotFoundException e) {
             // identifier does not respond
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_TOOL_DOES_NOT_ANSWER");
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
+
+        }
+
+        logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
+            objectCheckFormatResult.getSubStatus(),
+            objectCheckFormatResult.getStatus(), null, null);
+
+        try {
+            logbookClient.update(logbookLifecycleObjectGroupParameters);
+        } catch (final LogbookClientException exc) {
+            LOGGER.error(exc);
+            objectCheckFormatResult.setStatus(StatusCode.FATAL);
         }
         return objectCheckFormatResult;
     }
@@ -371,7 +409,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private JsonNode checkAndUpdateFormatIdentification(LogbookLifeCyclesClient logbookClient, String objectId,
         JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
-        final JsonNode refFormat = result.get("$results").get(0);
+        final JsonNode refFormat = result.get(RESULTS).get(0);
         final JsonNode puid = refFormat.get(FileFormat.PUID);
         final StringBuilder diff = new StringBuilder();
         JsonNode newFormatIdentification = formatIdentification;
@@ -453,7 +491,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             } catch (final LogbookClientException e) {
                 LOGGER.error(e);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);
-                objectCheckFormatResult.setSubStatus("FILE_FORMAT_TECHNICAL_ERROR");
             }
         }
         return newFormatIdentification;
@@ -544,6 +581,12 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         public String getSubStatus() {
             return subStatus;
         }
+    }
+
+    private void updateLifeCycleLogbook(LogbookLifeCycleObjectGroupParameters logbookParameters,
+        LogbookLifeCyclesClient logbookClient)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        logbookClient.update(logbookParameters);
     }
 
     @Override

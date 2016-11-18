@@ -60,7 +60,7 @@ public class VitamLogbookMessagesTest {
         assertTrue(VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.KO, FIN).endsWith(FIN));
         assertTrue(VitamLogbookMessages.getCodeOp(STEP_OR_HANDLER, StatusCode.FATAL).startsWith(StatusCode.FATAL.name()));
 
-        assertTrue(VitamLogbookMessages.getLabelLfc(STEP_OR_HANDLER).startsWith(LFC + LABEL));
+        assertTrue(VitamLogbookMessages.getLabelLfc(STEP_OR_HANDLER).startsWith(LFC));
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, StatusCode.STARTED).startsWith(LFC + StatusCode.STARTED.name()));
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, StatusCode.OK).startsWith(LFC + StatusCode.OK.name()));
         assertTrue(VitamLogbookMessages.getCodeLfc(STEP_OR_HANDLER, StatusCode.WARNING).startsWith(LFC + StatusCode.WARNING.name()));

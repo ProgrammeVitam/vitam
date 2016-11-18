@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -125,7 +125,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(1);
         action.close();
@@ -151,7 +151,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
         action.close();
