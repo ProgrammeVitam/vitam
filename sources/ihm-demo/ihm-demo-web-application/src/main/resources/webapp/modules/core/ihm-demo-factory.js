@@ -44,7 +44,9 @@ angular.module('core')
   'SIP_TO_UPLOAD_URL': '/upload/fileslist',
   'UPLOAD_SELECTED_SIP_URL': '/upload/',
   'GENERATE_STAT_URL': '/stat/',
-  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register'
+  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register',
+  'CHECK_OPERATION_STATUS': '/check/',
+  'CLEAR_OPERATION_STATUS_HISTORY': '/clear/'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -120,6 +122,16 @@ angular.module('core')
   // Default Accession Register Search
   dataFactory.getAccessionRegisters = function(defaultCriteria){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.DEFAULT_ACCESSION_REGISTER_SEARCH_URL, defaultCriteria);
+  };
+
+  // Check operation status
+  dataFactory.checkOperationStatus = function(operationId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CHECK_OPERATION_STATUS + operationId, {timeout: 2000});
+  };
+
+  // Check operation status
+  dataFactory.cleanOperationStatus = function(operationId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY + operationId);
   };
 
   return dataFactory;
@@ -217,4 +229,3 @@ angular.module('core')
     }
 
   });
-
