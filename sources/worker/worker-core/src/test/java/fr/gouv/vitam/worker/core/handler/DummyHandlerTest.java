@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 
 public class DummyHandlerTest {
@@ -41,7 +41,7 @@ public class DummyHandlerTest {
         DummyHandler handler = new DummyHandler();
 
         assertEquals("DummyHandler", DummyHandler.getId());
-        final CompositeItemStatus response = handler.execute(null, null);
+        final ItemStatus response = handler.execute(null, null);
         assertEquals(response.getGlobalStatus(), StatusCode.UNKNOWN);
     }
 

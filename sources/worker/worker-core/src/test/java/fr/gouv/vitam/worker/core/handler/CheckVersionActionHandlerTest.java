@@ -45,7 +45,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -84,7 +84,7 @@ public class CheckVersionActionHandlerTest {
         final List<String> invalidVersionList = new ArrayList<String>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -95,7 +95,7 @@ public class CheckVersionActionHandlerTest {
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -104,7 +104,7 @@ public class CheckVersionActionHandlerTest {
         throws ProcessingException, IOException, URISyntaxException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 }

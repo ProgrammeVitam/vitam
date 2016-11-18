@@ -54,7 +54,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -181,7 +181,7 @@ public class WorkerResourceTest {
         itemStatus.setMessage("message");
         StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
-        final CompositeItemStatus responses = new CompositeItemStatus("ID");
+        final ItemStatus responses = new ItemStatus("ID");
         Mockito.reset(worker);
 
         when(worker.run(anyObject(), anyObject())).thenReturn(responses);

@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.api;
 
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -51,7 +51,7 @@ public interface WorkerAction {
      * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException 
      */
-    CompositeItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException;
+    ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException;
 
     /**
      * @param handler input output list

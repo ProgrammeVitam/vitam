@@ -69,7 +69,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -319,25 +319,25 @@ public class WorkerIT {
           RestAssured.basePath = WORKER_PATH;
 
           workerClient = WorkerClientFactory.getInstance().getClient();
-          final CompositeItemStatus retStepControl =
+          final ItemStatus retStepControl =
               workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
           assertNotNull(retStepControl);
           assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
-          final CompositeItemStatus retStepCheckStorage =
+          final ItemStatus retStepCheckStorage =
               workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_storage_SIP.json"));
           assertNotNull(retStepCheckStorage);
           assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
           final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
           descriptionStepUnit.getWorkParams().setObjectName(unitName());
-          final CompositeItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+          final ItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
           assertNotNull(retStepStoreUnit);
           assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
           final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
           descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-          final CompositeItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+          final ItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
           assertNotNull(retStepStoreOg);
           assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
@@ -370,26 +370,26 @@ public class WorkerIT {
             RestAssured.basePath = WORKER_PATH;
 
             workerClient = WorkerClientFactory.getInstance().getClient();
-            final CompositeItemStatus retStepControl =
+            final ItemStatus retStepControl =
                 workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
 
-            final CompositeItemStatus retStepCheckStorage =
+            final ItemStatus retStepCheckStorage =
                 workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_storage_SIP.json"));
             assertNotNull(retStepCheckStorage);
             assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
             final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
             descriptionStepUnit.getWorkParams().setObjectName(unitName());
-            final CompositeItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+            final ItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
             assertNotNull(retStepStoreUnit);
             assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
             final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
             descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-            final CompositeItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+            final ItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
@@ -420,7 +420,7 @@ public class WorkerIT {
           RestAssured.basePath = WORKER_PATH;
 
           workerClient = WorkerClientFactory.getInstance().getClient();
-          final CompositeItemStatus retStepControl =
+          final ItemStatus retStepControl =
               workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
           assertNotNull(retStepControl);
           assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
@@ -452,7 +452,7 @@ public class WorkerIT {
           RestAssured.basePath = WORKER_PATH;
 
           workerClient = WorkerClientFactory.getInstance().getClient();
-          final CompositeItemStatus retStepControl =
+          final ItemStatus retStepControl =
               workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
           assertNotNull(retStepControl);
           assertEquals(5, retStepControl.getItemsStatus().size());

@@ -125,4 +125,23 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      */
     LogbookParameters setFinalStatus(String handlerId, String subTaskId,
         StatusCode code, String additionalMessage, String... params);
+
+	/**
+	 * Update the current LogbookParameters with status and message
+	 * 
+	 * @param handlerId
+	 *            the Handler Id
+	 * @param subTaskId
+	 *            the subTask Id if any (may be null)
+	 * @param code
+	 *            the Status Code
+	 * @param additionalMessage
+	 *            the additional message (as " Details= ...") if any (may be
+	 *            null)
+	 * @param params
+	 *            the additional parameters for the message if any (may be null)
+	 * @return this
+	 */
+	LogbookParameters setBeginningLog(String handlerId, String subTaskId, String additionalMessage,
+			String... params);
 }

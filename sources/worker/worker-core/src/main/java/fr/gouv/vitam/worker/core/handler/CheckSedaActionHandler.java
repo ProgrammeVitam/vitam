@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -61,7 +60,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -77,7 +76,7 @@ public class CheckSedaActionHandler extends ActionHandler {
         } catch (final ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException", e);
             itemStatus.increment(StatusCode.FATAL);
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
 
@@ -86,22 +85,22 @@ public class CheckSedaActionHandler extends ActionHandler {
             case VALID:
                 itemStatus.increment(StatusCode.OK);
                 itemStatus.setData("messageIdentifier", messageId);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NO_FILE:
                 itemStatus.setItemId(HANDLER_ID + ".NO_FILE");
                 itemStatus.increment(StatusCode.KO);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XML_FILE:
                 itemStatus.setItemId(HANDLER_ID + ".NOT_XML_FILE");
                 itemStatus.increment(StatusCode.KO);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XSD_VALID:
                 itemStatus.setItemId(HANDLER_ID + ".NOT_XSD_VALID");
                 itemStatus.increment(StatusCode.KO);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             default:
                 itemStatus.increment(StatusCode.KO);
-                return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
     }

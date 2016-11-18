@@ -47,7 +47,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,12 +60,10 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -76,18 +73,16 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -127,32 +122,42 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
         long time = System.currentTimeMillis();
         this.handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType, HANDLER_ID);
 
-        try {
-            calculateMaturityDate(params, itemStatus);
-            itemStatus.increment(StatusCode.OK);
-            updateUnitLifeCycle(logbookLifecycleUnitParameters, params, StatusCode.OK);
-        } catch (ProcessingException e) {
-            LOGGER.debug(e);
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try {
-                updateUnitLifeCycle(logbookLifecycleUnitParameters, params, StatusCode.KO);
-            } catch (ProcessingException e1) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                    logbookLifecycleUnitParameters,
+                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
+
+
+                calculateMaturityDate(params, itemStatus);
+                itemStatus.increment(StatusCode.OK);
+            } catch (ProcessingException e) {
+                LOGGER.debug(e);
                 itemStatus.increment(StatusCode.KO);
             }
-            itemStatus.increment(StatusCode.KO);
-        }
 
+            // Update lifeCycle
+            try {
+                logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
+                    null, null);
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                    logbookLifecycleUnitParameters,
+                    itemStatus);
+
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+
+        }
         LOGGER.debug("[exit] execute... /Elapsed Time:" + ((System.currentTimeMillis() - time) / 1000) + "s");
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
@@ -256,8 +261,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                                     }
                                     return;
                                 }
-                                // logBook lifecycle started
-                                updateUnitLifeCycle(logbookLifecycleUnitParameters, params, StatusCode.STARTED);
+
                                 // search ref rules
                                 rulesResults = findRulesValueQueryBuilders(rulesToApply);
                                 LOGGER.debug("rulesResults for archive unit id: " + objectName +
@@ -435,33 +439,6 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     private boolean checkRulesParameters(JsonNode ruleNode) {
         return (ruleNode != null && ruleNode.get(FileRules.RULEDURATION) != null &&
             ruleNode.get(FileRules.RULEMEASUREMENT) != null);
-    }
-
-    private void updateUnitLifeCycle(LogbookLifeCycleUnitParameters logbookLifecycleParameters, WorkerParameters params,
-        StatusCode statusCode)
-        throws ProcessingException {
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-
-            String extension = FilenameUtils.getExtension(params.getObjectName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                params.getObjectName().replace("." + extension, ""));
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                params.getCurrentStep());
-            logbookLifecycleParameters.setFinalStatus(getId(), null, statusCode, null);
-
-            logbookClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientNotFoundException e) {
-            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        }
     }
 
     /**

@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.client;
 
 import fr.gouv.vitam.common.client2.AbstractMockClient;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -40,9 +40,9 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 class WorkerClientMock extends AbstractMockClient implements WorkerClient {
 
     @Override
-    public CompositeItemStatus submitStep(String requestId, DescriptionStep data)
+    public ItemStatus submitStep(String requestId, DescriptionStep data)
         throws WorkerNotFoundClientException, WorkerServerClientException {
-        final CompositeItemStatus mockResponse = new CompositeItemStatus("StepId");
+        final ItemStatus mockResponse = new ItemStatus("StepId");
 
         ItemStatus itemStatus = new ItemStatus("ItemId");
         itemStatus.setMessage("message");

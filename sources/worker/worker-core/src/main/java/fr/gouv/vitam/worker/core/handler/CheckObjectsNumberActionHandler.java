@@ -32,7 +32,6 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -91,7 +90,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
+        throws ContentAddressableStorageServerException {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -116,7 +116,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
 
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 

@@ -35,7 +35,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -81,7 +81,7 @@ public class ProcessEngineImplTest {
 
     @Test
     public void processEngineTestWithFinallyStep() throws Exception {
-        final CompositeItemStatus responses = new CompositeItemStatus("stepName");
+        final ItemStatus responses = new ItemStatus("stepName");
         responses.increment(StatusCode.KO);
         Mockito.when(processDistributor.distribute(Mockito.anyObject(), Mockito.anyObject(),
             Mockito.eq("workflowJSONFinallyStep"))).thenReturn(responses);

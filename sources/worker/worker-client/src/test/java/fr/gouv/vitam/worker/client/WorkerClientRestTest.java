@@ -38,7 +38,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -121,7 +121,7 @@ public class WorkerClientRestTest extends VitamJerseyTest {
     public void submitOK() throws Exception {
 
 
-        final CompositeItemStatus result = new CompositeItemStatus("StepId");
+        final ItemStatus result = new ItemStatus("StepId");
 
         ItemStatus itemStatus1 = new ItemStatus("checkSeda");
         itemStatus1.setMessage("CHECK_MANIFEST_OK");
@@ -135,7 +135,7 @@ public class WorkerClientRestTest extends VitamJerseyTest {
         result.setItemsStatus("CheckVersion", itemStatus2);
 
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(result).build());
-        final CompositeItemStatus responses =
+        final ItemStatus responses =
             client.submitStep("requestId",
                 new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
         assertNotNull(responses);

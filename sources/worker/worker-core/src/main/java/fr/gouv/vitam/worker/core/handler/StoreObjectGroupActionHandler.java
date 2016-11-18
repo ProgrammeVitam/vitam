@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -47,6 +46,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -68,6 +68,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
 
     private static final String HANDLER_ID = "OG_STORAGE";
+    private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
+    private static final String STORING_OBJECT_FULL_TASK_ID = HANDLER_ID + "." + STORING_OBJECT_TASK_ID;
     private static final String SIP = "SIP/";
 
     // FIXME P1 should not be a private attribute -> to refactor
@@ -81,15 +83,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
-    // FIXME P0 WORKFLOW will be in vitam-logbook file
-    private static final String LOGBOOK_LF_STORAGE_MSG = "Stockage des objets";
-    private static final String LOGBOOK_LF_STORAGE_OK_MSG = "Stockage des objets réalisé avec succès";
-    private static final String LOGBOOK_LF_STORAGE_KO_MSG = "Stockage des objets en erreur";
-    private static final String LOGBOOK_LF_STORAGE_BDO_MSG = "Stockage de l'objet";
-    private static final String LOGBOOK_LF_STORAGE_BDO_KO_MSG = "Stockage de l'objet en erreur";
-    private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
-
     private HandlerIO handlerIO;
+
 
     /**
      * Constructor
@@ -115,7 +110,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -123,9 +118,10 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try {
                 checkMandatoryIOParameter(actionDefinition);
+
                 // Update lifecycle of object group : STARTED
                 LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient,
-                    logbookLifecycleObjectGroupParameters, params);
+                    logbookLifecycleObjectGroupParameters, params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
                 // get list of object group's objects
                 final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
@@ -147,6 +143,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
             // Update lifecycle of object group : OK/KO
             try {
+                logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
+                    null, null);
+
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,
                     logbookLifecycleObjectGroupParameters, itemStatus);
             } catch (final ProcessingException e) {
@@ -154,7 +153,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.FATAL);
             }
         }
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -186,23 +185,17 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
             // update lifecycle of objectGroup with detail of object : OK
             updateLifeCycleParametersLogbookForBdo(params, objectGUID);
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                StatusCode.OK.toString());
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.OK));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
+            logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.OK,
+                null, null);
             updateLifeCycle(logbookLifeCycleClient);
+
+
         } catch (final StorageClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
             // update lifecycle of objectGroup with detail of object : KO
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                StatusCode.KO.toString());
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(itemStatus.getItemId(), StatusCode.KO));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.KO));
+            logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.KO,
+                null, null);
             updateLifeCycle(logbookLifeCycleClient);
             throw e;
         }

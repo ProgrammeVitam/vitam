@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -141,12 +140,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     // FIXME P1 : make this method (distribute()) more generic
     @Override
-    public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
-        final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
+        final ItemStatus responses = new ItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
         // WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
@@ -197,7 +196,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             false);
                         for (final URI objectUri : objectsList) {
                             if (availableWorkers.isEmpty()) {
-                                LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
+                                LOGGER.error("available Workers List is empty()" + StatusCode.FATAL.toString());
                                 responses.setItemsStatus("WORKERS_LIST_EMPTY",
                                     getItemStatus("WORKERS_LIST_EMPTY", StatusCode.FATAL));
                                 break;
@@ -207,7 +206,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                                 // run step
                                 workParams.setObjectName(objectUri.getPath());
-                                final CompositeItemStatus actionsResponse;
+                                final ItemStatus actionsResponse;
                                 try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
                                     actionsResponse =
                                         workerClient.submitStep("requestId",
@@ -235,7 +234,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {
-                    LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
+                    LOGGER.error("available Workers List is empty()" + StatusCode.FATAL.toString());
                     responses.increment(StatusCode.FATAL);
                 } else {
                     // TODO P1 : management of parallel distribution and availability

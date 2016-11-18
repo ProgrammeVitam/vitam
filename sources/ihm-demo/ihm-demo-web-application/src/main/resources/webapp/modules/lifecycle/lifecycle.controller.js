@@ -39,7 +39,7 @@ angular.module('lifecycle')
     }
 
     // ************************************Pagination  **************************** //
-    self.viewby = 10;
+    self.viewby = 30;
     self.currentPage = 1;
     self.itemsPerPage = self.viewby;
     self.maxSize = 5;
@@ -99,11 +99,27 @@ angular.module('lifecycle')
 
           // Build unit LifeCycle details
           // Add just result events
-          angular.forEach(response.data.$results.events, function(value) {
-            var isEndEvent = value.outcome !== 'STARTED';
-            if(isEndEvent){
+          var lastStartedEvent = '';
+          for(var i=0; i < response.data.$results[0].events.length; i++){
+            var currentEvent = response.data.$results[0].events[i];
+            var nextEvent = response.data.$results[0].events[i + 1];
+            var isCurrentAStartEvent = currentEvent.outcome == 'STARTED';
+            var currentEventType = currentEvent.evType;
+            var isStepLevelEvent = false;
+
+            if(isCurrentAStartEvent){
+              lastStartedEvent = currentEventType;
+
+              // Set step level class
+              isStepLevelEvent = true;
+            } else if(currentEventType == lastStartedEvent){
+              // Set step level class
+              isStepLevelEvent = true;
+            }
+
+            if(nextEvent === undefined || !isCurrentAStartEvent || (currentEventType!==nextEvent.evType)){
               var newEvent = {};
-              angular.forEach(value, function(value, key) {
+              angular.forEach(currentEvent, function(value, key) {
                 var uppercaseKey = key.toUpperCase();
                 if (uppercaseKey === 'EVTYPE') {
                   newEvent[uppercaseKey] = $filter('translate')(value);
@@ -112,9 +128,12 @@ angular.module('lifecycle')
                 }
               });
 
+              // Add class type
+              newEvent.isStepLevelEvent = isStepLevelEvent;
+
               self.lifeCycleDetails.push(newEvent);
             }
-          });
+          }
 
           self.totalItems = self.lifeCycleDetails.length;
         }

@@ -55,7 +55,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
@@ -123,7 +123,7 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("ExtractSedaActionHandlerTest");
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -141,7 +141,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         action.addOutIOParameters(out);
 
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -159,7 +159,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -178,7 +178,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -197,7 +197,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -216,7 +216,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -235,7 +235,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -254,7 +254,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -273,7 +273,7 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -286,10 +286,11 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-        action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+		action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
     }
@@ -303,10 +304,11 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-        action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+		action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 }

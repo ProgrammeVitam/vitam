@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 public class VitamLogbookMessages {
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-logbook-messages";
     private static final VitamLogbookMessages VITAM_MESSAGES = new VitamLogbookMessages();
-    private static final String SEPARATOR = ".";
-    private static final String LIFECYCLE = SEPARATOR + "LFC";
+    public static final String SEPARATOR = ".";
+    public static final String LIFECYCLE = "LFC";
 
     final Messages messages;
 
@@ -92,7 +92,7 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named
      */
     public static final String getLabelLfc(String stepOrHandler) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(LIFECYCLE + SEPARATOR + stepOrHandler);
     }
 
     /**
@@ -114,7 +114,8 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named with sub transaction
      */
     public static final String getLabelLfc(String stepOrHandler, String transaction) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(stepOrHandler + LIFECYCLE + SEPARATOR + transaction);
+        return VITAM_MESSAGES.messages
+            .getStringNotEmpty(LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + transaction);
     }
 
     /**
@@ -134,7 +135,7 @@ public class VitamLogbookMessages {
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, StatusCode code) {
-        return stepOrHandler + LIFECYCLE + SEPARATOR + code;
+        return LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + code;
     }
 
     /**
@@ -156,7 +157,7 @@ public class VitamLogbookMessages {
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, StatusCode code) {
-        return stepOrHandler + LIFECYCLE + SEPARATOR + transaction + SEPARATOR + code;
+        return LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + transaction + SEPARATOR + code;
     }
 
     /**

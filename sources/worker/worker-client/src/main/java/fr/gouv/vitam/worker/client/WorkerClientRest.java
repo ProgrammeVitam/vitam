@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -59,7 +59,7 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     }
 
     @Override
-    public CompositeItemStatus submitStep(String requestId, DescriptionStep step)
+    public ItemStatus submitStep(String requestId, DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         ParametersChecker.checkParameter(REQUEST_ID_MUST_HAVE_A_VALID_VALUE, requestId);
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
@@ -68,7 +68,8 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
             response =
                 performRequest(HttpMethod.POST, "/" + "tasks", getDefaultHeaders(requestId), 
                     JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return handleCommonResponseStatus(requestId, step, response, CompositeItemStatus.class);
+            final ItemStatus compositeItemStatus = handleCommonResponseStatus(requestId, step, response, ItemStatus.class);
+            return compositeItemStatus;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);

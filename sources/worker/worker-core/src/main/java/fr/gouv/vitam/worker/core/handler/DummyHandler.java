@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -53,8 +53,8 @@ public class DummyHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID));
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID));
     }
 
     @Override

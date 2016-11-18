@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -39,7 +39,6 @@ import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -98,8 +97,8 @@ public class UnitsRulesComputeHandlerTest {
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
     @Test
@@ -115,8 +114,8 @@ public class UnitsRulesComputeHandlerTest {
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
@@ -129,11 +128,9 @@ public class UnitsRulesComputeHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
-        final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
@@ -146,8 +143,8 @@ public class UnitsRulesComputeHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         reset(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
-        final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
 
@@ -177,9 +174,9 @@ public class UnitsRulesComputeHandlerTest {
         root1.add(reuseRule);
         root1.add(reuseRule2);
 
-        final ObjectNode result = JsonHandler.createObjectNode();
-        result.put("$results", root1);
-        return result;
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root1);
+        return rule;
     }
 
 

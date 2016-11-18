@@ -48,7 +48,7 @@ public class CompositeItemStatusTest {
     @Test
     public void testCompositeItemStatus() throws Exception {
 
-        CompositeItemStatus parentItem1 = new CompositeItemStatus(STEP_ID_1);
+        ItemStatus parentItem1 = new ItemStatus(STEP_ID_1);
         assertEquals(StatusCode.UNKNOWN, parentItem1.getGlobalStatus());
 
         ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
@@ -60,7 +60,7 @@ public class CompositeItemStatusTest {
         parentItem1.setItemsStatus(ITEM_ID_1, itemStatus1);
         assertEquals(StatusCode.KO, parentItem1.getGlobalStatus());
 
-        CompositeItemStatus parentItem2 = new CompositeItemStatus(STEP_ID_1);
+        ItemStatus parentItem2 = new ItemStatus(STEP_ID_1);
         StatusCode statusOK = StatusCode.OK;
         ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_2);
         itemStatus2.increment(statusOK);
@@ -69,7 +69,7 @@ public class CompositeItemStatusTest {
 
         assertEquals(StatusCode.KO, parentItem1.getGlobalStatus());
 
-        CompositeItemStatus parentItem3 = new CompositeItemStatus(STEP_ID_1);
+        ItemStatus parentItem3 = new ItemStatus(STEP_ID_1);
         ItemStatus itemStatus3 = new ItemStatus(ITEM_ID_1);
         itemStatus3.increment(statusKO);
         parentItem3.setItemsStatus(ITEM_ID_1, itemStatus3);
@@ -94,7 +94,7 @@ public class CompositeItemStatusTest {
         }
 
         List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
-        ItemStatus parentItem4 = new CompositeItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
+        ItemStatus parentItem4 = new ItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
             new HashMap<>(), new LinkedHashMap<>());
         assertEquals(StatusCode.OK, parentItem4.getGlobalStatus());
 

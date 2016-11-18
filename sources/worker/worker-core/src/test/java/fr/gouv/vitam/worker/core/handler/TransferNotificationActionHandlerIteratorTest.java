@@ -56,9 +56,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -178,7 +178,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler.execute(params, action);
+        final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -203,7 +203,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler
+        final ItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -228,7 +228,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler
+        final ItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -245,7 +245,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler
+        final ItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -271,7 +271,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler
+        final ItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -297,7 +297,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        final CompositeItemStatus response = handler
+        final ItemStatus response = handler
             .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, Boolean.TRUE.toString()), action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }

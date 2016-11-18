@@ -56,19 +56,17 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
@@ -113,7 +111,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO param) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO param) {
         checkMandatoryParameters(params);
         handlerIO = param;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -123,30 +121,32 @@ public class IndexUnitActionHandler extends ActionHandler {
         try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try {
                 checkMandatoryIOParameter(handlerIO);
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient, logbookLifecycleUnitParameters,
-                    params);
+
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                    logbookLifecycleUnitParameters,
+                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
                 indexArchiveUnit(params, itemStatus);
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
+
             // Update lifeCycle
             try {
-                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
+                logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
+                    null, null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
                     logbookLifecycleUnitParameters,
                     itemStatus);
+
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
-
-            if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-                itemStatus.increment(StatusCode.WARNING);
-            }
-            return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
+
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+
     }
 
     /**
@@ -213,7 +213,6 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        String ruleList = null;
         final List<Object> archiveUnitDetails = new ArrayList<Object>();
         XMLEventReader reader = null;
 
@@ -347,5 +346,4 @@ public class IndexUnitActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Handler without parameters input
     }
-
 }

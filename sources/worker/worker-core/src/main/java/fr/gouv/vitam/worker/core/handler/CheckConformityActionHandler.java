@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -76,6 +75,8 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionHandler.class);
 
     private static final String HANDLER_ID = "CHECK_DIGEST";
+    private static final String CALC_CHECK = "CALC_CHECK";
+    private static final String SUBTASKID = HANDLER_ID + "." + CALC_CHECK;
     private HandlerIO handlerIO;
     private String objectID;
     private int nbOK;
@@ -101,7 +102,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         handlerIO = handler;
         logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
@@ -119,17 +120,12 @@ public class CheckConformityActionHandler extends ActionHandler {
                 Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
                 objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).asText();
+
+                // Add Start CHECK_DIGEST TASK in ObjectGroup LifeCycle
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-                    HANDLER_ID);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                    StatusCode.STARTED.toString());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, StatusCode.STARTED));
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.STARTED));
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
                     INCOME);
+                logbookLifecycleObjectGroupParameters.setBeginningLog(HANDLER_ID, null, null);
                 LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient,
                     logbookLifecycleObjectGroupParameters, params);
 
@@ -164,13 +160,20 @@ public class CheckConformityActionHandler extends ActionHandler {
                         VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
                 }
 
-            } catch (ProcessingException | InvalidParseOperationException e) {
+            } catch (ProcessingException |
+                InvalidParseOperationException | LogbookClientNotFoundException | LogbookClientServerException |
+                LogbookClientBadRequestException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.FATAL));
             }
 
             try {
+
+                // Set Final Status for CHECK_DIGEST TASK
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
                     logbookLifecycleObjectGroupParameters,
                     itemStatus);
@@ -179,35 +182,27 @@ public class CheckConformityActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.FATAL);
             }
         }
+
         LOGGER.debug("CheckConformityActionHandler response: " + itemStatus.getGlobalStatus());
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     private void checkMessageDigest(LogbookLifeCyclesClient logbookClient, WorkerParameters params,
         BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
-        throws ProcessingException {
+        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
+        LogbookClientServerException {
+        String containerId = params.getContainerName();
+
         String eventDetailData;
+        StatusCode statusCode = StatusCode.OK;
+
         // started for binary Object
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             binaryObject.getId());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-            itemStatus.getItemId());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-            StatusCode.STARTED.toString());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            VitamLogbookMessages.getOutcomeDetailLfc(
-                logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
-                StatusCode.STARTED));
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.STARTED));
-        eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
-            binaryObject.getAlgo() + "\"} ";
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, INCOME);
-
-        LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient, logbookLifecycleObjectGroupParameters,
-            params);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
+            INCOME);
         Response response = null;
+
         try {
             DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
             response = handlerIO.getInputStreamNoCachedFromWorkspace(
@@ -217,82 +212,60 @@ public class CheckConformityActionHandler extends ActionHandler {
             Digest manifestDigest;
             boolean isVitamDigest = false;
             if (!binaryObject.getAlgo().equals(digestTypeInput)) {
+                // Begin calculate digest by manifest alog
                 manifestDigest = new Digest(binaryObject.getAlgo());
                 inputStream = manifestDigest.getDigestInputStream(inputStream);
             } else {
                 manifestDigest = vitamDigest;
                 isVitamDigest = true;
             }
-
+            // calculate digest by vitam alog
             vitamDigest.update(inputStream);
 
+            // define eventDetailData
+            eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
+                "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
+                "\", \"SystemMessageDigest\": \"" + (String) handlerIO.getInput(ALGO_RANK) +
+                "\", \"SystemAlgorithm\": \"" + vitamDigest.toString() + "\"} ";
+
+            // check digest
             if (manifestDigest.toString().equals(binaryObject.getMessageDigest())) {
                 itemStatus.increment(StatusCode.OK);
                 nbOK++;
-
-                // update logbook case OK
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                    binaryObject.getId());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-                    itemStatus.getItemId());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                    StatusCode.OK.name());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    StatusCode.OK.name());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-                    INCOME);
 
                 if (!isVitamDigest) {
                     // update objectGroup json
                     ((ObjectNode) version).put(SedaConstants.TAG_DIGEST, vitamDigest.toString());
                     ((ObjectNode) version).put(SedaConstants.ALGORITHM, (String) handlerIO.getInput(ALGO_RANK));
                     oneOrMoreMessagesDigestUpdated = true;
-
                 }
-
-                // define eventDetailData
-                eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
-                    "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
-                    "\", \"SystemMessageDigest\": \"" + (String) handlerIO.getInput(ALGO_RANK) +
-                    "\", \"SystemAlgorithm\": \"" + vitamDigest.toString() + "\"} ";
-
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                    eventDetailData);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId() + " Detail= " + eventDetailData,
-                        StatusCode.OK));
-
-                logbookClient.update(logbookLifecycleObjectGroupParameters);
 
             } else {
                 nbKO++;
                 itemStatus.increment(StatusCode.KO);
+                statusCode = StatusCode.KO;
 
-                // update logbook case KO
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
-                    itemStatus.getItemId());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                    StatusCode.KO.name());
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                    StatusCode.KO.name());
+                // Set eventDetailData in KO case
                 eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
                     binaryObject.getAlgo() +
                     "\", \"ComputedMessageDigest\": \"" + manifestDigest.digest().toString() + "\"} ";
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                    eventDetailData);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeLfc(itemStatus.getItemId() + " Detail= " + eventDetailData,
-                        StatusCode.KO));
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-                    INCOME);
-
-                logbookClient.update(logbookLifecycleObjectGroupParameters);
             }
+
+            // Add CHECK_DIGEST.CALC_DIGEST SubTask Result to ObjectGroup lifeCycle
+            logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, statusCode,
+                null, null);
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                eventDetailData);
+            logbookClient.update(logbookLifecycleObjectGroupParameters);
 
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException | LogbookClientBadRequestException | LogbookClientNotFoundException |
             LogbookClientServerException e) {
             LOGGER.error(e);
+
+            logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, StatusCode.FATAL,
+                null, null);
+            logbookClient.update(logbookLifecycleObjectGroupParameters);
             throw new ProcessingException(e.getMessage(), e);
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
@@ -311,11 +284,13 @@ public class CheckConformityActionHandler extends ActionHandler {
         JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
         JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
+            // KO
             return binaryObjects;
         }
 
         List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
+            // KO
             return binaryObjects;
         }
         for (JsonNode version : versions) {
@@ -330,6 +305,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                         .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));
             }
         }
+        // OK
         return binaryObjects;
     }
 }

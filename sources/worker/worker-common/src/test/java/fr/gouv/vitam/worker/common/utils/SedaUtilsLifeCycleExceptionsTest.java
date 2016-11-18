@@ -161,7 +161,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         params.setCurrentStep("TEST");
         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient, logbookLifecycleUnitParameters,
-            params);
+            params, null, LogbookTypeProcess.INGEST);
     }
 
     @Test(expected = ProcessingException.class)
@@ -176,7 +176,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         params.setCurrentStep("TEST");
         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient, logbookLifecycleUnitParameters,
-            params);
+            params, null, LogbookTypeProcess.INGEST);
     }
 
     @Test(expected = ProcessingException.class)
@@ -191,7 +191,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         params.setCurrentStep("TEST");
         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient, logbookLifecycleUnitParameters,
-            params);
+            params, null, LogbookTypeProcess.INGEST);
     }
 
     @Test(expected = ProcessingException.class)
