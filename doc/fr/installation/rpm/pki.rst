@@ -391,7 +391,7 @@ Ci-dessous un exemple de sortie du script :
 
 
 
-Ce script génère sous ``PKI/certificats`` les  les stores (jks) associés pour un bon fonctionnement dans VITAM.
+Ce script génère sous ``PKI/certificats`` les stores (jks) associés pour un bon fonctionnement dans VITAM.
 
 Recopie des bons fichiers dans l'ansiblerie
 ============================================
