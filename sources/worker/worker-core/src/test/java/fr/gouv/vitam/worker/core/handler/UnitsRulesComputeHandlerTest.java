@@ -5,6 +5,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.reset;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -57,7 +59,7 @@ public class UnitsRulesComputeHandlerTest {
     private static final String ARCHIVE_UNIT_RULE = "AU_COMPUTE_ENDDATE_SAMPLE.xml";
     private final static String FAKE_URL = "localhost:1111";
     private InputStream archiveUnit;
-    private HandlerIO action;
+    private HandlerIOImpl action;
 
     public UnitsRulesComputeHandlerTest() throws FileNotFoundException {
 
@@ -73,7 +75,7 @@ public class UnitsRulesComputeHandlerTest {
         adminManagementClient = mock(AdminManagementClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-
+        action = new HandlerIOImpl("containerName", "workerId");
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE);
@@ -85,6 +87,7 @@ public class UnitsRulesComputeHandlerTest {
         if (archiveUnit != null) {
             archiveUnit.close();
         }
+        action.partialClose();
     }
 
     @Test
@@ -96,16 +99,16 @@ public class UnitsRulesComputeHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
+        reset(workspaceClient);
+
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
-
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -113,12 +116,12 @@ public class UnitsRulesComputeHandlerTest {
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        reset(workspaceClient);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
@@ -127,28 +130,24 @@ public class UnitsRulesComputeHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
     public void givenWorkspaceArchiveUnitFileNullOrNotExistWhenExecuteThenReturnResponseKO() throws Exception {
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        reset(adminManagementClient);
+        reset(workspaceClient);
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        reset(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
         final CompositeItemStatus response = handler.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
 
@@ -177,7 +176,7 @@ public class UnitsRulesComputeHandlerTest {
         root1.add(accessRule);
         root1.add(reuseRule);
         root1.add(reuseRule2);
-        
+
         final ObjectNode result = JsonHandler.createObjectNode();
         result.put("$results", root1);
         return result;

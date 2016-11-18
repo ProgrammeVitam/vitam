@@ -39,9 +39,13 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -94,12 +98,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         client = WorkspaceClientFactory.getInstance().getClient();
     }
 
-    /**
-     * Add Input parameters
-     * 
-     * @param list
-     * @throws IllegalArgumentException if an error occurs
-     */
     @Override
     public void addInIOParameters(List<IOParameter> list) {
         for (final IOParameter in : list) {
@@ -126,12 +124,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
     }
 
-    /**
-     * Add Output parameters
-     * 
-     * @param list
-     * @throws IllegalArgumentException if an error occurs
-     */
     @Override
     public void addOutIOParameters(List<IOParameter> list) {
         for (final IOParameter out : list) {
@@ -146,18 +138,12 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
     }
 
-    /**
-     * Reset after each Action
-     */
     @Override
     public void reset() {
         input.clear();
         output.clear();
     }
 
-    /**
-     * Clear the HandlerIO, including temporary files and directories at the end of the step Workflow execution
-     */
     @Override
     public void close() {
         client.close();
@@ -176,68 +162,31 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
     }
 
-    /**
-     * @return list of input
-     */
     @Override
     public List<Object> getInput() {
         return input;
     }
 
-    /**
-     * Return one Object from input
-     * 
-     * @param rank
-     * @return the rank-th object
-     */
     @Override
     public Object getInput(int rank) {
         return input.get(rank);
     }
 
-    /**
-     * @return list of output
-     */
     @Override
     public List<ProcessingUri> getOutput() {
         return output;
     }
 
-    /**
-     * Return one ProcessingUri from output
-     * 
-     * @param rank
-     * @return the rank-th ProcessingUri
-     */
     @Override
     public ProcessingUri getOutput(int rank) {
         return output.get(rank);
     }
 
-    /**
-     * Add one output result (no delete)
-     * 
-     * @param rank the position in the output
-     * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
-     * @return this
-     * @throws ProcessingException
-     * @throws IllegalArgumentException
-     */
     @Override
     public HandlerIO addOuputResult(int rank, Object object) throws ProcessingException {
         return addOuputResult(rank, object, false);
     }
 
-    /**
-     * Add one output result
-     * 
-     * @param rank the position in the output
-     * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
-     * @param deleteLocal if true, will delete the local file in case of WORKSPACE only
-     * @return this
-     * @throws ProcessingException
-     * @throws IllegalArgumentException
-     */
     @Override
     public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException {
         ProcessingUri uri = output.get(rank);
@@ -264,37 +213,21 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return this;
     }
 
-    /**
-     * 
-     * @return the container Name
-     */
     @Override
     public String getContainerName() {
         return containerName;
     }
 
-    /**
-     * 
-     * @return the worker Id
-     */
     @Override
     public String getWorkerId() {
         return workerId;
     }
 
-    /**
-     * @return the localPathRoot
-     */
     @Override
     public File getLocalPathRoot() {
         return localDirectory;
     }
 
-    /**
-     * 
-     * @param name
-     * @return a File pointing to a local path in Tmp directory under protected Worker instance space
-     */
     @Override
     public File getNewLocalFile(String name) {
         File file = new File(localDirectory.getAbsolutePath() + "/" + name);
@@ -302,13 +235,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return file;
     }
 
-    /**
-     * Check if input and output have the very same number of elements and for Input the associated types
-     * 
-     * @param outputNumber the number of outputArguments
-     * @param clasz the list of Class that should be in the InputParameters
-     * @return true if everything ok
-     */
     @Override
     public boolean checkHandlerIO(int outputNumber, List<Class<?>> clasz) {
         if (getInput().size() != clasz.size() || getOutput().size() != outputNumber) {
@@ -327,16 +253,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return true;
     }
 
-    /**
-     * Helper to write a file to Workspace<br/>
-     * <br/>
-     * To be used when not specified within the Output Parameters
-     * 
-     * @param workspacePath path within the workspath, without the container (implicit)
-     * @param sourceFile the source file to write
-     * @param toDelete if True, will delete the local file
-     * @throws ProcessingException
-     */
     @Override
     public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete)
         throws ProcessingException {
@@ -358,6 +274,16 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
         } catch (ContentAddressableStorageServerException e) {
             throw new ProcessingException("Cannot write file to workspace: " + containerName + "/" + workspacePath, e);
+        }
+    }
+
+    @Override
+    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream)
+        throws ProcessingException {
+        try {
+            client.putObject(containerName, workspacePath, inputStream);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingException("Cannot write stream to workspace: " + containerName + "/" + workspacePath, e);
         }
     }
 
@@ -403,17 +329,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return file;
     }
 
-    /**
-     * Helper to load a file from Workspace (or local cache) and save it into local cache.<br/>
-     * <br/>
-     * To be used when not specified within the Input parameters
-     * 
-     * @param objectName
-     * @return file if found
-     * @throws IOException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     */
     @Override
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
@@ -433,17 +348,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return file;
     }
 
-    /**
-     * Helper to get an InputStream (using local cache if possible) from Workspace<br/>
-     * <br/>
-     * To be used when not specified within the Input parameters
-     * 
-     * @param objectName
-     * @return the InputStream
-     * @throws IOException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     */
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
@@ -463,14 +367,45 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         return new FileInputStream(file);
     }
 
-    /**
-     * Helper to delete a local file<br/>
-     * <br/>
-     * To be used when not specified within the Input/Output parameters
-     * 
-     * @param objectName
-     * @return True if deleted
-     */
+    @Override
+    public Response getInputStreamNoCachedFromWorkspace(String objectName)
+        throws ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+        return client.getObject(containerName, objectName);
+    }
+
+    @Override
+    public void consumeAnyEntityAndClose(Response response) {
+        client.consumeAnyEntityAndClose(response);
+    }
+
+    @Override
+    public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
+        Response response = null;
+        InputStream is = null;
+        try {
+            response = client.getObject(containerName, jsonFilePath);
+            is = (InputStream) response.getEntity();
+            if (is != null) {
+                return JsonHandler.getFromInputStream(is);
+            } else {
+                LOGGER.error("Json not found");
+                throw new ProcessingException("Json not found");
+            }
+        } catch (InvalidParseOperationException e) {
+            LOGGER.debug("Json wrong format", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        } finally {
+            if (is != null) {
+                StreamUtils.closeSilently(is);
+            }
+            WorkspaceClient.staticConsumeAnyEntityAndClose(response);
+        }
+    }
+
     @Override
     public boolean deleteLocalFile(String objectName) {
         File file = getNewLocalFile(objectName);

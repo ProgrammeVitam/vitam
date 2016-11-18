@@ -30,7 +30,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +39,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 
-import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -93,8 +91,6 @@ import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Computes archive unit 's Management date
@@ -117,7 +113,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
 
-
+    private HandlerIO handlerIO;
 
     private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
         .newLogbookLifeCycleUnitParameters();
@@ -134,6 +130,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
         long time = System.currentTimeMillis();
+        this.handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(0).getId());
@@ -169,16 +166,10 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            Response response = workspaceClient.getObject(containerId,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
-            if (response != null) {                
-                // Parse RULES in management Archive unit, and add EndDate
-                parseXmlRulesAndUpdateEndDate((InputStream) response.getEntity(), objectName, containerId, params, itemStatus, workspaceClient);
-            } else {
-                LOGGER.error("Archive unit not found");
-                throw new ProcessingException("Archive unit not found");
-            }
+        try (InputStream inputStream = 
+            handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+            // Parse RULES in management Archive unit, and add EndDate
+            parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException |
             XMLStreamException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR);
@@ -224,13 +215,12 @@ public class UnitsRulesComputeHandler extends ActionHandler {
      * @param xmlInput
      * @param params
      * @param itemStatus
-     * @param workspaceClient
      * @throws IOException
      * @throws XMLStreamException
      * @throws ProcessingException
      */
     private void parseXmlRulesAndUpdateEndDate(InputStream xmlInput, String objectName, String containerName,
-        WorkerParameters params, ItemStatus itemStatus, WorkspaceClient workspaceClient)
+        WorkerParameters params, ItemStatus itemStatus)
         throws IOException, XMLStreamException, ProcessingException {
         Set<String> rulesToApply;
         JsonNode rulesResults = null;
@@ -392,15 +382,13 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
         // Write to workspace
         try {
-            workspaceClient.putObject(containerName,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName,
-                new FileInputStream(fileWithEndDate));
-        } catch (final ContentAddressableStorageServerException e) {
+            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName, fileWithEndDate, true);
+        } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
-            throw new ProcessingException(e);
+            throw e;
         }
     }
 

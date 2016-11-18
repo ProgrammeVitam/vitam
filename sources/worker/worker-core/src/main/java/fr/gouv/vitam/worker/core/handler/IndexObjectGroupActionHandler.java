@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
@@ -57,10 +52,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * IndexObjectGroup Handler
@@ -73,6 +64,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
 
+    private HandlerIO handlerIO;
+    
     /**
      * Constructor with parameter SedaUtilsFactory
      *
@@ -92,6 +85,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
+        handlerIO = actionDefinition;
         LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -137,33 +131,18 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      */
     private void indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-
-        final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (
-            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();            
-            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            Response response = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
-            if (response != null) {
-                final InputStream input =
-                    (InputStream) response.getEntity();
-                final ObjectNode json = (ObjectNode) JsonHandler.getFromInputStream(input);
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+                final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
                 json.remove(SedaConstants.PREFIX_WORK);
                 final Insert insertRequest = new Insert().addData(json);
                 metadataClient.insertObjectGroup(JsonHandler.unprettyPrint(insertRequest.getFinalInsert()));
                 itemStatus.increment(StatusCode.OK);
-            } else {
-                LOGGER.error("Object group not found");
-                throw new ProcessingException("Object group not found");
-            }
-
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException("Json wrong format", e);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Workspace Server Error", e);
         }
 
     }

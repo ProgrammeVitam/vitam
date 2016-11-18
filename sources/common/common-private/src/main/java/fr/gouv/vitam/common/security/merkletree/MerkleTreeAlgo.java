@@ -69,8 +69,9 @@ public class MerkleTreeAlgo {
      * @param operations
      */
     private boolean isPowerOfTwo(List<MerkleTree> operations) {
-        if (Long.bitCount(operations.size()) == 1)
+        if (Long.bitCount(operations.size()) == 1) {
             return true;
+        }
         return false;
     }
 

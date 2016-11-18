@@ -82,8 +82,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * IndexUnit Handler
@@ -163,10 +161,10 @@ public class IndexUnitActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
 
         InputStream input;
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            Response response = workspaceClient
-                .getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);            
+        Response response = null;
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            response = handlerIO
+                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
@@ -182,7 +180,8 @@ public class IndexUnitActionHandler extends ActionHandler {
                     insertQuery.addRoots(parents);
                 }
 
-                final String insertRequest = JsonHandler.unprettyPrint(insertQuery.addData((ObjectNode) json).getFinalInsert());
+                final String insertRequest =
+                    JsonHandler.unprettyPrint(insertQuery.addData((ObjectNode) json).getFinalInsert());
                 metadataClient.insertUnit(insertRequest);
                 itemStatus.increment(StatusCode.OK);
             } else {
@@ -196,6 +195,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
+        } finally {
+            handlerIO.consumeAnyEntityAndClose(response);
         }
     }
 

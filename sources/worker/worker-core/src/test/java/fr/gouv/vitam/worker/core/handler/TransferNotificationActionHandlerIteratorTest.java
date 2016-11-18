@@ -116,13 +116,13 @@ public class TransferNotificationActionHandlerIteratorTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
                 .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
-        action = new HandlerIOImpl(guid.getId(), "workerId");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        action = new HandlerIOImpl(guid.getId(), "workerId");
 
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);

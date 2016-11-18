@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -107,8 +106,6 @@ import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Handler class used to extract metaData. </br>
@@ -163,7 +160,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
-    private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
@@ -270,17 +266,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public void extractSEDA(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            LogbookLifeCyclesClient logbookLifeCycleClient =
+        try (LogbookLifeCyclesClient logbookLifeCycleClient =
                 LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            extractSEDAWithWorkspaceClient(workspaceClient, containerId, itemStatus, logbookLifeCycleClient);
+            extractSEDAWithWorkspaceClient(containerId, itemStatus, logbookLifeCycleClient);
         }
     }
 
-    private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId, ItemStatus itemStatus,
+    private void extractSEDAWithWorkspaceClient(String containerId, ItemStatus itemStatus,
         LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException {
-        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", itemStatus);
 
@@ -408,10 +402,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(client, containerId, logbookLifeCycleClient);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient);
 
             // Add parents to archive units and save them into workspace
-            finalizeAndSaveArchiveUnitToWorkspace(client, archiveUnitTree, containerId,
+            finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, itemStatus, logbookLifeCycleClient);
 
 
@@ -506,7 +500,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void finalizeAndSaveArchiveUnitToWorkspace(WorkspaceClient client, ObjectNode archiveUnitTree,
+    private void finalizeAndSaveArchiveUnitToWorkspace(ObjectNode archiveUnitTree,
         String containerId, String path, ItemStatus itemStatus, LogbookLifeCyclesClient logbookLifeCycleClient)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         XMLStreamException, IOException, ProcessingException {
@@ -658,27 +652,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Write to workspace
             try {
-                client.putObject(containerId, path + "/" + unitGuid + XML_EXTENSION,
-                    new FileInputStream(unitCompleteTmpFile));
-            } catch (final ContentAddressableStorageServerException e) {
-                LOGGER.error("Can not write to workspace ", e);
-                if (!unitCompleteTmpFile.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                }
-
+                handlerIO.transferFileToWorkspace(path + "/" + unitGuid + XML_EXTENSION, unitCompleteTmpFile, true);
+            } finally {
                 if (!unitTmpFileForRead.delete()) {
                     LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
                 }
-
-                throw new ProcessingException(e);
-            }
-
-            if (!unitTmpFileForRead.delete()) {
-                LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-            }
-
-            if (!unitCompleteTmpFile.delete()) {
-                LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
         }
     }
@@ -1386,7 +1364,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return archiveUnitGuids;
     }
 
-    private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId,
+    private void saveObjectGroupsToWorkspace(String containerId,
         LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
@@ -1477,12 +1455,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
-                client.putObject(containerId,
+                handlerIO.transferFileToWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
-                    new FileInputStream(tmpFile));
-                if (!tmpFile.delete()) {
-                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                }
+                    tmpFile, true);
                 // Create unreferenced object group
                 if (guidToLifeCycleParameters.get(objectGroupGuid) == null) {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId, logbookLifeCycleClient);
@@ -1498,12 +1473,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
-                throw new ProcessingException(e);
-            } catch (final IOException e) {
-                LOGGER.error("Can not write to tmp folder ", e);
-                throw new ProcessingException(e);
-            } catch (final ContentAddressableStorageServerException e) {
-                LOGGER.error("Workspace exception ", e);
                 throw new ProcessingException(e);
             } catch (final LogbookClientBadRequestException e) {
                 LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);

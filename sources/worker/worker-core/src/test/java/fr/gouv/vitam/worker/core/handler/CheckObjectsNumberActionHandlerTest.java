@@ -96,7 +96,7 @@ public class CheckObjectsNumberActionHandlerTest {
     private ExtractUriResponse extractOutNumberUriResponseKO;
 
     private final List<String> messages = new ArrayList<>();
-    HandlerIOImpl handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId");
+    HandlerIOImpl handlerIO;
 
 
     @Before
@@ -104,9 +104,6 @@ public class CheckObjectsNumberActionHandlerTest {
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
             .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckObjectsNumberActionHandlerTest");
-        PowerMockito.mockStatic(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
 
         containerExtractionUtilsFactory = mock(ContainerExtractionUtilsFactory.class);
         containerExtractionUtils = mock(ContainerExtractionUtils.class);
@@ -114,7 +111,14 @@ public class CheckObjectsNumberActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId");
+
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
+        sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
+
         // URI LIST MANIFEST
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
@@ -159,8 +163,6 @@ public class CheckObjectsNumberActionHandlerTest {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         containerExtractionUtils = new ContainerExtractionUtils();
 
         checkObjectsNumberActionHandler =

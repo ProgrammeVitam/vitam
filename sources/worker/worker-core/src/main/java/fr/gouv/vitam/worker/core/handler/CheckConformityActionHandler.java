@@ -67,8 +67,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * CheckConformityAction Handler.<br>
@@ -113,9 +111,9 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            try {
                 // Get objectGroup
-                final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
+                final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
                 Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
@@ -143,7 +141,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                         for (JsonNode versionsArray : versions) {
                             for (JsonNode version : versionsArray) {
                                 String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                checkMessageDigest(logbookClient, workspaceClient, params, binaryObjects.get(objectId),
+                                checkMessageDigest(logbookClient, params, binaryObjects.get(objectId),
                                     version,
                                     itemStatus);
                             }
@@ -152,7 +150,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 }
 
                 if (oneOrMoreMessagesDigestUpdated) {
-                    workspaceClient.putObject(params.getContainerName(),
+                    handlerIO.transferInputStreamToWorkspace(
                         IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
                         new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
                 }
@@ -166,8 +164,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                         VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), StatusCode.OK));
                 }
 
-            } catch (ProcessingException | ContentAddressableStorageServerException |
-                InvalidParseOperationException e) {
+            } catch (ProcessingException | InvalidParseOperationException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
@@ -186,11 +183,9 @@ public class CheckConformityActionHandler extends ActionHandler {
         return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void checkMessageDigest(LogbookLifeCyclesClient logbookClient, WorkspaceClient workspaceClient,
-        WorkerParameters params,
+    private void checkMessageDigest(LogbookLifeCyclesClient logbookClient, WorkerParameters params,
         BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
-        String containerId = params.getContainerName();
         String eventDetailData;
         // started for binary Object
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
@@ -215,7 +210,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         Response response = null;
         try {
             DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
-            response = workspaceClient.getObject(containerId,
+            response = handlerIO.getInputStreamNoCachedFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
             InputStream inputStream = (InputStream) response.getEntity();
             Digest vitamDigest = new Digest(digestTypeInput);
@@ -300,7 +295,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
         } finally {
-            workspaceClient.consumeAnyEntityAndClose(response);
+            handlerIO.consumeAnyEntityAndClose(response);
         }
 
     }
@@ -308,33 +303,6 @@ public class CheckConformityActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         handler.checkHandlerIO(1, Arrays.asList(new Class[] {String.class}));
-    }
-
-    /**
-     * Retrieve a json file as a {@link JsonNode} from the workspace.
-     *
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param jsonFilePath path in workspace of the json File
-     * @return JsonNode of the json file
-     * @throws ProcessingException throws when error occurs
-     */
-    private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
-        throws ProcessingException {
-        try (InputStream is = (InputStream) workspaceClient.getObject(containerId, jsonFilePath).getEntity()) {
-            if (is != null) {
-                return JsonHandler.getFromInputStream(is, JsonNode.class);
-            } else {
-                LOGGER.error("Object group not found");
-                throw new ProcessingException("Object group not found");
-            }
-        } catch (InvalidParseOperationException | IOException e) {
-            LOGGER.debug("Json wrong format", e);
-            throw new ProcessingException(e);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.debug("Workspace Server Error", e);
-            throw new ProcessingException(e);
-        }
     }
 
     private Map<String, BinaryObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
