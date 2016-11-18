@@ -43,7 +43,7 @@ protocols:
   http:
     # Configure the ports where to listen for HTTP traffic. You can disable
     # the HTTP protocol by commenting out the list of ports.
-    ports: [80, 8080, 8000, 5000, 8002]
+    ports: [80,8080,8000,5000,{{vitam_accessinternal_port}},{{vitam_accessexternal_port}},{{vitam_ingestinternal_port}},{{vitam_metadata_port}},{{vitam_ihm_demo_port}},{{vitam_ihm_recette_port}},{{vitam_ingestexternal_port}},{{vitam_logbook_port}},{{vitam_workspace_port}},{{vitam_processing_port}},{{vitam_worker_port}},{{vitam_storageengine_port}},{{vitam_storageofferdefault_port}},{{vitam_functional_administration_port}},{{elasticsearch_data_http_port}}]
 
     # Uncomment the following to hide certain parameters in URL or forms attached
     # to HTTP requests. The names of the parameters are case insensitive.
@@ -110,7 +110,7 @@ protocols:
   mongodb:
     # Configure the ports where to listen for MongoDB traffic. You can disable
     # the MongoDB protocol by commenting out the list of ports.
-    ports: [{{vitam_mongodb_port}}]
+    ports: [{{mongos_port}},{{mongoc_port}},{{mongod_port}}]
 
 ############################# Processes #######################################
 
@@ -389,5 +389,3 @@ logging:
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
   #level: error
-
-
