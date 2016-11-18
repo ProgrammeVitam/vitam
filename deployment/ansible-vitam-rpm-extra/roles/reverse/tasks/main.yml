@@ -1,5 +1,5 @@
 ---
-# Ensure apache httpd is installed 
+# Ensure apache httpd is installed
 - name: install httpd
   yum:
     name: httpd
@@ -13,6 +13,15 @@
     mode: 0755
   notify:
      - reload apache httpd
+
+# FIXME - which group do we have to set ?
+- name: create logs-nightly-builds subdirectory
+  file:
+    path: /var/www/html-{{environnement}}/logs-nightly-deploy
+    state: directory
+    owner: root
+    group: "{{ansible_user_id}}"
+    mode: 0775
 
 - name: copy index resources
   copy:
