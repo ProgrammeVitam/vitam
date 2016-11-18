@@ -30,17 +30,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
@@ -60,10 +65,14 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
+import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.continuation.ContinuationListener;
+import org.eclipse.jetty.continuation.ContinuationSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -77,8 +86,11 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -127,10 +139,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ZIP_EXTENSION = ".ZIP";
     private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final int TENANT_ID = 0;
+    private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
+    private static final int COMPLETE_RESPONSE_SIZE = 3;
+    private static final int UNCOMPLETE_RESPONSE_SIZE = 2;
+    private static final int GUID_INDEX = 0;
+    private static final int RESPONSE_STATUS_INDEX = 1;
+    private static final int ATR_CONTENT_INDEX = 2;
 
-    // FIXME P0 utile ??? utilisé nulle part
-    @Context
-    private HttpServletRequest request;
 
     /**
      * Constructor
@@ -904,11 +919,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String allParents) {
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, allParents);
-
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(allParents));
+            if (allParents == null || allParents.isEmpty()) {
+                return Response.status(Status.OK).entity(JsonHandler.createArrayNode()).build();
+            }
 
             if (!JsonHandler.getFromString(allParents).isArray()) {
                 throw new VitamException(INVALID_ALL_PARENTS_TYPE_ERROR_MSG);
@@ -1154,4 +1170,145 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    @Path("ingest/continue")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public void continuation(@Context HttpServletRequest request, @Context HttpServletResponse response,
+        InputStream stream)
+        throws IOException, IngestExternalException, XMLStreamException, VitamException {
+
+        // GUID operation (Server Application level)
+        String operationGuidFirstLevel = GUIDFactory.newGUID().getId();
+
+        Continuation continuation = ContinuationSupport.getContinuation(request);
+        continuation.addContinuationListener(new ContinuationListener() {
+
+            @Override
+            public void onTimeout(Continuation continuation1) {
+                continuation.complete();
+            }
+
+            @Override
+            public void onComplete(Continuation continuation1) {
+                // start the upload
+                Response finalResponse = null;
+                try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+                    try {
+                        finalResponse = client.upload(stream);
+    
+                        String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                        // FIXME P0 Does not work but better so one should try to fix it
+                        /*InputStream inputStream = finalResponse.readEntity(InputStream.class);
+                        if (inputStream != null) {
+                            File file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
+                            FileOutputStream outputStream = new FileOutputStream(file);
+                            StreamUtils.copy(inputStream, outputStream);
+    
+                            List<Object> finalResponseDetails = new ArrayList<>();
+                            finalResponseDetails.add(guid);
+                            finalResponseDetails.add(finalResponse.getStatus());
+                            finalResponseDetails.add(file);
+    
+                            // Note: do not close client, response and of course InputStream
+                            uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                        } else {
+                            throw new VitamClientException("No ArchiveTransferReply found in response from Server");
+                        }*/
+                        String responseXml = finalResponse.readEntity(String.class);
+                        
+                        List<Object> finalResponseDetails = new ArrayList<>();
+                        finalResponseDetails.add(guid);
+                        finalResponseDetails.add(finalResponse.getStatus());
+                        finalResponseDetails.add(responseXml);
+
+                        // Note: do not close client, response and of course InputStream
+                        uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                    } finally {
+                        DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
+                    }                        
+                } catch (VitamException e) {//| IOException e) {
+                    LOGGER.error("Upload failed", e);
+                    List<Object> finalResponseDetails = new ArrayList<>();
+                    finalResponseDetails.add(operationGuidFirstLevel);
+                    finalResponseDetails.add(Status.INTERNAL_SERVER_ERROR);
+                    uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                }
+            }
+        });
+
+        // Add the initial operation GUID to uploadRequestsStatus
+        List<Object> initialResponseDetails = new ArrayList<>();
+        initialResponseDetails.add(operationGuidFirstLevel);
+        initialResponseDetails.add(Status.NO_CONTENT);
+        uploadRequestsStatus.put(operationGuidFirstLevel, initialResponseDetails);
+
+        // Build response that contains the GUID operation (Server Application level)
+        response.addHeader(GlobalDataRest.X_REQUEST_ID, operationGuidFirstLevel);
+        response.flushBuffer();
+
+        // wait 1 second before sending the first response
+        continuation.setTimeout(1000);
+        continuation.suspend();
+    }
+
+    @Path("check/{id_op}")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response checkUploadOperation(@PathParam("id_op") String operationId) {
+        // 1- Check if the requested operation is done
+        List<Object> responseDetails = uploadRequestsStatus.get(operationId);
+        if (responseDetails != null) {
+            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
+                    .entity(responseDetails.get(ATR_CONTENT_INDEX))
+                    .header("Content-Disposition", "attachment; filename=" + responseDetails.get(GUID_INDEX) + ".xml")
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
+                    .build();
+                /*File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                try {
+                    return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
+                        .entity(new FileInputStream(file))
+                        .header("Content-Disposition", "attachment; filename=" + responseDetails.get(GUID_INDEX) + ".xml")
+                        .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
+                        .build();
+                } catch (FileNotFoundException e) {
+                    LOGGER.error(e);
+                    return Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .header(GlobalDataRest.X_REQUEST_ID, operationId)
+                        .build();
+                }*/
+            } else {
+                return Response.status((Status) responseDetails.get(RESPONSE_STATUS_INDEX))
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
+                    .build();
+            }
+        }
+
+        // 2- Return the created GUID
+        return Response.status(Status.NO_CONTENT)
+            .header(GlobalDataRest.X_REQUEST_ID, operationId)
+            .build();
+    }
+
+    @Path("clear/{id_op}")
+    @GET
+    public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
+
+        List<Object> responseDetails = uploadRequestsStatus.get(operationId);
+        if (responseDetails != null) {
+            // Clean up uploadRequestsStatus
+            uploadRequestsStatus.remove(operationId);
+            /*File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+            file.delete();*/
+            // Cleaning process succeeded
+            return Response.status(Status.OK)
+                .header(GlobalDataRest.X_REQUEST_ID, operationId)
+                .build();
+        } else {
+            // Cleaning process failed
+            return Response.status(Status.BAD_REQUEST)
+                .header(GlobalDataRest.X_REQUEST_ID, operationId)
+                .build();
+        }
+    }
 }

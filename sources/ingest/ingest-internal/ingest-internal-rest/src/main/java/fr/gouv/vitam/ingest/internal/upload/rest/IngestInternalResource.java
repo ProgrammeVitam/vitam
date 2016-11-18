@@ -239,6 +239,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                 parameters = logbookInitialisation(containerGUID, containerGUID);
 
+
+                if (contentType == null) {
+                    throw new IngestInternalException("mimeType null");
+                }
+
                 MediaType mediaType = CommonMediaType.valueOf(contentType);
                 String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 

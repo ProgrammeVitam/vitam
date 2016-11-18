@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
 import fr.gouv.vitam.common.server2.application.GenericExceptionMapper;
 
 /**
@@ -131,13 +130,16 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
+
         // Register Jersey Metrics Listener
         clearAndconfigureMetrics();
         checkJerseyMetrics(resourceConfig);
+
         // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
+
         // Cleaner filter
-        resourceConfig.register(ConsumeAllAfterResponseFilter.class);
+        // resourceConfig.register(ConsumeAllAfterResponseFilter.class);
         registerInResourceConfig(resourceConfig);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);

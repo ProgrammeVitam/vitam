@@ -262,7 +262,6 @@ public class IngestExternalImpl implements IngestExternal {
                     List<FormatIdentifierResponse> formats =
                         formatIdentifier.analysePath(file.toPath());
                     FormatIdentifierResponse format = getFirstPronomFormat(formats);
-
                     if (format == null) {
                         formatParameters.setStatus(StatusCode.KO);
                         formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
