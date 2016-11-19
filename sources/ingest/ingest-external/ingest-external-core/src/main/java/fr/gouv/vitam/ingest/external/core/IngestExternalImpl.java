@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -111,6 +112,7 @@ public class IngestExternalImpl implements IngestExternal {
     public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
         final GUID containerName = guid;
         final GUID objectName = guid;
@@ -347,13 +349,12 @@ public class IngestExternalImpl implements IngestExternal {
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
                 // TODO Response async
-                ingestClient.uploadInitialLogbook(ingestGuid, helper.removeCreateDelegate(containerName.getId()));
+                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
-                    Response response = ingestClient.upload(ingestGuid, inputStream, CommonMediaType.valueOf(mimeType));
+                    Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
                     AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
                     ResponseBuilder responseBuilder =
-                        Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM).header(
-                            GlobalDataRest.X_REQUEST_ID, response.getHeaders().getFirst(GlobalDataRest.X_REQUEST_ID));
+                        Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                     asyncHelper.writeResponse(responseBuilder);
                     return response;
                 }

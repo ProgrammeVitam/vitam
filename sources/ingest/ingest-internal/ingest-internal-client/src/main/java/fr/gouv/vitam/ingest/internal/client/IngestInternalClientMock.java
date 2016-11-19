@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -54,7 +53,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
 
     @Override
-    public Response upload(GUID guid, InputStream inputStream, MediaType archiveType) throws VitamException {
+    public Response upload(InputStream inputStream, MediaType archiveType) throws VitamException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
 
@@ -66,14 +65,14 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response uploadInitialLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
         return Response.status(Status.CREATED).build();
     }
 
     @Override
-    public void uploadFinalLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
         // Nothing

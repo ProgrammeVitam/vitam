@@ -164,7 +164,7 @@ public class IngestExternalResourceTest {
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
         IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
-        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject(), anyObject()))
+        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject()))
             .thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);

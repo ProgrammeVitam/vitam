@@ -1,26 +1,26 @@
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
@@ -40,11 +40,12 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,14 +99,18 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 /**
  * Worker integration test TODO P1 : do a "worker-integration" module
  */
-public class WorkerIT { 
+public class WorkerIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
@@ -164,9 +169,9 @@ public class WorkerIT {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-            .build());
+                .version(Version.Main.PRODUCTION)
+                .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+                .build());
         mongod = mongodExecutable.start();
 
         // launch metadata
@@ -178,7 +183,7 @@ public class WorkerIT {
 
         // launch logbook
         SystemPropertyUtil
-            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+                .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
         lgbapplication.start();
         ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
@@ -187,21 +192,21 @@ public class WorkerIT {
 
         // launch workspace
         SystemPropertyUtil
-            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+                .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
         workspaceApplication.start();
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch processing
         SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+                .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
-        
+
         // launch worker
         SystemPropertyUtil
-            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+                .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
@@ -231,8 +236,8 @@ public class WorkerIT {
 
     private static WorkerClientConfiguration getWorkerClientConfiguration() {
         final WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration("localhost",
-                PORT_SERVICE_WORKER);
+                new WorkerClientConfiguration("localhost",
+                        PORT_SERVICE_WORKER);
         return workerClientConfiguration;
     }
 
@@ -262,33 +267,33 @@ public class WorkerIT {
 
     private void printAndCheckXmlConfiguration() {
         LOGGER.warn("XML Configuration: " +
-            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
-            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-            SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
-            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
-            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
-            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
-            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
-            "\n\tjavax.xml.transform.TransformerFactory: " +
-            SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
-            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
-            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
+                "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
+                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+                SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
+                "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
+                "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
+                "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
+                "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
+                "\n\tjavax.xml.transform.TransformerFactory: " +
+                SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
+                "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
+                "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
         try {
             LOGGER.warn("XML Implementation: " +
-                "\n\tjavax.xml.parsers.SAXParserFactory: " +
-                javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
-                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-                javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
-                "\n\tjavax.xml.datatype.DatatypeFactory: " +
-                javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
-                "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
-                "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
-                "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
-                "\n\tjavax.xml.transform.TransformerFactory: " +
-                javax.xml.transform.TransformerFactory.newInstance().getClass() +
-                "\n\tjavax.xml.validation.SchemaFactory: " +
-                javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
-                "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
+                    "\n\tjavax.xml.parsers.SAXParserFactory: " +
+                    javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+                    javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.datatype.DatatypeFactory: " +
+                    javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
+                    "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.transform.TransformerFactory: " +
+                    javax.xml.transform.TransformerFactory.newInstance().getClass() +
+                    "\n\tjavax.xml.validation.SchemaFactory: " +
+                    javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
+                    "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
         } catch (DatatypeConfigurationException | FactoryConfigurationError | TransformerFactoryConfigurationError e) {
             e.printStackTrace();
         }
@@ -299,67 +304,70 @@ public class WorkerIT {
         printAndCheckXmlConfiguration();
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
         try {
-          CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
-
-          // workspace client dezip SIP in workspace
-          RestAssured.port = PORT_SERVICE_WORKSPACE;
-          RestAssured.basePath = WORKSPACE_PATH;
-
-          final InputStream zipInputStreamSipObject =
-              PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-          workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-          workspaceClient.createContainer(CONTAINER_NAME);
-          workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-          // call processing
-          RestAssured.port = PORT_SERVICE_WORKER;
-          RestAssured.basePath = WORKER_PATH;
-
-          workerClient = WorkerClientFactory.getInstance().getClient();
-          final ItemStatus retStepControl =
-              workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
-          assertNotNull(retStepControl);
-          assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
-
-          final ItemStatus retStepCheckStorage =
-              workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_storage_SIP.json"));
-          assertNotNull(retStepCheckStorage);
-          assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
-
-          final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
-          descriptionStepUnit.getWorkParams().setObjectName(unitName());
-          final ItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
-          assertNotNull(retStepStoreUnit);
-          assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
-
-          final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
-          descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-          final ItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
-          assertNotNull(retStepStoreOg);
-          assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
-
-          workspaceClient.deleteContainer(CONTAINER_NAME);
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
-    }
-
-
-    @Test
-    public void testWorkflow_with_complexe_unit_seda() throws Exception {
-        try {
             CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
 
             final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+                    PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(CONTAINER_NAME);
+            workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_WORKER;
+            RestAssured.basePath = WORKER_PATH;
+
+            workerClient = WorkerClientFactory.getInstance().getClient();
+            final ItemStatus retStepControl =
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            assertNotNull(retStepControl);
+            assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
+
+            final ItemStatus retStepCheckStorage =
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
+            assertNotNull(retStepCheckStorage);
+            assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
+
+            final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
+            descriptionStepUnit.getWorkParams().setObjectName(unitName());
+            final ItemStatus retStepStoreUnit = workerClient.submitStep(descriptionStepUnit);
+            assertNotNull(retStepStoreUnit);
+            assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
+
+            final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
+            descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
+            final ItemStatus retStepStoreOg = workerClient.submitStep(descriptionStepOg);
+            assertNotNull(retStepStoreOg);
+            assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
+
+            workspaceClient.deleteContainer(CONTAINER_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflow_with_complexe_unit_seda() throws Exception {
+        try {
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(CONTAINER_NAME);
             workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -371,25 +379,25 @@ public class WorkerIT {
 
             workerClient = WorkerClientFactory.getInstance().getClient();
             final ItemStatus retStepControl =
-                workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
 
             final ItemStatus retStepCheckStorage =
-                workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_storage_SIP.json"));
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
             assertNotNull(retStepCheckStorage);
             assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
             final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
             descriptionStepUnit.getWorkParams().setObjectName(unitName());
-            final ItemStatus retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+            final ItemStatus retStepStoreUnit = workerClient.submitStep(descriptionStepUnit);
             assertNotNull(retStepStoreUnit);
             assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
             final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
             descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-            final ItemStatus retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+            final ItemStatus retStepStoreOg = workerClient.submitStep(descriptionStepOg);
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
@@ -400,65 +408,70 @@ public class WorkerIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
+
         try {
-          CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
-          // workspace client dezip SIP in workspace
-          RestAssured.port = PORT_SERVICE_WORKSPACE;
-          RestAssured.basePath = WORKSPACE_PATH;
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
 
-          final InputStream zipInputStreamSipObject =
-              PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
-          workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-          workspaceClient.createContainer(CONTAINER_NAME);
-          workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(CONTAINER_NAME);
+            workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
-          // call processing
-          RestAssured.port = PORT_SERVICE_WORKER;
-          RestAssured.basePath = WORKER_PATH;
+            // call processing
+            RestAssured.port = PORT_SERVICE_WORKER;
+            RestAssured.basePath = WORKER_PATH;
 
-          workerClient = WorkerClientFactory.getInstance().getClient();
-          final ItemStatus retStepControl =
-              workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
-          assertNotNull(retStepControl);
-          assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
+            workerClient = WorkerClientFactory.getInstance().getClient();
+            final ItemStatus retStepControl =
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            assertNotNull(retStepControl);
+            assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
-          workspaceClient.deleteContainer(CONTAINER_NAME);          
+            workspaceClient.deleteContainer(CONTAINER_NAME);
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
         try {
-          CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+            VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
-          // workspace client dezip SIP in workspace
-          RestAssured.port = PORT_SERVICE_WORKSPACE;
-          RestAssured.basePath = WORKSPACE_PATH;
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
 
-          final InputStream zipInputStreamSipObject =
-              PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
-          workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-          workspaceClient.createContainer(CONTAINER_NAME);
-          workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(CONTAINER_NAME);
+            workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
-          // call processing
-          RestAssured.port = PORT_SERVICE_WORKER;
-          RestAssured.basePath = WORKER_PATH;
+            // call processing
+            RestAssured.port = PORT_SERVICE_WORKER;
+            RestAssured.basePath = WORKER_PATH;
 
-          workerClient = WorkerClientFactory.getInstance().getClient();
-          final ItemStatus retStepControl =
-              workerClient.submitStep("resquestId", getDescriptionStep("integration-worker/step_control_SIP.json"));
-          assertNotNull(retStepControl);
-          assertEquals(5, retStepControl.getItemsStatus().size());
-          assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
+            workerClient = WorkerClientFactory.getInstance().getClient();
+            final ItemStatus retStepControl =
+                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            assertNotNull(retStepControl);
+            assertEquals(5, retStepControl.getItemsStatus().size());
+            assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
-          workspaceClient.deleteContainer(CONTAINER_NAME);
+            workspaceClient.deleteContainer(CONTAINER_NAME);
         } catch (Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -469,9 +482,9 @@ public class WorkerIT {
     public void testRegistration() throws Exception {
         try {
             final WorkerRemoteConfiguration remoteConfiguration =
-                new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
+                    new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
             final WorkerBean workerBean =
-                new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
+                    new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
                 processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
@@ -499,7 +512,7 @@ public class WorkerIT {
 
         try {
             final InputStream inputJSON =
-                PropertiesUtils.getResourceAsStream(stepFilePath);
+                    PropertiesUtils.getResourceAsStream(stepFilePath);
             step = objectMapper.readValue(inputJSON, Step.class);
 
         } catch (final IOException e) {
@@ -522,7 +535,7 @@ public class WorkerIT {
         String unitName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                "UnitsLevel/ingestLevelStack.json").getEntity();
+                    "UnitsLevel/ingestLevelStack.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
             @SuppressWarnings("rawtypes")
@@ -540,7 +553,7 @@ public class WorkerIT {
         String objectName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
+                    "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (final Exception e) {

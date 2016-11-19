@@ -209,8 +209,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 final ItemStatus actionsResponse;
                                 try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
                                     actionsResponse =
-                                        workerClient.submitStep("requestId",
-                                            new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                                        workerClient.submitStep(
+                                                new DescriptionStep(step, (DefaultWorkerParameters) workParams));
                                 }
                                 // FIXME P1 : This is inefficient. The aggregation of results must be placed here and
                                 // not
@@ -241,8 +241,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                     workParams.setObjectName(step.getDistribution().getElement());
                     responses.setItemsStatus(
-                        WorkerClientFactory.getInstance().getClient().submitStep("requestId",
-                            new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
+                        WorkerClientFactory.getInstance().getClient().submitStep(
+                                new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
                     // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }

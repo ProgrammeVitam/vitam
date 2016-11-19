@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -88,10 +89,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "units", headers,
@@ -119,11 +120,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
 
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "units/" + idUnit, headers,
@@ -152,13 +152,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
 
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "units/" + unitId, headers,
+            response = performRequest(HttpMethod.PUT, "units/" + unitId, null,
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -184,14 +182,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
 
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
-            headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
             response =
                 performRequest(HttpMethod.POST, "objects/" + objectId, headers,
                     selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
@@ -226,15 +223,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
-
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         Status status = Status.BAD_REQUEST;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
-            headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
             response =
@@ -328,13 +323,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public JsonNode selectUnitLifeCycleById(String idUnit)
         throws LogbookClientException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
 
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -358,13 +351,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
 
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, null,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 

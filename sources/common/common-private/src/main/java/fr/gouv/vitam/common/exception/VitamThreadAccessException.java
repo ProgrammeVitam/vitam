@@ -31,7 +31,7 @@ package fr.gouv.vitam.common.exception;
  * Exception used when local thread does not give access to the VitamSession.
  *
  */
-public class VitamThreadAccessException extends VitamException {
+public class VitamThreadAccessException extends RuntimeException {
 
     /**
      *

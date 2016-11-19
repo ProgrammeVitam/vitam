@@ -97,7 +97,7 @@ public class LogbookExternalResourceImplTest {
     public static void setUpBeforeClass() throws Exception {
         try {
             vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
+            vitamServer.start();
 
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_LOGBOOK_URI;
@@ -162,7 +162,7 @@ public class LogbookExternalResourceImplTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            vitamServer.stop();
             junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

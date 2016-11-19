@@ -48,7 +48,7 @@ public class VitamThreadUtils {
 	 * @return VitamSession
 	 * @throws VitamThreadAccessException 
 	 */
-	public static VitamSession getVitamSession() throws VitamThreadAccessException  {
+	public static VitamSession getVitamSession() {
 		final VitamSession session;
 		
 		Thread currentThread = Thread.currentThread();

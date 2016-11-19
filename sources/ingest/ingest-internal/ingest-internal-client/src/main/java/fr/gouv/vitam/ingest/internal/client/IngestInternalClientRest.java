@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -60,11 +59,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response uploadInitialLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException {        
+    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
-        
-        Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, headers,
+
+        Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
             logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
         if (response.getStatus() != Status.CREATED.getStatusCode()) {
@@ -74,10 +72,9 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response upload(GUID guid, InputStream inputStream, MediaType archiveMimeType) throws VitamException {
+    public Response upload(InputStream inputStream, MediaType archiveMimeType) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
-        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
-        Response response = performRequest(HttpMethod.POST, INGEST_URL, headers,
+        Response response = performRequest(HttpMethod.POST, INGEST_URL, null,
             inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
@@ -88,27 +85,14 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void uploadFinalLogbook(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList)
+    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(guid.getId());
-        Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, headers,
+        Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
             logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
         if (response.getStatus() != Status.OK.getStatusCode()) {
             throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
         }
-    }
-
-    /**
-     * Generate the default header map
-     *
-     * @param requestId the x-request-id == operation guid
-     * @return header map
-     */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
-        return headers;
     }
 }

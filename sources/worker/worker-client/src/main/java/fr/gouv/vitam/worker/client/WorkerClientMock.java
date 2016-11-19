@@ -40,7 +40,7 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 class WorkerClientMock extends AbstractMockClient implements WorkerClient {
 
     @Override
-    public ItemStatus submitStep(String requestId, DescriptionStep data)
+    public ItemStatus submitStep(DescriptionStep data)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         final ItemStatus mockResponse = new ItemStatus("StepId");
 

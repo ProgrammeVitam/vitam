@@ -6,6 +6,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -300,12 +301,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public JsonNode selectUnitLifeCycleById(String idUnit)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
-
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, new MultivaluedHashMap<>(),
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -330,12 +327,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public JsonNode selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        final GUID guid = GUIDFactory.newRequestIdGUID(TENANT_ID);
-        headers.add(GlobalDataRest.X_REQUEST_ID, guid.toString());
-
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, new MultivaluedHashMap<>(),
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 

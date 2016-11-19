@@ -36,11 +36,12 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
@@ -102,6 +103,9 @@ public class ProcessingIT {
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -161,6 +165,8 @@ public class ProcessingIT {
     private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
     private static ElasticsearchTestConfiguration config = null;
+
+    private final static String DUMMY_REQUEST_ID = "reqId";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -333,10 +339,12 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -368,10 +376,12 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithTarSIP() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -404,10 +414,12 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -440,10 +452,12 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflow_with_accession_register() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -476,9 +490,11 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
         String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
@@ -503,10 +519,12 @@ public class ProcessingIT {
         assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowSipNoFormat() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -539,10 +557,11 @@ public class ProcessingIT {
         }
     }
 
-
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowSipDoubleVersionBM() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
         String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
@@ -566,11 +585,12 @@ public class ProcessingIT {
         assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
-
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
@@ -603,10 +623,11 @@ public class ProcessingIT {
     }
 
 
-
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
         String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
@@ -632,9 +653,11 @@ public class ProcessingIT {
         assertEquals(StatusCode.KO, ret.getGlobalStatus());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflowWithOrphelins() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         GUID objectGuid = GUIDFactory.newManifestGUID(0);
         String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
@@ -660,10 +683,12 @@ public class ProcessingIT {
     }
 
 
+    @RunWithCustomExecutor
     @Test
     public void testWorkflow_withoutObjectGroups() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             GUID objectGuid = GUIDFactory.newManifestGUID(0);
             String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
