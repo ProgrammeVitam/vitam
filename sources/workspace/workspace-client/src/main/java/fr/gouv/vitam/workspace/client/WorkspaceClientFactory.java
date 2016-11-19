@@ -32,14 +32,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * WorkspaceClient factory for creating workspace client
  */
 public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClientFactory.class);
     private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory();
     private static final String RESOURCE_PATH = "/workspace/v1";
 

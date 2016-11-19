@@ -31,11 +31,9 @@ import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -78,6 +76,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
+        } else if (Status.ACCEPTED.getStatusCode() == response.getStatus()) {
+            LOGGER.warn("SIP Warning : " + Response.Status.ACCEPTED.getReasonPhrase());
         } else {
             LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
         }

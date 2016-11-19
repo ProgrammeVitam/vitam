@@ -161,7 +161,7 @@ public class FileRules extends VitamDocument<FileRules> {
      * setCreationDate
      *
      * @param creationDate
-     * @return
+     * @return this
      */
     public FileRules setCreationDate(String creationDate) {
         append(CREATIONDATE, creationDate);
@@ -172,7 +172,7 @@ public class FileRules extends VitamDocument<FileRules> {
      * setUpdateDate
      *
      * @param updateDate
-     * @return
+     * @return this
      */
 
     public FileRules setUpdateDate(String updateDate) {

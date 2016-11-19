@@ -60,6 +60,8 @@ public class LogbookLifecycleWorkerHelper {
      * @param logbooklifeCyclesClient
      * @param logbookLifecycleParameters
      * @param params the parameters
+     * @param lfcEventType 
+     * @param logbookTypeProcess 
      * @throws ProcessingException
      */
     public static void updateLifeCycleStartStep(LogbookLifeCyclesClient logbooklifeCyclesClient,

@@ -109,7 +109,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             // Update lifeCycle
             try {
                 logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null, null);
+                    null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
                     logbookLifecycleObjectGroupParameters,
                     itemStatus);

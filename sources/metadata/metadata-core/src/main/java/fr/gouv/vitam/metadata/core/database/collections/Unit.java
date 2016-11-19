@@ -85,7 +85,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String UNITDEPTHS = "_uds";
     /**
-     * UNITUPS : [ UUID1, UUID2 }
+     * UNITUPS : [ UUID1, UUID2 ]
      */
     public static final String UNITUPS = "_us";
     /**
@@ -436,6 +436,7 @@ public class Unit extends MetadataDocument<Unit> {
         } else {
             MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_UNIT, false);
             append(NBCHILD, nb);
+            append(UNITUPS, new ArrayList<>());
             nb = 0;
         }
         return false;

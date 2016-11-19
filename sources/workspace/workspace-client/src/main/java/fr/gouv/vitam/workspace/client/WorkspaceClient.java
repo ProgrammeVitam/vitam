@@ -149,8 +149,10 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
     }
 
     @Override
-    public void deleteContainer(String containerName, boolean recursive) {
-        // FIXME P1
+    public void deleteContainer(String containerName, boolean recursive)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        // FIXME P1 since both methods right now to the same thing
+        deleteContainer(containerName);
     }
 
     @Override

@@ -83,7 +83,7 @@ public class MetaDataImpl implements MetaData {
      * @param mongoDbAccessFactory
      */
     private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
-        mongoDbAccess = mongoDbAccessFactory.create(configuration);
+        mongoDbAccess = MongoDbAccessMetadataFactory.create(configuration);
     }
 
     /**

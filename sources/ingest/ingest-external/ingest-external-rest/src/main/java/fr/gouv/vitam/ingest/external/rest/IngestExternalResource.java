@@ -74,7 +74,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * upload the file in local
      *
      * @param uploadedInputStream data input stream
-     * @return Response
+     * @param asyncResponse 
      */
     @Path("ingests")
     @POST

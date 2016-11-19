@@ -113,15 +113,19 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
 
 
     @Override
-    public Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException {
+    public StatusCode getFinalWorkflowStatus(String processId) throws ProcessingException {
         if (WORKFLOWS_LIST.containsKey(processId)) {
+            StatusCode finalCode = StatusCode.UNKNOWN;
             Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
             for (ProcessStep step : orderedSteps.values()) {
-                if (step.getStepStatusCode() != null && step.getStepStatusCode().isGreaterOrEqualToKo()) {
-                    return Boolean.TRUE;
+                if (step != null) {
+                    StatusCode stepStatus = step.getStepStatusCode();
+                    if (stepStatus != null) {
+                        finalCode = finalCode.compareTo(stepStatus) < 0 ? stepStatus : finalCode;
+                    }
                 }
             }
-            return Boolean.FALSE;
+            return finalCode;
         } else {
             throw new ProcessingException(PROCESS_DOES_NOT_EXIST);
         }

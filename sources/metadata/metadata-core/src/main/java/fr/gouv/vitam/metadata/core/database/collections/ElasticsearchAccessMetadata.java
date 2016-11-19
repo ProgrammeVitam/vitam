@@ -161,7 +161,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final String id, final String json) {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
         return client.prepareIndex(collection.getName().toLowerCase(), type, id)
-            .setSource(json).setOpType(OpType.INDEX).setRefresh(true).get()
+            .setSource(json).setOpType(OpType.INDEX).get()
             .getVersion() > 0;
     }
 
@@ -182,7 +182,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             bulkRequest.add(client.prepareIndex(collection.getName().toLowerCase(), type,
                 val.getKey()).setSource(val.getValue()));
         }
-        return bulkRequest.setRefresh(true).execute(); // new thread
+        return bulkRequest.execute(); // new thread
     }
 
     /**

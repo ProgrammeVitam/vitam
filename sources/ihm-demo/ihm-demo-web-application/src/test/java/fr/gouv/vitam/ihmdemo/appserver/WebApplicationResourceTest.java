@@ -177,7 +177,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSuccessStatus() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("status");
+        given().expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
     }
 
 

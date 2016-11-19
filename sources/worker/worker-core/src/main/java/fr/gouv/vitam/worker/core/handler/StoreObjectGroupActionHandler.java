@@ -144,7 +144,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             // Update lifecycle of object group : OK/KO
             try {
                 logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null, null);
+                    null);
 
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,
                     logbookLifecycleObjectGroupParameters, itemStatus);
@@ -186,7 +186,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             // update lifecycle of objectGroup with detail of object : OK
             updateLifeCycleParametersLogbookForBdo(params, objectGUID);
             logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.OK,
-                null, null);
+                null);
             updateLifeCycle(logbookLifeCycleClient);
 
 
@@ -195,7 +195,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
             // update lifecycle of objectGroup with detail of object : KO
             logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.KO,
-                null, null);
+                null);
             updateLifeCycle(logbookLifeCycleClient);
             throw e;
         }

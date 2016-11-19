@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 public class VitamLogbookMessages {
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-logbook-messages";
     private static final VitamLogbookMessages VITAM_MESSAGES = new VitamLogbookMessages();
-    public static final String SEPARATOR = ".";
-    public static final String LIFECYCLE = "LFC";
+    private static final String SEPARATOR = ".";
+    private static final String LIFECYCLE = "LFC";
 
     final Messages messages;
 
@@ -92,9 +92,17 @@ public class VitamLogbookMessages {
      * @return the Label of this step or handler or full named
      */
     public static final String getLabelLfc(String stepOrHandler) {
-        return VITAM_MESSAGES.messages.getStringNotEmpty(LIFECYCLE + SEPARATOR + stepOrHandler);
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getEventTypeLfc(stepOrHandler));
     }
 
+    /**
+     * 
+     * @param stepOrHandler
+     * @return the final EventType code
+     */
+    public static final String getEventTypeLfc(String stepOrHandler) {
+        return LIFECYCLE + SEPARATOR + stepOrHandler;
+    }
     /**
      * Operation Logbook context
      * 
@@ -115,7 +123,7 @@ public class VitamLogbookMessages {
      */
     public static final String getLabelLfc(String stepOrHandler, String transaction) {
         return VITAM_MESSAGES.messages
-            .getStringNotEmpty(LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + transaction);
+            .getStringNotEmpty(getEventTypeLfc(stepOrHandler) + SEPARATOR + transaction);
     }
 
     /**
@@ -135,7 +143,7 @@ public class VitamLogbookMessages {
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, StatusCode code) {
-        return LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + code;
+        return getEventTypeLfc(stepOrHandler) + SEPARATOR + code;
     }
 
     /**
@@ -157,7 +165,7 @@ public class VitamLogbookMessages {
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, StatusCode code) {
-        return LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + transaction + SEPARATOR + code;
+        return getEventTypeLfc(stepOrHandler) + SEPARATOR + transaction + SEPARATOR + code;
     }
 
     /**

@@ -26,14 +26,11 @@
  */
 package fr.gouv.vitam.common.server2.application;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.DefaultClient;
@@ -92,7 +89,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
                     BenchmarkClientFactory.getInstance().getClient()) {
                     response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    buildReponse(asyncResponse, response);
+                    buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
                 } catch (VitamClientInternalException e) {
                     AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -103,11 +100,10 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  * </code>
  * </pre>
  */
-public class AsyncInputStreamHelper implements StreamingOutput {
+public class AsyncInputStreamHelper {
     private final AsyncResponse asyncResponse;
     private final Response receivedResponse;
     private InputStream inputStream;
-    private final AsyncInputStreamHelper self = this;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AsyncInputStreamHelper.class);
 
@@ -134,18 +130,6 @@ public class AsyncInputStreamHelper implements StreamingOutput {
         ParametersChecker.checkParameter("Parameters should not be null", asyncResponse, receivedResponse);
         this.asyncResponse = asyncResponse;
         this.receivedResponse = receivedResponse;
-    }
-
-    /**
-     * DO NOT CALL this method directly!
-     */
-    @Override
-    public void write(OutputStream output) throws IOException {
-        if (inputStream != null) {
-            try (final InputStream entityStream = inputStream) {
-                StreamUtils.copy(entityStream, output);
-            }
-        }
     }
 
     /**
@@ -187,7 +171,7 @@ public class AsyncInputStreamHelper implements StreamingOutput {
                     return;
                 }
             }
-            asyncResponse.resume(responseBuilder.entity(self).build());
+            asyncResponse.resume(responseBuilder.entity(new VitamStreamingOutput(inputStream)).build());
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
@@ -209,7 +193,8 @@ public class AsyncInputStreamHelper implements StreamingOutput {
 
     private Response getResponseError(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
-            .entity(new VitamError(VitamCodeHelper.getCode(vitamCode)).setContext(vitamCode.getService().getName())
+            .entity(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName())
                 .setState(vitamCode.getDomain().getName())
                 .setMessage(vitamCode.getMessage())
                 .setDescription(vitamCode.getMessage())

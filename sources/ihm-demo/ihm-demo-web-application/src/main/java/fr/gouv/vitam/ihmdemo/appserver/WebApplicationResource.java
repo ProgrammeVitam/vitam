@@ -100,6 +100,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -141,7 +142,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int TENANT_ID = 0;
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
     private static final int COMPLETE_RESPONSE_SIZE = 3;
-    private static final int UNCOMPLETE_RESPONSE_SIZE = 2;
     private static final int GUID_INDEX = 0;
     private static final int RESPONSE_STATUS_INDEX = 1;
     private static final int ATR_CONTENT_INDEX = 2;
@@ -342,25 +342,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Return a response status
-     *
-     * @return Response
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.status(Status.OK).build();
-    }
-
-    /**
      * upload the file
      *
      * @param stream data input stream
-     * @return Response
+     * @param asyncResponse 
      * @throws IOException
      */
-    // TODO P1 : add file name
+    // FIXME P0 To remove
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -370,6 +358,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, stream));
     }
 
+    // FIXME P0 To remove
     private void uploadAsync(final AsyncResponse asyncResponse, InputStream stream) {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             final Response response = client.upload(stream);
@@ -681,7 +670,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             // FIXME P0 Doit utiliser Async + Doit retourner le nom fournit par Response (Content-Disposition) et le
-            // MimeType (fournit également)
+            // MimeType (fournit également) (cf AccessExternalResourceImpl)
             final InputStream stream =
                 UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
                     Integer.parseInt(version));
@@ -1139,6 +1128,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/upload/{file_name}")
     @Produces(MediaType.TEXT_PLAIN)
+    // FIXME P0 To remove
     public Response uploadFileFromServer(@PathParam("file_name") String fileName) {
         ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
         if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
@@ -1170,9 +1160,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Upload using continuation mode
+     * 
+     * @param request
+     * @param response
+     * @param stream
+     * @throws IOException
+     * @throws IngestExternalException
+     * @throws XMLStreamException
+     * @throws VitamException
+     */
     @Path("ingest/continue")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    // FIXME P0 Ensure Javascript use chunk mode
     public void continuation(@Context HttpServletRequest request, @Context HttpServletResponse response,
         InputStream stream)
         throws IOException, IngestExternalException, XMLStreamException, VitamException {
@@ -1192,46 +1194,39 @@ public class WebApplicationResource extends ApplicationStatusResource {
             public void onComplete(Continuation continuation1) {
                 // start the upload
                 Response finalResponse = null;
+                File file = null;
                 try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                     try {
                         finalResponse = client.upload(stream);
     
                         String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                        // FIXME P0 Does not work but better so one should try to fix it
-                        /*InputStream inputStream = finalResponse.readEntity(InputStream.class);
+                        InputStream inputStream = (InputStream) finalResponse.getEntity();
                         if (inputStream != null) {
-                            File file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
-                            FileOutputStream outputStream = new FileOutputStream(file);
-                            StreamUtils.copy(inputStream, outputStream);
-    
+                            file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
+                            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                                StreamUtils.copy(inputStream, fileOutputStream);
+                            }
                             List<Object> finalResponseDetails = new ArrayList<>();
                             finalResponseDetails.add(guid);
                             finalResponseDetails.add(finalResponse.getStatus());
                             finalResponseDetails.add(file);
-    
-                            // Note: do not close client, response and of course InputStream
+                            LOGGER.debug("DEBUG: " + file + ":" + file.length());
                             uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
                         } else {
                             throw new VitamClientException("No ArchiveTransferReply found in response from Server");
-                        }*/
-                        String responseXml = finalResponse.readEntity(String.class);
-                        
-                        List<Object> finalResponseDetails = new ArrayList<>();
-                        finalResponseDetails.add(guid);
-                        finalResponseDetails.add(finalResponse.getStatus());
-                        finalResponseDetails.add(responseXml);
-
-                        // Note: do not close client, response and of course InputStream
-                        uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                        }
                     } finally {
                         DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
                     }                        
-                } catch (VitamException e) {//| IOException e) {
+                } catch (IOException | VitamException e) {//| IOException e) {
                     LOGGER.error("Upload failed", e);
                     List<Object> finalResponseDetails = new ArrayList<>();
                     finalResponseDetails.add(operationGuidFirstLevel);
                     finalResponseDetails.add(Status.INTERNAL_SERVER_ERROR);
                     uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                    if (file != null) {
+                        file.delete();
+                    }
                 }
             }
         });
@@ -1251,6 +1246,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         continuation.suspend();
     }
 
+    /**
+     * Check if the upload operation is done
+     * 
+     * @param operationId
+     * @return the Response
+     */
     @Path("check/{id_op}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -1259,24 +1260,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         List<Object> responseDetails = uploadRequestsStatus.get(operationId);
         if (responseDetails != null) {
             if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                LOGGER.debug("DEBUG: " + file + ":" + file.length());
                 return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
-                    .entity(responseDetails.get(ATR_CONTENT_INDEX))
-                    .header("Content-Disposition", "attachment; filename=" + responseDetails.get(GUID_INDEX) + ".xml")
+                    .entity(new VitamStreamingOutput(file, false))
+                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .header("Content-Disposition", "attachment; filename=ATR_" + responseDetails.get(GUID_INDEX) + ".xml")
                     .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
                     .build();
-                /*File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
-                try {
-                    return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
-                        .entity(new FileInputStream(file))
-                        .header("Content-Disposition", "attachment; filename=" + responseDetails.get(GUID_INDEX) + ".xml")
-                        .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
-                        .build();
-                } catch (FileNotFoundException e) {
-                    LOGGER.error(e);
-                    return Response.status(Status.INTERNAL_SERVER_ERROR)
-                        .header(GlobalDataRest.X_REQUEST_ID, operationId)
-                        .build();
-                }*/
             } else {
                 return Response.status((Status) responseDetails.get(RESPONSE_STATUS_INDEX))
                     .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
@@ -1290,6 +1281,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             .build();
     }
 
+    /**
+     * Once done, clear the Upload operation history
+     * @param operationId
+     * @return the Response
+     */
     @Path("clear/{id_op}")
     @GET
     public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
@@ -1298,8 +1294,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
             // Clean up uploadRequestsStatus
             uploadRequestsStatus.remove(operationId);
-            /*File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
-            file.delete();*/
+            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                file.delete();
+            }
             // Cleaning process succeeded
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_REQUEST_ID, operationId)

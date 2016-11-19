@@ -89,6 +89,6 @@ public interface ProcessMonitoring {
      * @return true if at least one of the step status is KO or FATAL, else false
      * @throws ProcessingException if the process does not exist
      */
-    Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException;
+    StatusCode getFinalWorkflowStatus(String processId) throws ProcessingException;
 
 }

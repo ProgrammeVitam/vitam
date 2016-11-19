@@ -43,7 +43,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -210,13 +209,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream,
+    public void uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+        InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> ingestAsync(asyncResponse, contentType, uploadedInputStream));
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> ingestAsync(asyncResponse, contentType, uploadedInputStream));
     }
 
     private void ingestAsync(final AsyncResponse asyncResponse, String contentType,
-                             InputStream uploadedInputStream) {
+        InputStream uploadedInputStream) {
         LogbookOperationParameters parameters = null;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -243,32 +244,36 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                 callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.STARTED));
-                // push uploaded sip as stream
-                pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType,
-                    uploadedInputStream,
-                    parameters);
-                final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
-
-                callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
-                // processing
-                parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                final ItemStatus processingOk =
-                    callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
-                try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                    final Response response =
-                        storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY, containerGUID.getId() + XML,
-                            StorageCollectionType.REPORTS);
-                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-                    Status finalStatus = Status.OK;
-                    if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
-                        if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
-                            finalStatus = Status.ACCEPTED;
-                        } else {
-                            finalStatus = Status.BAD_REQUEST;
+                try {
+                    // push uploaded sip as stream
+                    pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType,
+                        uploadedInputStream,
+                        parameters);
+                    final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
+    
+                    callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
+                    // processing
+                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
+                    final ItemStatus processingOk =
+                        callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
+                    try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                        final Response response =
+                            storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY, containerGUID.getId() + XML,
+                                StorageCollectionType.REPORTS);
+                        AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+                        Status finalStatus = Status.OK;
+                        if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
+                            if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
+                                finalStatus = Status.ACCEPTED;
+                            } else {
+                                finalStatus = Status.BAD_REQUEST;
+                            }
                         }
+    
+                        helper.writeResponse(Response.status(finalStatus));
                     }
-
-                    helper.writeResponse(Response.status(finalStatus));
+                } finally {
+                    cleanWorkspace(containerGUID.getId());
                 }
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 if (parameters != null) {
@@ -379,6 +384,25 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
         LOGGER.debug(" -> push stream to workspace finished");
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
+    }
+
+    private void cleanWorkspace(final String containerName)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        // call workspace
+        WorkspaceClient workspaceClient = workspaceClientMock;
+        try {
+            if (workspaceClient == null) {
+                workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            }
+            if (workspaceClient.isExistingContainer(containerName)) {
+                // FIXME P1: should explicitely call recursive delete
+                workspaceClient.deleteContainer(containerName);
+            }
+        } finally {
+            if (workspaceClientMock == null && workspaceClient != null) {
+                workspaceClient.close();
+            }
+        }
     }
 
     private ItemStatus callProcessingEngine(final LogbookOperationParameters parameters,

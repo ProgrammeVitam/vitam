@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -93,6 +92,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     private int tenantId = 0;
 
+    /**
+     * Constructor
+     */
     public AccessExternalResourceImpl() {
         LOGGER.debug("AccessExternalResource initialized");
     }
@@ -337,7 +339,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param queryJson
      * @return Response
      */
-
     @GET
     @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)

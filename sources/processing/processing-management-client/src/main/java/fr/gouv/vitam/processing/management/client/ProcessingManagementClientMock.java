@@ -53,7 +53,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     public ItemStatus executeVitamProcess(String container, String workflow)
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
         ProcessingException {
-        // FIXME P0 return real ItemStatus ?
         List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
