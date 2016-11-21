@@ -354,12 +354,29 @@ public class IngestExternalImpl implements IngestExternal {
                         LOGGER.error(e.getMessage());
                         throw new IngestExternalException(e);
                     }
+                } else {
+                    // log final status PROCESS_SIP when check format KO or FATA
+                    // in this case PROCESS_SIP inherits FORMAT CHECK Status
+                    startedParameters.setStatus(formatParameters.getStatus());
+                    startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, formatParameters.getStatus()));
+                    // update PROCESS_SIP
+                    helper.updateDelegate(startedParameters);
+
                 }
             } else {
                 // finalize end step param
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
+                // log final status PROCESS_SIP when sanity check KO or FATAL
+                // in this case PROCESS_SIP inherits SANITY_CHECK Status
+                startedParameters.setStatus(endParameters.getStatus());
+                startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, endParameters.getStatus()));
+                // update PROCESS_SIP
+                helper.updateDelegate(startedParameters);
+
             }
 
             try (IngestInternalClient ingestClient =
