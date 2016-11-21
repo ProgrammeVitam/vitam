@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  * Core API for LifeCycles
  */
 public interface LogbookLifeCycles {
-
 
     /**
      * Create and insert logbook LifeCycle entries
@@ -239,4 +239,34 @@ public interface LogbookLifeCycles {
      * @param cursorId
      */
     public void finalizeCursor(String cursorId);
+    
+
+    /**
+     * Create one Logbook Lifecycle with already multiple sub-events
+     * 
+     * @param idOp Operation Id
+     * @param lifecycleArray with first and next events to add/update
+     *
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws LogbookDatabaseException
+     * @throws LogbookAlreadyExistsException
+     */
+    void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
+    /**
+     * Update one Logbook Lifecycle with multiple sub-events <br>
+     * <br>
+     * It adds this new entry within the very same Logbook Lifecycle entry in "events" array.
+     * 
+     * @param idOp Operation Id
+     * @param lifecycleArray containing all Lifecycle Logbook in order
+     * 
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
+    void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
 }

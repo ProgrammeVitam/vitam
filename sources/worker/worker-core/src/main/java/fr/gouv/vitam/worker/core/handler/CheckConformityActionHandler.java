@@ -53,10 +53,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -111,7 +110,8 @@ public class CheckConformityActionHandler extends ActionHandler {
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        final String realObjectID = LogbookLifecycleWorkerHelper.getObjectID(params);
+        try {
             try {
                 // Get objectGroup
                 final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
@@ -126,7 +126,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
                     INCOME);
                 logbookLifecycleObjectGroupParameters.setBeginningLog(HANDLER_ID, null, null);
-                LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(logbookClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters, params);
 
                 // checkMessageDigest
@@ -137,7 +137,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                         for (JsonNode versionsArray : versions) {
                             for (JsonNode version : versionsArray) {
                                 String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                checkMessageDigest(logbookClient, params, binaryObjects.get(objectId),
+                                checkMessageDigest(handlerIO.getHelper(), params, binaryObjects.get(objectId),
                                     version,
                                     itemStatus);
                             }
@@ -174,25 +174,30 @@ public class CheckConformityActionHandler extends ActionHandler {
                 // Set Final Status for CHECK_DIGEST TASK
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
-                    logbookLifecycleObjectGroupParameters,
-                    itemStatus);
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
+                    logbookLifecycleObjectGroupParameters, itemStatus);
             } catch (ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(realObjectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
-
         LOGGER.debug("CheckConformityActionHandler response: " + itemStatus.getGlobalStatus());
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void checkMessageDigest(LogbookLifeCyclesClient logbookClient, WorkerParameters params,
+    private void checkMessageDigest(LogbookLifeCyclesClientHelper helper, WorkerParameters params,
         BinaryObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException {
-        String containerId = params.getContainerName();
-
         String eventDetailData;
         StatusCode statusCode = StatusCode.OK;
 
@@ -260,16 +265,15 @@ public class CheckConformityActionHandler extends ActionHandler {
                 null);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 eventDetailData);
-            logbookClient.update(logbookLifecycleObjectGroupParameters);
+            helper.updateDelegate(logbookLifecycleObjectGroupParameters);
 
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException | LogbookClientBadRequestException | LogbookClientNotFoundException |
-            LogbookClientServerException e) {
+            IOException | LogbookClientNotFoundException e) {
             LOGGER.error(e);
 
             logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, StatusCode.FATAL,
                 null);
-            logbookClient.update(logbookLifecycleObjectGroupParameters);
+            helper.updateDelegate(logbookLifecycleObjectGroupParameters);
             throw new ProcessingException(e.getMessage(), e);
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);

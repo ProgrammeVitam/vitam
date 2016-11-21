@@ -31,13 +31,11 @@ import org.apache.commons.io.FilenameUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
@@ -45,9 +43,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * Helper for Worker handlers to handle Logbook Lifecycle at startup/at end
  */
 public class LogbookLifecycleWorkerHelper {
-    private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
-    private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
 
     /**
      * Private
@@ -57,22 +53,30 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * @param logbooklifeCyclesClient
+     * 
+     * @param params
+     * @return the ObjectID
+     */
+    public static final String getObjectID(WorkerParameters params) {
+        final String extension = FilenameUtils.getExtension(params.getObjectName());
+        return params.getObjectName().replace("." + extension, "");
+    }
+    /**
+     * @param helper
      * @param logbookLifecycleParameters
      * @param params the parameters
      * @param lfcEventType
      * @param logbookTypeProcess
      * @throws ProcessingException
      */
-    public static void updateLifeCycleStartStep(LogbookLifeCyclesClient logbooklifeCyclesClient,
+    public static void updateLifeCycleStartStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, String lfcEventType,
         LogbookTypeProcess logbookTypeProcess)
         throws ProcessingException {
 
         try {
-            final String extension = FilenameUtils.getExtension(params.getObjectName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                params.getObjectName().replace("." + extension, ""));
+                getObjectID(params));
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
@@ -88,13 +92,7 @@ public class LogbookLifecycleWorkerHelper {
             }
 
 
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
+            helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
@@ -102,31 +100,24 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * @param logbooklifeCyclesClient
+     * @param helper
      * @param logbookLifecycleParameters
      * @param params the parameters
      * @throws ProcessingException
      */
-    public static void updateLifeCycleForBegining(LogbookLifeCyclesClient logbooklifeCyclesClient,
+    public static void updateLifeCycleForBegining(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params)
         throws ProcessingException {
 
         try {
-            String extension = FilenameUtils.getExtension(params.getObjectName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                params.getObjectName().replace("." + extension, ""));
+                getObjectID(params));
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
             // TODO P2 to be passed within the parameters since multiple workflow types could exist
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 LogbookTypeProcess.INGEST.name());
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
+            helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
@@ -136,25 +127,19 @@ public class LogbookLifecycleWorkerHelper {
     /**
      * 
      * 
-     * @param logbooklifeCyclesClient
+     * @param helper
      * @param logbookLifecycleParameters logbook LC parameters
      * @param itemStatus the Item Status
      * @throws ProcessingException
      */
-    public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClient logbooklifeCyclesClient,
+    public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters,
         ItemStatus itemStatus)
         throws ProcessingException {
 
         try {
             logbookLifecycleParameters.setFinalStatus(itemStatus.getItemId(), null, itemStatus.getGlobalStatus(), null);
-            logbooklifeCyclesClient.update(logbookLifecycleParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
+            helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);

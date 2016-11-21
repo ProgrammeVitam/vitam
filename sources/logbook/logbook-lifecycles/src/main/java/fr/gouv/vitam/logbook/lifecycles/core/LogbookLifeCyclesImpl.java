@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -294,6 +295,44 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         if (!parameters.getParameterValue(LogbookParameterName.objectIdentifier).equals(idLcObjectGroup)) {
             LOGGER.error("incoherence entry for idLifeCyclesObjectGroup");
             throw new IllegalArgumentException("incoherence entry for idLifeCyclesObjectGroup");
+        }
+    }
+
+    @Override
+    public void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        if (lifecycleArray == null || lifecycleArray.length == 0) {
+            throw new IllegalArgumentException("No LifeCycle Logbook");
+        }
+        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
+            LOGGER.error("incoherence entry for idOperation");
+            throw new IllegalArgumentException("incoherence entry for idOperation");
+        }
+        if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
+            mongoDbAccess.createBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+        } else {
+            mongoDbAccess
+                .createBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
+        }
+    }
+
+    @Override
+    public void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        if (lifecycleArray == null || lifecycleArray.length == 0) {
+            throw new IllegalArgumentException("No LifeCycle Logbook");
+        }
+        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
+            LOGGER.error("incoherence entry for idOperation");
+            throw new IllegalArgumentException("incoherence entry for idOperation");
+        }
+        if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
+            mongoDbAccess.updateBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+        } else {
+            mongoDbAccess
+                .updateBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
         }
     }
 }

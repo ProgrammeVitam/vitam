@@ -35,11 +35,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -62,7 +63,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
 
     private HandlerIO handlerIO;
-    
+
     /**
      * Constructor with parameter SedaUtilsFactory
      *
@@ -86,12 +87,13 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try {
             try {
                 checkMandatoryIOParameter(actionDefinition);
 
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters,
                     params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
@@ -109,11 +111,20 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             try {
                 logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
                     null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters,
                     itemStatus);
 
             } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
@@ -138,11 +149,11 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-                final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
-                json.remove(SedaConstants.PREFIX_WORK);
-                final Insert insertRequest = new Insert().addData(json);
-                metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
-                itemStatus.increment(StatusCode.OK);
+            final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
+            json.remove(SedaConstants.PREFIX_WORK);
+            final Insert insertRequest = new Insert().addData(json);
+            metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
+            itemStatus.increment(StatusCode.OK);
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
         } catch (InvalidParseOperationException e) {

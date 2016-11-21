@@ -72,11 +72,12 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -103,9 +104,6 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     private static final String AU_NOT_HAVE_RULES = "Archive unit does not have rules";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
 
-    private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
-    private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
-    private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
 
     private HandlerIO handlerIO;
 
@@ -126,10 +124,11 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         long time = System.currentTimeMillis();
         this.handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try {
             try {
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                     logbookLifecycleUnitParameters,
                     params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
@@ -145,7 +144,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             try {
                 logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
                     null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleUnitParameters,
                     itemStatus);
 
@@ -153,7 +152,15 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
-
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateUnit(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
         LOGGER.debug("[exit] execute... /Elapsed Time:" + ((System.currentTimeMillis() - time) / 1000) + "s");
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

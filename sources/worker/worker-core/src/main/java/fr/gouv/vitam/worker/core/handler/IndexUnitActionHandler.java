@@ -64,11 +64,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -117,12 +118,13 @@ public class IndexUnitActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try {
             try {
                 checkMandatoryIOParameter(handlerIO);
 
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                     logbookLifecycleUnitParameters,
                     params, HANDLER_ID, LogbookTypeProcess.INGEST);
                 indexArchiveUnit(params, itemStatus);
@@ -135,11 +137,20 @@ public class IndexUnitActionHandler extends ActionHandler {
             try {
                 logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
                     null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleUnitParameters,
                     itemStatus);
 
             } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateUnit(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
