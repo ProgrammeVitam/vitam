@@ -146,7 +146,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                             params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
-                            null, null);
+                            null);
                         logbookLifeCycleClient.update(logbookLifecycleObjectGroupParameters);
 
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |

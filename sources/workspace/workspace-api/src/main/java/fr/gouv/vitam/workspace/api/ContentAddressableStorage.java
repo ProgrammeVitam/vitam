@@ -94,9 +94,10 @@ public interface ContentAddressableStorage {
      * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a container exists

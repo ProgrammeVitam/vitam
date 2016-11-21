@@ -29,12 +29,9 @@ package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;

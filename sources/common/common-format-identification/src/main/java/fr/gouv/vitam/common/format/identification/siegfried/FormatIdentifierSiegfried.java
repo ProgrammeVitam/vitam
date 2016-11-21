@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.BooleanUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -156,10 +158,10 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         }
         final JsonNode response = client.analysePath(path);
 
-        return extractFormat(response);
+        return extractFormat(response, path);
     }
 
-    private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse)
+    private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse, Path path)
         throws FileFormatNotFoundException, FormatIdentifierBadRequestException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("extract format from siegfried response");
@@ -187,11 +189,43 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                 final FormatIdentifierResponse formatIdentifier =
                     new FormatIdentifierResponse(format, mimetype, formatId, namespace);
                 matchesFormats.add(formatIdentifier);
+            } else if (PRONOM_NAMESPACE.equals(namespace)) {
+                final JsonNode warnNode = match.get("warning");
+                if (warnNode != null) {
+                    final String warn = warnNode.asText();
+                    int pos = warn.indexOf("fmt/");
+                    int xpos = warn.indexOf("x-fmt/");
+                    int start = -1;
+                    if (pos > 0 && xpos > 0) {
+                        start = pos < xpos ? pos : xpos;
+                    } else if (pos > 0) {
+                        start = pos;
+                    } else {
+                        start = xpos;
+                    }
+                    if (start > 0) {
+                        int end = warn.indexOf(',', start);
+                        if (end == -1) {
+                            end = warn.length();
+                        }
+                        if (end > start) {
+                            String newFormatId = warn.substring(start, end);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Find a format " + formatId + " for " + namespace);
+                            }
+                            final String mimetype = MediaType.APPLICATION_OCTET_STREAM;
+                            final String format = "Approximative format: " + newFormatId;
+                            final FormatIdentifierResponse formatIdentifier =
+                                new FormatIdentifierResponse(format, mimetype, newFormatId, namespace);
+                            matchesFormats.add(formatIdentifier);
+                        }
+                   }
+                }
             }
         }
 
         if (matchesFormats.isEmpty()) {
-            LOGGER.warn("No format match found for file");
+            LOGGER.warn("No format match found for file " + path);
             throw new FileFormatNotFoundException("No match found");
         }
 

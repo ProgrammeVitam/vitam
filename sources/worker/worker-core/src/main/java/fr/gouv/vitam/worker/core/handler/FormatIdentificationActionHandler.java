@@ -247,7 +247,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
                     logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
                         FILE_FORMAT_UPDATED_FORMAT,
-                        StatusCode.WARNING, null, null);
+                        StatusCode.WARNING, null);
 
                     logbookClient.update(logbookLifecycleObjectGroupParameters);
                 }
@@ -348,7 +348,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
                 logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT, FILE_FORMAT_PUID_NOT_FOUND,
-                    StatusCode.KO, null, null);
+                    StatusCode.KO, null);
 
                 try {
                     logbookClient.update(logbookLifecycleObjectGroupParameters);
@@ -395,7 +395,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
         logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
             objectCheckFormatResult.getSubStatus(),
-            objectCheckFormatResult.getStatus(), null, null);
+            objectCheckFormatResult.getStatus(), null);
 
         try {
             logbookClient.update(logbookLifecycleObjectGroupParameters);
@@ -581,12 +581,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         public String getSubStatus() {
             return subStatus;
         }
-    }
-
-    private void updateLifeCycleLogbook(LogbookLifeCycleObjectGroupParameters logbookParameters,
-        LogbookLifeCyclesClient logbookClient)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        logbookClient.update(logbookParameters);
     }
 
     @Override

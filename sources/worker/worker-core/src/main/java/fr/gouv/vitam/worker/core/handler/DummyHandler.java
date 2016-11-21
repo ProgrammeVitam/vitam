@@ -27,13 +27,12 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
- * 
+ * Dummy Handler (for test purpose)
  */
 public class DummyHandler extends ActionHandler {
     private static final String HANDLER_ID = "DummyHandler";

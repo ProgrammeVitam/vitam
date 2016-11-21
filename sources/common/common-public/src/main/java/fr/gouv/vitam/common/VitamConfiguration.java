@@ -82,7 +82,7 @@ public class VitamConfiguration {
     /**
      * Default Read Timeout
      */
-    private static final int READ_TIMEOUT = 86400;
+    private static final int READ_TIMEOUT = 86400000;
 
     /**
      * Max total concurrent clients

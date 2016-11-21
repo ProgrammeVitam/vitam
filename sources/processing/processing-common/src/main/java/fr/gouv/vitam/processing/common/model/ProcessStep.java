@@ -41,7 +41,7 @@ public class ProcessStep extends Step {
     private String id;
     private long elementProcessed;
     private long elementToProcess;
-    private StatusCode stepStatusCode;
+    private StatusCode stepStatusCode = StatusCode.UNKNOWN;
 
     
     /**

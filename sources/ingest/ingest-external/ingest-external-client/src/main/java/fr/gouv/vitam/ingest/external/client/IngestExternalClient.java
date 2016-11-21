@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;

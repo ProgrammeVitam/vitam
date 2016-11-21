@@ -152,9 +152,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         try {
             // update workParams
             LOGGER.debug("Status {}",
-                ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId));
+                ProcessMonitoringImpl.getInstance().getFinalWorkflowStatus(processId));
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
-                ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId).toString());
+                ProcessMonitoringImpl.getInstance().getFinalWorkflowStatus(processId).name());
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -213,9 +213,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                                 new DescriptionStep(step, (DefaultWorkerParameters) workParams));
                                 }
                                 // FIXME P1 : This is inefficient. The aggregation of results must be placed here and
-                                // not
-                                // in
-                                // ProcessResponse
+                                // not in ProcessResponse
                                 responses.setItemsStatus(actionsResponse);
                                 // update the number of processed element
                                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);

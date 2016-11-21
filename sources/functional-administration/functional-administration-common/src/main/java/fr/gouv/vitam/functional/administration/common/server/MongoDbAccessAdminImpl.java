@@ -28,13 +28,11 @@ package fr.gouv.vitam.functional.administration.common.server;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bouncycastle.asn1.dvcs.Data;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

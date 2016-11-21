@@ -31,6 +31,7 @@ package fr.gouv.vitam.common.exception;
  * Generic database exception throws by database services
  */
 public class DatabaseException extends VitamException {
+    private static final long serialVersionUID = 1359659422011378457L;
 
     /**
      * Basic constructor to indicate a simple error message without stacktrace

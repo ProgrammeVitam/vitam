@@ -47,7 +47,6 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,7 +57,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -121,7 +119,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
-
+    private StatusCode workflowStatus = StatusCode.UNKNOWN;
+    
     /**
      * Constructor TransferNotificationActionHandler
      * 
@@ -151,10 +150,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
         handlerIO = handler;
 
         try {
-            Boolean isWorkflowKo =
-                BooleanUtils.toBoolean(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
+            workflowStatus =
+                StatusCode.valueOf(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
             File atrFile;
-            if (isWorkflowKo) {
+            if (workflowStatus.isGreaterOrEqualToKo()) {
                 atrFile = createATRKO(params, handlerIO);
             } else {
                 // CHeck is only done in OK mode since all parameters are optional
@@ -177,7 +176,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     StorageCollectionType.REPORTS,
                     params.getContainerName() + XML, description);
 
-                if (!isWorkflowKo) {
+                if (!workflowStatus.isGreaterOrEqualToKo()) {
                     description.setWorkspaceObjectURI(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
@@ -339,7 +338,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, "ReplyCode0");
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
             writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
 
@@ -448,7 +447,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, "ReplyCode0");
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
             if (messageIdentifier != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
             }
@@ -497,6 +496,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
 
+        // FIXME P0 Unused ?
         Map<String, Object> bdoVersionDataObject = null;
 
         if (handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK) != null) {
@@ -510,7 +510,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode node = client.selectOperationbyId(containerName);
-            // FIXME P1 hack since Jackson cannot parse it correctly
+            // FIXME P0 hack since Jackson cannot parse it correctly
             //RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
             JsonNode elmt = node.get("$results").get(0);

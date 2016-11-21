@@ -294,10 +294,10 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode traceability()  throws   LogbookClientServerException, InvalidParseOperationException {
-            Response response = null;
+    public JsonNode traceability() throws LogbookClientServerException, InvalidParseOperationException {
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, TRACEABILITY_URI,null, MediaType.APPLICATION_JSON_TYPE); 
+            response = performRequest(HttpMethod.POST, TRACEABILITY_URI, null, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -308,15 +308,13 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        }
-        catch (VitamClientInternalException e) {
+        } catch (VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } 
-        finally {
+        } finally {
             consumeAnyEntityAndClose(response);
         }
-      
+
     }
 
 

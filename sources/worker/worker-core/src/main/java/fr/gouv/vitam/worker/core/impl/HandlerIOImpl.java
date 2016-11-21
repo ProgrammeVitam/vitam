@@ -339,7 +339,9 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             try {
                 response = client.getObject(containerName, objectName);
                 if (response != null) {
-                    StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        StreamUtils.copy((InputStream) response.getEntity(), fileOutputStream);
+                    }
                 }
             } finally {
                 client.consumeAnyEntityAndClose(response);
@@ -358,7 +360,9 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             try {
                 response = client.getObject(containerName, objectName);
                 if (response != null) {
-                    StreamUtils.copy((InputStream) response.getEntity(), new FileOutputStream(file));
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        StreamUtils.copy((InputStream) response.getEntity(), fileOutputStream);
+                    }
                 }
             } finally {
                 client.consumeAnyEntityAndClose(response);

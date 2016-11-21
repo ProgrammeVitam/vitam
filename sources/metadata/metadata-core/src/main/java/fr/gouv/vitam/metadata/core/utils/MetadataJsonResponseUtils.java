@@ -62,6 +62,7 @@ public final class MetadataJsonResponseUtils {
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
      * @param selectRequest
+     * @param query 
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
@@ -113,6 +114,7 @@ public final class MetadataJsonResponseUtils {
      *        can be empty
      * @param request
      * @param diff the diff map list with the unit id as key and the diff list as value
+     * @param query 
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)

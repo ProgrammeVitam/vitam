@@ -261,7 +261,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param params parameters of workspace server
-     * @param itemStatus
+     * @param globalCompositeItemStatus
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
     public void extractSEDA(WorkerParameters params, ItemStatus globalCompositeItemStatus)
@@ -375,8 +375,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         final String objectGroupGuid =
                             writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
-                            guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null,
-                                null);
+                            guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null);
                             logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
 
                             // Add creation sub task event
@@ -534,15 +533,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // 1- Update created Unit life cycles
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
                 LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
-                llcp.setBeginningLog(HANDLER_ID, null, null, null);
+                llcp.setBeginningLog(HANDLER_ID, null, null);
                 logbookLifeCycleClient.update(llcp);
 
                 llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK,
-                    null, null);
+                    null);
                 logbookLifeCycleClient.update(llcp);
 
                 llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                    null, null);
+                    null);
                 logbookLifeCycleClient.update(llcp);
             }
 
@@ -1465,7 +1464,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId, logbookLifeCycleClient);
 
                     // Update Object Group lifeCycle creation event
-                    guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null, null);
+                    guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null);
                     logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
 
                     // Add creation sub task event
@@ -1476,7 +1475,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
 
                     guidToLifeCycleParameters.get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                        null, null);
+                        null);
                     logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
                 }
 

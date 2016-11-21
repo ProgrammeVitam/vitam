@@ -29,6 +29,10 @@ package fr.gouv.vitam.common.i18n;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -36,7 +40,9 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.ResourceBundle.Control;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
@@ -50,7 +56,7 @@ public class Messages {
      * Default Locale
      */
     public static final Locale DEFAULT_LOCALE = Locale.FRENCH;
-    
+
     private final ResourceBundle resourceBundle;
     private Locale locale;
 
@@ -76,6 +82,42 @@ public class Messages {
     }
 
     /**
+     * Enable UTF-8 Property files
+     */
+    private static final class UTF8Control extends Control {
+        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
+            boolean reload)
+            throws IllegalAccessException, InstantiationException, IOException {
+            // The below is a copy of the default implementation.
+            String bundleName = toBundleName(baseName, locale);
+            String resourceName = toResourceName(bundleName, "properties");
+            ResourceBundle bundle = null;
+            InputStream stream = null;
+            if (reload) {
+                URL url = loader.getResource(resourceName);
+                if (url != null) {
+                    URLConnection connection = url.openConnection();
+                    if (connection != null) {
+                        connection.setUseCaches(false);
+                        stream = connection.getInputStream();
+                    }
+                }
+            } else {
+                stream = loader.getResourceAsStream(resourceName);
+            }
+            if (stream != null) {
+                try {
+                    // Only this line is changed to make it to read properties files as UTF-8.
+                    bundle = new PropertyResourceBundle(new InputStreamReader(stream, CharsetUtils.UTF8));
+                } finally {
+                    stream.close();
+                }
+            }
+            return bundle;
+        }
+    }
+
+    /**
      * Change the Message to the given Locale
      *
      * @param locale
@@ -85,16 +127,17 @@ public class Messages {
             locale = Locale.FRENCH;
         }
         // First check if this file is in config directory
-        File bundleFile = PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
+        File bundleFile =
+            PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
         if (bundleFile.canRead()) {
             try (FileInputStream inputStream = new FileInputStream(bundleFile)) {
-                return new PropertyResourceBundle(inputStream);
+                return new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
             } catch (IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
         // If necessary update Static enum of VitamCode
-        return ResourceBundle.getBundle(bundleName, locale);
+        return ResourceBundle.getBundle(bundleName, locale, new UTF8Control());
     }
 
 

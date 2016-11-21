@@ -31,9 +31,9 @@ public class FormatIdentifierFactoryTest {
         }
 
         try {
-            FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test1");
+            FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test1notexist");
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final FormatIdentifierTechnicalException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             // Nothing
         } catch (final VitamException e3) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);

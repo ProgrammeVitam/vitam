@@ -134,7 +134,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             // Update lifeCycle
             try {
                 logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null, null);
+                    null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
                     logbookLifecycleUnitParameters,
                     itemStatus);

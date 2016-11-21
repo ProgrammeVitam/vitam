@@ -54,7 +54,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -145,7 +144,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             // Update lifeCycle
             try {
                 logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null, null);
+                    null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
                     logbookLifecycleUnitParameters,
                     itemStatus);
@@ -230,7 +229,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         Set<String> rulesToApply;
         JsonNode rulesResults = null;
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        final File fileWithEndDate = PropertiesUtils.fileFromTmpFolder(AU_PREFIX_WITH_END_DATE + objectName);
+        final File fileWithEndDate = handlerIO.getNewLocalFile(AU_PREFIX_WITH_END_DATE + objectName);
         final FileWriter tmpFileWriter = new FileWriter(fileWithEndDate);
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         final XMLEventWriter writer = xmlOutputFactory.createXMLEventWriter(tmpFileWriter);

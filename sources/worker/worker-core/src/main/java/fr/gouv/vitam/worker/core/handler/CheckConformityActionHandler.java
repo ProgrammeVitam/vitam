@@ -253,7 +253,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
             // Add CHECK_DIGEST.CALC_DIGEST SubTask Result to ObjectGroup lifeCycle
             logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, statusCode,
-                null, null);
+                null);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 eventDetailData);
             logbookClient.update(logbookLifecycleObjectGroupParameters);
@@ -264,7 +264,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             LOGGER.error(e);
 
             logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, StatusCode.FATAL,
-                null, null);
+                null);
             logbookClient.update(logbookLifecycleObjectGroupParameters);
             throw new ProcessingException(e.getMessage(), e);
         } finally {

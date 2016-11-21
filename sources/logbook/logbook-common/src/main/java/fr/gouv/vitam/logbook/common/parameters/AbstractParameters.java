@@ -134,7 +134,7 @@ abstract class AbstractParameters implements LogbookParameters {
     private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
         putParameterValue(LogbookParameterName.eventType,
-            VitamLogbookMessages.LIFECYCLE + VitamLogbookMessages.SEPARATOR + handlerId);
+            VitamLogbookMessages.getEventTypeLfc(handlerId));
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
             putParameterValue(LogbookParameterName.outcomeDetail,

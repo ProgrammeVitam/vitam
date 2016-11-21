@@ -41,20 +41,12 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.ClientResponseContext;
 import javax.ws.rs.client.ClientResponseFilter;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.server2.RequestIdHeaderHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Manage the X_REQUEST_ID header from the client-side perspective.
  */
 public class RequestIdClientFilter implements ClientRequestFilter, ClientResponseFilter {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestIdClientFilter.class);
 
     /**
      * Retrieves the request id from the VitamSession and add a X-REQUEST-ID header to the request

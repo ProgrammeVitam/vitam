@@ -37,7 +37,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -340,15 +339,12 @@ public class IngestExternalImpl implements IngestExternal {
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
 
-                // FIXME P0 Status could be >= 400 but still getting an ATR KO!
-                // One should try to forward the ATR (whatever OK or KO) using async mode
-                // Moreover one should finalize the Logbook Operation with new entries like
+                // FIXME P1 one should finalize the Logbook Operation with new entries like
                 // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
                 // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                // TODO Response async
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
                     Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
@@ -358,8 +354,6 @@ public class IngestExternalImpl implements IngestExternal {
                     asyncHelper.writeResponse(responseBuilder);
                     return response;
                 }
-                // throw new IngestExternalException("File upload " + (isFileInfected ? "is infected" : "has a
-                // unsupported Format: " + mimeType));
                 // FIXME P1 later on real ATR KO
                 Response response = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
                     AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",

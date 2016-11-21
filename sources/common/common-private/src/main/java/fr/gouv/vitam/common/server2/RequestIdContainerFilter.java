@@ -40,18 +40,11 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.MultivaluedMap;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Manage the X_REQUEST_ID header from the server-side perspective.
  */
 public class RequestIdContainerFilter implements ContainerRequestFilter, ContainerResponseFilter {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestIdContainerFilter.class);
 
     /**
      * Extracts the X-REQUEST-ID from the headers to save it in the VitamSession
