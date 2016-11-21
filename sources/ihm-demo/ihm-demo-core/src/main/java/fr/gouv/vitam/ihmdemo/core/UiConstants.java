@@ -54,7 +54,7 @@ public enum UiConstants {
     /**
      * "_up" field
      */
-    RESULT("$result", "$result");
+    RESULT("$results", "$results");
 
     private final String constantValue;
     private final String resultValue;

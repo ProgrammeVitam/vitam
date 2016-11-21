@@ -52,6 +52,13 @@
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
               </td>
+              
+              <td ng-repeat = "column in $ctrl.selectedObjects" ng-class="result.isStepLevelEvent ? 'logbookProcess': 'logbookTask'">
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
+              </td>
             </tr>
           </tbody>
         </table>
