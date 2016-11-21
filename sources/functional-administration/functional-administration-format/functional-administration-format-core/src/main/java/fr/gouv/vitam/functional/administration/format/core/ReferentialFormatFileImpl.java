@@ -75,14 +75,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "FileFormat";
 
-    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
-    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
-    private static final String MESSAGE_LOGBOOK_DELETE_KO = "Le Référentiel de format n'a pas ou a partiellement été " +
-        "vidé";
-
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
-    private static final String STP_REFERENTIAL_FORMAT_DELETE = "STP_REFERENTIAL_FORMAT_DELETE";
+    private static final String STP_REFERENTIAL_FORMAT_DELETE = "STP_DELETE_FORMAT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
 
