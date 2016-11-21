@@ -112,7 +112,7 @@ public class ReferentialFormatFileImplTest {
     }
 
     @Test
-    public void testimportAndDeleteFormat() throws Exception {
+    public void testimportFormat() throws Exception {
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -127,8 +127,6 @@ public class ReferentialFormatFileImplTest {
         assertFalse(fileList.get(0).getBoolean("Alert"));
         assertEquals(fileList.get(0).getString("Group"), "");
         assertEquals(fileList.get(0).getString("Comment"), "");
-        formatFile.deleteCollection();
-        assertEquals(0, collection.count());
         client.close();
     }
 }

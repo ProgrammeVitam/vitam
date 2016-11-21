@@ -61,6 +61,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -70,6 +71,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -84,7 +86,6 @@ public class AdminManagementResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String CHECK_FORMAT_URI = "/format/check";
     private static final String IMPORT_FORMAT_URI = "/format/import";
-    private static final String DELETE_FORMAT_URI = "/format/delete";
 
     private static final String GET_BYID_FORMAT_URI = "/format";
     private static final String FORMAT_ID_URI = "/{id_format}";
@@ -93,7 +94,6 @@ public class AdminManagementResourceTest {
 
     private static final String CHECK_RULES_URI = "/rules/check";
     private static final String IMPORT_RULES_URI = "/rules/import";
-    private static final String DELETE_RULES_URI = "/rules/delete";
 
     private static final String GET_BYID_RULES_URI = "/rules";
     private static final String RULES_ID_URI = "/{id_rule}";
@@ -174,13 +174,9 @@ public class AdminManagementResourceTest {
     }
 
     @After
-    public void tearDown() {
-        with()
-            .when().delete(DELETE_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-        with()
-        .when().delete(DELETE_RULES_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+    public void tearDown() throws DatabaseException {
+		mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+    	mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
     }
 
     @Test
@@ -229,13 +225,6 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.JSON).body(register)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    @Test
-    public void deletePronom() {
-        given()
-            .when().delete(DELETE_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -361,13 +350,6 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public void deleteRulesFile() {
-        given()
-            .when().delete(DELETE_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 

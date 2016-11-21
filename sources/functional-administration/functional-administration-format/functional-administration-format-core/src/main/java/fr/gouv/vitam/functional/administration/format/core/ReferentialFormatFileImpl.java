@@ -39,7 +39,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -76,7 +75,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private static final String COLLECTION_NAME = "FileFormat";
 
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
-    private static final String STP_REFERENTIAL_FORMAT_DELETE = "STP_DELETE_FORMAT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
 
@@ -158,49 +156,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                     throw new ReferentialException(e1);
                 }
                 throw new ReferentialException(e);
-            }
-        }
-    }
-
-    @Override
-    public void deleteCollection() {
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final GUID eip = GUIDFactory.newGUID();
-            final LogbookOperationParameters logbookParametersStart =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, STP_REFERENTIAL_FORMAT_DELETE, eip,
-                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.STARTED), eip);
-            try {
-                client.create(logbookParametersStart);
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-            }
-
-            final GUID eip1 = GUIDFactory.newGUID();
-
-            LogbookOperationParameters logbookParametersEnd;
-            try {
-                mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-                logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, STP_REFERENTIAL_FORMAT_DELETE, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.OK), eip1);
-            } catch (DatabaseException exc) {
-                LOGGER.error(exc);
-                logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, STP_REFERENTIAL_FORMAT_DELETE, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_DELETE, StatusCode.KO), eip1);
-            }
-
-            try {
-                client.update(logbookParametersEnd);
-            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-
             }
         }
     }

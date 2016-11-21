@@ -35,9 +35,6 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())),
             Status.OK);
-        assertEquals(
-            client.deleteDocuments(AdminCollections.FORMATS),
-            Status.OK);
 
         assertEquals(
             client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),

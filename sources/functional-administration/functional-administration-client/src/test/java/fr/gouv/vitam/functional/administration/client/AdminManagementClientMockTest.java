@@ -70,12 +70,6 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void givenClientMockWhenDeleteThenReturnOK() throws FileFormatException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.deleteFormat();
-    }
-
-    @Test
     public void getFormatByIDTest() throws InvalidParseOperationException, ReferentialException {
         AdminManagementClientFactory.changeMode(null);
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
@@ -109,13 +103,6 @@ public class AdminManagementClientMockTest {
         throws FileFormatException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-    }
-
-    @Test
-    public void givenClientMockWhenDeleteRuleThenReturnOK()
-        throws FileFormatException, FileRulesException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        client.deleteRulesFile();
     }
 
     @Test

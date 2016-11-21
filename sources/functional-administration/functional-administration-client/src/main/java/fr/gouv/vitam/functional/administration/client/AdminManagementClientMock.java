@@ -72,11 +72,6 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public void deleteFormat() throws FileFormatException {
-        LOGGER.debug("Delete file format request:");
-    }
-
-    @Override
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get format by id request:");
@@ -105,12 +100,6 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("import file Rules request:");
         StreamUtils.closeSilently(stream);
-    }
-
-    @Override
-    public void deleteRulesFile() throws FileRulesException {
-        LOGGER.debug("Delete file rules request:");
-
     }
 
     @Override

@@ -59,12 +59,6 @@ public interface ReferentialFile<E> {
     void importFile(InputStream file)
         throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException;
 
-
-    /**
-     * delete Format Collection
-     */
-    void deleteCollection();
-
     /**
      * @param id of vitam document
      * @return vitam document

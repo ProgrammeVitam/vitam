@@ -258,13 +258,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test
-    public void whenDeteleFormatReturnKO() throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
-        client.deleteFormat();
-    }
-
-
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
@@ -317,17 +310,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test
-    public void whenDeteleRulesFileReturnKO() throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.deleteRulesFile();
-    }
-
-
     @Test(expected = FileRulesException.class)
     public void givenAnInvalidFileThenKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        final Select select = new Select();
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         client.importRulesFile(stream);

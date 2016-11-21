@@ -41,9 +41,6 @@ angular.module('core')
   'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
   'UNIT_LIFECYCLE_TYPE': 'unit',
   'OG_LIFECYCLE_TYPE': 'objectgroup',
-  'SIP_TO_UPLOAD_URL': '/upload/fileslist',
-  'UPLOAD_SELECTED_SIP_URL': '/upload/',
-  'GENERATE_STAT_URL': '/stat/',
   'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register',
   'CHECK_OPERATION_STATUS': '/check/',
   'CLEAR_OPERATION_STATUS_HISTORY': '/clear/'
@@ -102,21 +99,6 @@ angular.module('core')
   // Archive Tree
   dataFactory.getArchiveTree = function(unitId, allParents){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_TREE_URL + unitId, allParents);
-  };
-
-  //Get Available SIP on server for upload
-  dataFactory.getAvailableSipForUpload = function(){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.SIP_TO_UPLOAD_URL);
-  };
-
-  // upload selected SIP
-  dataFactory.uploadSelectedSip = function(selectedFile){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.UPLOAD_SELECTED_SIP_URL + selectedFile);
-  };
-
-  // Generate INGEST statistics report
-  dataFactory.generateIngestStatReport = function(operationId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.GENERATE_STAT_URL + operationId);
   };
 
   // Default Accession Register Search

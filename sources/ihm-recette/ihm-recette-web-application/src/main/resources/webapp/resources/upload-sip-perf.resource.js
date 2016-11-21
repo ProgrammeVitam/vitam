@@ -34,7 +34,6 @@ angular.module('core')
 
     var UploadSipPerfResource = {};
 
-
     //Get Available SIP on server for upload
     UploadSipPerfResource.getAvailableSipForUpload = function(){
       return $http.get(IHM_URLS.IHM_BASE_URL + SIP_TO_UPLOAD_URL);

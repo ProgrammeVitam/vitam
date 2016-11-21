@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -142,35 +141,6 @@ public class AdminManagementExternalResourceImpl {
             StreamUtils.closeSilently(document);
         }
 
-    }
-
-    /**
-     * deleteDocuments
-     * 
-     * @param collection
-     * @return Response
-     */
-    @Path("/{collection}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteDocuments(@PathParam("collection") String collection) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (AdminCollections.FORMATS.compareTo(collection)) {
-                client.deleteFormat();
-                return Response.status(Status.OK).build();
-            }
-            if (AdminCollections.RULES.compareTo(collection)) {
-                client.deleteRulesFile();
-                return Response.status(Status.OK).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        }
     }
 
     /**

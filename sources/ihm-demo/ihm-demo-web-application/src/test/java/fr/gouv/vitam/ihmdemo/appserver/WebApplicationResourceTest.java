@@ -582,24 +582,6 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testDeleteFormatOK() throws Exception {
-        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
-        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doReturn(Status.OK).when(adminClient).deleteDocuments(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
-
-        given().config(RestAssured.config()
-            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .expect()
-            .statusCode(Status.OK.getStatusCode()).when()
-            .delete("/format/delete");
-    }
-
-
-    @Test
     public void testCheckFormatOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
@@ -931,24 +913,6 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testDeleteRulesFileOK() throws Exception {
-        final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
-        final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doReturn(Status.OK).when(adminClient).deleteDocuments(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
-
-        PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
-        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
-
-        given().config(RestAssured.config()
-            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .expect()
-            .statusCode(Status.OK.getStatusCode()).when()
-            .delete("/rules/delete");
-    }
-
-
-    @Test
     public void testCheckRulesFileOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
@@ -1056,128 +1020,6 @@ public class WebApplicationResourceTest {
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
-    }
-
-    @Test
-    public void testGetLogbookStatisticsWithSuccess() throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
-            .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
-        throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
-            .thenThrow(LogbookClientException.class);
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
-        throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
-            .thenThrow(InvalidParseOperationException.class);
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @Test
-    public void testGetAvailableFilesListWithSuccess() {
-        given().expect().statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
-    }
-
-    @Test
-    public void testUploadFileFromServerSuccess() throws Exception {
-        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
-        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-
-        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
-        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject());
-
-        given().param("file_name", "SIP.zip").expect().statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/upload/SIP.zip");
-    }
-
-    @Test
-    public void testUploadFileFromServerWithInternalServerWhenFileNotFound() throws Exception {
-        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
-        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-
-        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
-        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject());
-
-        given().param("file_name", "SIP_NOT_FOUND.zip").expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/SIP_NOT_FOUND.zip");
-    }
-
-    @Test
-    public void testUploadFileFromServerWithInternalServerWhenVitamException() throws Exception {
-        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
-        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-
-        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
-        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject());
-
-        given().param("file_name", "SIP.zip").expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/SIP.zip");
-    }
-
-    @Test
-    public void testGetAvailableFilesListWithInternalSererWhenBadSipDirectory() {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory("SIP_DIRECTORY_NOT_FOUND");
-
-        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
-    }
-
-    @Test
-    public void testGetAvailableFilesListWithInternalSererWhenNotConfiguredSipDirectory() {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory(null);
-
-        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
-    }
-
-    @Test
-    public void testUploadFileFromServerWithInternalServerWhenNotConfiguredSipDirectory() throws VitamException {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory(null);
-
-        given().param("file_name", "SIP.zip").expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/SIP.zip");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
 
     @Test

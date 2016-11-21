@@ -1,7 +1,7 @@
 {
    "query": "",
    "hits": "",
-   "result":
+   "$results": [
    { "_id":"aeaaaaaaaaagszlsaappoakxpkqwqdiaaaaq",
     "evId":"aeaaaaaaaaagszlsaapruakxpkqv4lyaaabq",
     "evType":"Process_SIP_unitary",
@@ -232,6 +232,6 @@
         }
     ],
     "_tenant":0
-}
+}]
 }
 

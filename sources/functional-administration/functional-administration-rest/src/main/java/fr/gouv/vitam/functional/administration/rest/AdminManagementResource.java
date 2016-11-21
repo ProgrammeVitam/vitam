@@ -178,24 +178,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     * @return Response
-     * @throws FileFormatException when delete exception
-     */
-    @Path("format/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() throws FileFormatException {
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
-            formatManagement.deleteCollection();
-            return Response.status(Status.OK).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        }
-    }
-
-    /**
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
@@ -340,25 +322,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status).entity(status).build();
         } finally {
             StreamUtils.closeSilently(rulesStream);
-        }
-
-    }
-
-    /**
-     * @return Response
-     * @throws FileRulesException when delete exception
-     */
-    @Path("rules/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRulesFile() throws FileRulesException {
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
-            rulesFileManagement.deleteCollection();
-            return Response.status(Status.OK).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
         }
 
     }

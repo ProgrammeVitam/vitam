@@ -49,6 +49,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.ResponseBody;
 
@@ -57,13 +58,16 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -75,6 +79,8 @@ public class WebApplicationResourceTest {
     // take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String FAKE_OPERATION_ID = "1";
+    private static JsonNode sampleLogbookOperation;
+    private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
     private static JunitHelper junitHelper;
     private static int port;
 
@@ -98,6 +104,8 @@ public class WebApplicationResourceTest {
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
+        sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
+        
         try {
             application = new ServerApplicationWithoutMongo(adminConfigFile.getAbsolutePath());
             application.start();
@@ -123,6 +131,42 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(SoapUiClientFactory.class);
     }
 
+    @Test
+    public void testGetLogbookStatisticsWithSuccess() throws LogbookClientException, InvalidParseOperationException {
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
+            .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
+        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get("/stat/" + FAKE_OPERATION_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
+        throws LogbookClientException, InvalidParseOperationException {
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
+            .thenThrow(LogbookClientException.class);
+        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/stat/" + FAKE_OPERATION_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
+        throws LogbookClientException, InvalidParseOperationException {
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
+            .thenThrow(InvalidParseOperationException.class);
+        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .get("/stat/" + FAKE_OPERATION_ID);
+    }
+
+    @Test
+    public void testGetAvailableFilesListWithSuccess() {
+        given().expect().statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/upload/fileslist");
+    }
+    
     @Test
     public void testUploadFileFromServerSuccess() throws Exception {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);

@@ -77,9 +77,6 @@ module('ihm.demo').
       when('/admin/importFileRules', {
         templateUrl: "views/import-FileRules.html"
       }).
-      when('/admin/recette', {
-        templateUrl: "views/recette-features.html"
-      }).
       when('/admin/journalOperations', {
         template: '<all-logbook-operation></all-logbook-operation>'
       }).

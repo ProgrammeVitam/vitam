@@ -62,13 +62,6 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
-     * Delete format collection for user test purpose, no check !
-     *
-     * @throws ReferentialException when delete exception occurs
-     */
-    void deleteFormat() throws ReferentialException;
-
-    /**
      * @param id as String
      * @return JsonNode
      * @throws ReferentialException check exception occurs
@@ -107,14 +100,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     void importRulesFile(InputStream stream)
         throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
-
-    /**
-     *
-     * @throws FileRulesException
-     * @throws AdminManagementClientServerException
-     */
-
-    void deleteRulesFile() throws FileRulesException, AdminManagementClientServerException;
 
     /**
      *

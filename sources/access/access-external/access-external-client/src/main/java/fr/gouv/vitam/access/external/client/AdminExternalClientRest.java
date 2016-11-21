@@ -133,23 +133,4 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override
-    public Status deleteDocuments(AdminCollections documentType) throws AccessExternalClientException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        try {
-            response = performRequest(HttpMethod.DELETE, documentType.getName(), headers,MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
-            }
-            return Status.fromStatusCode(response.getStatus());
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
 }
