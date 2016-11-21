@@ -48,4 +48,5 @@
     mode: "{{ vitam_conf_permission}}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+  ignore_errors: yes
   when: (ansible_virtualization_type != 'docker') and (response is defined)
