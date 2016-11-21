@@ -445,7 +445,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                .entity(new RequestResponseOK()
+                .entity(responseOK
                     .setHits(nb, 0, nb).setQuery(nodeQuery));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
@@ -727,8 +727,8 @@ public class LogbookResource extends ApplicationStatusResource {
                 nodeQuery = JsonHandler.getFromString(query);
                 cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, nodeQuery);
             }
-            fr.gouv.vitam.common.model.RequestResponseOK responseOK =
-                new fr.gouv.vitam.common.model.RequestResponseOK().setQuery(nodeQuery);
+            RequestResponseOK responseOK =
+                new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
@@ -740,7 +740,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
+                .entity(responseOK
                     .setHits(nb, 0, nb).setQuery(nodeQuery));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {

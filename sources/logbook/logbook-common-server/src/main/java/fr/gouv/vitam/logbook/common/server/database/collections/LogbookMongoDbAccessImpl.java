@@ -103,6 +103,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final String CREATION_ISSUE = "Creation issue";
     private static final String UPDATE_ISSUE = "Update issue";
     private static final String ROLLBACK_ISSUE = "Rollback issue";
+    
+    static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
+    
     /**
      * Quick projection for ID Only
      */
@@ -511,7 +514,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
-        parser.addProjection(JsonHandler.createObjectNode(), DEFAULT_ALLKEYS);
+        parser.addProjection(DEFAULT_SLICE_WITH_ALL_EVENTS, DEFAULT_ALLKEYS);
         return selectExecute(collection, parser);
     }
 

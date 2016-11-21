@@ -104,7 +104,8 @@ public class ProcessingIT {
     static MongodProcess mongod;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -164,6 +165,9 @@ public class ProcessingIT {
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-processing/SIP_Conformity_KO.zip";
     private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
+    private static String SIP_WITHOUT_OBJ = "integration-processing/OK_SIP_sans_objet.zip";
+    private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
+
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -685,7 +689,7 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflow_withoutObjectGroups() throws Exception {
+    public void testWorkflowWithoutObjectGroups() throws Exception {
         try {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -721,6 +725,81 @@ public class ProcessingIT {
         }
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowWithSipWithoutObject() throws Exception {
+        try {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_OBJ);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // File formar warning state
+            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowKOwithATRKOFilled() throws Exception {
+        try {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_FUND_REGISTER);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // File formar warning state
+            assertEquals(StatusCode.KO, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
 
     public void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
