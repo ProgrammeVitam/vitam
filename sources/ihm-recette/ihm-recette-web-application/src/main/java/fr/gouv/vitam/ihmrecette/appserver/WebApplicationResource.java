@@ -45,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -72,6 +73,9 @@ import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 /**
  * Web Application Resource class
@@ -209,7 +213,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD)).get(0);
                 // Create csv file
-                final ByteArrayOutputStream csvOutputStream = 
+                final ByteArrayOutputStream csvOutputStream =
                         JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
                 final ResponseBuilder response = Response.ok(csvOutArray);
@@ -268,7 +272,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Launch soap UI test
-     * 
+     *
      * @return the response status (no entity)
      */
     @GET
@@ -304,7 +308,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Check if soap UI test is running
-     * 
+     *
      * @return the response status (no entity)
      */
     @GET
@@ -316,7 +320,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * get last SOAP-UI tests results as Json Node
-     * 
+     *
      * @return the result as json if Status is OK.
      */
     @GET
@@ -330,6 +334,27 @@ public class WebApplicationResource extends ApplicationStatusResource {
             result = soapUi.getLastTestReport();
         } catch (InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be create", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    /**
+     *
+     * @return
+     * @throws LogbookClientServerException
+     */
+    @POST
+    @Path("/operations/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceability() throws LogbookClientServerException {
+        LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        RequestResponseOK result;
+        try {
+            result = logbookOperationsClient.traceability();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("The reporting json can't be created", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
         }

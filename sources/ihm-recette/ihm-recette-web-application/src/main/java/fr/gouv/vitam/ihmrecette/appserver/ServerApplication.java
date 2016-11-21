@@ -51,6 +51,7 @@ import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
@@ -129,11 +131,6 @@ public class ServerApplication extends
     @Override
     protected int getSession() {
         return ServletContextHandler.SESSIONS;
-    }
-
-    @Override
-    protected void platformSecretConfiguration() {
-        // No PlatformSecretConfiguration for IHM
     }
 
     /**

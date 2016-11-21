@@ -27,18 +27,8 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability'
-]);
+// Register `operation Traceability` component, along with its associated controller and template
+angular.module('operation.traceability').component('operationTraceability', {
+    templateUrl: 'pages/operation-traceability/operation-traceability.template.html',
+    controller: 'operationTraceabilityController'
+});
