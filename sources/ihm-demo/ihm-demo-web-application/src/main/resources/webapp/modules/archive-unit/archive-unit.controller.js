@@ -59,7 +59,7 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $http, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog){
+                                                $mdDialog, transferToIhmResult){
 
     var self = this;
 
@@ -238,7 +238,7 @@ angular.module('archive.unit')
               self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
             } else {
               // Archive unit found
-              self.archiveFields = data.$results[0];
+              self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
               //get archive object groups informations to be displayed in the table
               ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
                 .then(function (response) {
@@ -286,7 +286,8 @@ angular.module('archive.unit')
           console.log("errorMsg");
         } else {
           // Archive unit found
-          self.archiveFields = data.$results[0];
+          var results = transferToIhmResult.transferUnit(data.$results);
+          self.archiveFields = results[0];
 
           //get archive object groups informations to be displayed in the table
           ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)

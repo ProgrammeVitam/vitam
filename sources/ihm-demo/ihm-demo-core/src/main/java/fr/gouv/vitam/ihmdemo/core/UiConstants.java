@@ -42,17 +42,17 @@ public enum UiConstants {
     TITLE("Title", "Title"),
 
     /**
-     * "_id" field
+     * "#id" field
      */
-    ID("#id", "_id"),
+    ID("#id", "#id"),
 
     /**
-     * "_up" field
+     * "#up" field
      */
-    UNITUPS("#unitups", "_up"),
+    UNITUPS("#unitups", "#up"),
 
     /**
-     * "_up" field
+     * "#results" field
      */
     RESULT("$results", "$results");
 
