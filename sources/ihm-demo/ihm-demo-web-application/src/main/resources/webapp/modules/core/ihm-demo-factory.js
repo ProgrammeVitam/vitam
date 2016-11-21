@@ -89,7 +89,7 @@ angular.module('core')
   dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
     return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId + '?usage=' + encodeURIComponent(options.usage) + '&version=' + encodeURIComponent(options.version) + '&filename=' + encodeURIComponent(options.filename);
   };
-  
+
   // LifeCycle details
   dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
     if (IHM_URLS.UNIT_LIFECYCLE_TYPE == lifeCycleType) {
@@ -228,4 +228,25 @@ angular.module('core')
       }
     }
 
+  })
+  .factory('transferToIhmResult', function(){
+    return {
+        transferUnit : function(Result){
+         Result.forEach(function(unit) {
+            unit._id = unit["#id"];
+            delete unit["#id"];
+            unit._og = unit["#object"];
+            delete unit["#object"];
+            unit._us = unit["#unitups"];
+            delete unit["#unitups"];
+            unit._ops = unit["#operations"];
+            delete unit["#operations"];
+            unit._tenant = unit["#tenant"];
+            delete unit["#tenant"];
+            unit._nbc = unit["#nbunits"];
+            delete unit["#nbunits"];
+        });
+        return Result;
+      }
+    }
   });

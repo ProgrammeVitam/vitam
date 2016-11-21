@@ -509,9 +509,13 @@ public abstract class BuilderToken {
          */
         ID("id"),
         /**
-         * Number of units from each result (Unit = subUnit, ObjectGroup = objects)
+         * Number of units immediate children from this Unit
          */
         NBUNITS("nbunits"),
+        /**
+         * Number of objects within ObjectGroup
+         */
+        NBOBJECTS("nbobjects"),
         /**
          * All Dua for the result
          */
@@ -527,15 +531,21 @@ public abstract class BuilderToken {
         /**
          * Object size
          */
+        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
+        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
          */
         TYPE("type"),
+        /**
+         * Unit/ObjectGroup Tenant
+         */
+        TENANT("tenant"),
         /**
          * Unit's ObjectGroup
          */
@@ -544,6 +554,10 @@ public abstract class BuilderToken {
          * Unit's immediate parents
          */
         UNITUPS("unitups"),
+        /**
+         * All Unit's parents
+         */
+        ALLUNITUPS("allunitups"),
         /**
          * Unit or GOT's list of participating operations
          */

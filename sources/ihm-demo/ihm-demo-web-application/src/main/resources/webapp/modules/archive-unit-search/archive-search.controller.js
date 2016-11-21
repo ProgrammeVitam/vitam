@@ -49,17 +49,9 @@ angular
    'NO_CRITERIA_SET': 'Aucun résultat. Veuillez entrer au moins un critère de recherche'
   })
  .controller(
-  'ArchiveUnitSearchController', [
-   '$scope',
-   'ihmDemoFactory',
-   '$window',
-   '$mdToast',
-   '$mdDialog',
-   'ARCHIVE_SEARCH_MODULE_CONST',
-   'archiveDetailsService',
-   'dateValidator',
+  'ArchiveUnitSearchController',
    function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,
-    ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator) {
+    ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult) {
 
     // ******************************* Alert diplayed
     // ******************************* //
@@ -98,7 +90,7 @@ angular
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
          } else {
-          $scope.archiveUnitsSearchResult = response.data.$results;
+          $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
           $scope.showResult = true;
           $scope.error = false;
 
@@ -334,7 +326,7 @@ angular
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
           } else {
-           $scope.archiveUnitsSearchResult = response.data.$results;
+           $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
            $scope.showResult = true;
            $scope.error = false;
 
@@ -363,5 +355,4 @@ angular
      // ***************************************************************************
      // //
 
-   }
-  ]);
+   });

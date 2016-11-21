@@ -62,9 +62,13 @@ public class ParserTokens extends BuilderToken {
          */
         ID("id"),
         /**
-         * Number of units from each result (Unit = subUnit, ObjectGroup = objects)
+         * Number of units immediate children from this Unit
          */
         NBUNITS("nbunits"),
+        /**
+         * Number of objects within ObjectGroup
+         */
+        NBOBJECTS("nbobjects"),
         /**
          * All Dua for the result
          */
@@ -80,15 +84,21 @@ public class ParserTokens extends BuilderToken {
         /**
          * Object size
          */
+        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
+        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
          */
         TYPE("type"),
+        /**
+         * Unit/ObjectGroup Tenant
+         */
+        TENANT("tenant"),
         /**
          * Unit's ObjectGroup
          */
@@ -97,6 +107,10 @@ public class ParserTokens extends BuilderToken {
          * Unit's immediate parents
          */
         UNITUPS("unitups"),
+        /**
+         * All Unit's parents
+         */
+        ALLUNITUPS("allunitups"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -156,10 +170,13 @@ public class ParserTokens extends BuilderToken {
                         case FORMAT:
                         case ID:
                         case NBUNITS:
+                        case NBOBJECTS:
                         case QUALIFIERS:
                         case SIZE:
                         case OBJECT:
                         case UNITUPS:
+                        case ALLUNITUPS:
+                        case TENANT:
                             return true;
                         default:
                     }

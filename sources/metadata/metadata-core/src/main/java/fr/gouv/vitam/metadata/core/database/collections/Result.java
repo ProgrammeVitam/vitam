@@ -37,7 +37,11 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBList;
 
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Abstract class for Result
@@ -47,7 +51,7 @@ public abstract class Result {
     /**
      * Field containing the full documents result as an array of document
      */
-    public static final String RESULT_FIELD = "Result";
+    public static final String RESULT_FIELD = "results";
 
     /**
      * Current Units in the result
@@ -138,7 +142,9 @@ public abstract class Result {
      * @return this
      */
     public Result addId(String id) {
-        currentIds.add(id);
+        if (id != null) {
+            currentIds.add(id);
+        }
         return this;
     }
 
@@ -175,6 +181,42 @@ public abstract class Result {
             finalResult = new Document(RESULT_FIELD, null);
         }
         return finalResult;
+    }
+
+    /**
+     * 
+     * @return the filtered list for Select operation
+     * @throws InvalidParseOperationException 
+     */
+    public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
+        VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
+        LOGGER.error(this.toString());
+        if (finalResult == null) {
+            if (nbResult != 0) {
+                throw new InvalidParseOperationException("Invalid number of Result and List of results");
+            }
+            return SingletonUtils.singletonList();
+        }
+        
+        BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
+        if (result == null) {
+            if (nbResult != 0) {
+                throw new InvalidParseOperationException("Invalid number of Result and List of results");
+            }
+            return SingletonUtils.singletonList();
+        }
+        
+        int size = result.size();
+        if (size != nbResult) {
+            throw new InvalidParseOperationException("Invalid number of Result and List of results");
+        }
+        List<MetadataDocument<?>> list = new ArrayList<>(size);
+        for (Object object : result) {
+            MetadataDocument<?> metadataDocument = (MetadataDocument<?>) object;
+            MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
+            list.add(metadataDocument);
+        }
+        return list;
     }
 
     /**

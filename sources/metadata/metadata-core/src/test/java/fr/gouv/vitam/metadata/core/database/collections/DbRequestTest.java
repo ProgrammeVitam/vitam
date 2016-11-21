@@ -904,7 +904,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         LOGGER.debug("InsertParser: {}", insertParser);
         final Result result = dbRequest.execRequest(insertParser, null);
-        assertEquals("Document{{Result=null}}", result.getFinal().toString());
+        assertEquals("Document{{results=null}}", result.getFinal().toString());
 
         final Bson projection = null;
         result.setFinal(projection);
@@ -1083,7 +1083,7 @@ public class DbRequestTest {
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result = dbRequest.execRequest(selectParser, null);
-        assertEquals("Document{{Result=null}}", result.getFinal().toString());
+        assertEquals("Document{{results=null}}", result.getFinal().toString());
 
     }
 

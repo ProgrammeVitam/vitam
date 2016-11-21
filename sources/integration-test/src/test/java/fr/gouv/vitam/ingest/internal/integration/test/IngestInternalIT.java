@@ -354,7 +354,7 @@ public class IngestInternalIT {
             assertNotNull(result);
             JsonNode unit = result.get(0);
             assertNotNull(unit);
-            String og = unit.get("_og").asText();
+            String og = unit.get("#object").asText();
             assertNotNull(og);
             // Try to check OG
             select = new Select();

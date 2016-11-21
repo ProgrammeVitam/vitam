@@ -8,8 +8,8 @@
   "$context": {},
   "$results": [
     {
-      "_id": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
-      "_qualifiers": {
+      "#id": "aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq",
+      "#qualifiers": {
         "BinaryMaster": {
           "nb": 2,
           "versions": [
@@ -133,7 +133,7 @@
           ]
         }
       },
-      "_dom": 0
+      "#dom": 0
     }
   ]
 }

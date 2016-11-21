@@ -77,9 +77,9 @@ public final class MetadataJsonResponseUtils {
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
         if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
-            result.getFinal().get("Result") != null)) {
+            result.getFinal().get(Result.RESULT_FIELD) != null)) {
             LOGGER.debug("Result document: " + result.getFinal().toJson());
-            jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getFinal().get("Result"));
+            jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getMetadataDocumentListFiltered());
         } 
 
         LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());

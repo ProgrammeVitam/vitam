@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -60,7 +61,7 @@ public class UnitsRulesComputeHandlerTest {
     private InputStream archiveUnit;
     private HandlerIOImpl action;
 
-    public UnitsRulesComputeHandlerTest() throws FileNotFoundException {
+    public UnitsRulesComputeHandlerTest() throws FileNotFoundException { 
 
     }
 
@@ -74,7 +75,7 @@ public class UnitsRulesComputeHandlerTest {
         adminManagementClient = mock(AdminManagementClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl("containerName", "workerId");
+        action = new HandlerIOImpl(GUIDFactory.newGUID().toString(), GUIDFactory.newGUID().toString());
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE);
