@@ -57,15 +57,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         super(factory);
     }
 
-    // FIXME P0 remplacer partout les String query par JsonNode query OU proposer les 2 options
     @Override
-    public RequestResponse selectUnits(String selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+    public RequestResponse selectUnits(JsonNode selectQuery)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
-        if (StringUtils.isBlank(selectQuery)) {
+        if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
 
@@ -91,13 +91,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitbyId(String selectQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
-        if (StringUtils.isBlank(selectQuery)) {
+        if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         if (StringUtils.isEmpty(unitId)) {
@@ -126,13 +127,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse updateUnitbyId(String updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
-
+    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-
-        if (StringUtils.isBlank(updateQuery)) {
+        if (updateQuery == null || updateQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         if (StringUtils.isEmpty(unitId)) {
@@ -140,7 +139,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
 
         try {
-            response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
+            response = performRequest(HttpMethod.PUT, UNITS + unitId, null,
                 updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -152,6 +151,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
+
         } catch (VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -162,16 +162,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(String selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-
         try {
-            response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
+            response = performRequest(HttpMethod.GET, "/objects/" + objectId, null,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
@@ -197,8 +196,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObject(String selectObjectQuery, String objectId, String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
@@ -241,7 +241,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperation(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -299,9 +300,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, new MultivaluedHashMap<>(),
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+            response =
+                performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null,
+                    emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -325,7 +327,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, new MultivaluedHashMap<>(),
+            response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
+                null,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -385,8 +388,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
         try {
-            response = performRequest(HttpMethod.POST, 
-                AccessCollections.ACCESSION_REGISTER.getName() + "/" + id + "/" + AccessCollections.ACCESSION_REGISTER_DETAIL.getName(), headers,
+            response = performRequest(HttpMethod.POST,
+                AccessCollections.ACCESSION_REGISTER.getName() + "/" + id + "/" +
+                    AccessCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                headers,
                 query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {

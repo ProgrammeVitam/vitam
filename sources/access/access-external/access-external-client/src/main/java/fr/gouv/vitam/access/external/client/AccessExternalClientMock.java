@@ -13,7 +13,9 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -22,38 +24,43 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
 
     @Override
-    public RequestResponse selectUnits(String selectQuery) throws InvalidParseOperationException {
-        return ClientMockResultHelper.getArchiveUnitResult();
+    public RequestResponse selectUnits(JsonNode selectQuery) throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public RequestResponse selectUnitbyId(String selectQuery, String unitId) throws InvalidParseOperationException {
-        return ClientMockResultHelper.getArchiveUnitResult();
+    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId) throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public RequestResponse updateUnitbyId(String updateQuery, String unitId) throws InvalidParseOperationException {
-        return ClientMockResultHelper.getArchiveUnitResult();
+    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId) throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public Response getObject(String selectQuery, String objectId, String usage, int version) throws InvalidParseOperationException {
+    public Response getObject(JsonNode selectQuery, String objectId, String usage, int version)
+        throws InvalidParseOperationException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
-    public RequestResponse selectObjectById(String selectQuery, String unitId) throws InvalidParseOperationException {
+    public RequestResponse selectObjectById(JsonNode selectQuery, String unitId) throws InvalidParseOperationException {
         return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override
-    public RequestResponse selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperation(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbooksRequestResponse();
     }
 
     @Override
-    public RequestResponse selectOperationbyId(String processId) throws InvalidParseOperationException{
+    public RequestResponse selectOperationbyId(String processId) throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
     }
 
