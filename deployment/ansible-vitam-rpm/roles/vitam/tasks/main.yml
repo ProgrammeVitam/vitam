@@ -44,7 +44,7 @@
   yum:
     name: "{{ rpm_name }}{% if rpm_version != '*' %}-{{rpm_version}}{% endif %}"
     state: latest
-    update_cache: yes
+
 # OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
