@@ -36,6 +36,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * Logbook client interface
@@ -153,7 +154,7 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commitCreateDelegate(String eventIdProc) 
+    void commitCreateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
@@ -167,17 +168,18 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commitUpdateDelegate(String eventIdProc) 
+    void commitUpdateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
 
     /**
      * Call traceability logbook operation <br>
      * <br>
+     * 
      * @return logbook operation as String
-     * @throws LogbookClientServerException 
-     * @throws InvalidParseOperationException 
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
      */
-    JsonNode traceability() throws  LogbookClientServerException, InvalidParseOperationException ;
+    RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException;
 
 }
