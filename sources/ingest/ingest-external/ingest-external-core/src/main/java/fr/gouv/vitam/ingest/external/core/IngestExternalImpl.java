@@ -82,20 +82,40 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
-    private static final int STATUS_ANTIVIRUS_KO = 2;
-    private static final int STATUS_ANTIVIRUS_WARNING = 1;
-    private static final int STATUS_ANTIVIRUS_OK = 0;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
+
+
     private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
+
+    private static final String CAN_NOT_SCAN_VIRUS = "Can not scan virus";
+
+    private static final String CAN_NOT_STORE_FILE = "Can not store file";
+
+    private static final String IS_NOT_SUPPORTED = " is not supported";
+
+    private static final String SIP_FORMAT = "SIP format :";
+
+    private static final String SIP_WRONG_FORMAT = "SIP Wrong format : ";
+
+    private static final String BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION = "Begin siegFried format identification";
+
+    private static final String CAN_NOT_READ_FILE = "Can not read file";
+    private static final int STATUS_ANTIVIRUS_KO = 2;
+    private static final int STATUS_ANTIVIRUS_WARNING = 1;
+    private static final int STATUS_ANTIVIRUS_OK = 0;
+
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
     private static final String PRONOM_NAMESPACE = "pronom";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
-    private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
+
+
+    private final IngestExternalConfiguration config;
+
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
@@ -155,7 +175,7 @@ public class IngestExternalImpl implements IngestExternal {
                     workspaceFileSystem.createContainer(containerName.toString());
                 }
             } catch (final ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.error("Can not store file", e);
+                LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
             try {
@@ -163,7 +183,7 @@ public class IngestExternalImpl implements IngestExternal {
                     workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
                 }
             } catch (final ContentAddressableStorageException e) {
-                LOGGER.error("Can not store file", e);
+                LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
             String containerNamePath = containerName != null ? containerName.getId() : "containerName";
@@ -171,8 +191,8 @@ public class IngestExternalImpl implements IngestExternal {
             final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
             File file = new File(filePath);
             if (!file.canRead()) {
-                LOGGER.error("Can not read file");
-                throw new IngestExternalException("Can not read file");
+                LOGGER.error(CAN_NOT_READ_FILE);
+                throw new IngestExternalException(CAN_NOT_READ_FILE);
             }
             int antiVirusResult;
 
@@ -185,6 +205,9 @@ public class IngestExternalImpl implements IngestExternal {
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.STARTED),
                     containerName);
+            // SANITY_CHECK_SIP.STARTED
+            helper.updateDelegate(antivirusParameters);
+
             try {
                 /*
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
@@ -192,7 +215,7 @@ public class IngestExternalImpl implements IngestExternal {
                  */
                 antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
             } catch (final Exception e) {
-                LOGGER.error("Can not scan virus", e);
+                LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
             }
 
@@ -251,11 +274,14 @@ public class IngestExternalImpl implements IngestExternal {
                         StatusCode.STARTED,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.STARTED),
                         containerName);
+                // CHECK_CONTAINER.STARTED
+                helper.updateDelegate(formatParameters);
+
                 formatParameters.setStatus(StatusCode.OK)
                     .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));
                 try {
-                    LOGGER.debug("Begin siegFried format identification");
+                    LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
                     // instantiate SiegFried
                     FormatIdentifier formatIdentifier =
                         FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
@@ -268,12 +294,12 @@ public class IngestExternalImpl implements IngestExternal {
                         formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO));
                     } else {
-                        LOGGER.debug("SIP format :" + format.getMimetype());
+                        LOGGER.debug(SIP_FORMAT + format.getMimetype());
                         if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
                             mimeType = format.getMimetype();
                             isSupportedMedia = true;
                         } else {
-                            LOGGER.error("SIP Wrong format : " + format.getMimetype() + " is not supported");
+                            LOGGER.error(SIP_WRONG_FORMAT + format.getMimetype() + IS_NOT_SUPPORTED);
                             formatParameters.setStatus(StatusCode.KO);
                             formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                                 VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO, format.getMimetype()));
