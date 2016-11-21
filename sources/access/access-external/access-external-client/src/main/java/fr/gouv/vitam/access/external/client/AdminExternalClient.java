@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * Admin External Client Interface
@@ -91,7 +92,7 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientException 
      * @throws InvalidParseOperationException 
      */
-    JsonNode findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
     
     /**
      * findDocumentById
@@ -102,5 +103,5 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException;
 }

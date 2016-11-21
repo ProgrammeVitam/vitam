@@ -93,7 +93,7 @@ angular
        .then(
         function(response) {
 
-         if (response.data.$results == null || response.data.$results == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+         if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined) {
           $scope.error = true;
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
@@ -103,7 +103,7 @@ angular
           $scope.error = false;
 
           // Set Total result
-          $scope.totalResult = response.data.$hint.total;
+          $scope.totalResult = response.data.$hits.total;
 
           // ************************************Pagination
           // ****************************
@@ -165,12 +165,12 @@ angular
      };
 
      var displayFormCallBack = function(data) {
-      if (data.$results == null || data.$results == undefined || data.$hint == null || data.$hint == undefined) {
+      if (data.$results == null || data.$results == undefined || data.$hits == null || data.$hits == undefined) {
        $scope.error = true;
        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
        $scope.showAlert($event, "Erreur", $scope.errorMessage);
       } else {
-       $scope.totalFoundArchive = data.$hint.total;
+       $scope.totalFoundArchive = data.$hits.total;
        if ($scope.totalFoundArchive != 1) {
         console.log('Archive unit not found');
         $scope.error = true;
@@ -328,7 +328,7 @@ angular
         .then(
          function(response) {
 
-          if (response.data.$results == null || response.data.$results == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+          if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined) {
            $scope.error = true;
            $scope.showResult = false;
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
@@ -339,7 +339,7 @@ angular
            $scope.error = false;
 
            // Set Total result
-           $scope.totalResult = response.data.$hint.total;
+           $scope.totalResult = response.data.$hits.total;
 
            // ******************************** Pagination ****************************** //
            $scope.totalItems = $scope.archiveUnitsSearchResult.length;

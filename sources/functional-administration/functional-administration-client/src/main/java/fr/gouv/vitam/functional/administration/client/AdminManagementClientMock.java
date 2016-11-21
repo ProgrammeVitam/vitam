@@ -80,7 +80,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get format by id request:");
-        return ClientMockResultHelper.getFormat();
+        return ClientMockResultHelper.getFormat().toJsonNode();
     }
 
     @Override
@@ -89,7 +89,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document format request:");
-        return ClientMockResultHelper.getFormatList();
+        return ClientMockResultHelper.getFormatList().toJsonNode();
     }
 
     @Override
@@ -117,7 +117,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get rule by id request:");
-        return ClientMockResultHelper.getRuleList();
+        return ClientMockResultHelper.getRuleList().toJsonNode();
     }
 
     @Override
@@ -126,7 +126,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
-        return ClientMockResultHelper.getRule();
+        return ClientMockResultHelper.getRule().toJsonNode();
     }
 
     @Override
@@ -146,7 +146,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         throws InvalidParseOperationException, ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Register Fund request:");
-        return ClientMockResultHelper.getAccessionRegisterSummary();
+        return ClientMockResultHelper.getAccessionRegisterSummary().toJsonNode();
     }
 
     @Override
@@ -154,6 +154,6 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         throws InvalidParseOperationException, ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Accession Register request:");
-        return ClientMockResultHelper.getAccessionRegisterDetail();
+        return ClientMockResultHelper.getAccessionRegisterDetail().toJsonNode();
     }
 }

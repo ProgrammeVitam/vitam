@@ -89,7 +89,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.createLogbookResult();
+        return ClientMockResultHelper.getLogbookResults();
     }
 
     @Override

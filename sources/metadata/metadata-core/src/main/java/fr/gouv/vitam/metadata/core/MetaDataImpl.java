@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
@@ -162,7 +163,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsByQuery(JsonNode selectQuery)
+    public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
@@ -171,7 +172,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsById(JsonNode selectQuery, String unitId)
+    public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
@@ -179,7 +180,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
+    public ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
@@ -189,12 +190,12 @@ public class MetaDataImpl implements MetaData {
 
     // FIXME P0 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
-    private JsonNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
+    private ArrayNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse;
+        ArrayNode arrayNodeResponse;
         if (selectQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
@@ -222,21 +223,21 @@ public class MetaDataImpl implements MetaData {
             }
             // Execute DSL request
             result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest, selectQuery);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
             MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return jsonNodeResponse;
+        return arrayNodeResponse;
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse;
+        ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
@@ -270,7 +271,7 @@ public class MetaDataImpl implements MetaData {
             final Map<String, List<String>> diffs = new HashMap<>();
             diffs.put(unitId, getConcernedDiffLines(getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs, updateQuery);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
@@ -279,7 +280,7 @@ public class MetaDataImpl implements MetaData {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return jsonNodeResponse;
+        return arrayNodeResponse;
     }
 
     private JsonNode getUnitById(String id)

@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
@@ -152,7 +153,7 @@ public class ClientMockResultHelper {
      * @return a default Logbook Result
      * @throws InvalidParseOperationException
      */
-    public static JsonNode createLogbookResult() throws InvalidParseOperationException {
+    public static JsonNode getLogbookResults() throws InvalidParseOperationException {
         StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
             result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",").append(LOGBOOK_OPERATION);
@@ -163,6 +164,23 @@ public class ClientMockResultHelper {
         result.append("]}");
         return JsonHandler.getFromString(result.toString());
     }  
+    
+    /**
+     * @return a default Logbook response Result
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getLogbooksRequestResponse() throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(getLogbookResults());
+    }
+    
+    /**
+     * @return one default Logbook response
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getLogbookRequestResponse() throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(getLogbookOperation());
+    }
+    
     /**
      * @return a default Logbook Operation
      * @throws InvalidParseOperationException
@@ -176,12 +194,11 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    private static JsonNode createReponse(String s) throws InvalidParseOperationException {
-        RequestResponseOK response = new RequestResponseOK();
-        response.setHits(1, 0, 1);
-        response.setQuery(null);
-        response.addResult(JsonHandler.getFromString(s));
-        return JsonHandler.toJsonNode(response);
+    public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
+        return new RequestResponseOK()
+            .setHits(1, 0, 1)
+            .setQuery(null)
+            .addResult(JsonHandler.getFromString(s));
     }
 
     /**
@@ -189,7 +206,7 @@ public class ClientMockResultHelper {
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getAccessionRegisterSummary() throws InvalidParseOperationException {
+    public static RequestResponse getAccessionRegisterSummary() throws InvalidParseOperationException {
         return createReponse(ACCESSION_SUMMARY);
     }
 
@@ -198,7 +215,7 @@ public class ClientMockResultHelper {
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getAccessionRegisterDetail() throws InvalidParseOperationException {
+    public static RequestResponse getAccessionRegisterDetail() throws InvalidParseOperationException {
         return createReponse(ACCESSION_DETAIL);
     }
 
@@ -207,7 +224,7 @@ public class ClientMockResultHelper {
      * @return a default Format
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getFormat() throws InvalidParseOperationException {
+    public static RequestResponse getFormat() throws InvalidParseOperationException {
         return createReponse(FORMAT);
     }
 
@@ -216,7 +233,7 @@ public class ClientMockResultHelper {
      * @return a default Rule
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getRule() throws InvalidParseOperationException {
+    public static RequestResponse getRule() throws InvalidParseOperationException {
         return createReponse(RULE);
     }
 
@@ -225,7 +242,7 @@ public class ClientMockResultHelper {
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getFormatList() throws InvalidParseOperationException {
+    public static RequestResponse getFormatList() throws InvalidParseOperationException {
         return createReponse(FORMAT);
     }
 
@@ -234,7 +251,16 @@ public class ClientMockResultHelper {
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
-    public static JsonNode getRuleList() throws InvalidParseOperationException {
+    public static RequestResponse getRuleList() throws InvalidParseOperationException {
         return createReponse(RULE);
+    }
+    
+    /**
+     * 
+     * @return a default list of Rules
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
+        return createReponse(RESULT + "{}}");
     }
 }

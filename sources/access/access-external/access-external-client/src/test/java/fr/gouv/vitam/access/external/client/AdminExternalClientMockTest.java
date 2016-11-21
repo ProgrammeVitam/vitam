@@ -40,20 +40,20 @@ public class AdminExternalClientMockTest {
             Status.OK);
 
         assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()),
-            ClientMockResultHelper.getFormatList());
+            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
+            ClientMockResultHelper.getFormatList().toString());
 
         assertEquals(
-            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode()),
-            ClientMockResultHelper.getRuleList());
+            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode()).toString(),
+            ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID),
-            ClientMockResultHelper.getFormat());
+            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID).toString(),
+            ClientMockResultHelper.getFormat().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID),
-            ClientMockResultHelper.getRule());
+            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID).toString(),
+            ClientMockResultHelper.getRule().toString());
     }
 
 }

@@ -52,7 +52,6 @@ import com.mongodb.WriteError;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,12 +61,10 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.ResultError;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -387,10 +384,9 @@ public class MetaDataImplTest {
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final JsonNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
-        final ArrayNode resultArray = (ArrayNode) jsonNode.get("$results");
-        assertEquals(1, resultArray.size());
-        final ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
+        final ArrayNode arrayNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
+        assertEquals(1, arrayNode.size());
+        final ObjectNode objectGroupDocument = (ObjectNode) arrayNode.get(0);
         final String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
         final String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
         assertEquals(expectedObjectGroup, resultedObjectGroup);
@@ -398,38 +394,13 @@ public class MetaDataImplTest {
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
-        "\"$context\":{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-        "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\",\"description\":\"MODIFIED DESCRIPTION\"}}]}," +
-        "\"$results\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +
-        "\\n-    description : description\\n+    title : MODIFIED title" +
-        "\\n+    description : MODIFIED description\"}]}";
+        final String wanted = "[]";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");
         updateResult.setNbResult(1);
 
-        final Result firstSelectResult = new ResultDefault(FILTERARGS.UNITS);
-        firstSelectResult.addId("unitId");
-        firstSelectResult.setNbResult(1);
-        final Unit unit = new Unit();
-        unit.put("_id", "unitId");
-        unit.put("title", "title");
-        unit.put("description", "description");
-        firstSelectResult.addFinal(unit);
-
-        final Result secondSelectResult = new ResultDefault(FILTERARGS.UNITS);
-        secondSelectResult.addId("unitId");
-        secondSelectResult.setNbResult(1);
-        final Unit secondUnit = new Unit();
-        secondUnit.put("_id", "unitId");
-        secondUnit.put("title", "MODIFIED title");
-        secondUnit.put("description", "MODIFIED description");
-        secondSelectResult.addFinal(secondUnit);
-
         when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
-        when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
-            secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         final JsonNode ret = metaDataImpl
             .updateUnitbyId(JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +

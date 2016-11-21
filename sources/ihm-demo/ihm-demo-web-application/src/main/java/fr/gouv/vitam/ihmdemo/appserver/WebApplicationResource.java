@@ -97,6 +97,8 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
@@ -183,7 +185,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
             final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
             final String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
-            final JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
+            final RequestResponse searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
             return Response.status(Status.OK).entity(searchResult).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -216,7 +218,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final Map<String, String> selectUnitIdMap = new HashMap<String, String>();
             selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-            final JsonNode archiveDetails =
+            final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
             return Response.status(Status.OK).entity(archiveDetails).build();
@@ -249,7 +251,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
         String requestId = null;
-        JsonNode result = null;
+        RequestResponse result = null;
         OffsetBasedPagination pagination = null;
 
         try {
@@ -263,7 +265,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = PaginationHelper.getResult(sessionId, pagination);
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
 
                 return Response.status(Status.OK).entity(result)
                     .header(GlobalDataRest.X_REQUEST_ID, requestId)
@@ -288,9 +290,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
-                PaginationHelper.setResult(sessionId, result);
+                PaginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
-                result = PaginationHelper.getResult(result, pagination);
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -323,7 +325,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
-        JsonNode result = null;
+        RequestResponse result = null;
         try {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -450,7 +452,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
             final String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
-            final JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
+            final RequestResponse archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -477,11 +479,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getFileFormats(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
-        JsonNode result = null;
+        RequestResponse result = null;
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             result = adminClient.findDocuments(AdminCollections.FORMATS, JsonHandler.getFromString(query));
@@ -508,7 +509,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFormatById(@PathParam("idFormat") String formatId,
         String options) {
-        JsonNode result = null;
+        RequestResponse result = null;
 
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
@@ -622,10 +623,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final HashMap<String, String> qualifierProjection = new HashMap<>();
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
-            final JsonNode searchResult =
+            final RequestResponse searchResult =
                 UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
-            return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
+            return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult.toJsonNode())).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -705,11 +706,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getFileRules(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         String query = "";
-        JsonNode result = null;
+        RequestResponse result = null;
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.createObjectNode();
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             result = adminClient.findDocuments(AdminCollections.RULES, JsonHandler.getFromString(query));
@@ -736,8 +736,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRuleById(@PathParam("id_rule") String ruleId,
         String options) {
-
-        JsonNode result = null;
+        RequestResponse result = null;
 
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
@@ -745,7 +744,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-            result = JsonHandler.createObjectNode();
             result = adminClient.findDocumentById(AdminCollections.RULES, ruleId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
@@ -845,7 +843,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccessionRegister(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        JsonNode result = JsonHandler.createObjectNode();
+        RequestResponse result = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options);
@@ -874,7 +872,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccessionRegisterDetail(@PathParam("id") String id, String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        JsonNode result = JsonHandler.createObjectNode();
+        RequestResponse result = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options);
@@ -927,11 +925,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query
-            final JsonNode parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
+            final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
 
             // 3- Build Unit tree (all paths)
             final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
-                parentsDetails.get(UiConstants.RESULT.getConstantValue()));
+                parentsDetails.toJsonNode().get(UiConstants.RESULT.getConstantValue()));
 
             return Response.status(Status.OK).entity(unitTree).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -991,7 +989,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
-        JsonNode result = null;
+        RequestResponse result = null;
         try {
             result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId);
         } catch (final InvalidParseOperationException e) {
@@ -1019,7 +1017,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId) {
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);
-        JsonNode result = null;
+        RequestResponse result = null;
 
         try {
             result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
@@ -1048,9 +1046,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         try {
-            final JsonNode logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
-            if (logbookOperationResult != null && logbookOperationResult.has("$results")) {
-                final JsonNode logbookOperation = logbookOperationResult.get("$results");
+            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has("$results")) {
+                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get("$results").get(0);
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream =
                     JsonTransformer.buildLogbookStatCsvFile(logbookOperation);

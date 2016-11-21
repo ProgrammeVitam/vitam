@@ -38,12 +38,11 @@ import javax.ws.rs.core.Response.Status;
 
 import com.codahale.metrics.Gauge;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.metadata.api.model.RequestResponseError;
-import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -160,12 +159,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private RequestResponseError getErrorEntity(Status status) {
-        return new RequestResponseError().setError(
-            new VitamError(status.getStatusCode())
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext("ingest")
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase()));
+                .setDescription(status.getReasonPhrase());
     }
 }

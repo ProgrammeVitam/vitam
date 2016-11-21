@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -70,7 +71,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode selectUnitsByQuery(JsonNode selectQuery)
+    public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
@@ -91,7 +92,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode selectUnitsById(JsonNode selectQuery, String unitId)
+    public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
@@ -112,7 +113,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    JsonNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
+    ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException;
 
     /**
@@ -132,7 +133,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      *
      */
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 

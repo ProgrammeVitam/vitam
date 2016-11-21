@@ -67,18 +67,16 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.api.model.DatabaseCursor;
-import fr.gouv.vitam.metadata.api.model.RequestResponseError;
-import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
-import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
@@ -198,14 +196,10 @@ public class MetaDataResourceTest {
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new RequestResponseError()
-            .setError(new VitamError(status.getStatusCode()).setContext("ingest").setState("code_vitam")
-                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())));
+        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("ingest").setState("code_vitam")
+                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 
-    private static String generateResponseOK(DatabaseCursor cursor, JsonNode query) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new RequestResponseOK().setHits(cursor).setQuery(query));
-    }
 
     /**
      * Test status endpointgivenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest
@@ -328,8 +322,8 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseOK(new DatabaseCursor(1, 0, 1),
-                buildDSLWithOptions("", DATA))))
+            .body(equalTo(
+                new RequestResponseOK().setHits(1,0,1).setQuery(buildDSLWithOptions("", DATA)).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 
