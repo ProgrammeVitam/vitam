@@ -29,6 +29,9 @@ package fr.gouv.vitam.logbook.operations.client;
 import java.util.Iterator;
 import java.util.Queue;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client2.AbstractMockClient;
@@ -37,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -56,7 +60,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     private static final String UPDATE = "UPDATE";
     private static final String CREATE = "CREATE";
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-    
+
     @Override
     public void create(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -93,12 +97,16 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
-    
+
     @Override
-    public JsonNode  traceability() throws InvalidParseOperationException{
-        LOGGER.debug("calling traceability " );
-        return ClientMockResultHelper.getLogbookOperation();
-      
+    public RequestResponseOK traceability() throws InvalidParseOperationException {
+        LOGGER.debug("calling traceability ");
+        Response rep = Response.status(Status.OK)
+            .entity(new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .addResult(ClientMockResultHelper.getLogbookOperation()))
+            .build();
+        return RequestResponseOK.parseRequestResponseOk(rep);
     }
 
     @Override
@@ -161,5 +169,5 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         super.close();
         helper.clear();
     }
-    
+
 }
