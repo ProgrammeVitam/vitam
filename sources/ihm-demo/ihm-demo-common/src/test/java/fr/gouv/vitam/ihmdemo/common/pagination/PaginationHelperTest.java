@@ -86,7 +86,7 @@ public class PaginationHelperTest {
     private JsonNode createResult() throws InvalidParseOperationException {
         String result = RESULT + "[";
         for (int i = 0; i < 100; i++) {
-            String s_i = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
+            String s_i = "{\"#id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
             s_i += OPERATION;
             result += s_i;
             if (i < 99) {

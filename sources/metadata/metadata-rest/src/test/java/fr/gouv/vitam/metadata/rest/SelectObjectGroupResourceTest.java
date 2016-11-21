@@ -76,9 +76,9 @@ public class SelectObjectGroupResourceTest {
 
 
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
 
     private static final String OBJECT_GROUP_ID = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
@@ -99,7 +99,7 @@ public class SelectObjectGroupResourceTest {
     private static MetaDataApplication application;
 
     private static final String BAD_QUERY_TEST =
-        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"_id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
+        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
             "   {\"$badRquest\" : \"mavar3\"}, " +
             "   {\"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 

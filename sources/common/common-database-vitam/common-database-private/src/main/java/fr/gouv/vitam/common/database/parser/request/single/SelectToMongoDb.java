@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
  */
 public class SelectToMongoDb {
 
+    private static final String SLICE = "$slice";
     private final SelectParserSingle selectParser;
 
     /**
@@ -170,8 +171,8 @@ public class SelectToMongoDb {
         }
         final JsonNode node = selectParser.getRequest().getProjection()
             .get(PROJECTION.FIELDS.exactToken());
-        final List<String> incl = new ArrayList<String>();
-        final List<String> excl = new ArrayList<String>();
+        final List<String> incl = new ArrayList<>();
+        final List<String> excl = new ArrayList<>();
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();
         int pos = 0;
         String key = null;
@@ -179,7 +180,7 @@ public class SelectToMongoDb {
             final Entry<String, JsonNode> entry = iterator.next();
             if (entry.getValue().isObject()) {
                 key = entry.getKey();
-                pos = entry.getValue().get("$slice").asInt();
+                pos = entry.getValue().get(SLICE).asInt();
             } else if (entry.getValue().asInt() > 0) {
                 incl.add(entry.getKey());
             } else {

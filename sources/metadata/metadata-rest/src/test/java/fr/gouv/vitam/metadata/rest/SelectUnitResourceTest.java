@@ -74,9 +74,9 @@ public class SelectUnitResourceTest {
 
 
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
@@ -92,7 +92,7 @@ public class SelectUnitResourceTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final String BAD_QUERY_TEST =
-        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"_id\"}, " + "   {\"$missing\" : \"mavar2\"}, " + "   {\"$badRquest\" : \"mavar3\"}, " +
+        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " + "   {\"$badRquest\" : \"mavar3\"}, " +
             "   { \"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
     private static final String SERVER_HOST = "localhost";

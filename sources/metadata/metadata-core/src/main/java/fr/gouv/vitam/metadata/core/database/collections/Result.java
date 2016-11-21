@@ -190,7 +190,7 @@ public abstract class Result {
      */
     public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
         VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
-        LOGGER.error(this.toString());
+        LOGGER.debug(this.toString());
         if (finalResult == null) {
             if (nbResult != 0) {
                 throw new InvalidParseOperationException("Invalid number of Result and List of results");

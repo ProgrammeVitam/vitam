@@ -93,7 +93,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * SLICE command to optimize listing
      */
-    public static final String SLICE = "$slice";
+    private static final String SLICE = "$slice";
     private static final String UPDATE_NOT_FOUND_ITEM = "Update not found item: ";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);

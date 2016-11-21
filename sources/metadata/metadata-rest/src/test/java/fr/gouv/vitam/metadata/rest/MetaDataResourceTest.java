@@ -81,11 +81,11 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String DATA3 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
 
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
@@ -100,9 +100,9 @@ public class MetaDataResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
-    private static final String QUERY_EXISTS = "{ $exists :  \"_id\"  }";
+    private static final String QUERY_EXISTS = "{ $exists :  \"#id\"  }";
     private static final String QUERY_TEST =
-        "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
+        "{ $or : " + "[ " + "   {$exists : '#id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
             "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
             "          { $nin : { 'mavar5' : ['maval2', true] } } ] " + "   } " + "]}";
 

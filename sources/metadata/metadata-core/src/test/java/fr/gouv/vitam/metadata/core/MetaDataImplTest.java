@@ -213,19 +213,25 @@ public class MetaDataImplTest {
     @Test(expected = MetaDataDocumentSizeException.class)
     public void givenInsertUnitWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", bigData));
-        GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
+            metaDataImpl.insertUnit(buildQueryJsonWithOptions("", bigData));
+        } finally {
+            GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        }
     }
 
     @Test(expected = MetaDataDocumentSizeException.class)
     public void givenInsertObjectGroupWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
-        metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", bigData));
-        GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
+            metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", bigData));
+        } finally {
+            GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        }
     }
 
     @Test(expected = MetaDataNotFoundException.class)
@@ -247,8 +253,13 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(createLongString(1001)));
+        int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(createLongString(1001)));
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -359,8 +370,13 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_UpdateUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
+        int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
     @Test(expected = MetaDataExecutionException.class)

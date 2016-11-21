@@ -40,8 +40,10 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -149,6 +151,13 @@ public class LogbookInternalResourceImpl {
         throws InvalidParseOperationException {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            // Check correctness of request
+            SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(JsonHandler.getFromString(query));
+            parser.getRequest().reset();
+            if (! (parser instanceof SelectParserSingle)) {
+                throw new InvalidParseOperationException("Not a Select operation");
+            }
             JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK)
                 .entity(result)

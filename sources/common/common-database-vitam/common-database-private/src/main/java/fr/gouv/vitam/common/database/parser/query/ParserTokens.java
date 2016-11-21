@@ -44,6 +44,10 @@ public class ParserTokens extends BuilderToken {
      * Default prefix for internal variable
      */
     public static final char DEFAULT_HASH_PREFIX_CHAR = '#';
+    /**
+     * Default underscore prefix for command
+     */
+    public static final char DEFAULT_UNDERSCORE_PREFIX_CHAR = '_';
 
     private ParserTokens() {
         // Empty
@@ -108,9 +112,21 @@ public class ParserTokens extends BuilderToken {
          */
         UNITUPS("unitups"),
         /**
+         * Unit's MIN distance from root
+         */
+        MIN("min"),
+        /**
+         * Unit's MAX distance from root
+         */
+        MAX("max"),
+        /**
          * All Unit's parents
          */
         ALLUNITUPS("allunitups"),
+        /**
+         * Management bloc
+         */
+        MANAGEMENT("management"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -131,6 +147,17 @@ public class ParserTokens extends BuilderToken {
          */
         public final String exactToken() {
             return exactToken;
+        }
+
+        /**
+         * Used in projection for getObject
+         * 
+         * @param token
+         * @return True if this token is valid, even starting with a "_"
+         */
+        public static final boolean isValid(String token) {
+            // Exception for getObject sliced projection
+            return token.startsWith("_qualifiers.");
         }
 
         /**
@@ -177,6 +204,8 @@ public class ParserTokens extends BuilderToken {
                         case UNITUPS:
                         case ALLUNITUPS:
                         case TENANT:
+                        case MIN:
+                        case MAX:
                             return true;
                         default:
                     }

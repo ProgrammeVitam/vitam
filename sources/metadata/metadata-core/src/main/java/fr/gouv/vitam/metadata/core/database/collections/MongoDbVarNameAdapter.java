@@ -51,57 +51,70 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
-        final String newname = super.getVariableName(name);
+        final String newname = null;// FIXME INSERT should generate #id, #mgt, ... super.getVariableName(name);
         if (newname != null) {
             return newname;
         }
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
-            final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
-            switch (proj) {
-                case DUA:
-                    // Valid for Unit
-                    return Unit.APPRAISALRULES;
-                case FORMAT:
-                    // Valid for OG
-                    // FIXME P2 not valid
-                    return ObjectGroup.OBJECTFORMAT;
-                case ID:
-                    // Valid for Unit and OG
-                    return MetadataDocument.ID;
-                case QUALIFIERS:
-                    // Valid for OG
-                    return MetadataDocument.QUALIFIERS;
-                case NBUNITS:
-                    // Valid for Unit
-                    return Unit.NBCHILD;
-                case NBOBJECTS:
-                    // Valid for OG
-                    return ObjectGroup.NB_COPY;
-                case SIZE:
-                    // Valid for OG
-                    // FIXME P2 not valid
-                    return ObjectGroup.OBJECTSIZE;
-                case TYPE:
-                    // Valid for Unit and OG
-                    return MetadataDocument.TYPE;
-                case TENANT:
-                    // Valid for Unit and OG
-                    return MetadataDocument.TENANT_ID;
-                case OBJECT:
-                    // Valid for Unit
-                    return MetadataDocument.OG;
-                case UNITUPS:
-                    // Valid for Unit and OG
-                    return MetadataDocument.UP;
-                case ALLUNITUPS:
-                    // Valid for Unit
-                    return Unit.UNITUPS;
-                case OPERATIONS:
-                    // Valid for Unit and OG
-                    return MetadataDocument.OPS;
-                case ALL:
-                default:
-                    break;
+            try {
+                final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
+                switch (proj) {
+                    case DUA:
+                        // Valid for Unit
+                        return Unit.APPRAISALRULES;
+                    case FORMAT:
+                        // Valid for OG
+                        // FIXME P2 not valid
+                        return ObjectGroup.OBJECTFORMAT;
+                    case ID:
+                        // Valid for Unit and OG
+                        return MetadataDocument.ID;
+                    case QUALIFIERS:
+                        // Valid for OG
+                        return MetadataDocument.QUALIFIERS;
+                    case NBUNITS:
+                        // Valid for Unit
+                        return Unit.NBCHILD;
+                    case NBOBJECTS:
+                        // Valid for OG
+                        return ObjectGroup.NB_COPY;
+                    case SIZE:
+                        // Valid for OG
+                        // FIXME P2 not valid
+                        return ObjectGroup.OBJECTSIZE;
+                    case TYPE:
+                        // Valid for Unit and OG
+                        return MetadataDocument.TYPE;
+                    case TENANT:
+                        // Valid for Unit and OG
+                        return MetadataDocument.TENANT_ID;
+                    case OBJECT:
+                        // Valid for Unit
+                        return MetadataDocument.OG;
+                    case UNITUPS:
+                        // Valid for Unit and OG
+                        return MetadataDocument.UP;
+                    case MIN:
+                        // Valid for Unit
+                        return Unit.MINDEPTH;
+                    case MAX:
+                        // Valid for Unit
+                        return Unit.MAXDEPTH;
+                    case ALLUNITUPS:
+                        // Valid for Unit
+                        return Unit.UNITUPS;
+                    case MANAGEMENT:
+                        // Valid for Unit
+                        return Unit.MANAGEMENT;
+                    case OPERATIONS:
+                        // Valid for Unit and OG
+                        return MetadataDocument.OPS;
+                    case ALL:
+                    default:
+                        break;
+                }
+            } catch (IllegalArgumentException e) {
+                throw new InvalidParseOperationException(e);
             }
         }
         return null;

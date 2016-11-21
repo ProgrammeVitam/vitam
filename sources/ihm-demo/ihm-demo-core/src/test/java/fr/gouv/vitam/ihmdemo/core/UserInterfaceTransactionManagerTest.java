@@ -74,23 +74,23 @@ public class UserInterfaceTransactionManagerTest {
         "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
     private static String ID_UNIT = "1";
-    private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
+    private static String UNIT_DETAILS = "{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
     private static String SEARCH_RESULT =
-        "{$hits: {'total':'1'}, $results:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+        "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_FIELD_IMPACTED_RESULT =
-        "{$hits: {'total':'1'}, $results:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+        "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_UNIT_DSL_QUERY =
         "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String ALL_PARENTS =
-        "[{#id:'ID029',Title:'ID029',#up:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',#up:['ID027'],_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#up:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#up:['ID026', 'ID025'],_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#up:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#up:[],_tenant:0}]";
+        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static String ID_OBJECT_GROUP = "idOG1";
     private static RequestResponse unitDetails;

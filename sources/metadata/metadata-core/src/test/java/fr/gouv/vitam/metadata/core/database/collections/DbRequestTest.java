@@ -171,21 +171,21 @@ public class DbRequestTest {
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
     private static final String REQUEST_INSERT_TEST_ES =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
         "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['aeaqaaaaaet33ntwablhaaku6z67pzqaaaas'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
-        "{$query: { $match : { 'id' : 'aeaqaaaaaet33ntwablhaaku6z67pzqaaaas' , '$max_expansions' : 1  } }}";
+        "{$query: { $match : { '#id' : 'aeaqaaaaaet33ntwablhaaku6z67pzqaaaas' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"title\": \"Archive3\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"title\": \"Archive3\" }";
 
 
     /**
@@ -942,8 +942,8 @@ public class DbRequestTest {
         final Insert insert = new Insert();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        final JsonNode json = JsonHandler.getFromString("{\"_id\":\"" + uuid +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final JsonNode json = JsonHandler.getFromString("{\"#id\":\"" + uuid +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
         insert.addData((ObjectNode) json);
         insert.addRoots(uuidParent.getId());
         final ObjectNode insertRequest = insert.getFinalInsert();
@@ -1006,8 +1006,8 @@ public class DbRequestTest {
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addRoots(uuidUnit.getId());
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
@@ -1055,10 +1055,10 @@ public class DbRequestTest {
         final Insert insert = new Insert();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
 
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid1 +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
-        final ObjectNode json1 = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid2 +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid1 +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json1 = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid2 +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
         requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);

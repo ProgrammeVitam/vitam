@@ -45,7 +45,10 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TYPE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.TENANT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MIN;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MAX;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALLUNITUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MANAGEMENT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OPERATIONS;
 
 
@@ -178,6 +181,28 @@ public class VitamFieldsHelper {
      */
     public static final String allunitups() {
         return ALLUNITUPS.exactToken();
+    }
+
+    /**
+     * @return #min
+     */
+    public static final String min() {
+        return MIN.exactToken();
+    }
+
+    /**
+     * @return #max
+     */
+    public static final String max() {
+        return MAX.exactToken();
+    }
+
+    /**
+     * 
+     * @return #management
+     */
+    public static final String management() {
+        return MANAGEMENT.exactToken();
     }
 
     /**
