@@ -115,7 +115,7 @@ public enum LogbookCollections {
      *
      * @return the associated class
      */
-    protected Class<?> getClasz() {
+    public Class<?> getClasz() {
         return vitamCollection.getClasz();
     }
 }
