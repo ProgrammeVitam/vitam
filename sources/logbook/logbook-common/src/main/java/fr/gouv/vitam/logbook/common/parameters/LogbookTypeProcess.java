@@ -62,6 +62,10 @@ public enum LogbookTypeProcess {
     /**
      * traceabiliy  type process
      */
-    TRACEABILITY
+    TRACEABILITY,
+    /**
+     * Data management
+     */
+    DATA_MANAGEMENT
     
 }
