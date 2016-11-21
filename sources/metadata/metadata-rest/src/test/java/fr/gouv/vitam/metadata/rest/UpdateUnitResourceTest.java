@@ -35,10 +35,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.CustomMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -50,7 +46,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -194,8 +189,6 @@ public class UpdateUnitResourceTest {
 
     // Unit by ID (request and uri)
 
-
-
     @Test
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()
@@ -210,39 +203,13 @@ public class UpdateUnitResourceTest {
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        String compareTo = "";
-        Matcher matcher = new BaseMatcher() {
-
-            @Override
-            public boolean matches(Object item) {
-                if (item instanceof String) {
-                    try {
-                        System.err.println(item);
-                        JsonNode node = JsonHandler.getFromString((String) item);
-                        ArrayNode array = (ArrayNode) node.get("$results");
-                        if (array != null) {
-                            return array.get(0).get("_diff").asText().equals(compareTo);
-                        }
-                    } catch (InvalidParseOperationException e) {
-                        e.printStackTrace();
-                        return false;
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Check if diff equals");
-            }
-        };
         esClient.refreshIndex(MetadataCollections.C_UNIT);
         // FIXME Should not be empty!!!
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode()).body(matcher);
+            .statusCode(Status.FOUND.getStatusCode());
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
         // FIXME Should not be empty!!!
@@ -250,7 +217,7 @@ public class UpdateUnitResourceTest {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode()).body(matcher);
+            .statusCode(Status.FOUND.getStatusCode());
     }
 
     @Test(expected = InvalidParseOperationException.class)
