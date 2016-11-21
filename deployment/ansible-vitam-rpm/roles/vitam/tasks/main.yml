@@ -44,6 +44,8 @@
   yum:
     name: "{{ rpm_name }}{% if rpm_version != '*' %}-{{rpm_version}}{% endif %}"
     state: latest
+  tags:
+    - update_package_vitam
 
 # OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
 
@@ -164,3 +166,5 @@
     name: "vitam-{{ vitam_component }}"
     enabled: true
     state: restarted
+  tags:
+    - update_package_vitam

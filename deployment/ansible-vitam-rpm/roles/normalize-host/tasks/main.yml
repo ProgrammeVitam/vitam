@@ -36,3 +36,5 @@
 
 - name: update yum cache
   shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
+  tags:
+    - update_package_vitam
