@@ -154,7 +154,7 @@ angular.module('ihm.demo')
              $scope.uploadFailed = false;
              fileItem.isProcessing = false;
 
-             if(status == UPLOAD_CONSTANTS.ACCEPTED_STATUS){
+             if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
                fileItem.isWarning = false;

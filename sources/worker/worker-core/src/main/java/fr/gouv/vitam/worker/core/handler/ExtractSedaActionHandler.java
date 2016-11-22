@@ -269,7 +269,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         try (LogbookLifeCyclesClient logbookLifeCycleClient =
-                LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus, logbookLifeCycleClient);
         }
     }
@@ -595,8 +595,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                                 globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
                             }
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
-                                unitIdToSetOfRuleId != null && !unitIdToSetOfRuleId.isEmpty()) {
-                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.values());
+                                unitIdToSetOfRuleId.get(unitId) != null && !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
+                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
                             }
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
                                 listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
