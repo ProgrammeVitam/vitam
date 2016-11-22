@@ -363,7 +363,7 @@ public class IngestInternalIT {
                 "{\"$fields\":{\"_qualifiers.BinaryMaster.versions\": { $slice: [" + 0 +
                     "," +
                     "1]},\"_id\":0," + "\"_qualifiers.BinaryMaster.versions._id\":1}}");
-            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect().toString(), og);
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
             final String objectId = valuesAsText.get(0);
             StorageClient storageClient = StorageClientFactory.getInstance().getClient();

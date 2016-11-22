@@ -272,18 +272,17 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Select a list of operations
      * 
-     * @param query DSL as String
+     * @param query DSL as JsonNode
      * @return Response containt the list of loglook operation
      */
     @GET
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 changer String en JsonNode pour toutes les Query
-    public Response selectOperation(String query) {
+    public Response selectOperation(JsonNode query) {
         Status status;
         try {
-            final List<LogbookOperation> result = logbookOperation.select(JsonHandler.getFromString(query));
+            final List<LogbookOperation> result = logbookOperation.select(query);
             final ArrayNode resultAsJson = JsonHandler.createArrayNode();
             for (LogbookOperation logbook : result) {
                 resultAsJson.add(JsonHandler.toJsonNode(logbook));
@@ -291,7 +290,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(result.size(), 0, 1)
-                    .setQuery(JsonHandler.getFromString(query))
+                    .setQuery(query)
                     .addAllResults(resultAsJson))
                 .build();
         } catch (final LogbookNotFoundException exc) {
@@ -329,7 +328,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverrideOrBulkCreate(String query,
+    public Response selectOperationWithPostOverrideOrBulkCreate(JsonNode query,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
         if (xhttpOverride != null && HttpMethod.GET.equals(xhttpOverride)) {
             return selectOperation(query);
@@ -343,7 +342,7 @@ public class LogbookResource extends ApplicationStatusResource {
             }
             try {
                 LogbookOperationParameters[] arrayOperations =
-                    JsonHandler.getFromString(query, LogbookOperationParameters[].class);
+                    JsonHandler.getFromJsonNode(query, LogbookOperationParameters[].class);
                 logbookOperation.createBulkLogbookOperation(arrayOperations);
             } catch (LogbookDatabaseException e) {
                 LOGGER.error(e);
@@ -411,10 +410,9 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations/{id_op}/unitlifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, JsonNode query) {
         Status status;
         try {
             String cursorId = xcursorId;
@@ -429,8 +427,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
-                nodeQuery = JsonHandler.getFromString(query);
-                cursorId = logbookLifeCycle.createCursorUnit(operationId, nodeQuery);
+                cursorId = logbookLifeCycle.createCursorUnit(operationId, query);
             }
             RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
@@ -706,10 +703,9 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations/{id_op}/objectgrouplifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 changer String en JsonNode pour toutes les Query
     public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, JsonNode query) {
         Status status;
         try {
             String cursorId = xcursorId;
@@ -724,8 +720,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
-                nodeQuery = JsonHandler.getFromString(query);
-                cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, nodeQuery);
+                cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query);
             }
             RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
@@ -933,7 +928,6 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param operationId the operation id
      * @param objGrpId the life cycle id
-     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @PUT

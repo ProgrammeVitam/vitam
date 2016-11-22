@@ -162,7 +162,6 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Select unit with json request
      * 
      * @param request
-     * @param xhttpOverride
      * @return Response
      */
     @Path("units")
@@ -237,7 +236,6 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param updateRequest
      * @param unitId
-     * @param xhttpOverride
      * @return {@link Response} will be contains an json filled by unit result
      * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -283,7 +281,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // FIXME P0 : maybe produces NOT_FOUND when unit is not found?
+    // FIXME P1 : maybe produces NOT_FOUND when unit is not found?
     private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
         ArrayNode arrayNodeResults;
@@ -442,7 +440,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // FIXME P0 : maybe produce NOT_FOUND when objectGroup is not found?
+    // FIXME P1 : maybe produce NOT_FOUND when objectGroup is not found?
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
         ArrayNode arrayNodeResults;

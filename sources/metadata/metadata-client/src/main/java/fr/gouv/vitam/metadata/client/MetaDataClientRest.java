@@ -32,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -65,8 +66,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    // FIXME P0 changer String en JsonNode pour toutes les Query
-    public JsonNode insertUnit(String insertQuery)
+    public JsonNode insertUnit(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
@@ -128,12 +128,15 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
+    public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
         } catch (IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(unitId)) {
+            throw new InvalidParseOperationException("unitId may not be empty");
         }
         Response response = null;
         try {
@@ -156,7 +159,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId)
+    public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetadataInvalidSelectException, MetaDataClientServerException {
         try {
@@ -164,6 +167,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             ParametersChecker.checkParameter(ErrorMessage.BLANK_PARAM.getMessage(), objectGroupId);
         } catch (IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(objectGroupId)) {
+            throw new InvalidParseOperationException("objectGroupId may not be empty");
         }
         Response response = null;
         try {
@@ -188,12 +194,15 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId) throws MetaDataExecutionException,
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), updateQuery, unitId);
         } catch (IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(unitId)) {
+            throw new InvalidParseOperationException("unitId may not be empty");
         }
         Response response = null;
         try {
@@ -216,7 +225,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode insertObjectGroup(String insertQuery)
+    public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);

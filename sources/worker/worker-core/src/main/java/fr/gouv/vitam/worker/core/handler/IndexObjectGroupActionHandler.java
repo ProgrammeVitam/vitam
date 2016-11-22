@@ -142,7 +142,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
                 json.remove(SedaConstants.PREFIX_WORK);
                 final Insert insertRequest = new Insert().addData(json);
-                metadataClient.insertObjectGroup(JsonHandler.unprettyPrint(insertRequest.getFinalInsert()));
+                metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
                 itemStatus.increment(StatusCode.OK);
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
