@@ -127,4 +127,31 @@ public interface LogbookOperations {
     MongoCursor<LogbookOperation> selectAfterDate(LocalDateTime date)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException;
 
+
+    /**
+     * Find One logbook TraceabilityOperation after a given date
+     *
+     * @param date the select request in format of JsonNode
+     * @return the LogbookOperation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws InvalidCreateOperationException
+     */
+    LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
+
+
+    /**
+     * @return the last valid traceability operation
+     * @throws InvalidCreateOperationException
+     * @throws LogbookNotFoundException
+     * @throws LogbookDatabaseException
+     * @throws InvalidParseOperationException
+     */
+    LogbookOperation findLastTraceabilityOperationOK()
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
+        InvalidParseOperationException;
+
+
 }

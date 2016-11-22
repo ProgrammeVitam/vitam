@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
+
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.*;
 import java.time.LocalDateTime;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+
 public class LogbookOperationsImplWithMongoTest {
     private static final String DATABASE_HOST = "localhost";
     static LogbookDbAccess mongoDbAccess;
@@ -78,13 +80,23 @@ public class LogbookOperationsImplWithMongoTest {
     private static LogbookOperationParameters logbookParameters1;
     private static LogbookOperationParameters logbookParameters2;
     private static LogbookOperationParameters logbookParameters3;
+
+
     private static LogbookOperationParameters logbookParameters4;
     private static LogbookOperationParameters event;
+    private static LogbookOperationParameters securityEvent;
+
+
     final static GUID eip = GUIDFactory.newEventGUID(0);
     final static GUID eip1 = GUIDFactory.newEventGUID(2);
     final static GUID eip2 = GUIDFactory.newEventGUID(2);
     final static GUID eip3 = GUIDFactory.newEventGUID(3);
+
     final static GUID eip4 = GUIDFactory.newEventGUID(4);
+    final static GUID eip5 = GUIDFactory.newEventGUID(5);
+
+
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -104,8 +116,10 @@ public class LogbookOperationsImplWithMongoTest {
         final String datestring1 = "2015-01-01";
         final String datestring2 = "2016-12-12";
         final String datestring3 = "1990-10-01";
-        final String datestring4 = "1990-09-04";
-        final String datestring5 = "2017-09-04";
+        final String datestring4 = "2017-09-01";
+        final String datestring5 = "2017-09-02";
+        final String dateStringSecurity = "2017-10-04";
+
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
@@ -122,8 +136,6 @@ public class LogbookOperationsImplWithMongoTest {
             "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
 
-
-
         logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
             eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
@@ -136,16 +148,25 @@ public class LogbookOperationsImplWithMongoTest {
             eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
+
         logbookParameters4 = LogbookParametersFactory.newLogbookOperationParameters(
             eip4,
-            "eventType", eip4, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest",eip);
+            "LOGBOOK_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            StatusCode.STARTED, null, null, eip4);
+
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
         event =
             LogbookParametersFactory.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
                 StatusCode.STARTED, "start ingest", eip4);
         event.putParameterValue(LogbookParameterName.eventDateTime, datestring5);
+
+        securityEvent = LogbookParametersFactory.newLogbookOperationParameters(
+            eip5,"STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            StatusCode.OK, null, null, eip4);
+        securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
+
     }
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoDbAccess.close();
@@ -153,6 +174,7 @@ public class LogbookOperationsImplWithMongoTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
+
     @Test
     public void givenCreateAndUpdate() throws Exception {
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -171,6 +193,7 @@ public class LogbookOperationsImplWithMongoTest {
             fail("Should failed");
         } catch (final IllegalArgumentException e) {}
     }
+
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectWhenOperationNotExistThenThrowNotFoundException() throws Exception {
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -178,6 +201,7 @@ public class LogbookOperationsImplWithMongoTest {
         select.setQuery(exists("mavar1"));
         logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
     }
+
     @Test
     public void givenCreateAndSelect() throws Exception {
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -204,20 +228,26 @@ public class LogbookOperationsImplWithMongoTest {
         assertTrue(res3.get(0).containsValue("2016-12-12"));
         assertTrue(res3.get(1).containsValue("2015-01-01"));
         assertTrue(res3.get(2).containsValue("1990-10-01"));
-        
+
+
         logbookOperationsImpl.create(logbookParameters4);
         logbookOperationsImpl.update(event);
-        
+
         MongoCursor<LogbookOperation> curseur;
         curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
-       
+
         LogbookOperation op = curseur.next();
- 
-        assertEquals(op.get("evDateTime"), "1990-09-04");
+
+        assertEquals(op.get("evDateTime"), "2017-09-01");
         List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
-        assertEquals(list.get(0).get("evDateTime"),"2017-09-04"); 
+        assertEquals(list.get(0).get("evDateTime"), "2017-09-02");
         assertFalse(curseur.hasNext());
-        
-  
+
+        logbookOperationsImpl.update(securityEvent);
+        LogbookOperation secureOperation =
+            logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.parse("2017-08-02T12:01:00"));
+
+        assertEquals(secureOperation.get("evTypeProc"), LogbookTypeProcess.TRACEABILITY.toString());
     }
+
 }

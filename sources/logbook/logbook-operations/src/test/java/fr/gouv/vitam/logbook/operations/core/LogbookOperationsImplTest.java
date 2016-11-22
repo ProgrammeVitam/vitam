@@ -72,7 +72,7 @@ public class LogbookOperationsImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .getLogbookOperations(JsonHandler.createObjectNode());
+            .getLogbookOperations(JsonHandler.createObjectNode(), true);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.select(null);
     }
@@ -96,7 +96,7 @@ public class LogbookOperationsImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .getLogbookOperations(JsonHandler.createObjectNode());
+            .getLogbookOperations(JsonHandler.createObjectNode(), true);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.select(null);
     }

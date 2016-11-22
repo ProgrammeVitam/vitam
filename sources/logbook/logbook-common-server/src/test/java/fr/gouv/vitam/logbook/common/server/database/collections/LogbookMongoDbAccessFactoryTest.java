@@ -191,7 +191,7 @@ public class LogbookMongoDbAccessFactoryTest {
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
         try (MongoCursor<LogbookOperation> cursorOperation =
-            mongoDbAccess.getLogbookOperations(select.getFinalSelect())) {
+            mongoDbAccess.getLogbookOperations(select.getFinalSelect(), true)) {
             assertFalse(cursorOperation.hasNext());
         }
         try (MongoCursor<LogbookLifeCycleUnit> cursorOperation =
@@ -312,7 +312,7 @@ public class LogbookMongoDbAccessFactoryTest {
             JsonHandler.getFromString(
                 "{ $query: { $eq: { _id: \"" + eip + "\" } }, $projection: {}, $filter: {} }");
         try (MongoCursor<LogbookOperation> cursor =
-            mongoDbAccess.getLogbookOperations(node)) {
+            mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
             assertNotNull(operation);
@@ -324,7 +324,7 @@ public class LogbookMongoDbAccessFactoryTest {
         node = JsonHandler.getFromString("{ $query: { $eq: { _id: \"" + eip + "\"} }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
         try (MongoCursor<LogbookOperation> cursor =
-            mongoDbAccess.getLogbookOperations(node)) {
+            mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
             assertNotNull(operation);
@@ -339,7 +339,7 @@ public class LogbookMongoDbAccessFactoryTest {
         node = JsonHandler.getFromString("{ $query: { $unknown : '_id' }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
         try {
-            mongoDbAccess.getLogbookOperations(node);
+            mongoDbAccess.getLogbookOperations(node, true);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
 
@@ -379,7 +379,7 @@ public class LogbookMongoDbAccessFactoryTest {
         node = JsonHandler.getFromString("{ $query: { $exists : '_id' }, $projection: { " +
             LogbookMongoDbName.eventIdentifier.getDbname() + " : 1" + " }, $filter: { $limit : 1 } }");
         try (MongoCursor<LogbookOperation> cursor =
-            mongoDbAccess.getLogbookOperations(node)) {
+            mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
             assertNotNull(operation);
@@ -389,7 +389,7 @@ public class LogbookMongoDbAccessFactoryTest {
             JsonHandler.getFromString(
                 "{ $query: { $exists : '_id' }, $projection: {}, $filter: {} }");
         try (MongoCursor<LogbookOperation> cursor =
-            mongoDbAccess.getLogbookOperations(node)) {
+            mongoDbAccess.getLogbookOperations(node, true)) {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
             assertNotNull(operation);

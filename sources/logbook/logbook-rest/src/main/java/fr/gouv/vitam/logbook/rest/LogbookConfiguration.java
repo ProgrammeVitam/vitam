@@ -27,6 +27,12 @@
 
 package fr.gouv.vitam.logbook.rest;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.util.Enumeration;
+
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 
 /**
@@ -34,4 +40,24 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImp
  */
 public final class LogbookConfiguration extends DbConfigurationImpl {
     // Empty
+
+    private String p12LogbookPassword;
+
+    private String p12LogbookFile;
+
+    public String getP12LogbookPassword() {
+        return p12LogbookPassword;
+    }
+
+    public void setP12LogbookPassword(String p12LogbookPassword) {
+        this.p12LogbookPassword = p12LogbookPassword;
+    }
+
+    public String getP12LogbookFile() {
+        return p12LogbookFile;
+    }
+
+    public void setP12LogbookFile(String p12LogbookFile) {
+        this.p12LogbookFile = p12LogbookFile;
+    }
 }

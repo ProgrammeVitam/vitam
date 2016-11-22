@@ -382,19 +382,21 @@ public interface LogbookDbAccess {
      * Get a list of Logbook Operation through Closeable MongoCursor
      *
      * @param select
+     * @param sliced If true will return the first and last events only
      * @return the Closeable MongoCursor of LogbookOperation
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select)
+    MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param select
+     * @param sliced If true will return the first and last events only
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
@@ -408,6 +410,7 @@ public interface LogbookDbAccess {
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param select
+     * @param sliced If true will return the first and last events only
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty

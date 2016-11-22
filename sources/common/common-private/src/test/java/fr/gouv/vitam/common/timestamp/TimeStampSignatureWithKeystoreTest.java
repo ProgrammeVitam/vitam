@@ -36,8 +36,11 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -52,8 +55,11 @@ public class TimeStampSignatureWithKeystoreTest {
 
     @Before
     public void init()
-            throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        timeStampSignatureWithKeystore = new TimeStampSignatureWithKeystore("/tsa.p12", "1234".toCharArray(), "1234".toCharArray(), "1");
+        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
+        IOException, URISyntaxException {
+        URL url = this.getClass().getResource("/tsa.p12");
+        timeStampSignatureWithKeystore =
+            new TimeStampSignatureWithKeystore(new File(url.toURI()), "1234".toCharArray(), "1234".toCharArray(), "1");
     }
 
     @Test

@@ -27,6 +27,12 @@
 
 package fr.gouv.vitam.logbook.rest;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -49,10 +55,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -62,6 +71,11 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.timestamp.TimeStampSignature;
+import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
+import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
+import fr.gouv.vitam.logbook.administration.core.TraceabilityException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -78,6 +92,7 @@ import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
 import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Logbook Resource implementation
@@ -87,10 +102,12 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 public class LogbookResource extends ApplicationStatusResource {
     private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
+    public static final String CERTIFICATE_ALIAS = "localhost";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
     private final DbConfiguration logbookConfiguration;
     private final LogbookDbAccess mongoDbAccess;
+    private final LogbookAdministration logbookAdministration;
 
     /**
      * Constructor
@@ -109,7 +126,22 @@ public class LogbookResource extends ApplicationStatusResource {
                     configuration.getDbName());
         }
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
+
+        TimeStampSignature timeStampSignature;
+        try {
+            File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
+            timeStampSignature =
+                new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray(),
+                    configuration.getP12LogbookPassword().toCharArray(), CERTIFICATE_ALIAS);
+        } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
+            LOGGER.error("unable to instanciate TimeStampGenerator", e);
+            throw new RuntimeException(e);
+        }
+        TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
+        logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator, WorkspaceClientFactory.getInstance());
+
         LOGGER.debug("LogbookResource operation initialized");
 
         logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
@@ -260,15 +292,27 @@ public class LogbookResource extends ApplicationStatusResource {
     @POST
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceability () {
-        final ArrayNode resultAsJson = JsonHandler.createArrayNode();
-        resultAsJson.add("OK"); 
-       return  Response.status(Status.OK)
-             .entity(new RequestResponseOK()
-            .setHits(1, 0, 0)
-            .addAllResults(resultAsJson))
-        .build();
+    public Response traceability() {
+
+        try {
+            GUID guid = logbookAdministration.generateSecureLogbook();
+
+            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+            resultAsJson.add(guid.toString());
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(1, 0, 1)
+                    .addAllResults(resultAsJson))
+                .build();
+
+        } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("unable to generate traceability log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK())
+                .build();
+        }
     }
+
     /**
      * Select a list of operations
      * 
