@@ -247,6 +247,12 @@ angular.module('core')
             delete unit["#unitups"];
             unit._us = unit["#allunitups"];
             delete unit["#allunitups"];
+            unit._min = unit["#min"];
+            delete unit["#min"];
+            unit._max = unit["#max"];
+            delete unit["#max"];
+	    unit._mgt = unit["#management"];
+            delete unit["#management"];
         });
         return Result;
       }
