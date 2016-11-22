@@ -3,7 +3,7 @@
 # Make sure the service is open (mongos listening on 27017)
 
 - name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout=10
+  wait_for: port={{mongos_port}} timeout=30
   run_once: true
 
 # Detect if authentication is enabled

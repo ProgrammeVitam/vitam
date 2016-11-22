@@ -2,4 +2,4 @@
 # vars file for topbeat
 curator_conf_dir: "/vitam/conf/curator"
 curator_log_dir: "/vitam/log/curator"
-topbeat_processes: "java|node"
+topbeat_processes: "java|node|mongod|mongos"

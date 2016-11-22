@@ -1,42 +1,4 @@
 ---
-### elasticsearch log configuration and kibana configuration ###
-# TODO Find a solution in order to execute the import only once for all the VITAM applications
-- name: load vitam metrics template in Elasticsearch Log
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
-  run_once: true
-  uri:
-    url: "http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metrics_template"
-    method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/metrics.template.json') }}"
-    body_format: json
-    status_code: 200,201
-
-- name: load dashboards into Elasticsearch log .kibana index
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
-  run_once: true
-  uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
-    method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
-    body_format: json
-    status_code: 200, 201
-  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-  vars:
-    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
-    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
-    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
-
-# TODO Get Kibana version dynamically and put it in the URL
-- name: set jersey-metrics-vitam-* as kibana default index pattern
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
-  run_once: true
-  uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
-    method: PUT
-    body: '{"defaultIndex": "metrics-vitam-jersey-*"}'
-    body_format: json
-    status_code: 200, 201
 
 # Don't add rpm_version when set to '*' to install the package with his exact name
 # state: latest to handle snapshot versions
@@ -65,7 +27,6 @@
     - log
     - script
     - tmp
-
 
 - name: Deploy common configuration files
   template:
