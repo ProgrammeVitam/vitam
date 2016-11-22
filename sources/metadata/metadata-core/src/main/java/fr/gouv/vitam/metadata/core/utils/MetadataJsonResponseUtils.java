@@ -107,12 +107,10 @@ public final class MetadataJsonResponseUtils {
     public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple request,
         Map<String, List<String>> diff) throws InvalidParseOperationException {
         ArrayNode jsonListResponse = JsonHandler.createArrayNode();
-
         if (result != null && result.getNbResult() > 0 && result.getFinal().get("Result") != null) {
             LOGGER.debug("Result document: " + result.getFinal().toJson());
             jsonListResponse = (ArrayNode) getJsonDiff(diff);
         }
-
         return jsonListResponse;
     }
 

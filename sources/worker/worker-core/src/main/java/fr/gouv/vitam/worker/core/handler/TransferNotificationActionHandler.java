@@ -160,9 +160,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
-            // FIXME P0 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id'
-            // to
-            // a(n) 'attribute declaration' component.
+            // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
+            // 'xml:id' to  a(n) 'attribute declaration' component.
+            // Actually cannot reproduce but get another SAX exception on the seda-vitam-2.0-main.xsd file (and its
+            // imports, it seems).
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
             handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
             // store binary data object
@@ -258,9 +259,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
         String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
         // creation of ATR report
-        try {
+        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)){
             final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-            final FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);
 
             final XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
             xmlsw.writeStartDocument();
@@ -397,9 +397,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
         }
         // creation of ATR report
-        try {
+        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);){
             XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-            final FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);
 
             XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
             xmlsw.writeStartDocument();
