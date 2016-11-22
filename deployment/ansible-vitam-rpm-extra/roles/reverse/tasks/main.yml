@@ -42,6 +42,8 @@
     dest: /var/www/html-{{environnement}}/index.html
     owner: root
     mode: 0644
+  tags:
+    - update_package_vitam
   notify:
      - reload apache httpd
 
@@ -51,5 +53,7 @@
     dest: /etc/httpd/conf.d/zz_{{vitam_reverse_external_dns}}.conf
     owner: root
     mode: 0644
+  tags:
+    - update_package_vitam
   notify:
      - reload apache httpd
