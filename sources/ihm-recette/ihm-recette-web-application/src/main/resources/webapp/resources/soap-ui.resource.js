@@ -31,6 +31,7 @@ angular.module('core')
 
     var SOAP_UI_ROOT = '/soapui/';
     var LAUNCH_API_POINT = 'launch/';
+    var CHECK_LAUNCH_API_POINT = 'running/';
     var RESULTS_API_POINT = 'result/';
     var SoapUiResource = {};
 
@@ -44,12 +45,20 @@ angular.module('core')
       return $http.get(IHM_URLS.IHM_BASE_URL + SOAP_UI_ROOT + LAUNCH_API_POINT);
     };
 
-    /** Get SOAP-UI last result (DELETE method)
+    /** Get SOAP-UI last result (GET method)
      *
      * @returns {HttpPromise} The promise returned by the http call
      */
     SoapUiResource.lastResult = function() {
       return $http.get(IHM_URLS.IHM_BASE_URL + SOAP_UI_ROOT + RESULTS_API_POINT);
+    };
+
+    /** Get SOAP-UI State (is running or not) (GET method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    SoapUiResource.isRunning = function() {
+      return $http.get(IHM_URLS.IHM_BASE_URL + SOAP_UI_ROOT + CHECK_LAUNCH_API_POINT);
     };
 
     return SoapUiResource;

@@ -43,4 +43,8 @@ angular.module('core')
       return soapUiResource.lastResultUrl;
     };
 
+    SoapUiService.isRunning = function(successCallback, errorCallback) {
+      soapUiResource.isRunning().then(successCallback, errorCallback);
+    };
+
   });

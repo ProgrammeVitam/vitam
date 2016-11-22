@@ -40,15 +40,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Implementation of Soap UI Client that use command line executable
- * Use a SoapUiConfig as configuration
+ * Implementation of Soap UI Client that use command line executable Use a SoapUiConfig as configuration
  */
 public class SoapUiClientCommand implements SoapUiClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientCommand.class);
     private static final String SOAP_UI_DESC_FILE = "story-tests.xml";
-    
+
     private SoapUiConfig clientConfiguration;
-    
+
     /**
      * Constructor : Create a new SoapUi client with the given configuration
      * 
@@ -57,7 +56,7 @@ public class SoapUiClientCommand implements SoapUiClient {
     public SoapUiClientCommand(SoapUiConfig clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
     }
-    
+
     @Override
     public void launchTests() throws IOException, InterruptedException {
         String executablePath = clientConfiguration.getSoapUiExecutable();
@@ -78,7 +77,7 @@ public class SoapUiClientCommand implements SoapUiClient {
         String configDir = clientConfiguration.getConfigDir();
 
         String soapUiDescFilePath = PropertiesUtils.findFile(SOAP_UI_DESC_FILE).getAbsolutePath();
-        
+
         StringBuilder cmdBuilder = new StringBuilder().append(executablePath);
         cmdBuilder.append(" -P ingestHost=").append(ingestHost);
         cmdBuilder.append(" -P logbookHost=").append(logbookHost);
@@ -89,23 +88,29 @@ public class SoapUiClientCommand implements SoapUiClient {
         cmdBuilder.append(" ").append(soapUiDescFilePath);
 
         LOGGER.info("Launch SOAP ui test with command: " + cmdBuilder.toString());
-        StringBuilder output = new StringBuilder();
-
         Process p = Runtime.getRuntime().exec(cmdBuilder.toString());
+
+        boolean running = true;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        while (running) {
+            String line = reader.readLine();
+            if (line != null) {
+                LOGGER.info(line);
+            } else {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    running = false;
+                }
+            }
+            if (!p.isAlive()) {
+                running = false;
+            }
+        }
+
         int exitVal = p.waitFor();
         LOGGER.debug("Exit val: " + exitVal);
-
-        if(LOGGER.isInfoEnabled()) {
-            BufferedReader reader =
-                new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line;
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-
-            LOGGER.info(output.toString());
-        }
     }
 
     @Override
@@ -114,5 +119,5 @@ public class SoapUiClientCommand implements SoapUiClient {
         File file = new File(reportingDir, "reporting.json");
         return JsonHandler.getFromFile(file);
     }
-    
+
 }

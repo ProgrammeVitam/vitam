@@ -28,9 +28,11 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.ws.rs.core.Response;
@@ -48,6 +50,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -205,7 +208,7 @@ public class WebApplicationResourceTest {
         // Reset WebApplicationConfiguration
         application.getConfiguration().setSipDirectory(currentSipDirectory);
     }
-    
+
     @Test
     public void testLaunchSoapUiTestSuccess() throws IOException, InterruptedException {
         final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
@@ -220,22 +223,8 @@ public class WebApplicationResourceTest {
             .when()
             .get("/soapui/launch");
     }
-    
-    @Test
-    public void testLaunchSoapUiTestWhenThrowIOException() throws IOException, InterruptedException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
 
-        given().expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/soapui/launch");
-    }
-    
     @Test
     public void testLaunchSoapUiTestWhenThrowInterruptedException() throws IOException, InterruptedException {
         final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
@@ -244,15 +233,39 @@ public class WebApplicationResourceTest {
         PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
         PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
         Mockito.doThrow(InterruptedException.class).when(soapuiClient).launchTests();
-
-        given().expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/soapui/launch");
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
     }
-    
 
-    
+    @Test
+    public void testLaunchSoapUiTestWhenThrowIOException() throws IOException, InterruptedException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+    }
+
+    @Test
+    public void testLaunchSoapUiTestWhenThrowFileNotFoundException() throws IOException, InterruptedException {
+        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+
+        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+        Mockito.doThrow(FileNotFoundException.class).when(soapuiClient).launchTests();
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void testRunningSoapUiTest() {
+        ResponseBody body =
+            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/running").getBody();
+        assertTrue(body.prettyPrint().contains("false"));
+    }
+
     @Test
     public void testGetLastReportWhenThrowIOException() throws InvalidParseOperationException {
         final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
@@ -267,7 +280,7 @@ public class WebApplicationResourceTest {
             .when()
             .get("/soapui/result");
     }
-    
+
     @Test
     public void testGetLastReportWhenThrowInterruptedException() throws InvalidParseOperationException {
         final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
@@ -282,5 +295,10 @@ public class WebApplicationResourceTest {
             .when()
             .get("/soapui/result");
     }
-    
+
+    @Test
+    public void testMessagesLogbook() {
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/messages/logbook");
+    }
+
 }

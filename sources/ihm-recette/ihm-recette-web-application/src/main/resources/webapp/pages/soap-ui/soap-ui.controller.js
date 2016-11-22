@@ -27,11 +27,15 @@
 
 // Define controller for soap-ui
 angular.module('soap.ui')
-  .controller('soapUiController', function($scope, soapUiService) {
+  .controller('soapUiController', function($scope, $interval, soapUiService) {
 
     $scope.test = 'Test';
+    $scope.error = false;
     $scope.pending = false;
     $scope.finished = false;
+    $scope.resultsLink = function() {
+      window.location.href = soapUiService.getLastResultURL();
+    };
 
     function getSuccess(array) {
       var success = 0;
@@ -44,20 +48,32 @@ angular.module('soap.ui')
       return success;
     }
 
+    var isRunning = function() {
+      soapUiService.isRunning(function(response) {
+        if (response.data.result === false) {
+          $scope.finished = true;
+          $scope.pending = false;
+          $scope.error = false;
+          $interval.cancel($scope.pulling);
+        }
+      });
+    };
+
     var launchSuccessCallback = function() {
-      $scope.pending = false;
-      $scope.finished = true;
-      // window.location.href = soapUiService.getLastResultURL();
+      $scope.pending = true;
+      $scope.pulling = $interval(isRunning, 1000);
     };
 
     var launchErrorCallback = function() {
-      $scope.pending = false;
       $scope.finished = false;
+      $scope.error = true;
+      $scope.pulling = $interval(isRunning, 1000);
     };
 
     $scope.launchTests = function() {
       $scope.finished = false;
-      $scope.pending = true;
+      $scope.pending = false;
+      $scope.error = false;
       soapUiService.launch(launchSuccessCallback, launchErrorCallback);
     };
 
