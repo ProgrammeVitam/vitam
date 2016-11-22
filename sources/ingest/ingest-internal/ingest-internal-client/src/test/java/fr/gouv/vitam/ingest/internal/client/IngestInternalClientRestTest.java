@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -70,7 +69,6 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     private static final String PATH = "/ingest/v1";
 
     private IngestInternalClientRest client;
-    private UploadResponseDTO uploadResponseDTO;
 
     public ExpectedResults mockLogbook;
 
@@ -180,7 +178,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         operationList.add(externalOperationParameters2);
 
         InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).entity(uploadResponseDTO).build());                        
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
@@ -223,7 +221,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         operationList.add(externalOperationParameters2);
 
         InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).entity(uploadResponseDTO).build());                        
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final Response response2 = client.uploadInitialLogbook(operationList);
@@ -264,8 +262,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).entity(uploadResponseDTO).build());                
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
@@ -305,8 +303,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).entity(uploadResponseDTO).build());                
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
         final Response response2 = client.uploadInitialLogbook(operationList);
