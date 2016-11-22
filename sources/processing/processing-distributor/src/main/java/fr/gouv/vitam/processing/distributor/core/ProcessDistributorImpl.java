@@ -101,6 +101,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         "runtime exceptions thrown by the Process distributor during runnig...";
     private static final String ELEMENT_UNITS = "Units";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
+    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private static final Map<String, NavigableMap<String, WorkerBean>> WORKERS_LIST = new HashMap<>();
     private final List<String> availableWorkers = new ArrayList<>();
@@ -188,8 +189,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     }
                     // Iterate over Objects List
                     if (objectsList == null || objectsList.isEmpty()) {
-                        responses.setItemsStatus("OBJECTS_LIST_EMPTY",
-                            getItemStatus("OBJECTS_LIST_EMPTY", StatusCode.WARNING));
+                        responses.setItemsStatus(OBJECTS_LIST_EMPTY,
+                            getItemStatus(OBJECTS_LIST_EMPTY, StatusCode.WARNING));
                     } else {
                         // update the number of element to process
                         ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(),

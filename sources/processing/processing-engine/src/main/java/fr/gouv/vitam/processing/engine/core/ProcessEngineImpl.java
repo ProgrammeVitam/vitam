@@ -80,6 +80,8 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow not exist";
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
+    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
+    
     private final Map<String, WorkFlow> poolWorkflows;
 
     private final ProcessDistributor processDistributorMock;
@@ -279,6 +281,20 @@ public class ProcessEngineImpl implements ProcessEngine {
                             GUIDReader.getGUID(workParams.getContainerName()));
                     helper.updateDelegate(sublogbook);
                 }
+            }
+            
+            ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
+            if (itemStatusObjectListEmpty != null) {
+                final LogbookOperationParameters actionParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDFactory.newEventGUID(tenantId),
+                        OBJECTS_LIST_EMPTY,
+                        GUIDReader.getGUID(workParams.getContainerName()),
+                        LogbookTypeProcess.INGEST,
+                        itemStatusObjectListEmpty.getGlobalStatus(),
+                        VitamLogbookMessages.getCodeOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
+                        GUIDReader.getGUID(workParams.getContainerName()));
+                helper.updateDelegate(actionParameters);
             }
 
             if (messageIdentifier == null) {
