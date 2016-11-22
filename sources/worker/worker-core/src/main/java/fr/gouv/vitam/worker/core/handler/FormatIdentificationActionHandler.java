@@ -94,8 +94,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 public class FormatIdentificationActionHandler extends ActionHandler implements VitamAutoCloseable {
 
-
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
 
     /**
@@ -118,12 +116,12 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
     private static final String FILE_FORMAT_REFERENTIAL_ERROR = "REFERENTIAL_ERROR";
+    private static final String LOGBOOK_COMMIT_KO = "LOGBOOK_COMMIT_KO";
+    private static final String FILE_FORMAT_METADATA_UPDATE = "FILE_FORMAT_METADATA_UPDATE";
 
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
-    /**
-     * 
-     */
+
     private static final String RESULTS = "$results";
 
 
@@ -161,7 +159,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             try {
                 LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
                     logbookLifecycleObjectGroupParameters,
-                    params, EVT_TYPE_FILE_FORMAT, LogbookTypeProcess.INGEST);
+                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
+
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
@@ -204,8 +203,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                                     final JsonNode jsonFormatIdentifier =
                                         version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
                                     final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-
-
                                     // Retrieve the file
                                     file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
@@ -281,13 +278,12 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
                 if (!StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) &&
                     !StatusCode.KO.equals(itemStatus.getGlobalStatus())) {
-                    itemStatus.setItemId("LOGBOOK_COMMIT_KO");
+                    itemStatus.setItemId(LOGBOOK_COMMIT_KO);
                     itemStatus.increment(StatusCode.WARNING);
                 } else {
-                    itemStatus.setItemId("LOGBOOK_COMMIT_KO");
+                    itemStatus.setItemId(LOGBOOK_COMMIT_KO);
                     itemStatus.increment(StatusCode.KO);
                 }
-
             }
 
             if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
@@ -468,7 +464,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         }
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
-            objectCheckFormatResult.setSubStatus("FILE_FORMAT_METADATA_UPDATE");
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_METADATA_UPDATE);
             // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 VitamLogbookMessages.getOutcomeDetailLfc(
