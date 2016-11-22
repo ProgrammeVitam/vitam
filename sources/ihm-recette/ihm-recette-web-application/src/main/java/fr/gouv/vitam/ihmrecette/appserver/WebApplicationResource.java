@@ -54,12 +54,13 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
@@ -76,6 +77,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private final WebApplicationConfig webApplicationConfig;
+    // FIXME : replace the boolean by a static timestamp updated by the soap ui thread
+    private boolean soapUiRunning;
+
 
     /**
      * Constructor
@@ -89,14 +93,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Retrieve all the messages for logbook 
+     * Retrieve all the messages for logbook
+     * 
      * @return Response
      */
     @GET
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookMessages() {
-        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per file
+        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per
+        // file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
     }
 
@@ -142,7 +148,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         try {
-            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse logbookOperationResult =
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has("$results")) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get("$results");
                 // Create csv file
@@ -214,21 +221,44 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/soapui/launch")
     public Response launchSoapUiTests() {
+        if (!soapUiRunning) {
+            soapUiRunning = true;
+            VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> soapUiAsync());
+            return Response.status(Status.OK).build();
+        } else {
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+    }
+
+
+    /**
+     * FIXME : use a better way to launch SOAP UI in another thread to manager responses
+     */
+    private void soapUiAsync() {
         SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
-        
         try {
             soapUi.launchTests();
         } catch (FileNotFoundException e) {
             LOGGER.error("Soap ui script description file not found", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (IOException e) {
             LOGGER.error("Can not read SOAP-UI script input file or write report", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (InterruptedException e) {
             LOGGER.error("Error while SOAP UI script execution", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).build();
+        soapUiRunning = false;
+    }
+
+
+    /**
+     * Check if soap UI test is running
+     * 
+     * @return the response status (no entity)
+     */
+    @GET
+    @Path("/soapui/running")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response soapUiTestsRunning() {
+        return Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("result", soapUiRunning)).build();
     }
 
     /**
@@ -242,15 +272,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getSoapUiTestsResults() {
         SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
         JsonNode result = null;
-        
+
         try {
             result = soapUi.getLastTestReport();
         } catch (InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be create", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
-		}
+        }
         return Response.status(Status.OK).entity(result).build();
     }
+
+
 
 }
