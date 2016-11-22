@@ -17,6 +17,8 @@ mongoLogbookUser: logbook
 mongoLogbookPassword: azerty
 mongoFunctionalAdminUser: functional-admin
 mongoFunctionalAdminPassword: azerty
+mongoClientUser: mongoclient
+mongoClientPassword: azerty
 mongoPassPhrase: mongogo
 p12_ihm_recette_password: grokbizftej
 TrustStore_ihm_recette_password: AzErTy

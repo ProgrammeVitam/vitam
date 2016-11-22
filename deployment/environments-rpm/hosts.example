@@ -172,7 +172,8 @@ hosts-elasticsearch-log
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
 
-
+[mongoclient:children]
+mongos
 
 ########### Global vars ###########
 

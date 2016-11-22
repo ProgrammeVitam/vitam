@@ -71,6 +71,19 @@
   roles:
     - {role: mongo_configure, shard_id: 0}
 
+- hosts: mongoclient
+  roles:
+   - role: mongoclient
+#     mongoclient_user: "{{mongoClientUser}}"
+#     mongoclient_pwd: "{{mongoClientPassword}}"
+     mongoclient_root_url: "http://{{ansible_hostname}}/mongoclient"
+     mongoclient_port: "{{mongoclientPort}}"
+     mongoclient_confdb:
+       host: "{{vitam_mongodb_host}}"
+       port: "{{mongos_port}}"
+       name: "{{mongoclientDbName}}"
+       user: "{{mongoClientUser}}"
+       pwd: "{{mongoClientPassword}}"
 # # MongoDB installation
 # - hosts: hosts-mongodb
 #   roles:

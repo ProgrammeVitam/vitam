@@ -142,6 +142,9 @@ localhost
 [hosts-elasticsearch-log]
 localhost
 
+[mongoclient:children]
+mongos
+
 ########### Global vars ###########
 
 [hosts:vars]

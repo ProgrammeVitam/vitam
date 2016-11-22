@@ -39,6 +39,8 @@ if [ ! -d "${COMPONENT}" ]; then
   exit 2
 fi
 
+## remove hidden linked folders and files from the home directory in the component directory
+find ${COMPONENT} -maxdepth 1 -type l -name '.*' -exec rm -f {} \; >/dev/null 2>&1
 find ${COMPONENT} -name RPMS -type d -exec rm -rf {} \; >/dev/null 2>&1
 find ${COMPONENT} -name SRPMS -type d -exec rm -rf {} \; >/dev/null 2>&1
 find ${COMPONENT} -name BUILD -type d -exec rm -rf {} \; >/dev/null 2>&1

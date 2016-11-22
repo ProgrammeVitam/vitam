@@ -1,0 +1,53 @@
+---
+
+- name: mongoclient rpm is installed
+  package:
+    name: vitam-mongoclient
+    state: present
+
+- name: Directories exists (must be removed when the RPM plugin will be patched)
+  file:
+    path: "{{ vitam_folder_root }}/{{ item }}/mongoclient"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_folder_permission }}"
+  with_items:
+    - bin
+    - conf
+
+- name: Generate MONGO_URL for MongoDB authentification
+  set_fact:
+    mongoclient_mongo_url: "mongodb://{{ mongoclient_confdb.user }}:{{ mongoclient_confdb.pwd}}@{{ mongoclient_confdb.host }}:{{ mongoclient_confdb.port }}/{{ mongoclient_confdb.name }}"
+  when: mongoclient_confdb.user is defined
+
+- name: Generate MAIL_URL when smtp configuration is specified
+  set_fact:
+    var: mongoclient_mail_url="smtp://{{ mongoclient_confmail.user }}:{{ mongoclient_confmail.pwd}}@{{ mongoclient_confmail.host }}:{{ mongoclient_confmail.port | default(25) }}"
+  when: mongoclient_confmail.host is defined
+
+- name: The mongoclient configuration file is present
+  template:
+    src: "mongoclient.conf.j2"
+    dest: "{{ mongoclient_config_path }}/vitam-mongoclient.conf"
+    owner: "{{vitam_user}}"
+    mode: "{{vitam_conf_permission}}"
+  register: mongoclientcfg
+
+# handlers-type task ran when configuration is updated
+- name: Mongoclient is reloaded.
+  service:
+    name: vitam-mongoclient
+    state: stopped
+  when: mongoclientcfg.changed
+
+- name: Mongoclient is started
+  service:
+    name: vitam-mongoclient
+    state: started
+
+- name: Wait until service is open
+  wait_for:
+    host: "{{ ansible_hostname }}"
+    port: "{{ mongoclient_port }}"
+    timeout: 5

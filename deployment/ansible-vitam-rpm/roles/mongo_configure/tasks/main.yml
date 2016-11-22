@@ -57,6 +57,7 @@
   when: mongo_no_auth
   with_items:
     - admin
+    - mongoclient
     - logbook
     - masterdata
     - metadata

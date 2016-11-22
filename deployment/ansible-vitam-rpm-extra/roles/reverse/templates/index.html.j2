@@ -119,6 +119,12 @@
 					</p>
 {% endif %}
 
+{% if groups['mongoclient']|length >0 %}
+					<p class="row" style="vertical-align: middle">
+						<div class="col-md-3">Admin MongoDB</div>
+						<div class="col-md-2"><a href="/mongoclient" class="btn btn-primary btn-xs" target="_blank">MongoClient</a></div>
+					</p>
+{% endif %}
 
 {% if groups['hosts-mongo-express']|length >0 %}
 					<p class="row" style="vertical-align: middle">

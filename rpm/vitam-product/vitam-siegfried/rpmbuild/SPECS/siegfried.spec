@@ -15,7 +15,8 @@ BuildRequires: golang >= 1.6
 Requires:      systemd
 Requires:      vitam-user-vitam
 
-%global vitam_service_name siegfried
+%global vitam_service_name      siegfried
+%global debug_package           %{nil}
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
 # cf https://fedoraproject.org/wiki/PackagingDrafts/Go#Debuginfo
@@ -47,7 +48,7 @@ rm -rf ./_build
 find . -type f -name '*.rpm' -exec rm -f {} \;
 
 %install
-# On pousse les binaire 
+# On pousse les binaire
 mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}/
 cp sf %{buildroot}/vitam/bin/%{vitam_service_name}/
 cp roy %{buildroot}/vitam/bin/%{vitam_service_name}/
