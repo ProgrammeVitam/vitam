@@ -302,7 +302,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
-                // FIXME P0 in particular Processing Exception could it be a "normal error" ?
+                // FIXME P1 in particular Processing Exception could it be a "normal error" ?
+                // Have to determine here if it is an internal error and FATAL result or processing error, so business
+                // error and KO result
             } catch (final IngestInternalException | ProcessingException |
                 LogbookClientException | StorageClientException | StorageNotFoundException |
                 InvalidGuidOperationException e) {
