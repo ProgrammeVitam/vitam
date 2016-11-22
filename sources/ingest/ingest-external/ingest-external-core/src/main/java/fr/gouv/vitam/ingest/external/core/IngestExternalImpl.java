@@ -89,6 +89,8 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
+    private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
+    private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";    
 
     private static final String CAN_NOT_SCAN_VIRUS = "Can not scan virus";
 
@@ -138,6 +140,7 @@ public class IngestExternalImpl implements IngestExternal {
         final GUID ingestGuid = guid;
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
+        Response responseNoProcess = null;
 
         try {
 
@@ -355,6 +358,17 @@ public class IngestExternalImpl implements IngestExternal {
                         throw new IngestExternalException(e);
                     }
                 } else {
+                    // add the step in the logbook
+                    addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+                    addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+                    // FIXME P1 later on real ATR KO
+                    responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                        AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
+                            "File upload " +
+                                (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
+                        MediaType.APPLICATION_XML_TYPE, null);
+                    addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
+                    addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
                     // log final status PROCESS_SIP when check format KO or FATA
                     // in this case PROCESS_SIP inherits FORMAT CHECK Status
                     startedParameters.setStatus(formatParameters.getStatus());
@@ -369,6 +383,16 @@ public class IngestExternalImpl implements IngestExternal {
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
+                addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+                addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+                // FIXME P1 later on real ATR KO
+                responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                    AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
+                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
+                    MediaType.APPLICATION_XML_TYPE, null);
+                // add the step in the logbook
+                addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
+                addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
                 // log final status PROCESS_SIP when sanity check KO or FATAL
                 // in this case PROCESS_SIP inherits SANITY_CHECK Status
                 startedParameters.setStatus(endParameters.getStatus());
@@ -397,16 +421,11 @@ public class IngestExternalImpl implements IngestExternal {
                     asyncHelper.writeResponse(responseBuilder);
                     return response;
                 }
-                // FIXME P1 later on real ATR KO
-                Response response = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-                    AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
-                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
-                    MediaType.APPLICATION_XML_TYPE, null);
-                AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
+                AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, responseNoProcess);
                 ResponseBuilder responseBuilder =
-                    Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+                    Response.status(responseNoProcess.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                 asyncHelper.writeResponse(responseBuilder);
-                return response;
+                return responseNoProcess;
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
@@ -431,6 +450,36 @@ public class IngestExternalImpl implements IngestExternal {
             }
             StreamUtils.closeSilently(input);
         }
+    }
+
+    private void addStpIngestFinalisationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
+        StatusCode status)
+        throws LogbookClientNotFoundException {
+        final LogbookOperationParameters stpIngestFinalisationParameters =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                STP_INGEST_FINALISATION,
+                containerName,
+                LogbookTypeProcess.INGEST,
+                status,
+                VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
+                containerName);
+        helper.updateDelegate(stpIngestFinalisationParameters);
+    }
+    
+    private void addTransferNotificationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
+        StatusCode status)
+        throws LogbookClientNotFoundException {
+        final LogbookOperationParameters transferNotificationParameters =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                ATR_NOTIFICATION,
+                containerName,
+                LogbookTypeProcess.INGEST,
+                status,
+                VitamLogbookMessages.getCodeOp(ATR_NOTIFICATION, status),
+                containerName);
+        helper.updateDelegate(transferNotificationParameters);
     }
 
     /**
