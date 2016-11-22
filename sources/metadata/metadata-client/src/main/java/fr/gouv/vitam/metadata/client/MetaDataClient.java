@@ -44,7 +44,7 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 public interface MetaDataClient extends BasicClient {
 
     /**
-     * @param insertQuery as String <br>
+     * @param insertQuery as JsonNode <br>
      *        null is not allowed
      * @return the result as JsonNode
      * @throws InvalidParseOperationException
@@ -54,7 +54,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    JsonNode insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertUnit(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
@@ -76,7 +76,7 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Search units by query (DSL) and path unit id
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
      * @param unitId : unit id <br>
@@ -87,13 +87,13 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * Search Object Group by query (DSL) and path objectGroup id
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
      * @param objectGroupId : objectGroup id <br>
@@ -105,13 +105,13 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
      * @throws MetaDataClientServerException
      */
-    JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId) throws MetaDataExecutionException,
+    JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException, MetaDataClientServerException;
 
     /**
      * Update units by query (DSL) and path unit id
      *
-     * @param updateQuery  update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param updateQuery  update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
      * @param unitId  unit id <br>
@@ -122,7 +122,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode updateUnitbyId(String updateQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
@@ -135,6 +135,6 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    JsonNode insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertObjectGroup(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
 }

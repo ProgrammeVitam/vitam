@@ -180,9 +180,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     insertQuery.addRoots(parents);
                 }
 
-                final String insertRequest =
-                    JsonHandler.unprettyPrint(insertQuery.addData((ObjectNode) json).getFinalInsert());
-                metadataClient.insertUnit(insertRequest);
+                metadataClient.insertUnit(insertQuery.addData((ObjectNode) json).getFinalInsert());
                 itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Archive unit not found");

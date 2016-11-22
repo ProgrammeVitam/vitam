@@ -195,11 +195,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
                 case UNIT:
-                    jsonNode = metaDataClient.selectUnitbyId(JsonHandler.unprettyPrint(jsonQuery), idDocument);
+                    jsonNode = metaDataClient.selectUnitbyId(jsonQuery, idDocument);
                     break;
                 case OBJECT_GROUP:
                     // FIXME P0: metadata should return NotFound if the objectGroup is not found
-                    jsonNode = metaDataClient.selectObjectGrouptbyId(JsonHandler.unprettyPrint(jsonQuery), idDocument);
+                    jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
@@ -350,7 +350,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
-            final JsonNode jsonNode = metaDataClient.updateUnitbyId(JsonHandler.unprettyPrint(newQuery), idUnit);
+            final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
 
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID);

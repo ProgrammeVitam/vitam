@@ -359,11 +359,11 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testErrorSelect() {
+    public void testErrorSelect() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
             .then()
@@ -372,7 +372,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
             .then()
@@ -388,7 +388,7 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testOperationSelect() {
+    public void testOperationSelect() throws Exception {
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersSelect.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -405,7 +405,7 @@ public class LogbookResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_QUERY)
+            .body(JsonHandler.getFromString(BODY_QUERY))
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when()
             .post(OPERATIONS_URI)
