@@ -62,12 +62,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
                     LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
                     break;
-                case ACCEPTED:
+                case PARTIAL_CONTENT:
                     LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_WITH_WARNING.getMessage());
                     break;
                 default:
@@ -79,7 +79,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode() &&
                 response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
-                response.getStatus() != Status.ACCEPTED.getStatusCode()) {
+                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
             }
         }

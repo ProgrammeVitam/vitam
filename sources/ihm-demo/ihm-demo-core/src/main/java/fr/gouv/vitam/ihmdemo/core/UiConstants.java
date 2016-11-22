@@ -49,12 +49,12 @@ public enum UiConstants {
     ID(VitamFieldsHelper.id(), VitamFieldsHelper.id()),
 
     /**
-     * "#up" field
+     * "#unitups" field
      */
     UNITUPS(VitamFieldsHelper.unitups(), VitamFieldsHelper.unitups()),
 
     /**
-     * "#results" field
+     * "$results" field
      */
     RESULT("$results", "$results");
 

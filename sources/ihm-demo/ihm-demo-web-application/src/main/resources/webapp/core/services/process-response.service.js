@@ -82,7 +82,7 @@ angular.module('core')
 
       fieldSet.fieldId = key;
       fieldSet.fieldValue = value;
-      fieldSet.currentFieldValue = value;
+      fieldSet.currentFieldValue = Array.isArray(value) ? value.toString() : value;
       fieldSet.isChild = false;
 
       // parents list
