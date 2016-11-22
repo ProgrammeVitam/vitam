@@ -61,7 +61,6 @@ import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFa
 /**
  * Workspace Connection Implementation
  */
-// FIXME P0: always close javax.ws.rs.core.Response (because can make problems)
 public class ConnectionImpl extends DefaultClient implements Connection {
 
 
@@ -81,7 +80,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private final String driverName;
-    @SuppressWarnings("unused")
+
     private final Properties parameters;
 
     /**
@@ -118,7 +117,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    // FIXME P0 GetObjectResult should have Response and not InputStream in it in order to allow async on caller side
     public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -255,7 +253,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     status.getReasonPhrase());
             case NOT_FOUND:
-                // FIXME P0 : make a *NotFoundException for this case
+                // FIXME P1 : clean useless case
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
                     .getReasonPhrase());
             case SERVICE_UNAVAILABLE:
