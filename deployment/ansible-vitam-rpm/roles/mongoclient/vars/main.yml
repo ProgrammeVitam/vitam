@@ -1,0 +1,6 @@
+---
+
+mongoclient_config_path:  "{{vitam_folder_root}}/conf/mongoclient"
+# simpliest mongo_url. with be overwritten by set fact if MongoDB auth is required
+mongoclient_mongo_url: "mongodb://{{ mongoclient_confdb.host }}:{{ mongoclient_confdb.port }}/{{ mongoclient_confdb.name }}"
+# mongoclient_mail_url: "" # defined in tasks

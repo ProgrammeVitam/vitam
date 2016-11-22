@@ -60,6 +60,24 @@ if [ ! -d "${TARGET_FOLDER}" ]; then
 	exit 2
 fi
 
+## link hidden folders in $HOME into ${COMPONENT_FOLDER}
+HOME_HIDDEN=$(find ${HOME} -maxdepth 1 -name '.*')
+for hid_item in ${HOME_HIDDEN}; do
+	target_link="${COMPONENT_FOLDER}/$(basename ${hid_item})"
+
+	if [ -L ${target_link} ]; then
+	# test if target exists and is a symlink. if this link point to somewhere else, info and override
+		if [ $(readlink ${target_link}) != ${hid_item} ]; then
+			echo "Info: Updating Symlink ${target_link} to ${hid_item}."
+	  fi
+  # test if target exists and is a file or a folder. True => warn and do nothing
+	elif [ -f ${target_link} ] || [ -d ${target_link} ];then
+		echo "Warning: ${target_link} should be a symlink."
+		continue
+	fi
+
+	ln -sf $hid_item ${target_link}
+done
 
 # Build RPM
 

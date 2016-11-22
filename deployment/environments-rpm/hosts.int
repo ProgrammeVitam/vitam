@@ -169,6 +169,8 @@ vitam-iaas-dblog-01.int
 vitam-iaas-dblog-02.int
 vitam-iaas-dblog-03.int
 
+[mongoclient:children]
+mongos
 
 ########### Global vars ###########
 

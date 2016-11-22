@@ -1,0 +1,12 @@
+
+// Create mongoclient user
+db.createUser(
+    {
+        user: "{{mongoClientUser}}",
+        pwd: "{{mongoClientPassword}}",
+        roles: [ 
+            { role: "readWrite", db: "mongoclient" },
+            { role: "dbAdmin", db: "mongoclient" }
+        ]
+    }
+)

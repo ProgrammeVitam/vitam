@@ -52,7 +52,7 @@ if [ -z "$(docker ps -a | grep vitam-rpm-dev)" ]; then
 	echo "Building development container..."
 	docker build -t ${VITAMDEV_IMAGE} --rm --build-arg http_proxy=${HTTP_PROXY} --pull --build-arg https_proxy=${HTTPS_PROXY} dev-rpm-base
 	echo "Launching docker container as daemon (launching systemd init process...)"
-	docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" -p 80:80 -p 8082:8082 -p 9102:9102 -p 9104:9104 -p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9002:9002 -p 9900:9900 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 -p 8443:8443 -p 8444:8444 --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
+	docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" -p 80:80 -p 8082:8082 -p 9102:9102 -p 9104:9104 -p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9002:9002 -p 9900:9900 -p 27016:27016 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 -p 8443:8443 -p 8444:8444 --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
 	if (( ${?} != 0 )); then
 		echo "Container refused to start please correct and retry"
 		docker rm ${VITAMDEV_CONTAINER}

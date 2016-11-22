@@ -62,6 +62,12 @@
   ProxyPassReverse  /nodes/{{item}}/browse http://{{item}}/browse
 {% endfor %}
 
+{% if groups['mongoclient']|length >0 %}
+  # Mongoclient
+  ProxyPass /mongoclient http://{{groups['mongoclient'][0]}}:{{mongoclientPort}}/mongoclient acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /mongo-express http://{{groups['mongoclient'][0]}}:{{mongoclientPort}}/mongoclient
+{% endif %}
+
 {% if groups['hosts-mongo-express']|length >0 %}
   # Mongo express
   ProxyPass /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
@@ -111,9 +117,9 @@
   ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
 {% endif %}
 
-# ProxyPass /_cluster 
-# ProxyPass /_stats 
-# ProxyPass /_nodes 
+# ProxyPass /_cluster
+# ProxyPass /_stats
+# ProxyPass /_nodes
 
 {% if groups['hosts-consul-server']|length >0 %}
   # Consul UI
