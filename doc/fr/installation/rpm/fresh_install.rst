@@ -142,7 +142,7 @@ Une fois l'étape de PKI effectuée avec succès, le déploiement est à réalis
    ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 Import automatique d'objets dans Kibana
----------------------------------------
+=========================================
 
 Il peut être utile de vouloir automatiquement importer dans l'outil de visualisation Kibana des dashboards préalablement crées. Cela ce fait simplement avec le système d'import automatique mis en place. Il suffit de suivre les différentes étapes :
 
