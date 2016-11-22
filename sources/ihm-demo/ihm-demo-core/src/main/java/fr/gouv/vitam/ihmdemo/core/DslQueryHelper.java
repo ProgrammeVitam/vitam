@@ -160,6 +160,8 @@ public final class DslQueryHelper {
                     if (!searchValue.isEmpty()) {
                         query.add(eq("RuleType", searchValue));
                     }
+                    
+                    break;
 
                 case EVENTID:
                     if ("all".equals(searchValue)) {
