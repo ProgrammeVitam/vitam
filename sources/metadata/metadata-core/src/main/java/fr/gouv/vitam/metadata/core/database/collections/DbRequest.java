@@ -855,7 +855,7 @@ public class DbRequest {
                 final Set<String> notFound = new HashSet<>(last.getCurrentIds());
                 // TODO P2 optimize by trying to update only once the unit
                 try (MongoCursor<Unit> cursor = iterable.iterator()) {
-                    if (cursor.hasNext()) {
+                    while (cursor.hasNext()) {
                         final Unit parentUnit = cursor.next();
                         parentUnit.addUnit(unit);
                         notFound.remove(parentUnit.getId());
@@ -891,7 +891,7 @@ public class DbRequest {
             final Set<String> notFound = new HashSet<>(last.getCurrentIds());
             // TODO P2 optimize by trying to update only once the og
             try (MongoCursor<Unit> cursor = iterable.iterator()) {
-                if (cursor.hasNext()) {
+                while (cursor.hasNext()) {
                     final Unit parentUnit = cursor.next();
                     parentUnit.addObjectGroup(og);
                     notFound.remove(parentUnit.getId());

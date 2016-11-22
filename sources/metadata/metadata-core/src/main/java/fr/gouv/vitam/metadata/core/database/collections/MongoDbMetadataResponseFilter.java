@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
-import javassist.expr.Instanceof;
 
 /**
  * Response filter changing _varname to corresponding #varname according to ParserTokens
@@ -88,8 +87,17 @@ public class MongoDbMetadataResponseFilter {
                 case UNITUPS:
                     replace(document, MetadataDocument.UP, VitamFieldsHelper.unitups());
                     break;
+                case MIN:
+                    replace(document, Unit.MINDEPTH, VitamFieldsHelper.min());
+                    break;
+                case MAX:
+                    replace(document, Unit.MAXDEPTH, VitamFieldsHelper.max());
+                    break;
                 case ALLUNITUPS:
                     replace(document, Unit.UNITUPS, VitamFieldsHelper.allunitups());
+                    break;
+                case MANAGEMENT:
+                    replace(document, Unit.MANAGEMENT, VitamFieldsHelper.management());
                     break;
                 case SIZE:
                 case DUA:

@@ -555,9 +555,21 @@ public abstract class BuilderToken {
          */
         UNITUPS("unitups"),
         /**
+         * Unit's MIN distance from root
+         */
+        MIN("min"),
+        /**
+         * Unit's MAX distance from root
+         */
+        MAX("max"),
+        /**
          * All Unit's parents
          */
         ALLUNITUPS("allunitups"),
+        /**
+         * Management bloc
+         */
+        MANAGEMENT("management"),
         /**
          * Unit or GOT's list of participating operations
          */

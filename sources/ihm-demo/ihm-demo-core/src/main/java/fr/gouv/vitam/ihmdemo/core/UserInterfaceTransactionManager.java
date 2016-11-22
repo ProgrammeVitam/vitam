@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -159,7 +161,6 @@ public class UserInterfaceTransactionManager {
     public static JsonNode buildUnitTree(String unitId, JsonNode allParents) throws VitamException {
         // Construct all parents referential
         final JsonNode allParentsRef = JsonTransformer.buildAllParentsRef(unitId, allParents);
-
         // All paths
         final ArrayNode allPaths = JsonHandler.createArrayNode();
 

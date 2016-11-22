@@ -349,7 +349,7 @@ public class IngestInternalIT {
             Select select = new Select();
             select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
             JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
-            LOGGER.warn(JsonHandler.prettyPrint(node));
+            LOGGER.debug(JsonHandler.prettyPrint(node));
             JsonNode result = node.get("$results");
             assertNotNull(result);
             JsonNode unit = result.get(0);
@@ -359,11 +359,9 @@ public class IngestInternalIT {
             // Try to check OG
             select = new Select();
             select.addRoots(og);
-            select.parseProjection(
-                "{\"$fields\":{\"_qualifiers.BinaryMaster.versions\": { $slice: [" + 0 +
-                    "," +
-                    "1]},\"_id\":0," + "\"_qualifiers.BinaryMaster.versions._id\":1}}");
+            select.setProjectionSliceOnQualifier("BinaryMaster", 0);
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+            LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
             final String objectId = valuesAsText.get(0);
             StorageClient storageClient = StorageClientFactory.getInstance().getClient();

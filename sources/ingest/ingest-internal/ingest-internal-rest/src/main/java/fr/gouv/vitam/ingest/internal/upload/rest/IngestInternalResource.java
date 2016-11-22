@@ -264,7 +264,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         Status finalStatus = Status.OK;
                         if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
                             if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
-                                finalStatus = Status.ACCEPTED;
+                                finalStatus = Status.PARTIAL_CONTENT;
                             } else {
                                 finalStatus = Status.BAD_REQUEST;
                             }

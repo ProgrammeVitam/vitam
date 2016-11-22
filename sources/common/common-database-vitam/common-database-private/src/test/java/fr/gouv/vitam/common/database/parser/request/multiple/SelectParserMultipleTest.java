@@ -138,12 +138,18 @@ public class SelectParserMultipleTest {
 
     @Test
     public void testSanityCheckRequest() {
+        int oldValue = GlobalDatasParser.limitRequest;
         try {
+            GlobalDatasParser.limitRequest = 1000;
             final String longfalsecode = createLongString(GlobalDatasParser.limitRequest + 100);
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(JsonHandler.getFromString(longfalsecode));
             fail("Should fail");
-        } catch (final InvalidParseOperationException e) {}
+        } catch (final InvalidParseOperationException e) {
+            // nothing
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
     @Test
@@ -417,5 +423,46 @@ public class SelectParserMultipleTest {
         final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
+    }
+
+    @Test
+    public void testWrongParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserMultiple request = new SelectParserMultiple();
+        String s = "{\"$roots\":[]," +
+            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"_id\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+            "{\"$eq\":{\"var5\":\"value\"}}]}," +
+            "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+            "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}";
+        try {
+            request.parse(JsonHandler.getFromString(s));
+            fail("Should fail");
+        } catch (InvalidParseOperationException e) {
+            // OK
+        }
+        s = "{\"$roots\":[]," +
+            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+            "{\"$eq\":{\"var5\":\"value\"}}]}," +
+            "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+            "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+            "\"$projection\":{\"$fields\":{\"_id\":1,\"var4\":0}}}";
+        try {
+            request.parse(JsonHandler.getFromString(s));
+            fail("Should fail");
+        } catch (InvalidParseOperationException e) {
+            // OK
+        }
+        s = "{\"$roots\":[]," +
+            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+            "{\"$eq\":{\"var5\":\"value\"}}]}," +
+            "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+            "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"_id\":1,\"var2\":-1}}," +
+            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}";
+        try {
+            request.parse(JsonHandler.getFromString(s));
+            fail("Should fail");
+        } catch (InvalidParseOperationException e) {
+            // OK
+        }
     }
 }

@@ -56,6 +56,11 @@ public class VarNameAdapter {
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public String getVariableName(String name) throws InvalidParseOperationException {
+        if (name.charAt(0) == ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR) {
+            if (!ParserTokens.PROJECTIONARGS.isValid(name)) {
+                throw new InvalidParseOperationException("Illegal variable name found: " + name);
+            }
+        }
         return null;
     }
 

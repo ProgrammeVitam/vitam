@@ -45,7 +45,7 @@ angular.module('archive.unit')
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
     'MGT_LABEL': 'Management',
-    'LIST_ITEM_LABEL': 'Valeur ',
+    'LIST_ITEM_LABEL': 'Valeur',
     'MGT_WITH_CSHARP_KEY': '#mgt'
   })
   .filter('filterSize', function() {
@@ -163,7 +163,7 @@ angular.module('archive.unit')
             fieldSetSecond.isChild = true;
 
             if(angular.isArray(contentField)){
-              fieldSetSecond.fieldName = ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL + keyArrayIndex;
+              fieldSetSecond.fieldName = (fieldSet.fieldName ? fieldSet.fieldName : ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL) + ' ' + keyArrayIndex;
               keyArrayIndex = keyArrayIndex + 1;
             }
 
@@ -421,6 +421,20 @@ angular.module('archive.unit')
           angular.forEach(self.archiveFields, function(value, key) {
             if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
               key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+              if (angular.isArray(value)) {
+                var tmpValue = value;
+                self.archiveFields[key] = tmpValue[0];
+                value = tmpValue[0];
+                tmpValue.forEach(function(objectValue, index) {
+                  if (index > 0) {
+                    var newKey = self.displayLabel(key, key) + ' ' + index;
+                    self.archiveFields[newKey] = objectValue;
+                    self.fieldSet = buildSingleField(objectValue, newKey, newKey, []);
+                    self.fieldSet.isModificationAllowed = true;
+                    self.archiveArray.push(self.fieldSet);
+                  }
+                })
+              }
               // Get Title archive
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;

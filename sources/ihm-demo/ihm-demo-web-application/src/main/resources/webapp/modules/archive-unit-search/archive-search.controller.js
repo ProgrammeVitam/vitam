@@ -38,8 +38,8 @@ angular
   'ARCHIVE_SEARCH_MODULE_CONST', {
    'ARCHIVE_FORM_ALREADY_OPENED': 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.',
    'ARCHIVE_DETAILS_PATH': '#!/archiveunit/',
-   'SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!',
-   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
+   'SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche. Veuillez contacter votre administrateur!',
+   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
    'ARCHIVE_NOT_FOUND_MSG': 'L\'archive unit sélectionnée est introuvable.',
    'SEARCH_RESULT_INVALID': 'La réponse reçue est invalide. Impossible d\'afficher le résultat de la recherche.',
    'STARTDATE_GREATER_THAN_ENDDATE': 'La date de début doit être antérieure à la date de fin.',

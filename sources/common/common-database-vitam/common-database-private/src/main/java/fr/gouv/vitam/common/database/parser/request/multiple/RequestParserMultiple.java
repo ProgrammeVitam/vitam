@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
 
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,7 +81,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
 
 
     /**
-     *
+     * Constructor
      */
     public RequestParserMultiple() {
         request = getNewRequest();
@@ -196,6 +197,16 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
+            // Check valid variable names first
+            if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
+                final JsonNode node = rootNode.get(SELECTFILTER.ORDERBY.exactToken());
+                Iterator<String> names = node.fieldNames();
+                while (names.hasNext()) {
+                    String name = names.next();
+                    adapter.getVariableName(name);
+                }
+            }
+            
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(

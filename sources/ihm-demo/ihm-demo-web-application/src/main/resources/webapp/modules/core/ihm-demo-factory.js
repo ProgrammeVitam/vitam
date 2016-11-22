@@ -237,14 +237,22 @@ angular.module('core')
             delete unit["#id"];
             unit._og = unit["#object"];
             delete unit["#object"];
-            unit._us = unit["#unitups"];
-            delete unit["#unitups"];
             unit._ops = unit["#operations"];
             delete unit["#operations"];
             unit._tenant = unit["#tenant"];
             delete unit["#tenant"];
             unit._nbc = unit["#nbunits"];
             delete unit["#nbunits"];
+            unit._up = unit["#unitups"];
+            delete unit["#unitups"];
+            unit._us = unit["#allunitups"];
+            delete unit["#allunitups"];
+            unit._min = unit["#min"];
+            delete unit["#min"];
+            unit._max = unit["#max"];
+            delete unit["#max"];
+	    unit._mgt = unit["#management"];
+            delete unit["#management"];
         });
         return Result;
       }

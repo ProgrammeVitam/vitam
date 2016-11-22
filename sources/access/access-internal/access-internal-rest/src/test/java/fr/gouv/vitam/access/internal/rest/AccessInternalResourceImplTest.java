@@ -95,13 +95,13 @@ public class AccessInternalResourceImplTest {
     private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
 
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
     private static final String DATA_HTML =
-        "{ \"_id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
 
     private static final String ID = "identifier4";
 
@@ -219,10 +219,11 @@ public class AccessInternalResourceImplTest {
      *
      * @param data
      * @return query DSL with id as Roots
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     private static final JsonNode buildDSLWithRoots(String data) throws InvalidParseOperationException {
-        return JsonHandler.getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }");
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }");
     }
 
     /**
@@ -244,7 +245,7 @@ public class AccessInternalResourceImplTest {
      *
      * @throws Exception
      */
-    @Test (expected = InvalidParseOperationException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenStartedServer_WhenBadRequest_ThenReturnError_SelectById_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
@@ -264,20 +265,30 @@ public class AccessInternalResourceImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
-        GlobalDatasParser.limitRequest = 1000;
-        given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(buildDSLWithOptions(createLongString(1001), DATA2))
-            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+        int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            given()
+                .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+                .body(buildDSLWithOptions(createLongString(1001), DATA2))
+                .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
 
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
-        GlobalDatasParser.limitRequest = 1000;
-        given()
-            .contentType(ContentType.JSON).body(buildDSLWithOptions(createLongString(1001), DATA2))
-            .when().put(ACCESS_UPDATE_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            given()
+                .contentType(ContentType.JSON).body(buildDSLWithOptions(createLongString(1001), DATA2))
+                .when().put(ACCESS_UPDATE_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
 

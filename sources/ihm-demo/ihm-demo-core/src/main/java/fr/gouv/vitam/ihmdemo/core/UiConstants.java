@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+
 /**
  * Constants used by Server Application
  *
@@ -44,15 +46,15 @@ public enum UiConstants {
     /**
      * "#id" field
      */
-    ID("#id", "#id"),
+    ID(VitamFieldsHelper.id(), VitamFieldsHelper.id()),
 
     /**
-     * "#up" field
+     * "#unitups" field
      */
-    UNITUPS("#unitups", "#up"),
+    UNITUPS(VitamFieldsHelper.unitups(), VitamFieldsHelper.unitups()),
 
     /**
-     * "#results" field
+     * "$results" field
      */
     RESULT("$results", "$results");
 

@@ -155,6 +155,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(jsonQuery);
+            // Check correctness of request
+            RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+            parser.getRequest().reset();
+            if (! (parser instanceof SelectParserMultiple)) {
+                throw new InvalidParseOperationException("Not a Select operation");
+            }
             jsonNode = metaDataClient.selectUnits(jsonQuery);
 
         } catch (final InvalidParseOperationException e) {
@@ -183,6 +189,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode selectUnitbyId(JsonNode jsonQuery, String idUnit)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
+        // Check correctness of request
+        // Check correctness of request
+        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+        parser.getRequest().reset();
+        if (! (parser instanceof SelectParserMultiple)) {
+            throw new InvalidParseOperationException("Not a Select operation");
+        }
         return selectMetadataDocumentById(jsonQuery, idUnit, DataCategory.UNIT);
     }
 
@@ -215,6 +228,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode selectObjectGroupById(JsonNode jsonQuery, String idObjectGroup)
         throws InvalidParseOperationException, AccessInternalExecutionException {
+        // Check correctness of request
+        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+        parser.getRequest().reset();
+        if (! (parser instanceof SelectParserMultiple)) {
+            throw new InvalidParseOperationException("Not a Select operation");
+        }
         return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECT_GROUP);
     }
 
@@ -232,12 +251,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         selectRequest.parse(queryJson);
         final Select request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
-        // TODO P1 : create helper to build this kind of projection
-        // TODO P1 : it would be nice to be able to handle $slice in projection via builder
-        request.parseProjection(
-            "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
-                "," +
-                "1]},\"_id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1}}");
+        request.setProjectionSliceOnQualifier(qualifier, version);
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
@@ -318,6 +332,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // Check Request is really an Update
         RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
         if (!(parser instanceof UpdateParserMultiple)) {
+            parser.getRequest().reset();
             throw new IllegalArgumentException("Request is not an update operation");
         }
         // eventidentifierprocess for lifecycle
@@ -464,7 +479,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
+            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
                 return JsonHandler.writeAsString(diffNode.get("_diff"));
             }
         }

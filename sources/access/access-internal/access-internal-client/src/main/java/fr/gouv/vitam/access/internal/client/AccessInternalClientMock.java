@@ -53,21 +53,21 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public JsonNode selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
     public JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
     public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
@@ -75,7 +75,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-                "[{'_id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
+                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
 
     }
 
