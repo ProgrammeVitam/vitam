@@ -190,7 +190,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public JsonNode selectUnitbyId(JsonNode jsonQuery, String idUnit)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
         // Check correctness of request
-        // Check correctness of request
         RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (!(parser instanceof SelectParserMultiple)) {
@@ -211,7 +210,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     jsonNode = metaDataClient.selectUnitbyId(jsonQuery, idDocument);
                     break;
                 case OBJECT_GROUP:
-                    // FIXME P0: metadata should return NotFound if the objectGroup is not found
+                    // FIXME P1: metadata should return NotFound if the objectGroup is not found
                     jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
@@ -256,7 +255,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
-        // FIXME P0: do not use direct access but POJO
+        // FIXME P1: do not use direct access but POJO
         final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
