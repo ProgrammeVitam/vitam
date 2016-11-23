@@ -222,20 +222,24 @@ public class CheckConformityActionHandler extends ActionHandler {
             // calculate digest by vitam alog
             vitamDigest.update(inputStream);
 
+            final String manifestDigestString = manifestDigest.digestHex();
+            final String vitamDigestString = vitamDigest.digestHex();
+            LOGGER.debug("DEBUG: \n\t" + binaryObject.getAlgo().getName()+" " +binaryObject.getMessageDigest()+"\n\t"+
+               manifestDigestString+"\n\t"+vitamDigestString);
             // define eventDetailData
             eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
                 "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
                 "\", \"SystemMessageDigest\": \"" + (String) handlerIO.getInput(ALGO_RANK) +
-                "\", \"SystemAlgorithm\": \"" + vitamDigest.toString() + "\"} ";
+                "\", \"SystemAlgorithm\": \"" + vitamDigestString + "\"} ";
 
             // check digest
-            if (manifestDigest.toString().equals(binaryObject.getMessageDigest())) {
+            if (manifestDigestString.equals(binaryObject.getMessageDigest())) {
                 itemStatus.increment(StatusCode.OK);
                 nbOK++;
 
                 if (!isVitamDigest) {
                     // update objectGroup json
-                    ((ObjectNode) version).put(SedaConstants.TAG_DIGEST, vitamDigest.toString());
+                    ((ObjectNode) version).put(SedaConstants.TAG_DIGEST, vitamDigestString);
                     ((ObjectNode) version).put(SedaConstants.ALGORITHM, (String) handlerIO.getInput(ALGO_RANK));
                     oneOrMoreMessagesDigestUpdated = true;
                 }
@@ -248,7 +252,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 // Set eventDetailData in KO case
                 eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
                     binaryObject.getAlgo() +
-                    "\", \"ComputedMessageDigest\": \"" + manifestDigest.digest().toString() + "\"} ";
+                    "\", \"ComputedMessageDigest\": \"" + manifestDigestString + "\"} ";
             }
 
             // Add CHECK_DIGEST.CALC_DIGEST SubTask Result to ObjectGroup lifeCycle

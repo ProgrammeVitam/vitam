@@ -164,8 +164,8 @@
         "versions" : [ {
           "_id" : "aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq",
           "Uri" : "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
-          "MessageDigest" : "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4",
-          "Algorithm" : "SHA-512",
+          "MessageDigest" : "3273aa2ccb0cf4d5d37cef899d1774b9",
+          "Algorithm" : "MD5",
           "Size": 18079
         } ]
       }
