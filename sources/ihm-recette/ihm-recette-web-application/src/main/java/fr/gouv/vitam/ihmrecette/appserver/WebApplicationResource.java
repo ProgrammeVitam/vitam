@@ -91,7 +91,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private final WebApplicationConfig webApplicationConfig;
     // FIXME : replace the boolean by a static timestamp updated by the soap ui thread
-    private boolean soapUiRunning;
+    private static volatile boolean soapUiRunning = false;
+
+    protected static boolean isSoapUiRunning() {
+        return soapUiRunning;
+    }
 
 
     /**
@@ -209,12 +213,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
-            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse logbookOperationResult =
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
-                final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD)).get(0);
+                final JsonNode logbookOperation =
+                    ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD)).get(0);
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream =
-                        JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
+                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
                 final ResponseBuilder response = Response.ok(csvOutArray);
                 response.header("Content-Disposition", "attachment;filename=rapport.csv");

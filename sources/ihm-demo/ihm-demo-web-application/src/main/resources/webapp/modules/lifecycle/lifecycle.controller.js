@@ -102,8 +102,6 @@ angular.module('lifecycle')
           var lastStartedEvent = '';
           for(var i=0; i < response.data.$results[0].events.length; i++){
             var currentEvent = response.data.$results[0].events[i];
-            var nextEvent = response.data.$results[0].events[i + 1];
-            var isCurrentAStartEvent = currentEvent.outcome == 'STARTED';
             var currentEventType = currentEvent.evType;
             var isStepLevelEvent = false;
 
@@ -117,22 +115,20 @@ angular.module('lifecycle')
               isStepLevelEvent = true;
             }
 
-            if(nextEvent === undefined || !isCurrentAStartEvent || (currentEventType!==nextEvent.evType)){
-              var newEvent = {};
-              angular.forEach(currentEvent, function(value, key) {
-                var uppercaseKey = key.toUpperCase();
-                if (uppercaseKey === 'EVTYPE') {
-                  newEvent[uppercaseKey] = $filter('translate')(value);
-                } else {
-                  newEvent[uppercaseKey] = value;
-                }
-              });
+            var newEvent = {};
+            angular.forEach(currentEvent, function(value, key) {
+              var uppercaseKey = key.toUpperCase();
+              if (uppercaseKey === 'EVTYPE') {
+                newEvent[uppercaseKey] = $filter('translate')(value);
+              } else {
+                newEvent[uppercaseKey] = value;
+              }
+            });
 
-              // Add class type
-              newEvent.isStepLevelEvent = isStepLevelEvent;
+            // Add class type
+            newEvent.isStepLevelEvent = isStepLevelEvent;
 
-              self.lifeCycleDetails.push(newEvent);
-            }
+            self.lifeCycleDetails.push(newEvent);
           }
 
           self.totalItems = self.lifeCycleDetails.length;

@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,6 +61,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -75,6 +78,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
     IngestExternalClientFactory.class, SoapUiClientFactory.class})
 // FIXME Think about Unit tests
 public class WebApplicationResourceTest {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceTest.class);
 
     // take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
@@ -105,7 +110,7 @@ public class WebApplicationResourceTest {
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
         sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
-        
+
         try {
             application = new ServerApplicationWithoutMongo(adminConfigFile.getAbsolutePath());
             application.start();
@@ -166,7 +171,7 @@ public class WebApplicationResourceTest {
             .when()
             .get("/upload/fileslist");
     }
-    
+
     @Test
     public void testUploadFileFromServerSuccess() throws Exception {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
@@ -255,59 +260,82 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testLaunchSoapUiTestSuccess() throws IOException, InterruptedException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doNothing().when(soapuiClient).launchTests();
+            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+            Mockito.doNothing().when(soapuiClient).launchTests();
 
-        given().expect()
-            .statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/soapui/launch");
+            given().expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
+                .get("/soapui/launch");
+        } else {
+            LOGGER.warn("Test testLaunchSoapUiTestSuccess did not run because a process is already running");
+        }
     }
 
 
     @Test
     public void testLaunchSoapUiTestWhenThrowInterruptedException() throws IOException, InterruptedException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doThrow(InterruptedException.class).when(soapuiClient).launchTests();
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+            Mockito.doThrow(InterruptedException.class).when(soapuiClient).launchTests();
+            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+        } else {
+            LOGGER.warn(
+                "Test testLaunchSoapUiTestWhenThrowInterruptedException did not run because a process is already running");
+        }
     }
 
     @Test
     public void testLaunchSoapUiTestWhenThrowIOException() throws IOException, InterruptedException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+            Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
+            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+        } else {
+            LOGGER
+                .warn("Test testLaunchSoapUiTestWhenThrowIOException did not run because a process is already running");
+        }
     }
 
     @Test
     public void testLaunchSoapUiTestWhenThrowFileNotFoundException() throws IOException, InterruptedException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
+            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
 
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doThrow(FileNotFoundException.class).when(soapuiClient).launchTests();
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
+            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
+            Mockito.doThrow(FileNotFoundException.class).when(soapuiClient).launchTests();
+            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
+        } else {
+            LOGGER.warn(
+                "Test testLaunchSoapUiTestWhenThrowFileNotFoundException did not run because a process is already running");
+        }
     }
 
     @SuppressWarnings("rawtypes")
     @Test
     public void testRunningSoapUiTest() {
-        ResponseBody body =
-            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/running").getBody();
-        assertTrue(body.prettyPrint().contains("false"));
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            ResponseBody body =
+                given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/running").getBody();
+            assertTrue(body.prettyPrint().contains("false"));
+        } else {
+            LOGGER.warn("Test testRunningSoapUiTest did not run because a process is already running");
+        }
     }
 
     @Test
