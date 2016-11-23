@@ -236,6 +236,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
 
+        } catch (CycleFoundException e) {
+            LOGGER.debug("ProcessingException", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
         } finally {
             // Empty all maps
             binaryDataObjectIdToGuid.clear();
@@ -263,9 +266,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param params parameters of workspace server
      * @param globalCompositeItemStatus
      * @throws ProcessingException throw when can't read or extract element from SEDA
+     * @throws CycleFoundException
      */
     public void extractSEDA(WorkerParameters params, ItemStatus globalCompositeItemStatus)
-        throws ProcessingException {
+        throws ProcessingException, CycleFoundException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         try (LogbookLifeCyclesClient logbookLifeCycleClient =
@@ -277,7 +281,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void extractSEDAWithWorkspaceClient(String containerId,
         ItemStatus globalCompositeItemStatus,
         LogbookLifeCyclesClient logbookLifeCycleClient)
-        throws ProcessingException {
+        throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -447,7 +451,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         } catch (final CycleFoundException e) {
             LOGGER.error(CYCLE_FOUND_EXCEPTION, e);
-            throw new ProcessingException(e);
+            throw new CycleFoundException(e);
         } catch (final IOException e) {
             LOGGER.error(SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG, e);
             throw new ProcessingException(e);
