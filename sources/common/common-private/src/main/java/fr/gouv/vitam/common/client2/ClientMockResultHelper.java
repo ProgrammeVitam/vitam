@@ -50,6 +50,16 @@ public class ClientMockResultHelper {
         "{\"$query\":{}," +
             "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
             "\"$results\":";
+    
+    private static final String UNIT = 
+        "{\"DescriptionLevel\":\"Item\"," +
+        "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+        "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+        "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+        "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+        "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+        "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+        "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -262,5 +272,9 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
         return createReponse(RESULT + "{}}");
+    }
+    
+    public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
+        return createReponse(UNIT);
     }
 }
