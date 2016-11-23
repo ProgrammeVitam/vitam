@@ -233,6 +233,7 @@ public class MetaDataImpl implements MetaData {
         return arrayNodeResponse;
     }
 
+    // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
     @Override
     public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
