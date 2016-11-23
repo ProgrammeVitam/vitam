@@ -25,17 +25,17 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse selectUnits(String selectQuery) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString("{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override
     public RequestResponse selectUnitbyId(String selectQuery, String unitId) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString("{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override
     public RequestResponse updateUnitbyId(String updateQuery, String unitId) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString("{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override
@@ -46,9 +46,7 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse selectObjectById(String selectQuery, String unitId) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"#id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"));
+        return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override

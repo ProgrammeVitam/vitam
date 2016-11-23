@@ -421,19 +421,30 @@ angular.module('archive.unit')
           angular.forEach(self.archiveFields, function(value, key) {
             if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
               key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+              var addedField = false;
               if (angular.isArray(value)) {
                 var tmpValue = value;
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
+                var fieldSet = buildSingleField(value, key, key, []);
+                 fieldSet.isModificationAllowed = true;
+
+                if (mainFields.indexOf(key) >= 0) {
+                  self.mainFields[key] = fieldSet;
+                } else {
+                  self.archiveArray.push(fieldSet);
+                }
+
                 tmpValue.forEach(function(objectValue, index) {
                   if (index > 0) {
                     var newKey = self.displayLabel(key, key) + ' ' + index;
                     self.archiveFields[newKey] = objectValue;
-                    self.fieldSet = buildSingleField(objectValue, newKey, newKey, []);
-                    self.fieldSet.isModificationAllowed = true;
-                    self.archiveArray.push(self.fieldSet);
+                    fieldSet = buildSingleField(objectValue, newKey, newKey, []);
+                    fieldSet.isModificationAllowed = true;
+                    self.archiveArray.push(fieldSet);
                   }
-                })
+                });
+                addedField = true;
               }
               // Get Title archive
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
@@ -441,14 +452,15 @@ angular.module('archive.unit')
                 $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
                   $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
               }
-              var parents = [];
-              self.fieldSet = buildSingleField(value, key, key, parents);
-              self.fieldSet.isModificationAllowed = true;
 
-              if (mainFields.indexOf(key) >= 0) {
-                self.mainFields[key] = self.fieldSet;
-              } else {
-                self.archiveArray.push(self.fieldSet);
+              self.fieldSet = buildSingleField(value, key, key, []);
+              self.fieldSet.isModificationAllowed = true;
+              if (!addedField) {
+                if (mainFields.indexOf(key) >= 0 ) {
+                  self.mainFields[key] = self.fieldSet;
+                } else {
+                  self.archiveArray.push(self.fieldSet);
+                }
               }
             }
           });

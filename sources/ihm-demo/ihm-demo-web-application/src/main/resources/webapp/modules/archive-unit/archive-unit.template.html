@@ -114,15 +114,6 @@
               </div>
             </div>
           </div>
-            <div class="col-xs-12">
-                <div class="form-group col-md-6">
-                    <div class="row simple-field">
-                        <display-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                       field-object="$ctrl.mainFields['Tag']" edit-mode="$ctrl.isEditMode">
-                        </display-field>
-                    </div>
-                </div>
-            </div>
           <div class="col-xs-12">
             <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.archiveArray"></div>
             <div class="{{fieldSet.typeF !=='P'? 'form-group col-md-6': 'col-xs-12'}}"
