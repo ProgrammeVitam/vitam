@@ -23,32 +23,44 @@
     <fileSet>
       <directory>..</directory>
       <outputDirectory>sources</outputDirectory>
-      <includes>
+<!--       <includes>
         <include>sources/**</include>
         <include>dev-deployment/**</include>
         <include>integration-test/**</include>
         <include>doc/**</include>
         <include>rpm/**</include>
-      </includes>
+        <include>packaging/**</include>
+      </includes> -->
       <excludes>
       	<!-- IntelliJ project files -->
       	<exclude>**/*.iml</exclude>
-		<exclude>**/.idea/**</exclude>
-		<!-- Various build files & folders -->
-		<exclude>**/build/**</exclude>
-		<exclude>**/_build/**</exclude>
-		<exclude>**/target/**</exclude>
-		<exclude>**/*.class</exclude>
-		<exclude>**/*.log</exclude>
-		<!-- Eclipse project files -->
-		<exclude>**/.classpath</exclude>
-		<exclude>**/.project</exclude>
-		<exclude>**/.settings/**</exclude>
-		<!-- Ansible temp files -->
-		<exclude>**/*.retry</exclude>
-		<!-- Other -->
-		<exclude>**/node_modules/**</exclude>
-		<exclude>**/evosuite-tests/**</exclude>
+        <exclude>**/.idea/**</exclude>
+        <!-- Various build files & folders -->
+        <exclude>**/build/**</exclude>
+        <exclude>**/_build/**</exclude>
+        <exclude>**/target/**</exclude>
+        <exclude>**/*.class</exclude>
+        <exclude>**/*.log</exclude>
+        <!-- RPM build files -->
+        <exclude>**/RPMS/**</exclude>
+        <exclude>**/SRPMS/**</exclude>
+        <exclude>**/BUILD/**</exclude>
+        <exclude>**/BUILDROOT/**</exclude>
+        <!-- Eclipse project files -->
+        <exclude>**/.classpath</exclude>
+        <exclude>**/.project</exclude>
+        <exclude>**/.settings/**</exclude>
+        <!-- Ansible temp files -->
+        <exclude>**/*.retry</exclude>
+        <!-- Git-related -->
+        <exclude>**/.git/**</exclude>
+        <!-- Other -->
+        <exclude>**/node_modules/**</exclude>
+        <exclude>**/evosuite-tests/**</exclude>
+        <!-- To clean up after bêta -->
+        <exclude>pom.xml</exclude>
+        <exclude>Makefile</exclude>  
+        <exclude>deployment/environments-rpm/hosts.int</exclude>  
       </excludes>
     </fileSet>
     <!-- Add ansible deployment files -->
@@ -58,7 +70,7 @@
       <excludes>
         <exclude>**/*.retry</exclude>
         <!-- Only theses 3 hosts files must be delivered : hosts.example;hosts.local;hosts.fulllocal-->
-        <exclude>%regex[.*hosts.(?!example|local|fulllocal).*]</exclude>
+        <exclude>**/hosts.int</exclude>  
       </excludes>
     </fileSet>
   </fileSets>
@@ -71,7 +83,7 @@
         <include>fr.gouv.vitam.doc:*:zip</include>
       </includes>
     </dependencySet>
-  	<!-- Add java-based vitam-product rpm -->
+    <!-- Add java-based vitam-product rpm -->
     <dependencySet>
       <outputDirectory>/rpm/vitam-product</outputDirectory>
       <unpack>false</unpack>
