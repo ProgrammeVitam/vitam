@@ -119,6 +119,7 @@ public class LogbookResourceIT {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
+            logbookConf.setWorkspaceUrl("http://localhost:8082");
             application = new LogbookApplication(logbookConf);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();

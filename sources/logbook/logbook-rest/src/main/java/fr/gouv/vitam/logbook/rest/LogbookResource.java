@@ -140,7 +140,11 @@ public class LogbookResource extends ApplicationStatusResource {
             throw new RuntimeException(e);
         }
         TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
-        logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator, WorkspaceClientFactory.getInstance());
+        WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance();
+        WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
+
+        logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
+            clientFactory);
 
         LOGGER.debug("LogbookResource operation initialized");
 

@@ -39,6 +39,8 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     private String p12LogbookFile;
 
+    private String workspaceUrl;
+
     public String getP12LogbookPassword() {
         return p12LogbookPassword;
     }
@@ -53,5 +55,13 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     public void setP12LogbookFile(String p12LogbookFile) {
         this.p12LogbookFile = p12LogbookFile;
+    }
+
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    public void setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
     }
 }
