@@ -248,7 +248,7 @@ angular
          // Add title to criteria
          atLeastOneValidCriteriaExists = true;
          atLeastOneCriteriaExists = true;
-         $scope.criteriaSearch._id = id;
+         $scope.criteriaSearch.id = id;
       } else {
          if (title !== '' && title !== null && title !== undefined) {
             // Add title to criteria

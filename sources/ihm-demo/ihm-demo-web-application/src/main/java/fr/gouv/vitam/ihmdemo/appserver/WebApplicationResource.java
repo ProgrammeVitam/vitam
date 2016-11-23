@@ -873,7 +873,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // 3- Build Unit tree (all paths)
             final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
-                parentsDetails.toJsonNode().get(UiConstants.RESULT.getConstantValue()));
+                parentsDetails.toJsonNode().get(UiConstants.RESULT.getResultCriteria()));
 
             return Response.status(Status.OK).entity(unitTree).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {

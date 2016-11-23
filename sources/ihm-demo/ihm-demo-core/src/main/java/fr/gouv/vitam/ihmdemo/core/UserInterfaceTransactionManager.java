@@ -40,8 +40,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -166,7 +164,7 @@ public class UserInterfaceTransactionManager {
 
         // Start by the immediate parents
         final ArrayNode immediateParents =
-            (ArrayNode) allParentsRef.get(unitId).get(UiConstants.UNITUPS.getResultConstantValue());
+            (ArrayNode) allParentsRef.get(unitId).get(UiConstants.UNITUPS.getResultCriteria());
 
         // Build all paths
         for (final JsonNode currentParentNode : immediateParents) {
@@ -185,7 +183,7 @@ public class UserInterfaceTransactionManager {
 
     private static void buildOnePathForOneParent(ArrayNode path, JsonNode parent, ArrayNode allPaths,
         JsonNode allParentsRef) {
-        final ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultConstantValue());
+        final ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultCriteria());
 
         if (immediateParents.size() == 0) {
             // it is a root

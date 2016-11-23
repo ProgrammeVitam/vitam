@@ -294,8 +294,8 @@ public final class DslQueryHelper {
                 booleanQueries.add(match(DESCRIPTION, searchValue));
                 continue;
             }
-            if (searchKeys.equalsIgnoreCase(UiConstants.ID.getResultConstantValue())) {
-                andQuery.add(eq(UiConstants.ID.getConstantValue(), searchValue));
+            if (searchKeys.equalsIgnoreCase(UiConstants.ID.getReceivedCriteria())) {
+                andQuery.add(eq(UiConstants.ID.getResultCriteria(), searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
@@ -384,13 +384,13 @@ public final class DslQueryHelper {
 
         // Add projections
         // Title
-        selectParentsDetails.addUsedProjection(UiConstants.TITLE.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.TITLE.getResultCriteria());
 
         // id
-        selectParentsDetails.addUsedProjection(UiConstants.ID.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.ID.getResultCriteria());
 
         // _up
-        selectParentsDetails.addUsedProjection(UiConstants.UNITUPS.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.UNITUPS.getResultCriteria());
 
         // Add query
 
@@ -403,7 +403,8 @@ public final class DslQueryHelper {
         final String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
 
         final BooleanQuery inParentsIdListQuery = and();
-        inParentsIdListQuery.add(in(UiConstants.ID.getConstantValue(), allParentsArray)).setDepthLimit(DEPTH_LIMIT);
+        inParentsIdListQuery.add(in(UiConstants.ID.getResultCriteria(), allParentsArray))
+            .setDepthLimit(DEPTH_LIMIT);
 
         if (inParentsIdListQuery.isReady()) {
             selectParentsDetails.addQueries(inParentsIdListQuery);

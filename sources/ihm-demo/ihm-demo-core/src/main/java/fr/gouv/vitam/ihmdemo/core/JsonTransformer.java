@@ -138,19 +138,19 @@ public final class JsonTransformer {
 
         final ObjectNode allParentsRef = JsonHandler.createObjectNode();
         for (final JsonNode currentParentNode : allParents) {
-            if (!currentParentNode.has(UiConstants.ID.getResultConstantValue())) {
+            if (!currentParentNode.has(UiConstants.ID.getResultCriteria())) {
                 throw new VitamException(MISSING_ID_ERROR_MSG);
             }
 
-            if (!currentParentNode.has(UiConstants.UNITUPS.getResultConstantValue())) {
+            if (!currentParentNode.has(UiConstants.UNITUPS.getResultCriteria())) {
                 throw new VitamException(MISSING_UP_ERROR_MSG);
             }
 
-            if (!currentParentNode.get(UiConstants.UNITUPS.getResultConstantValue()).isArray()) {
+            if (!currentParentNode.get(UiConstants.UNITUPS.getResultCriteria()).isArray()) {
                 throw new VitamException(INVALID_UP_FIELD_ERROR_MSG);
             }
 
-            final String currentParentId = currentParentNode.get(UiConstants.ID.getResultConstantValue()).asText();
+            final String currentParentId = currentParentNode.get(UiConstants.ID.getResultCriteria()).asText();
             allParentsRef.set(currentParentId, currentParentNode);
 
             if (unitId.equalsIgnoreCase(currentParentId)) {
