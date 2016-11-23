@@ -35,7 +35,6 @@ import static org.junit.Assert.fail;
 
 import java.net.ServerSocket;
 
-import org.elasticsearch.bootstrap.Elasticsearch;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;

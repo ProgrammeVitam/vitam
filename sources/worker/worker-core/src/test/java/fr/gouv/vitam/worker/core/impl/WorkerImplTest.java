@@ -39,7 +39,6 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;

@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 

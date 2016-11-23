@@ -37,7 +37,6 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.server2.RequestIdContainerFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -45,7 +44,10 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -63,7 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.BasicVitamServer;
+import fr.gouv.vitam.common.server2.RequestIdContainerFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;

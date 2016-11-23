@@ -36,12 +36,12 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
@@ -67,6 +67,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;

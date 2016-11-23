@@ -27,20 +27,19 @@
 
 package fr.gouv.vitam.common.server2.application.session;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.TestApplication;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-
-import static org.junit.Assert.fail;
 
 /**
  * Tests for the requestId propagation between servers.

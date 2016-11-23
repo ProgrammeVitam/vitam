@@ -1,7 +1,6 @@
 package fr.gouv.vitam.logbook.rest;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;

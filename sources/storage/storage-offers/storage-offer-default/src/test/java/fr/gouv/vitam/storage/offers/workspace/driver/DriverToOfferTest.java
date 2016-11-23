@@ -48,7 +48,6 @@ import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;

@@ -69,7 +69,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -77,7 +76,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;

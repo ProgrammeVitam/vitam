@@ -26,16 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import java.io.File;
-
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;

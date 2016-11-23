@@ -37,8 +37,6 @@ import java.util.TreeMap;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.StatusCode;
-
 /**
  * Test class for StorageLogbookParameters
  */

@@ -35,7 +35,6 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 

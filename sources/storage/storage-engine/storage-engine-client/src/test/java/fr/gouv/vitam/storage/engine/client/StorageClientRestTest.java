@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplic
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;

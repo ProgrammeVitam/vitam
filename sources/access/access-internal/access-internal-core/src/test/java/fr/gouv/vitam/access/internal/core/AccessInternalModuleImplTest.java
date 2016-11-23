@@ -46,7 +46,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -57,7 +56,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.multiple.Update;

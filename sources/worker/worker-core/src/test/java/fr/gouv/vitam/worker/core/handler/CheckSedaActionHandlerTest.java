@@ -33,7 +33,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,14 +54,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
-import fr.gouv.vitam.processing.common.model.ProcessingUri;
-import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")

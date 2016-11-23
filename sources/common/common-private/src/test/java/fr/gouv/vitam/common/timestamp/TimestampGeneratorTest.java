@@ -1,5 +1,24 @@
 package fr.gouv.vitam.common.timestamp;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
+import java.math.BigInteger;
+import java.security.cert.CertificateEncodingException;
+
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.tsp.TSPException;
+import org.bouncycastle.tsp.TimeStampRequest;
+import org.bouncycastle.tsp.TimeStampResponse;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -28,25 +47,6 @@ package fr.gouv.vitam.common.timestamp;
  */
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.TimeStampException;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.tsp.TSPException;
-import org.bouncycastle.tsp.TimeStampRequest;
-import org.bouncycastle.tsp.TimeStampResponse;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.cert.CertificateEncodingException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 public class TimestampGeneratorTest {
 

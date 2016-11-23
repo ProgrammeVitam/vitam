@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;

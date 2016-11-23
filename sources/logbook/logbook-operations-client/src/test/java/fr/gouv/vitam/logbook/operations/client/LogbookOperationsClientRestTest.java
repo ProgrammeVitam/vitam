@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -50,8 +49,6 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;

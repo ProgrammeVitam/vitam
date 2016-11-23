@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -69,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;

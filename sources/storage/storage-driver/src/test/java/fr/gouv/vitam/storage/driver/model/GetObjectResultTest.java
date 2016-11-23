@@ -30,7 +30,6 @@ package fr.gouv.vitam.storage.driver.model;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 

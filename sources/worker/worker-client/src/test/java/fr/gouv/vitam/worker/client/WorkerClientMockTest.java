@@ -29,14 +29,11 @@ package fr.gouv.vitam.worker.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
-
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;

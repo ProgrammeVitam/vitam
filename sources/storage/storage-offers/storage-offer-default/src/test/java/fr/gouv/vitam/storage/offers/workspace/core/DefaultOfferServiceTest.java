@@ -53,7 +53,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;

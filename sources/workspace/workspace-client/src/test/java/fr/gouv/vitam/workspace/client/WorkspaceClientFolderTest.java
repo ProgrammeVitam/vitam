@@ -48,11 +48,9 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.common.Entry;
 
 public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
