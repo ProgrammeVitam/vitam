@@ -130,16 +130,16 @@ public class InsertParserMultipleTest {
     public void testParse() {
         try {
             final InsertParserMultiple request1 = new InsertParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            request1.parse(exampleMd);
+            request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
         } catch (final Exception e) {}
         try {
             final InsertParserMultiple request1 = new InsertParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
@@ -187,8 +187,8 @@ public class InsertParserMultipleTest {
                     System.err.println(query1.get(i));
                     System.err.println(query2.get(i));
                 }
-                assertTrue("TypeRequest should be equal",
-                    query1.get(i).toString().equals(query2.get(i).toString()));
+                assertEquals("TypeRequest should be equal",
+                    query1.get(i).toString(), query2.get(i).toString());
             }
             assertTrue("Data should be equal", request1.getRequest().getData().toString()
                 .equals(request2.getRequest().getData().toString()));
@@ -295,7 +295,7 @@ public class InsertParserMultipleTest {
         } catch (final InvalidParseOperationException e) {
             assertNotNull(e);
         }
-        request.parse(exampleMd);
+        request.parse(exampleMd.deepCopy());
         assertNotNull(request);
 
         final InsertParserMultiple request2 = new InsertParserMultiple(new VarNameAdapter());

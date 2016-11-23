@@ -324,8 +324,17 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
                 relativedepth, exactdepth, isDepth);
         }
 
-        QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
-            exactdepth, relativedepth);
+        if (adapter.metadataAdapter()) {
+            QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
+                exactdepth, relativedepth);
+        } else {
+            query.setFullText(hasFullTextCurrentQuery);
+            if (exactdepth != 0) {
+                query.setExactDepthLimit(exactdepth);
+            } else {
+                query.setRelativeDepthLimit(relativedepth);
+            }
+        }
         hasFullTextQuery |= hasFullTextCurrentQuery;
         request.addQueries(query);
     }

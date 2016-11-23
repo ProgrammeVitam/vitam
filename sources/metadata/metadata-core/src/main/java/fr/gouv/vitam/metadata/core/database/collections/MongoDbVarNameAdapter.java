@@ -43,6 +43,11 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
         // Empty constructor
     }
 
+    @Override
+    public boolean metadataAdapter() {
+        return true;
+    }
+
     /**
      * @see ParserTokens.PROJECTIONARGS
      * @param name

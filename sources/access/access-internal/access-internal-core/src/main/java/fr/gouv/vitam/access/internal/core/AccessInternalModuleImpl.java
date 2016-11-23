@@ -156,7 +156,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(jsonQuery);
             // Check correctness of request
-            RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+            RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
             parser.getRequest().reset();
             if (! (parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException("Not a Select operation");
@@ -191,7 +191,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
         // Check correctness of request
         // Check correctness of request
-        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (! (parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
@@ -229,7 +229,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public JsonNode selectObjectGroupById(JsonNode jsonQuery, String idObjectGroup)
         throws InvalidParseOperationException, AccessInternalExecutionException {
         // Check correctness of request
-        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery);
+        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (! (parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
