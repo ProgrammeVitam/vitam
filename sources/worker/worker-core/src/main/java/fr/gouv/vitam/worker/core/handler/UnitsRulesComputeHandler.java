@@ -170,7 +170,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
-        try (InputStream inputStream = 
+        try (InputStream inputStream =
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
             // Parse RULES in management Archive unit, and add EndDate
             parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
@@ -385,7 +385,8 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
         // Write to workspace
         try {
-            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName, fileWithEndDate, true);
+            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName,
+                fileWithEndDate, true);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {
@@ -397,10 +398,10 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
     private JsonNode getRuleNodeByID(String ruleId, JsonNode jsonResult) {
         if (jsonResult != null) {
-        	 ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
-             for (JsonNode rule : rulesResult) {
-                 String ruleIdFromList = rule.get(FileRules.RULEID).asText();
-                 if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
+            ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
+            for (JsonNode rule : rulesResult) {
+                String ruleIdFromList = rule.get(FileRules.RULEID).asText();
+                if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
                     return rule;
                 }
             }

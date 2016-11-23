@@ -106,7 +106,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-    
+
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
 
     // TODO P1 setting in other place
@@ -158,7 +158,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // Check correctness of request
             RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
             parser.getRequest().reset();
-            if (! (parser instanceof SelectParserMultiple)) {
+            if (!(parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException("Not a Select operation");
             }
             jsonNode = metaDataClient.selectUnits(jsonQuery);
@@ -193,7 +193,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // Check correctness of request
         RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
-        if (! (parser instanceof SelectParserMultiple)) {
+        if (!(parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
         }
         return selectMetadataDocumentById(jsonQuery, idUnit, DataCategory.UNIT);
@@ -231,7 +231,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // Check correctness of request
         RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
-        if (! (parser instanceof SelectParserMultiple)) {
+        if (!(parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
         }
         return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECT_GROUP);
@@ -464,7 +464,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         String outcomeDetailMessage, GUID eventIdentifierRequest) {
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                STP_UPDATE_UNIT, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome, outcomeDetailMessage,
+                STP_UPDATE_UNIT, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome,
+                outcomeDetailMessage,
                 eventIdentifierRequest);
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest.getId());
         return parameters;
@@ -479,7 +480,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
+            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
                 return JsonHandler.writeAsString(diffNode.get("_diff"));
             }
         }

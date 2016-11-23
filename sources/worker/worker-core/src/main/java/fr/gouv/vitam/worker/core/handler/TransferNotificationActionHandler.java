@@ -258,6 +258,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         JsonNode infoATR =
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
         String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+        
         // creation of ATR report
         try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)){
             final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();

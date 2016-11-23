@@ -92,9 +92,9 @@ public class UpdateUnitResourceTest {
     private static final String SERVER_HOST = "localhost";
 
     private static final String BODY_TEST =
-        "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
     private static final String REAL_UPDATE_BODY_TEST =
-        "{\"$query\": {\"$eq\": {\"data\" : \"data3\" }}, \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
+        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -189,6 +189,7 @@ public class UpdateUnitResourceTest {
 
     // Unit by ID (request and uri)
 
+    // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl / MetadataJsonResponseUtils 
     @Test
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()
@@ -204,7 +205,7 @@ public class UpdateUnitResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(MetadataCollections.C_UNIT);
-        // FIXME Should not be empty!!!
+
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
@@ -212,7 +213,6 @@ public class UpdateUnitResourceTest {
             .statusCode(Status.FOUND.getStatusCode());
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
-        // FIXME Should not be empty!!!
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()

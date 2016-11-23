@@ -62,7 +62,7 @@ public final class MetadataJsonResponseUtils {
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
      * @param selectRequest
-     * @param query 
+     * @param query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
@@ -70,9 +70,7 @@ public final class MetadataJsonResponseUtils {
      */
     public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
         throws InvalidParseOperationException {
-
         ArrayNode jsonListResponse = JsonHandler.createArrayNode();
-
         // TODO P1 : review if statement because if result.getFinal().get("Result") == null and selectRequest
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
@@ -80,8 +78,7 @@ public final class MetadataJsonResponseUtils {
             result.getFinal().get(Result.RESULT_FIELD) != null)) {
             LOGGER.debug("Result document: " + result.getFinal().toJson());
             jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getMetadataDocumentListFiltered());
-        } 
-
+        }
         LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
         return jsonListResponse;
     }
@@ -98,7 +95,7 @@ public final class MetadataJsonResponseUtils {
      *        can be empty
      * @param request
      * @param diff the diff map list with the unit id as key and the diff list as value
-     * @param query 
+     * @param query
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
@@ -106,19 +103,20 @@ public final class MetadataJsonResponseUtils {
      */
     public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple request,
         Map<String, List<String>> diff) throws InvalidParseOperationException {
-        ArrayNode jsonListResponse = JsonHandler.createArrayNode();
-        if (result != null && result.getNbResult() > 0 && result.getFinal().get("Result") != null) {
-            LOGGER.debug("Result document: " + result.getFinal().toJson());
-            jsonListResponse = (ArrayNode) getJsonDiff(diff);
+        ArrayNode arrayJsonListResponse = JsonHandler.createArrayNode();
+        if (result != null && result.getNbResult() > 0) {
+            arrayJsonListResponse = getJsonDiff(diff);
         }
-        return jsonListResponse;
+        LOGGER.debug("populateJSONObjectResponse: " + arrayJsonListResponse.toString());
+        return arrayJsonListResponse;
     }
 
-    private static JsonNode getJsonDiff(Map<String, List<String>> diff) {
+
+    private static ArrayNode getJsonDiff(Map<String, List<String>> diff) {
         final ArrayNode diffArrayNode = JsonHandler.createArrayNode();
         for (final String id : diff.keySet()) {
             final ObjectNode diffNode = JsonHandler.createObjectNode();
-            diffNode.put("#id", id);
+            diffNode.put("_id", id);
             diffNode.put("_diff", String.join("\n", diff.get(id)));
             diffArrayNode.add(diffNode);
         }

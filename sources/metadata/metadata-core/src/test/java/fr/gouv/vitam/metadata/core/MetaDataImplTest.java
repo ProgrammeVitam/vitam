@@ -52,9 +52,11 @@ import com.mongodb.WriteError;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.ResultError;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -125,7 +128,8 @@ public class MetaDataImplTest {
     @BeforeClass
     public static void loadStaticResources() throws Exception {
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
-        sampleObjectGroupFiltered = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME));
+        sampleObjectGroupFiltered =
+            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME));
     }
 
     @Before
@@ -410,19 +414,68 @@ public class MetaDataImplTest {
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "[]";
+        final String wanted = "[{\"_id\":\"unitId\",\"_diff\":\"-  title : title" +
+            "\\n-  description : description\\n+  title : MODIFIED title" +
+            "\\n+  description : MODIFIED description\"}]";
+        final String wantedDiff = "\"-  title : title\\n-  description : description\\n+  " +
+            "title : MODIFIED title\\n+  description : MODIFIED description\"";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");
         updateResult.setNbResult(1);
 
-        when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final JsonNode ret = metaDataImpl
-            .updateUnitbyId(JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-                "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}"),
-                "unitId");
+        final Result firstSelectResult = new ResultDefault(FILTERARGS.UNITS);
+        firstSelectResult.addId("unitId");
+        firstSelectResult.setNbResult(1);
+        final Unit unit = new Unit();
+        unit.put("_id", "unitId");
+        unit.put("title", "title");
+        unit.put("description", "description");
+        firstSelectResult.addFinal(unit);
 
+        final Result secondSelectResult = new ResultDefault(FILTERARGS.UNITS);
+        secondSelectResult.addId("unitId");
+        secondSelectResult.setNbResult(1);
+        final Unit secondUnit = new Unit();
+        secondUnit.put("_id", "unitId");
+        secondUnit.put("title", "MODIFIED title");
+        secondUnit.put("description", "MODIFIED description");
+        secondSelectResult.addFinal(secondUnit);
+
+        JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
+            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
+
+        when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
+        when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
+            secondSelectResult);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        final ArrayNode ret = metaDataImpl
+            .updateUnitbyId(updateRequest, "unitId");
         assertEquals(wanted, ret.toString());
+
+        RequestResponseOK response = new RequestResponseOK()
+            .setHits(ret.size(), 0, 1)
+            .setQuery(updateRequest)
+            .addAllResults(ret);
+        assertEquals(wantedDiff, getDiffMessageFor(response.toJsonNode(), "unitId"));
     }
+
+
+    private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
+        if (diff == null) {
+            return "";
+        }
+        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$results");
+        if (arrayNode == null) {
+            return "";
+        }
+        for (final JsonNode diffNode : arrayNode) {
+            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
+                return JsonHandler.writeAsString(diffNode.get("_diff"));
+            }
+        }
+        return "";
+    }
+
+
 }
