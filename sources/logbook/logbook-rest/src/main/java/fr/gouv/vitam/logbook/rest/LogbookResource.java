@@ -197,8 +197,8 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Create or Select a new operation
      *
-     * @param operationId path param, the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
+     * @param operationId   path param, the operation id
+     * @param operation     the json serialized as a LogbookOperationParameters.
      * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
      */
@@ -250,7 +250,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Append a new item on the given operation
      *
      * @param operationId the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
+     * @param operation   the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -286,8 +286,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Run traceability secure   operation for logbook
+     *
      * @return the response with a specific HTTP status
-     * 
      */
     @POST
     @Path("/operations/traceability")
@@ -296,7 +296,6 @@ public class LogbookResource extends ApplicationStatusResource {
 
         try {
             GUID guid = logbookAdministration.generateSecureLogbook();
-
             final ArrayNode resultAsJson = JsonHandler.createArrayNode();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -315,7 +314,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Select a list of operations
-     * 
+     *
      * @param query DSL as JsonNode
      * @return Response containt the list of loglook operation
      */
@@ -363,8 +362,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * select Operation With Post Override Or Bulk Create
-     * 
-     * @param query as JsonNode or Operations Logbooks as ArrayNode
+     *
+     * @param query         as JsonNode or Operations Logbooks as ArrayNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method or CREATED for not GET Overriden method
      */
@@ -412,7 +411,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Update Operation With Bulk Mode
-     * 
+     *
      * @param arrayNodeOperations as ArrayNode of operations to add to existing Operation Logbook entry
      * @return Response with a status of OK if updated
      */
@@ -445,9 +444,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param xcursor if True means new query, if False means end of query from client side
-     * @param xcursorId if present, means continue on Cursor
-     * @param query as JsonNode
+     * @param xcursor     if True means new query, if False means end of query from client side
+     * @param xcursorId   if present, means continue on Cursor
+     * @param query       as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -514,8 +513,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId the life cycle id
-     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId    the life cycle id
+     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -576,8 +575,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId the life cycle id
-     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId    the life cycle id
+     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -637,7 +636,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId the life cycle id
+     * @param unitLcId    the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -681,7 +680,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId the life cycle id
+     * @param unitLcId    the life cycle id
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -738,9 +737,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param xcursor if True means new query, if False means end of query from client side
-     * @param xcursorId if present, means continue on Cursor
-     * @param query as JsonNode
+     * @param xcursor     if True means new query, if False means end of query from client side
+     * @param xcursorId   if present, means continue on Cursor
+     * @param query       as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -805,8 +804,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId the life cycle id
-     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId    the life cycle id
+     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -867,8 +866,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId the life cycle id
-     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId    the life cycle id
+     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -927,7 +926,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId the life cycle id
+     * @param objGrpId    the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -971,7 +970,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId the life cycle id
+     * @param objGrpId    the life cycle id
      * @return the response with a specific HTTP status
      */
     @PUT

@@ -46,7 +46,10 @@ module('ihm.demo').
       when('/soapUi', {
         template: '<soap-ui></soap-ui>'
       }).
-      otherwise('/adminHome');
+      when('/operationTraceability', {
+          template: '<operation-traceability></operation-traceability>'
+        })
+      .otherwise('/adminHome');
     }
   ])
   .config(function($translateProvider) {
