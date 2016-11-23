@@ -124,6 +124,7 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
+            logbookConf.setWorkspaceUrl("http://localhost:8001");
 
             application = new LogbookApplication(logbookConf);
             application.start();
