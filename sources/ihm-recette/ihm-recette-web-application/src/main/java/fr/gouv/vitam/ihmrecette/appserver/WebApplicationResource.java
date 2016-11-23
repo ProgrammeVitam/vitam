@@ -33,13 +33,18 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -56,8 +61,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -66,6 +73,16 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
+import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
+import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
+import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
+import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
@@ -97,6 +114,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return soapUiRunning;
     }
 
+    // TODO FIX_TENANT_ID
+    private static final Integer TENANT_ID = 0;
 
     /**
      * Constructor
@@ -112,6 +131,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve all the messages for logbook
      * 
+     *
      * @return Response
      */
     @GET
@@ -363,6 +383,114 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("The reporting json can't be created", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    /**
+     * @param headers
+     * @param sessionId
+     * @param query options for searching
+     * @return Response
+     */
+    @POST
+    @Path("/logbook/operations")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+        String options) {
+
+        ParametersChecker.checkParameter("cookie is mandatory", sessionId);
+        String requestId = null;
+        RequestResponse result = null;
+        OffsetBasedPagination pagination = null;
+
+        try {
+            pagination = new OffsetBasedPagination(headers);
+        } catch (final VitamException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+        if (requestIds != null) {
+            requestId = requestIds.get(0);
+            // get result from shiro session
+            try {
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
+
+                return Response.status(Status.OK).entity(result)
+                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                    .build();
+            } catch (final VitamException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            }
+        } else {
+            requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                String query = "";
+                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+                LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
+                result = UserInterfaceTransactionManager.selectOperation(query);
+
+                // save result
+                LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
+                PaginationHelper.setResult(sessionId, result.toJsonNode());
+                // pagination
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
+
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            } catch (final LogbookClientException e) {
+                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            } catch (final Exception e) {
+                LOGGER.error("Internal server error", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+                .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                .build();
+        }
+    }
+
+    /**
+     * @param operationId id of operation
+     * @param query options for searching
+     * @return Response
+     */
+    @POST
+    @Path("/logbook/operations/{idOperation}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
+
+        RequestResponse result = null;
+        try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }

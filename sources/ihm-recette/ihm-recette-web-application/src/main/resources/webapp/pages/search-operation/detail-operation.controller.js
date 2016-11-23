@@ -27,19 +27,30 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation'
-]);
+angular.module('search.operation')
+  .controller('DetailOperationController', function($scope, $mdDialog, ihmDemoCLient, idOperationService, $routeParams) {
+    var operationId = $routeParams.entryId;
+
+    ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
+      $scope.detail = response.data.$results[0];
+      $scope.detailId = operationId;
+    });
+
+  })
+  .factory('idOperationService', function() {
+	    var getIdFromResult = function(result) {
+	      var id;
+	      result.events.forEach(function(element) {
+	        if (element.obIdIn !== null && element.obIdIn !== '') {
+	          id = element.obIdIn;
+	        }
+	      });
+	      return id;
+	    };
+
+
+	    return {
+	      getIdFromResult: getIdFromResult
+	    };
+
+	  });

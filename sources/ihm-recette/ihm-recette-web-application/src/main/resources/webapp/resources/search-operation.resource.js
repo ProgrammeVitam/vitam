@@ -1,12 +1,12 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * 
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital
  * archiving back-office system managing high volumetry securely and
  * efficiently.
- *
+ * 
  * This software is governed by the CeCILL 2.1 license under French law and
  * abiding by the rules of distribution of free software. You can use, modify
  * and/ or redistribute the software under the terms of the CeCILL 2.1 license
@@ -17,7 +17,7 @@
  * and redistribute granted by the license, users are provided only with a
  * limited warranty and the software's author, the holder of the economic
  * rights, and the successive licensors have only limited liability.
- *
+ * 
  * In this respect, the user's attention is drawn to the risks associated with
  * loading, using, modifying and/or developing or reproducing the software by
  * the user in light of its specific status of free software, that may mean that
@@ -32,22 +32,23 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-// Define controller for operation traceability
-angular
-    .module('operation.traceability')
-    .controller(
-        'operationTraceabilityController',
-        function ($scope, $http, operationTraceabilityService) {
+// Define resources in order to call WebApp http endpoints for search operation
+angular.module('core').factory(
+		'searchOperationResource',
+		function($http, IHM_URLS) {
 
-            $scope.getResults = function () {
-                operationTraceabilityService
-                    .getResults(
-                        function () {
-                            $scope.data = "Succès de l'opération de sécurisation des journaux.";
-                        },
-                        function () {
-                            $scope.data = "Echec de l'opération de sécurisation des journaux.";
-                        });
+			var Search_operation_ROOT = '/logbook/operations';
+			var searchOperationResource = {};
 
-            };
-        });
+			/**
+			 * launch search-operations  (POST method)
+			 * 
+			 * @returns {HttpPromise} The promise returned by the http call
+			 */
+			searchOperationResource.result = function(options) {
+				return $http.post(IHM_URLS.IHM_BASE_URL
+						+Search_operation_ROOT,options);
+			};
+			return searchOperationResource;
+
+		});

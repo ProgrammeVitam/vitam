@@ -50,6 +50,9 @@
     <script src="modules/core/main.controller.js"></script>
     <script src="modules/core/ihm-demo-service.js"></script>
     <script src="modules/core/message.service.js"></script>
+    
+    <!-- Core -->
+    <script src="core/filter/search.filter.js"></script>
 
     <!-- Pages -->
     <script src="pages/upload-sip-perf/upload-sip-perf.module.js"></script>
@@ -67,11 +70,17 @@
     <script src="pages/operation-traceability/operation-traceability.module.js"></script>
     <script src="pages/operation-traceability/operation-traceability.controller.js"></script>
     <script src="pages/operation-traceability/operation-traceability.component.js"></script>
+    
+    <script src="pages/search-operation/search-operation.module.js"></script>
+    <script src="pages/search-operation/search-operation.controller.js"></script>
+    <script src="pages/search-operation/search-operation.component.js"></script>
+    <script src="pages/search-operation/detail-operation.controller.js"></script>
 
     <!-- Services -->
     <script src="services/admin.service.js"></script>
     <script src="services/soap-ui.service.js"></script>
     <script src="services/operation-traceability.service.js"></script>
+    <script src="services/search-operation.service.js"></script>
 
     <!-- Resources -->
     <script src="resources/admin.resource.js"></script>
@@ -79,6 +88,7 @@
     <script src="resources/messages.resource.js"></script>
     <script src="resources/upload-sip-perf.resource.js"></script>
     <script src="resources/operation-traceability.resource.js"></script>
+    <script src="resources/search-operation.resource.js"></script>
 
 </head>
 
@@ -120,6 +130,7 @@
                             <li><a href="#!/soapUi">Tests SOAP-UI</a></li>
                             <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
                             <li><a href="#!/operationTraceability">Sécurisation du journal des opérations </a></li>
+                            <li><a href="#!/searchOperation">Rechercher un journal sécurisé</a></li>
                         </ul>
                     </li>
                 </ul>

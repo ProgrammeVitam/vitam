@@ -48,7 +48,14 @@ module('ihm.demo').
       }).
       when('/operationTraceability', {
           template: '<operation-traceability></operation-traceability>'
-        })
+      }).
+      when('/searchOperation', {
+          template: '<search-operation></search-operation>'
+      }).
+      when('/searchOperation/detailOperation/:entryId', {
+          templateUrl: 'pages/search-operation/detailOperation.html',
+          controller: 'DetailOperationController'
+      })
       .otherwise('/adminHome');
     }
   ])

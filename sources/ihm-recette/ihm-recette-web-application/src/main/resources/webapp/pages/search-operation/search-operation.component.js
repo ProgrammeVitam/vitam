@@ -27,19 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation'
-]);
+// Register `Search Operation` component, along with its associated controller and template
+angular.
+  module('search.operation').
+  component('searchOperation', {
+    templateUrl: 'pages/search-operation/search-operation.template.html',
+    controller: 'searchOperationController as ctrl'
+  });
