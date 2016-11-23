@@ -943,10 +943,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws InvalidParseOperationException {
         final File tmpJsonFile = handlerIO.getNewLocalFile(jsonFileName);
         final JsonNode jsonBDO = JsonHandler.getFromFile(tmpJsonFile);
-        // FIXME P0 are you sure it is ALWAYS a BINARY MASTER here ?
-        binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId, BINARY_MASTER);
         JsonNode objectNode = mapNewTechnicalDataObjectGroupToBDO(jsonBDO, binaryDataOjectId);
         objectNode = addExtraField(objectNode);
+        // No check on objectNode BINARY_DATA_OBJECT node, cannot be null or empty
+        binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId, objectNode.get(BINARY_DATA_OBJECT).get
+            (SedaConstants.TAG_DO_VERSION).textValue());
         JsonHandler.writeAsFile(objectNode,
             handlerIO.getNewLocalFile(jsonFileName)); // write the new BinaryDataObject
         return objectNode;
@@ -1036,9 +1037,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * create level stack on Json file
      *
-     * @param client workspace client
-     * @param containerId
      * @param levelStackMap
+     * @param rank
      * @throws ProcessingException
      */
     private void createIngestLevelStackFile(Map<Integer, Set<String>> levelStackMap, int rank)
@@ -1231,8 +1231,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     }
                     // Create new startElement for group with new guid
-                    // FIXME P0: unused ?
-                    groupGuid = objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                     final String newGroupId = getNewGdoIdFromGdoByUnit(unitIdToGroupId.get(elementID));
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID));
