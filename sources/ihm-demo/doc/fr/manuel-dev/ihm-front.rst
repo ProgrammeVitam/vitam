@@ -200,3 +200,5 @@ Cette directive permet de dynamiser les tableaux de données pour sélectionner 
   Ces objets doivent au moins avoir les champs 'id' (Valeur technique et unique) et 'label' (Valeur affichable à l'utilisateur).
  selected-objects: Ce sont les objets sélectionnés à afficher. L'objet en etrée peut être un tableau vide et sera nourri par la directive
  
+Attention, pour des raisons d'ergonomie, il est demandé d'ajouter la classe CSS 'dynamic-table-box' au div 'panel-default' englobant.
+Cela permet à ce div de devenir dynamique et de dépasser de la page si plus de colones sont affichés. Ainsi la scrollbar horizontale est accessible directement.

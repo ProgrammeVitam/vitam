@@ -548,3 +548,8 @@ table {
 .width-100 {
   width: 100%;
 }
+
+.dynamic-table-box {
+  width: inherit;
+  min-width: 100%;
+}
