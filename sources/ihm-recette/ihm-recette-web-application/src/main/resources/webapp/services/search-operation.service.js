@@ -25,21 +25,14 @@
  * accept its terms.
  */
 
-'use strict';
+// Define service in order to process the resource promise for search operation
+angular.module('core')
+  .service('searchOperationService', function(searchOperationResource) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation'
-]);
+    var searchOperationService = this;
+
+    searchOperationService.getOperations = function(options,success,error ) {
+    	searchOperationResource.result(options).then(success,error);
+    };
+
+  });

@@ -87,6 +87,7 @@ public final class DslQueryHelper {
     private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
     private static final String YES = "yes";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String DATEOPERATION = "EvDateTime";
 
 
     // empty constructor
@@ -160,7 +161,7 @@ public final class DslQueryHelper {
                     if (!searchValue.isEmpty()) {
                         query.add(eq("RuleType", searchValue));
                     }
-                    
+
                     break;
 
                 case EVENTID:
@@ -178,6 +179,11 @@ public final class DslQueryHelper {
                         } else {
                             query.add(eq(EVENT_TYPE_PROCESS, searchValue.toUpperCase()));
                         }
+                    }
+                    break;
+                case DATEOPERATION:
+                    if (!searchValue.isEmpty()) {
+                        query.add(gte(EVENT_DATE_TIME, searchValue));
                     }
                     break;
 
