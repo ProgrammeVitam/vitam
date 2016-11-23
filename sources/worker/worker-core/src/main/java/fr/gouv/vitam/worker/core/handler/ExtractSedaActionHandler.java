@@ -595,6 +595,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                                 globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
                             }
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
+                                unitIdToSetOfRuleId != null &&
                                 unitIdToSetOfRuleId.get(unitId) != null && !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
                                 globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
                             }

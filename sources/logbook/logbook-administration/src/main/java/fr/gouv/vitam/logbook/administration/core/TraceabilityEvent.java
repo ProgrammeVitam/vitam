@@ -44,8 +44,11 @@ public class TraceabilityEvent {
 
     private String workspaceId;
 
-    // empty constructor for jackson
+    /**
+     * Empty constructor for Jackson
+     */
     public TraceabilityEvent() {
+        // Empty
     }
 
     /**
