@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.workspace.common.RequestResponseError;
 
 public class ProcessManagementResourceTest {
 

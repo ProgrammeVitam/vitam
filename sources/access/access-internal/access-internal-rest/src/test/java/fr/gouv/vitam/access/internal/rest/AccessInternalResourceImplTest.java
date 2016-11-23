@@ -43,7 +43,6 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.MarshalException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

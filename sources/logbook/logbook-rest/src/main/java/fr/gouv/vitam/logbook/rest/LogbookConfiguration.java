@@ -27,12 +27,6 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.util.Enumeration;
-
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 
 /**

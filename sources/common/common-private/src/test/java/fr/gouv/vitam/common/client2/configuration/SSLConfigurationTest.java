@@ -36,7 +36,6 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
-import org.glassfish.jersey.SslConfigurator;
 import org.junit.Before;
 import org.junit.Test;
 

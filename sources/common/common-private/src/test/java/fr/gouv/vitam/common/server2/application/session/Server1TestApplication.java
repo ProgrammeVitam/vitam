@@ -27,20 +27,21 @@
 
 package fr.gouv.vitam.common.server2.application.session;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+
+import org.junit.Assert;
+import org.slf4j.MDC;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutorProvider;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.junit.Assert;
-import org.slf4j.MDC;
-
-import java.util.concurrent.*;
 
 /**
  * Server1 implementation of {@link VitamRequestIdFiltersIT} tests.
