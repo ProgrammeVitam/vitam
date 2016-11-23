@@ -50,6 +50,14 @@ public class VarNameAdapter {
     }
 
     /**
+     * 
+     * @return True if the adapter is a MetadataVarnameAdapter
+     */
+    public boolean metadataAdapter() {
+        return false;
+    }
+
+    /**
      *
      * @param name String
      * @return null

@@ -117,16 +117,16 @@ public class DeleteParserMultipleTest {
     public void testParse() {
         try {
             final DeleteParserMultiple request1 = new DeleteParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            request1.parse(exampleMd);
+            request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
         } catch (final Exception e) {}
         try {
             final DeleteParserMultiple request1 = new DeleteParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
@@ -173,8 +173,8 @@ public class DeleteParserMultipleTest {
                     System.err.println(query1.get(i));
                     System.err.println(query2.get(i));
                 }
-                assertTrue("TypeRequest should be equal",
-                    query1.get(i).toString().equals(query2.get(i).toString()));
+                assertEquals("TypeRequest should be equal",
+                    query1.get(i).toString(), query2.get(i).toString());
             }
             assertTrue("Filter should be equal",
                 request1.getRequest().getFilter().toString()
@@ -196,7 +196,7 @@ public class DeleteParserMultipleTest {
     @Test
     public void testDeleteParser() throws InvalidParseOperationException {
         final DeleteParserMultiple request = new DeleteParserMultiple();
-        request.parse(exampleMd);
+        request.parse(exampleMd.deepCopy());
         assertNotNull(request);
         final DeleteParserMultiple request2 = new DeleteParserMultiple(new VarNameAdapter());
         assertNotNull(request2);

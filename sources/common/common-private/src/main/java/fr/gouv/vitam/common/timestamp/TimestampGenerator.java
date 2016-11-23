@@ -63,10 +63,7 @@ public class TimestampGenerator {
      * @param digestType algorithm use to generate the hash
      * @param nonce unique id to secure a timestamp request, can be null
      * @return timestamp token
-     * @throws TSPException
-     * @throws CertificateEncodingException
-     * @throws OperatorCreationException
-     * @throws IOException
+     * @throws TimeStampException 
      */
     public byte[] generateToken(byte[] hash, DigestType digestType, BigInteger nonce)
         throws TimeStampException {

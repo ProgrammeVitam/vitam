@@ -147,16 +147,16 @@ public class UpdateParserMultipleTest {
     public void testParse() {
         try {
             final UpdateParserMultiple request1 = new UpdateParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            request1.parse(exampleMd);
+            request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
         } catch (final Exception e) {}
         try {
             final UpdateParserMultiple request1 = new UpdateParserMultiple();
-            request1.parse(exampleBothEsMd);
+            request1.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
@@ -209,8 +209,8 @@ public class UpdateParserMultipleTest {
             final List<Query> query1 = request1.getRequest().getQueries();
             final List<Query> query2 = request2.getRequest().getQueries();
             for (int i = 0; i < query1.size(); i++) {
-                assertTrue("TypeRequest should be equal",
-                    query1.get(i).toString().equals(query2.get(i).toString()));
+                assertEquals("TypeRequest should be equal",
+                    query1.get(i).toString(), query2.get(i).toString());
             }
             final List<Action> actions1 = request1.getRequest().getActions();
             final List<Action> actions2 = request2.getRequest().getActions();
@@ -337,7 +337,7 @@ public class UpdateParserMultipleTest {
     @Test
     public void testUpdateParser() throws InvalidParseOperationException {
         final UpdateParserMultiple request = new UpdateParserMultiple();
-        request.parse(exampleMd);
+        request.parse(exampleMd.deepCopy());
         assertNotNull(request);
 
         final UpdateParserMultiple request2 = new UpdateParserMultiple(new VarNameAdapter());

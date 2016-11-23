@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.TimeStampException;
@@ -94,6 +93,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+/**
+ * Business class for Logbook Administration (traceability)
+ */
 public class LogbookAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAdministration.class);
@@ -145,10 +147,15 @@ public class LogbookAdministration {
 
     /**
      * secure the logbook operation since last securisation.
+     * @return the GUID of the operation
      *
      * @throws TraceabilityException
+     * @throws LogbookNotFoundException 
+     * @throws InvalidParseOperationException 
+     * @throws LogbookDatabaseException 
+     * @throws InvalidCreateOperationException 
      */
-    // TODO: use a lock specific for a tenant
+    // TODO: use a lock specific for a tenant and be careful on multiple Logbook instances
     public synchronized GUID generateSecureLogbook()
         throws TraceabilityException, LogbookNotFoundException, InvalidParseOperationException,
         LogbookDatabaseException, InvalidCreateOperationException {
@@ -188,7 +195,7 @@ public class LogbookAdministration {
 
             while (traceabilityIterator.hasNext()) {
 
-                VitamDocument logbookOperation = traceabilityIterator.next();
+                LogbookOperation logbookOperation = traceabilityIterator.next();
                 String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addSheet(logbookOperationStr);
