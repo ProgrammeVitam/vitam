@@ -46,7 +46,7 @@ public enum UiConstants {
     /**
      * "#id" field
      */
-    ID(VitamFieldsHelper.id(), VitamFieldsHelper.id()),
+    ID("id", VitamFieldsHelper.id()),
 
     /**
      * "#unitups" field
@@ -58,25 +58,28 @@ public enum UiConstants {
      */
     RESULT("$results", "$results");
 
-    private final String constantValue;
-    private final String resultValue;
+    // Received Criteria to change on compatible VITAM criteria
+    private final String receivedCriteria;
 
-    private UiConstants(String constantValue, String resultValue) {
-        this.constantValue = constantValue;
-        this.resultValue = resultValue;
+    // Result Criteria to send to VITAM API
+    private final String resultCriteria;
+
+    private UiConstants(String receivedCriteria, String resultCriteria) {
+        this.receivedCriteria = receivedCriteria;
+        this.resultCriteria = resultCriteria;
     }
 
     /**
-     * @return the DSL constant value
+     * @return the received constant value (From IHM)
      */
-    public final String getConstantValue() {
-        return constantValue;
+    public final String getReceivedCriteria() {
+        return receivedCriteria;
     }
 
     /**
-     * @return the Result constant value
+     * @return the Result constant value (From Vitam)
      */
-    public final String getResultConstantValue() {
-        return resultValue;
+    public final String getResultCriteria() {
+        return resultCriteria;
     }
 }

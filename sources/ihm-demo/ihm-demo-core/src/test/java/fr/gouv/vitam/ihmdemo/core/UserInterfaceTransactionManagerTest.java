@@ -27,8 +27,8 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -188,14 +188,14 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(onePath.size() == 3);
 
         final JsonNode oneImmediateParent = onePath.get(0);
-        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID028") ||
-            oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID030"));
+        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID028") ||
+            oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID030"));
 
         final JsonNode nextParent = onePath.get(1);
-        assertTrue(nextParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID027"));
+        assertTrue(nextParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID027"));
 
         final JsonNode oneRoot = onePath.get(2);
-        assertTrue(oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID025") ||
-            oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID026"));
+        assertTrue(oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID025") ||
+            oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID026"));
     }
 }

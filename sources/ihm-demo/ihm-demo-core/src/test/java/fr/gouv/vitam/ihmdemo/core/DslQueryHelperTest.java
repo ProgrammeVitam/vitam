@@ -336,13 +336,14 @@ public class DslQueryHelperTest {
         assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
         assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
         assertTrue(
-            ((Select) selectParser.getRequest()).getProjection().get("$fields").has(UiConstants.ID.getConstantValue()));
+            ((Select) selectParser.getRequest()).getProjection().get("$fields")
+                .has(UiConstants.ID.getResultCriteria()));
         assertTrue(
             ((Select) selectParser.getRequest()).getProjection().get("$fields")
-                .has(UiConstants.TITLE.getConstantValue()));
+                .has(UiConstants.TITLE.getResultCriteria()));
         assertTrue(
             ((Select) selectParser.getRequest()).getProjection().get("$fields")
-                .has(UiConstants.UNITUPS.getConstantValue()));
+                .has(UiConstants.UNITUPS.getResultCriteria()));
     }
 
 
