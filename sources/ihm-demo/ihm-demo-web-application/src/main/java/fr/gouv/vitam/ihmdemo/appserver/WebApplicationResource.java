@@ -26,12 +26,8 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
@@ -48,7 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -63,7 +58,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
@@ -76,7 +70,6 @@ import org.eclipse.jetty.continuation.ContinuationSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -136,18 +129,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
 
     private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
-    private final WebApplicationConfig webApplicationConfig;
-    private static final String FILE_NAME_KEY = "fileName";
-    private static final String FILE_SIZE_KEY = "fileSize";
-    private static final String ZIP_EXTENSION = ".ZIP";
-    private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final int TENANT_ID = 0;
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
     private static final int COMPLETE_RESPONSE_SIZE = 3;
     private static final int GUID_INDEX = 0;
     private static final int RESPONSE_STATUS_INDEX = 1;
     private static final int ATR_CONTENT_INDEX = 2;
-
+    private WebApplicationConfig webApplicationConfig;
 
     /**
      * Constructor
@@ -281,7 +269,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
             try {
-                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
@@ -327,7 +315,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         RequestResponse result = null;
         try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -477,7 +465,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileFormats(String options) {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         String query = "";
         RequestResponse result = null;
         try (final AdminExternalClient adminClient =
@@ -513,7 +501,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
@@ -526,7 +514,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -581,29 +569,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } finally {
             StreamUtils.closeSilently(input);
         }
-    }
-
-    /**
-     * Delete the referential format in the base
-     *
-     * @return Response
-     */
-    @Path("/format/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.deleteDocuments(AdminCollections.FORMATS);
-            return Response.status(Status.OK).build();
-        } catch (final AccessExternalClientException e) {
-            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-
     }
 
     /**
@@ -704,7 +669,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/rules")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileRules(String options) {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         String query = "";
         RequestResponse result = null;
         try (final AdminExternalClient adminClient =
@@ -740,7 +705,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
@@ -753,7 +718,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -803,33 +768,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } finally {
             StreamUtils.closeSilently(input);
         }
 
-    }
-
-    /**
-     * Delete the referential rules in the base
-     *
-     * @return Response
-     */
-    @Path("/rules/delete")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRulesFile() {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.deleteDocuments(AdminCollections.RULES);
-            return Response.status(Status.OK).build();
-        } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
     /**
@@ -842,7 +786,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/accession-register")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccessionRegister(String options) {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         RequestResponse result = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -871,7 +815,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/accession-register/{id}/accession-register-detail")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAccessionRegisterDetail(@PathParam("id") String id, String options) {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         RequestResponse result = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -1032,130 +976,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
-    }
-
-
-    /**
-     * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
-     *
-     * @param operationId logbook oeration id
-     * @return the statistics file (csv format)
-     */
-    @GET
-    @Path("/stat/{id_op}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        try {
-            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
-            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has("$results")) {
-                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get("$results").get(0);
-                // Create csv file
-                final ByteArrayOutputStream csvOutputStream =
-                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
-                final byte[] csvOutArray = csvOutputStream.toByteArray();
-                final ResponseBuilder response = Response.ok(csvOutArray);
-                response.header("Content-Disposition", "attachment;filename=rapport.csv");
-                response.header("Content-Length", csvOutArray.length);
-
-                return response.build();
-            }
-
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Returns the list of available files
-     *
-     * @return the list of available files
-     */
-    @GET
-    @Path("/upload/fileslist")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAvailableFilesList() {
-
-        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
-            LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
-                .build();
-        }
-
-        final File fileDirectory = new File(webApplicationConfig.getSipDirectory());
-
-        if (!fileDirectory.isDirectory()) {
-            LOGGER.error("SIP directory <{}> is not a directory.",
-                webApplicationConfig.getSipDirectory());
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                "SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
-                .build();
-        }
-        final File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
-        final ArrayNode filesListDetails = JsonHandler.createArrayNode();
-
-        if (sipFiles != null) {
-            for (final File currentFile : sipFiles) {
-                final ObjectNode fileDetails = JsonHandler.createObjectNode();
-                fileDetails.put(FILE_NAME_KEY, currentFile.getName());
-                fileDetails.put(FILE_SIZE_KEY, currentFile.length());
-                filesListDetails.add(fileDetails);
-            }
-        }
-
-        return Response.status(Status.OK).entity(filesListDetails).build();
-    }
-
-    private class SipFilenameFilterImpl implements FilenameFilter {
-        @Override
-        public boolean accept(File dir, String fileName) {
-            return fileName.toUpperCase().endsWith(ZIP_EXTENSION) || fileName.toUpperCase().endsWith(TAR_GZ_EXTENSION);
-        }
-    }
-
-    /**
-     * Uploads the given file and returns the logbook operation id
-     *
-     * @param fileName the file name
-     * @return the logbook operation id
-     */
-    @GET
-    @Path("/upload/{file_name}")
-    @Produces(MediaType.TEXT_PLAIN)
-    // FIXME P0 To remove
-    public Response uploadFileFromServer(@PathParam("file_name") String fileName) {
-        ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
-        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
-            LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
-                .build();
-        }
-
-        // Read the selected file into an InputStream
-        try (
-            InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
-            IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            final Response response = client.upload(sipInputStream);
-            final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-            return Response.status(response.getStatus()).entity(ingestOperationId).build();
-        } catch (final VitamException e) {
-            LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
-                .build();
-        } catch (FileNotFoundException e) {
-            LOGGER.error("The selected file is not found", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
-        } catch (IOException e) {
-            LOGGER.error("Error occured when trying to close the stream", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
-        }
     }
 
     /**

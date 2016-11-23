@@ -56,13 +56,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientRest.class);
     private static final String FORMAT_CHECK_URL = "/format/check";
     private static final String FORMAT_IMPORT_URL = "/format/import";
-    private static final String FORMAT_DELETE_URL = "/format/delete";
     private static final String FORMAT_GET_DOCUMENT_URL = "/format/document";
     private static final String FORMAT_URL = "/format";
 
     private static final String RULESMANAGER_CHECK_URL = "/rules/check";
     private static final String RULESMANAGER_IMPORT_URL = "/rules/import";
-    private static final String RULESMANAGER_DELETE_URL = "/rules/delete";
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";
     private static final String RULESMANAGER_URL = "/rules";
 
@@ -122,31 +120,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     throw new DatabaseConflictException("Collection input conflic");
-                default:
-                    break;
-            }
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public void deleteFormat() throws ReferentialException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE, FORMAT_DELETE_URL, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new ReferentialException("File format error");
                 default:
                     break;
             }
@@ -268,34 +241,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     throw new DatabaseConflictException("Collection input conflic");
-                default:
-                    break;
-            }
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-
-    }
-
-    @Override
-    public void deleteRulesFile() throws FileRulesException, AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.DELETE, RULESMANAGER_DELETE_URL, null, MediaType.APPLICATION_JSON_TYPE,
-                    false);
-
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new FileRulesException("File rules error");
                 default:
                     break;
             }

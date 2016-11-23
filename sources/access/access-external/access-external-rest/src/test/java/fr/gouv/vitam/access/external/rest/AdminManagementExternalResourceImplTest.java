@@ -89,37 +89,6 @@ public class AdminManagementExternalResourceImplTest {
     }
 
     @Test
-    public void deleteCollection() throws ReferentialException {
-        AdminManagementClientFactory.changeMode(null);
-        given()
-        .when().delete(FORMAT_URI)
-        .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-        .when().delete(RULES_URI)
-        .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-        .when().delete(WRONG_URI)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    public void deleteCollectionError() throws Exception {
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).deleteFormat();
-
-        given()
-        .when().delete(FORMAT_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-    }
-
-    @Test
     public void testCheckDocument() throws FileNotFoundException {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");

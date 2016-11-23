@@ -27,8 +27,10 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -48,6 +50,8 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -75,6 +79,11 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String RESULTS_FIELD = "$results";
+    private static final String FILE_NAME_KEY = "fileName";
+    private static final String FILE_SIZE_KEY = "fileSize";
+    private static final String ZIP_EXTENSION = ".ZIP";
+    private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private final WebApplicationConfig webApplicationConfig;
     // FIXME : replace the boolean by a static timestamp updated by the soap ui thread
@@ -138,6 +147,53 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
+     * Returns the list of available files
+     *
+     * @return the list of available files
+     */
+    @GET
+    @Path("/upload/fileslist")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAvailableFilesList() {
+
+        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
+            LOGGER.error("SIP directory not configured");
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
+                .build();
+        }
+
+        final File fileDirectory = new File(webApplicationConfig.getSipDirectory());
+
+        if (!fileDirectory.isDirectory()) {
+            LOGGER.error("SIP directory <{}> is not a directory.",
+                webApplicationConfig.getSipDirectory());
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                "SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
+                .build();
+        }
+        final File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
+        final ArrayNode filesListDetails = JsonHandler.createArrayNode();
+
+        if (sipFiles != null) {
+            for (final File currentFile : sipFiles) {
+                final ObjectNode fileDetails = JsonHandler.createObjectNode();
+                fileDetails.put(FILE_NAME_KEY, currentFile.getName());
+                fileDetails.put(FILE_SIZE_KEY, currentFile.length());
+                filesListDetails.add(fileDetails);
+            }
+        }
+
+        return Response.status(Status.OK).entity(filesListDetails).build();
+    }
+
+    private class SipFilenameFilterImpl implements FilenameFilter {
+        @Override
+        public boolean accept(File dir, String fileName) {
+            return fileName.toUpperCase().endsWith(ZIP_EXTENSION) || fileName.toUpperCase().endsWith(TAR_GZ_EXTENSION);
+        }
+    }
+
+    /**
      * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
      *
      * @param operationId logbook oeration id
@@ -147,14 +203,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/stat/{id_op}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
+        LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
-            final RequestResponse logbookOperationResult =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId);
-            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has("$results")) {
-                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get("$results");
+            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
+                final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD)).get(0);
                 // Create csv file
-                final ByteArrayOutputStream csvOutputStream =
-                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
+                final ByteArrayOutputStream csvOutputStream = 
+                        JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
                 final ResponseBuilder response = Response.ok(csvOutArray);
                 response.header("Content-Disposition", "attachment;filename=rapport.csv");
@@ -191,8 +247,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         // Read the selected file into an InputStream
-        try (
-            InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
+        try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
             IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             final Response response = client.upload(sipInputStream);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -204,12 +259,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .build();
         } catch (FileNotFoundException e) {
             LOGGER.error("The selected file is not found", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (IOException e) {
             LOGGER.error("Error occured when trying to close the stream", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -282,7 +335,4 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         return Response.status(Status.OK).entity(result).build();
     }
-
-
-
 }

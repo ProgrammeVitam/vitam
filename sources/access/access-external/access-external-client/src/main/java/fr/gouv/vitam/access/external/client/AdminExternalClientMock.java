@@ -61,8 +61,4 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
     }
 
-    @Override
-    public Status deleteDocuments(AdminCollections documentType) throws AccessExternalClientException {
-        return Status.OK;
-    }
 }

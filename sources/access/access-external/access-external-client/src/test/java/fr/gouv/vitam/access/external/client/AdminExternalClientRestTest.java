@@ -179,22 +179,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
     }
 
     @Test
-    public void testDeleteDocuments()
-        throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
-        assertEquals(
-            client.deleteDocuments(AdminCollections.FORMATS),
-            Status.OK);
-    }
-    
-    @Test(expected=AccessExternalClientNotFoundException.class)
-    public void testDeleteDocumentAccessExternalClientNotFoundException()
-        throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.deleteDocuments(AdminCollections.FORMATS);
-    }
-    
-    @Test
     public void testFindDocuments()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());

@@ -42,7 +42,6 @@ angular.module('ihm.demo', [
   'ngCookies',
   'lifecycle',
   'pascalprecht.translate',
-  'upload.sip.perf',
   'accession.register.search',
   'accession.register.details',
   'flow'

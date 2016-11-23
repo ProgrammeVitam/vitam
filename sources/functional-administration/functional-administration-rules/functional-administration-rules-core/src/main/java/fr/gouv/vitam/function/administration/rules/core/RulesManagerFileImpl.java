@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -112,16 +111,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     private static final String MESSAGE_LOGBOOK_IMPORT = "Référentiel des règles de gestion importé avec succès ";
     private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Echec de l'import du référentiel de règle de gestion";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Référentiel des règles de gestion purgé avec succès";
-    private static final String MESSAGE_LOGBOOK_DELETE_KO = "Le Référentiel de format n'a pas ou a partiellement été " +
-        "vidé";
     private static final String RULEID = "RuleId";
 
     private LogbookOperationsClient client;
     private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static String STP_IMPORT_RULES_EXIST = "STP_IMPORT_RULES.EXIST";
 
-    private static String STP_DELETE_RULES = "STP_DELETE_RULES";
     private static String INVALIDPARAMETERS = "Invalid Parameters Value";
     private static String MANDATORYRULEPARAMETERISMISSING = "Check Parameters : Mandatory rule Parameters is missing";
 
@@ -209,41 +204,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             LogbookClientServerException e) {
             LOGGER.error(e.getMessage());
-        }
-    }
-
-    @Override
-    public void deleteCollection() {
-        try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
-            this.client = client2;
-
-            final GUID eip = GUIDFactory.newGUID();
-            final LogbookOperationParameters logbookParametersStart =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, STP_DELETE_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED), eip);
-
-            createLogBookEntry(logbookParametersStart);
-
-            final GUID eip1 = GUIDFactory.newGUID();
-
-            LogbookOperationParameters logbookParametersEnd;
-            try {
-                mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
-                logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, STP_DELETE_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                        VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK), eip1);
-            } catch (DatabaseException exc) {
-                LOGGER.error(exc);
-                logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, STP_DELETE_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                        VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO), eip1);
-            }
-
-            updateLogBookEntry(logbookParametersEnd);
-
         }
     }
 

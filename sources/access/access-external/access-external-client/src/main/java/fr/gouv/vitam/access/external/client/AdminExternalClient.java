@@ -70,18 +70,6 @@ public interface AdminExternalClient extends BasicClient {
      */
     Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException; 
     
-    
-
-    /**
-     * deleteDocuments
-     * 
-     * @param documentType
-     * @return the status
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessExternalClientException
-     */
-    Status deleteDocuments(AdminCollections documentType) throws AccessExternalClientNotFoundException, AccessExternalClientException; 
-    
     /**
      * findDocuments
      * 

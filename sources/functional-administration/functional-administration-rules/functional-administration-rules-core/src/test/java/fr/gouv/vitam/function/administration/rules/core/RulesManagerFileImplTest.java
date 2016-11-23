@@ -28,6 +28,7 @@ package fr.gouv.vitam.function.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -104,19 +105,23 @@ public class RulesManagerFileImplTest {
     }
 
     @Test
-    public void testRulesFileCSVOK()
-        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
-        rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-    }
-
-    @Test(expected = ReferentialException.class)
-    public void testRulesFileCSVKO()
-        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
-        rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
-    }
-
-    @Test
-    public void testimportAndDeleteRulesFile() throws Exception {
+    public void testimportRulesFile() throws Exception {
+    	try {
+    		rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+    		// Nothing there
+    	} catch (Exception e) {
+    		fail("Check file with FILE_TO_TEST_OK should not throw exception");
+    	}
+    	
+    	try {
+    		rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+    		fail("Check file with FILE_TO_TEST_KO should throw exception");
+    	} catch (ReferentialException e) {
+    		// Nothing there
+    	} catch (Exception e) {
+    		fail("Check file with FILE_TO_TEST_KO should not throw this exception");
+    	}
+    	
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -127,8 +132,6 @@ public class RulesManagerFileImplTest {
         final String id = fileList.get(0).getString("RuleId");
         final FileRules file = rulesFileManager.findDocumentById(id);
         // assertEquals(file, fileList.get(0));
-        rulesFileManager.deleteCollection();
-        assertEquals(0, collection.count());
         client.close();
     }
 }
