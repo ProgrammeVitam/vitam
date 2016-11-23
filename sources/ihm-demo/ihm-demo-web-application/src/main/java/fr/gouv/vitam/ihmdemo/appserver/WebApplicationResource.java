@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +98,7 @@ import fr.gouv.vitam.common.server2.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -609,7 +609,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     }
 
-
     /**
      * Retrieve an Object data as an input stream
      *
@@ -622,40 +621,51 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, @QueryParam("usage") String usage,
-        @QueryParam("version") String version, @QueryParam("filename") String filename) {
-        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
+    public void getObjectAsInputStreamAsync(@PathParam("idOG") String objectGroupId, @QueryParam("usage") String
+        usage, @QueryParam("version") String version, @QueryParam("filename") String filename, @Suspended final
+        AsyncResponse asyncResponse) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId,
+            usage, version, filename));
+    }
+
+    private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String
+        version, String filename) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(version));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(usage));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(filename));
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, filename);
+        } catch (InvalidParseOperationException exc) {
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+            return;
+        } catch (IllegalArgumentException exc) {
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.PRECONDITION_FAILED).build());
+            return;
+        }
+        try {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
-            // FIXME P0 Doit utiliser Async + Doit retourner le nom fournit par Response (Content-Disposition) et le
-            // MimeType (fournit également) (cf AccessExternalResourceImpl)
-            final InputStream stream =
-                UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
-                    Integer.parseInt(version));
-            return Response.status(Status.OK)
-                .header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
-                .entity(stream).build();
-
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessExternalClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessExternalClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
+                usage, Integer.parseInt(version), filename);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (AccessExternalClientNotFoundException exc) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+        } catch (AccessExternalClientServerException exc) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status
+                .INTERNAL_SERVER_ERROR).build());
+        } catch (Exception exc) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status
+                .INTERNAL_SERVER_ERROR).build());
         }
     }
 
@@ -837,7 +847,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This resource returns all paths relative to a unit
      *
-     * @param sessionId current session
      * @param unitId the unit id
      * @param allParents all parents unit
      * @return all paths relative to a unit

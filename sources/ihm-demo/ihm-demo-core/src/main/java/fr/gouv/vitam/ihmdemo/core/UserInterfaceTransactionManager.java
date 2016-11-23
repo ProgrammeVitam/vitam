@@ -27,7 +27,13 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Map;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,11 +42,15 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -54,10 +64,8 @@ public class UserInterfaceTransactionManager {
      *
      * @param parameters search criteria as DSL query
      * @return result
-     * @throws AccessExternalClientServerException 
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
-     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse searchUnits(String parameters)
@@ -74,10 +82,8 @@ public class UserInterfaceTransactionManager {
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
      * @return result
-     * @throws AccessExternalClientServerException 
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
-     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse getArchiveUnitDetails(String preparedDslQuery, String unitId)
@@ -93,10 +99,8 @@ public class UserInterfaceTransactionManager {
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
      * @return result
-     * @throws AccessExternalClientServerException 
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
-     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse updateUnits(String parameters, String unitId)
@@ -112,11 +116,9 @@ public class UserInterfaceTransactionManager {
      * @param preparedDslQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return JsonNode object including DSL queries, context and results
-     * @throws AccessExternalClientServerException 
-     * @throws AccessExternalClientNotFoundException 
+     * @throws AccessExternalClientServerException if the server encountered an exception
+     * @throws AccessExternalClientNotFoundException if the requested object does not exist
      * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessClientServerException if the server encountered an exception
-     * @throws AccessClientNotFoundException if the requested object does not exist
      */
     public static RequestResponse selectObjectbyId(String preparedDslQuery, String objectId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
@@ -132,20 +134,45 @@ public class UserInterfaceTransactionManager {
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage the requested usage
      * @param version the requested version of the usage
-     * @return InputStream the object data
+     * @return boolean for test purpose (solve mock issue)
      * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessExternalClientServerException 
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessClientServerException if the server encountered an exception
-     * @throws AccessClientNotFoundException if the requested object does not exist
+     * @throws AccessExternalClientServerException if the server encountered an exception
+     * @throws AccessExternalClientNotFoundException if the requested object does not exist
      */
-    public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage,
-        int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
-        // FIXME P0 DO ASYNC using AsyncResponse
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.getObject(selectObjectQuery, objectGroupId, usage, version).readEntity(InputStream.class);
+    // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
+    // web application resource
+    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, String selectObjectQuery, String
+        objectGroupId, String usage, int version, String filename)
+        throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
+        InvalidParseOperationException, UnsupportedEncodingException {
+        Response response = null;
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            response = client.getObject(selectObjectQuery, objectGroupId, usage, version);
+            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK).header(GlobalDataRest
+                .X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
+                .header(GlobalDataRest.X_VERSION, response.getHeaderString(GlobalDataRest.X_VERSION))
+                .header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
+                .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } finally {
+            // close response on error case
+            if (response != null && response.getStatus() != Response.Status.OK.getStatusCode()) {
+                try {
+                    if (response.hasEntity()) {
+                        final Object object = response.getEntity();
+                        if (object instanceof InputStream) {
+                            StreamUtils.closeSilently((InputStream) object);
+                        }
+                    }
+                } catch (final IllegalStateException | ProcessingException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                } finally {
+                    response.close();
+                }
+            }
         }
+        return true;
     }
 
     /**

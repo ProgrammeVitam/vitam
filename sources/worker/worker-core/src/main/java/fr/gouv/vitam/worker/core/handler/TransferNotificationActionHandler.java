@@ -496,21 +496,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
 
-        // FIXME P0 Unused ?
-        Map<String, Object> bdoVersionDataObject = null;
-
-        if (handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK) != null) {
-            final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK));
-            bdoVersionDataObject =
-                JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
-        }
-
-
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode node = client.selectOperationbyId(containerName);
-            // FIXME P0 hack since Jackson cannot parse it correctly
+            // FIXME P1 hack since Jackson cannot parse it correctly
             //RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
             JsonNode elmt = node.get("$results").get(0);
