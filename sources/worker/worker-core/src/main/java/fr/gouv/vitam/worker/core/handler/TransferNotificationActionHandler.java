@@ -700,7 +700,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 } else if (SedaConstants.TAG_ARCHIVE_UNIT.equals(eventType) || SedaConstants.TAG_DATA_OBJECT_GROUP
                     .equals(eventType)) {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_EVENT_TYPE, VitamLogbookMessages
-                        .getLabelLfc(event.get(LogbookMongoDbName.eventType.getDbname()).toString()));
+                        .getFromFullCodeKey(event.get(LogbookMongoDbName.eventType.getDbname()).toString()));
                 }
             }
             if (event.get(LogbookMongoDbName.eventDateTime.getDbname()) != null) {

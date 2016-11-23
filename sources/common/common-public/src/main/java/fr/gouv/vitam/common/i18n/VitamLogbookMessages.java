@@ -264,4 +264,14 @@ public class VitamLogbookMessages {
     public static final String getCodeLfc(String stepOrHandler, String transaction, StatusCode code, Object... args) {
         return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, code), args);
     }
+    
+    /**
+     * Get a message labe knowing its full code key
+     * 
+     * @param completeCodeKey the key of the label to be retrieved
+     * @return the label of a particular full code key
+     */
+    public static final String getFromFullCodeKey(String completeCodeKey) {
+        return VITAM_MESSAGES.messages.getStringNotEmpty(completeCodeKey);
+    }
 }
