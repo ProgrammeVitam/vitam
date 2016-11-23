@@ -102,6 +102,7 @@ angular.module('lifecycle')
           var lastStartedEvent = '';
           for(var i=0; i < response.data.$results[0].events.length; i++){
             var currentEvent = response.data.$results[0].events[i];
+            var isCurrentAStartEvent = currentEvent.outcome == 'STARTED';
             var currentEventType = currentEvent.evType;
             var isStepLevelEvent = false;
 
