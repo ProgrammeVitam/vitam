@@ -30,7 +30,7 @@
 angular.module('ihm.demo')
   .constant("UPLOAD_CONSTANTS", {
     "VITAM_URL": "/ihm-demo/v1/api/ingest/continue",
-    "ACCEPTED_STATUS": 202,
+    "ACCEPTED_STATUS": 206,
     "NO_CONTENT_STATUS": 204,
     "KO_STATUS": 400,
     "FATAL_STATUS": 500

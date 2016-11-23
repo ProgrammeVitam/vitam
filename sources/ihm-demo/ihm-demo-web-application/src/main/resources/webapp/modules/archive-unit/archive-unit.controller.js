@@ -314,7 +314,7 @@ angular.module('archive.unit')
               // Add displayed unit details
               var displayedUnitDetails = {};
               displayedUnitDetails.Title = self.archiveFields.Title;
-              displayedUnitDetails._id = self.archiveId;
+              displayedUnitDetails["#id"] = self.archiveId;
 
               self.fullArchiveTree = [];
               angular.forEach(self.archiveTree, function(value) {
