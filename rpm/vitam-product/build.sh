@@ -25,6 +25,7 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
+
 WORKING_FOLDER=$(dirname $0)
 
 pushd ${WORKING_FOLDER}
@@ -59,25 +60,36 @@ if [ ! -d "${TARGET_FOLDER}" ]; then
 	popd
 	exit 2
 fi
-
-## link hidden folders in $HOME into ${COMPONENT_FOLDER}
-HOME_HIDDEN=$(find ${HOME} -maxdepth 1 -name '.*')
-for hid_item in ${HOME_HIDDEN}; do
-	target_link="${COMPONENT_FOLDER}/$(basename ${hid_item})"
-
-	if [ -L ${target_link} ]; then
-	# test if target exists and is a symlink. if this link point to somewhere else, info and override
-		if [ $(readlink ${target_link}) != ${hid_item} ]; then
-			echo "Info: Updating Symlink ${target_link} to ${hid_item}."
-	  fi
-  # test if target exists and is a file or a folder. True => warn and do nothing
-	elif [ -f ${target_link} ] || [ -d ${target_link} ];then
-		echo "Warning: ${target_link} should be a symlink."
-		continue
-	fi
-
-	ln -sf $hid_item ${target_link}
-done
+# will create symlinks only if the file links exists in rpmbuild
+if [ -f "${COMPONENT_FOLDER}/rpmbuild/links" ]; then
+	## list elements in $HOME
+	HOME_CONTENT=$(find ${HOME} -maxdepth 1 -mindepth 1)
+	for hid_item in ${HOME_CONTENT}; do
+		item_name=$(basename ${hid_item})
+		# only create symlink if the folder is in the links file. therefore do nothing if not in the file.
+		grep -q ${item_name} "${COMPONENT_FOLDER}/rpmbuild/links" || continue
+    # calculates link's full path
+		target_link="${COMPONENT_FOLDER}/${item_name}"
+		if [ -L ${target_link} ]; then
+		# test if link exists and is a symlink. if this link point to somewhere else, info and override
+			if [ $(readlink ${target_link}) != ${hid_item} ]; then
+				echo "Info: Updating Symlink ${target_link} to ${hid_item}."
+		  fi
+	  # test if exists and is a file or a folder. True => warn and do nothing
+		elif [ -f ${target_link} ] || [ -d ${target_link} ];then
+			echo "Warning: ${target_link} should be a symlink."
+			continue
+		fi
+		# create symlink in COMPONENT_FOLDER
+		ln -sf $hid_item ${target_link}
+	done
+fi
+# override exit function to delete created links when living.
+function clean_exit(){
+	returncode=${1:-0}
+	find ${COMPONENT_FOLDER} -maxdepth 1 -type l -exec rm -f {} \; >/dev/null 2>&1
+	exit ${returncode}
+}
 
 # Build RPM
 
@@ -88,14 +100,14 @@ for SPECFILE in $(ls ${COMPONENT_FOLDER}/rpmbuild/SPECS/*.spec); do
 	if [ ! $? -eq 0 ]; then
 		echo "Error preparing the build ! Aborting."
 		popd
-		exit 2
+		clean_exit 2
 	fi
 
 	HOME=${COMPONENT_FOLDER} rpmbuild -bb ${SPECFILE}
 	if [ ! $? -eq 0 ]; then
 		echo "Error building the rpm ! Aborting."
 		popd
-		exit 2
+		clean_exit 2
 	fi
 done
 
@@ -110,3 +122,4 @@ for RPM in ${RPMS}; do
 done
 
 popd
+clean_exit

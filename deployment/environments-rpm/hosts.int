@@ -5,8 +5,6 @@ vitam
 reverse
 hosts-mongo-express
 
-
-
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
@@ -155,6 +153,7 @@ vitam-iaas-db-03.int rs_member_id=2 shard_id=0
 hosts-consul-server
 hosts-log-server
 hosts-elasticsearch-log
+hosts-mongoclient
 
 [hosts-consul-server]
 vitam-iaas-dblog-01.int
@@ -169,8 +168,10 @@ vitam-iaas-dblog-01.int
 vitam-iaas-dblog-02.int
 vitam-iaas-dblog-03.int
 
-[mongoclient:children]
-mongos
+[hosts-mongoclient]
+vitam-iaas-mongos-01.int shard_id=0
+vitam-iaas-mongos-02.int shard_id=0
+vitam-iaas-mongos-03.int shard_id=0
 
 ########### Global vars ###########
 

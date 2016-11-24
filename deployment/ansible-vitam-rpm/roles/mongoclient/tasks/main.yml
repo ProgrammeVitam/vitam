@@ -51,3 +51,4 @@
     host: "{{ ansible_hostname }}"
     port: "{{ mongoclient_port }}"
     timeout: 5
+  ignore_errors: yes

@@ -71,7 +71,7 @@
   roles:
     - {role: mongo_configure, shard_id: 0}
 
-- hosts: mongoclient
+- hosts: hosts-mongoclient
   roles:
    - role: mongoclient
 #     mongoclient_user: "{{mongoClientUser}}"

@@ -24,7 +24,7 @@ Cross-platform easy to use mongodb management tool
 %setup -q -n mongoclient-%{version}
 
 %build
-meteor npm install
+meteor npm install --production
 meteor build %{_builddir} --architecture os.linux.%{buildarch}
 cd %{_builddir}
 tar -xzf mongoclient-%{version}.tar.gz
