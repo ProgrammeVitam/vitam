@@ -41,6 +41,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Enumeration;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -73,31 +74,43 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
     private Certificate[] certificateChain;
 
     /**
-     * @param pkcs12Path file link to pkcs12 keystore
+     * @param pkcs12Path       file link to pkcs12 keystore
      * @param keystorePassword
-     * @param privateKeyPassword
-     * @param alias
      * @throws KeyStoreException
      * @throws CertificateException
      * @throws NoSuchAlgorithmException
      * @throws IOException
      * @throws UnrecoverableKeyException
      */
-    public TimeStampSignatureWithKeystore(File pkcs12Path, char[] keystorePassword, char[] privateKeyPassword,
-        String alias)
+    public TimeStampSignatureWithKeystore(File pkcs12Path, char[] keystorePassword)
         throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
         UnrecoverableKeyException {
+
         this.digestCalculatorProvider = new BcDigestCalculatorProvider();
 
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
         try (FileInputStream fileInputStream = new FileInputStream(pkcs12Path)) {
-            keyStore.load(fileInputStream, keystorePassword);
-            key = (PrivateKey) keyStore.getKey(alias, privateKeyPassword);
+            String alias = loadKeystoreAndfindUniqueAlias(keystorePassword, keyStore, fileInputStream);
+
+            key = (PrivateKey) keyStore.getKey(alias, keystorePassword);
             certificateChain = keyStore.getCertificateChain(alias);
         }
 
         tspPolicy = "1.1";
+    }
+
+    private String loadKeystoreAndfindUniqueAlias(char[] keystorePassword, KeyStore keyStore,
+        FileInputStream fileInputStream)
+        throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        keyStore.load(fileInputStream, keystorePassword);
+
+        Enumeration<String> aliases = keyStore.aliases();
+        String alias = aliases.nextElement();
+        if (aliases.hasMoreElements()) {
+            throw new IllegalArgumentException("Keystore has many key");
+        }
+        return alias;
     }
 
     /**
