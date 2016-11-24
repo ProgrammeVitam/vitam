@@ -101,13 +101,13 @@ md-dialog {
 .btn-primary:active,
 .btn-primary:visited,
 .btn-primary:focus {
-  background-color: #8A6EFF;
-  border-color: #8A6EFF;
+  background-color: #D23641;
+  border-color: #D23641;
 }
 
 .progress-bar {
-  color: #8A6EFF;
-  background-color: #8A6EFF;
+  color: #D23641;
+  background-color: #D23641;
 }
 
 /**
@@ -166,7 +166,7 @@ md-dialog {
 */
 .navbar-default {
   background-color: white;
-  border-color: #8A6EFF;
+  border-color: #D23641;
   -webkit-box-shadow: 0 2px 5px 2px rgba(0, 0, 0, 0.25);
   box-shadow: 0 2px 5px 2px rgba(0, 0, 0, 0.25);
 }
@@ -213,7 +213,7 @@ md-dialog {
 */
 .navbar-default .navbar-nav > li > a > i,
 .navbar-default .navbar-nav > li > button > i {
-  color: #8A6EFF;
+  color: #D23641;
 }
 /**
 *
@@ -276,7 +276,7 @@ md-dialog {
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
-  background-color: #6E58CC;
+  background-color: #D23641;
 }
 .dropdown-menu::before {
   content: ' ';
@@ -286,7 +286,7 @@ md-dialog {
   margin-left: 50px;
   width: 10px;
   height: 10px;
-  background-color: #6E58CC;
+  background-color: #D23641;
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
   -moz-transform: rotate(45deg);
@@ -492,7 +492,7 @@ table {
   font-weight: bold;
 }
 .ui-datepicker-current-day {
-  background-color: #8A6EFF;
+  background-color: #D23641;
 }
 .ui-datepicker-current-day a {
   color: white;
