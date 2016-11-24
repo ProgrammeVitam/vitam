@@ -116,6 +116,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.reset();
         action.addOutIOParameters(in);
         Map<String, Object> map = new HashMap<>();
+        map.put("id9", "id8");        
         action.addOuputResult(0, map);
         action.addOuputResult(1, map);
         action.reset();

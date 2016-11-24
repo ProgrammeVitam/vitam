@@ -61,22 +61,30 @@ public class LogbookLifecycleWorkerHelper {
         final String extension = FilenameUtils.getExtension(params.getObjectName());
         return params.getObjectName().replace("." + extension, "");
     }
+
     /**
      * @param helper
      * @param logbookLifecycleParameters
      * @param params the parameters
      * @param lfcEventType
      * @param logbookTypeProcess
+     * @param additionalParams 
      * @throws ProcessingException
      */
     public static void updateLifeCycleStartStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, String lfcEventType,
-        LogbookTypeProcess logbookTypeProcess)
+        LogbookTypeProcess logbookTypeProcess, String... additionalParams)
         throws ProcessingException {
 
         try {
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                getObjectID(params));
+            if (additionalParams != null && additionalParams.length >= 1) {
+                logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
+                    additionalParams[0]);
+            } else {
+                logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
+                    getObjectID(params));
+            }
+
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,

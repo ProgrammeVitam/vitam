@@ -61,16 +61,11 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
-    // TODO P0 WORKFLOW will be in vitam-logbook file
-    private static final String ERROR_MESSAGE =
-        "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
-    private static final String EVENT_TYPE =
-        "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
-    private static final int TENANT = 0;
 
     private HandlerIO handlerIO;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
+    final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     /**
      * Empty constructor
@@ -94,14 +89,10 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
         handlerIO = handler;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(params);
-            if (notConformOGs.isEmpty()) {
-                itemStatus.increment(StatusCode.OK);
-            } else {
-                itemStatus.increment(StatusCode.KO);
+            if (!notConformOGs.isEmpty()) {
                 itemStatus.setData("errorNumber", notConformOGs.size());
             }
         } catch (InvalidParseOperationException | InvalidGuidOperationException | IOException e) {
@@ -136,6 +127,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         while (it.hasNext()) {
             final Map.Entry<String, Object> objectGroup = it.next();
             if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                itemStatus.increment(StatusCode.KO);
                 try {
                     // Update logbook OG lifecycle
                     final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
@@ -143,7 +135,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
                     LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                         logbookLifecycleObjectGroupParameters,
-                        params, HANDLER_ID, LogbookTypeProcess.INGEST);
+                        params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                        objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
                     logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
                         null);
@@ -157,6 +150,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                     LOGGER.error("Can not update logbook lifcycle", e);
                 }
                 ogList.add(objectGroup.getKey());
+            } else {
+                itemStatus.increment(StatusCode.OK);
             }
         }
         return ogList;
