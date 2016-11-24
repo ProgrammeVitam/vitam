@@ -250,7 +250,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         uploadedInputStream,
                         parameters);
                     final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
-    
+
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
                     // processing
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
@@ -258,7 +258,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
                     try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                         final Response response =
-                            storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY, containerGUID.getId() + XML,
+                            storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
+                                containerGUID.getId() + XML,
                                 StorageCollectionType.REPORTS);
                         AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
                         Status finalStatus = Status.OK;
@@ -269,7 +270,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                                 finalStatus = Status.BAD_REQUEST;
                             }
                         }
-    
+
                         helper.writeResponse(Response.status(finalStatus));
                     }
                 } finally {
@@ -305,17 +306,22 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // FIXME P1 in particular Processing Exception could it be a "normal error" ?
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
-            } catch (final IngestInternalException | ProcessingException |
+            } catch (final ProcessingException |
                 LogbookClientException | StorageClientException | StorageNotFoundException |
                 InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error ingest");
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, OutcomeMessage.WORKFLOW_INGEST_KO.value());
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
                     }
                 }
+                LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            } catch (final IngestInternalException e) {
+                // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal State)
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
