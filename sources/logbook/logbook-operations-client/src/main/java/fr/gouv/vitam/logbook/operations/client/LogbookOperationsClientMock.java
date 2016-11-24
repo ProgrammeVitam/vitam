@@ -29,10 +29,8 @@ package fr.gouv.vitam.logbook.operations.client;
 import java.util.Iterator;
 import java.util.Queue;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.client2.ClientMockResultHelper;
@@ -59,6 +57,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
     private static final String UPDATE = "UPDATE";
     private static final String CREATE = "CREATE";
+    private static final String GUID_EXAMPLE = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq";
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
     @Override
@@ -101,12 +100,11 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     @Override
     public RequestResponseOK traceability() throws InvalidParseOperationException {
         LOGGER.debug("calling traceability ");
-        Response rep = Response.status(Status.OK)
-            .entity(new RequestResponseOK()
-                .setHits(1, 0, 1)
-                .addResult(ClientMockResultHelper.getLogbookOperation()))
-            .build();
-        return RequestResponseOK.parseRequestResponseOk(rep);
+        final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+
+        resultAsJson.add(GUID_EXAMPLE);
+
+        return new RequestResponseOK().setHits(1, 0, 1).addAllResults(resultAsJson);
     }
 
     @Override
