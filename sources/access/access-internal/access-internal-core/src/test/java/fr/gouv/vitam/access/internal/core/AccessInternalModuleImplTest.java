@@ -319,16 +319,16 @@ public class AccessInternalModuleImplTest {
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         // Mock select unit response
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hint" +
+        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
             "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"#tenant\":0,\"#max\":1,\"#min\":1,\"#unitups\":[],\"#nbunits\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hint" +
+        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"_diff\":\"-    \\\"Title\\\" : " +
+            "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 

@@ -116,8 +116,8 @@ public final class MetadataJsonResponseUtils {
         final ArrayNode diffArrayNode = JsonHandler.createArrayNode();
         for (final String id : diff.keySet()) {
             final ObjectNode diffNode = JsonHandler.createObjectNode();
-            diffNode.put("_id", id);
-            diffNode.put("_diff", String.join("\n", diff.get(id)));
+            diffNode.put("#id", id);
+            diffNode.put("#diff", String.join("\n", diff.get(id)));
             diffArrayNode.add(diffNode);
         }
         return diffArrayNode;
