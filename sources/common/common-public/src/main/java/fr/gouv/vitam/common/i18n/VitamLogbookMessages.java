@@ -32,7 +32,7 @@ import java.util.Map;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * Vitam Messages Herlper for Logbooks
+ * Vitam Messages Helper for Logbooks
  */
 public class VitamLogbookMessages {
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-logbook-messages";

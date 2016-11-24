@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.exception;
 
+/**
+ * TimeStamp exception
+ */
 public class TimeStampException extends VitamException {
 
     private static final long serialVersionUID = 1899268074620698556L;

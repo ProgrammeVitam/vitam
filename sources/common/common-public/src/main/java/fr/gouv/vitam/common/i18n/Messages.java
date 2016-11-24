@@ -85,6 +85,16 @@ public class Messages {
      * Enable UTF-8 Property files
      */
     private static final class UTF8Control extends Control {
+        /**
+         * Specific constructor of RessourceBundler
+         * 
+         * @param baseName
+         * @param locale
+         * @param format
+         * @param loader
+         * @param reload
+         */
+        @Override
         public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
             boolean reload)
             throws IllegalAccessException, InstantiationException, IOException {
@@ -185,6 +195,13 @@ public class Messages {
         }
     }
 
+    /**
+     * return a fake message when the message is unknown in the property file
+     * 
+     * @param key
+     * @param args
+     * @return the default fake message using the key
+     */
     private String getFakeMessage(String key, Object... args) {
         StringBuilder builder = new StringBuilder("!").append(key).append('!');
         if (args != null) {

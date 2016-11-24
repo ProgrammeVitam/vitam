@@ -274,6 +274,10 @@ public class ClientMockResultHelper {
         return createReponse(RESULT + "{}}");
     }
     
+    /**
+     * @return a default ArchiveUnit result
+     * @throws InvalidParseOperationException
+     */
     public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
         return createReponse(UNIT);
     }
