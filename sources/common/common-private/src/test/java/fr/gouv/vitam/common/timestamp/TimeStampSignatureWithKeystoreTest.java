@@ -48,6 +48,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class TimeStampSignatureWithKeystoreTest {
 
@@ -59,12 +60,25 @@ public class TimeStampSignatureWithKeystoreTest {
         IOException, URISyntaxException {
         URL url = this.getClass().getResource("/tsa.p12");
         timeStampSignatureWithKeystore =
-            new TimeStampSignatureWithKeystore(new File(url.toURI()), "1234".toCharArray(), "1234".toCharArray(), "1");
+            new TimeStampSignatureWithKeystore(new File(url.toURI()), "1234".toCharArray());
+    }
+
+    @Test
+    public void should_fail_if_keystore_has_many_aliases()
+        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
+        IOException {
+        // Given
+        URL url = this.getClass().getResource("/keystore_with_multiple_key.p12");
+
+        // When / Then
+        assertThatThrownBy(
+            () -> new TimeStampSignatureWithKeystore(new File(url.toURI()), "secret".toCharArray()))
+            .isInstanceOf(IllegalArgumentException.class).hasMessage("Keystore has many key");
     }
 
     @Test
     public void should_sign_a_time_stamp_request()
-            throws TSPException, CertificateEncodingException, OperatorCreationException, IOException {
+        throws TSPException, CertificateEncodingException, OperatorCreationException, IOException {
         // Given
         TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
         byte[] hash = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};

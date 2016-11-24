@@ -133,8 +133,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
             timeStampSignature =
-                new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray(),
-                    configuration.getP12LogbookPassword().toCharArray(), CERTIFICATE_ALIAS);
+                new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
         } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
             LOGGER.error("unable to instanciate TimeStampGenerator", e);
             throw new RuntimeException(e);
