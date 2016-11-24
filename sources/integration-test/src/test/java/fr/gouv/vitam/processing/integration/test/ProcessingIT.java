@@ -87,6 +87,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -171,6 +172,7 @@ public class ProcessingIT {
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
     private static String SIP_WITHOUT_OBJ = "integration-processing/OK_SIP_sans_objet.zip";
     private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
+    private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -803,6 +805,33 @@ public class ProcessingIT {
             e.printStackTrace();
             fail("should not raized an exception");
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = ProcessingInternalServerException.class)
+    public void testWorkflowSipCausesFatalThenProcessingInternalServerException() throws Exception {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_BORD_AU_REF_PHYS_OBJECT);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+
     }
 
     public void createLogbookOperation(GUID operationId, GUID objectId)
