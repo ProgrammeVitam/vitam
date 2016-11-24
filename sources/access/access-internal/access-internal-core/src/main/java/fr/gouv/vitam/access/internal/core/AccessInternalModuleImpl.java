@@ -479,8 +479,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
-                return JsonHandler.writeAsString(diffNode.get("_diff"));
+            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
+                return JsonHandler.writeAsString(diffNode.get("#diff"));
             }
         }
         // TODO P1 : empty string or error because no diff for this id ?

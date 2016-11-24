@@ -393,7 +393,6 @@ public class SelectParserMultipleTest {
     @Test
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
-        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
         Select select = new Select();
         select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
         select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));

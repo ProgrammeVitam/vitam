@@ -414,7 +414,7 @@ public class MetaDataImplTest {
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "[{\"_id\":\"unitId\",\"_diff\":\"-  title : title" +
+        final String wanted = "[{\"#id\":\"unitId\",\"#diff\":\"-  title : title" +
             "\\n-  description : description\\n+  title : MODIFIED title" +
             "\\n+  description : MODIFIED description\"}]";
         final String wantedDiff = "\"-  title : title\\n-  description : description\\n+  " +
@@ -470,8 +470,8 @@ public class MetaDataImplTest {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
-                return JsonHandler.writeAsString(diffNode.get("_diff"));
+            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
+                return JsonHandler.writeAsString(diffNode.get("#diff"));
             }
         }
         return "";
