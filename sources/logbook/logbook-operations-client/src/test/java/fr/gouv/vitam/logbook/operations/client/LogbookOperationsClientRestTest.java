@@ -49,6 +49,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
@@ -315,7 +316,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectOperation("{}");
+            client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");
         } catch (LogbookClientNotFoundException e) {
 
@@ -331,7 +332,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectOperation("{}");
+            client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");
         } catch (LogbookClientException e) {
 

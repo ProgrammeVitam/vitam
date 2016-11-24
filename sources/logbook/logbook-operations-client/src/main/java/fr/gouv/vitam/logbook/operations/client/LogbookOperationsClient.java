@@ -30,13 +30,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * Logbook client interface
@@ -74,11 +74,11 @@ public interface LogbookOperationsClient extends BasicClient {
 
     /**
      * @param select
-     * @return logbook operation as String
+     * @return logbook operation as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * @param id

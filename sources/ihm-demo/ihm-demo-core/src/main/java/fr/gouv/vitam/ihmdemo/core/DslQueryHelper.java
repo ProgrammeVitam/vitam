@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -105,7 +105,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
-    public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
@@ -198,7 +198,7 @@ public final class DslQueryHelper {
         }
         select.setQuery(query);
         LOGGER.debug("{}", select.getFinalSelect());
-        return JsonHandler.unprettyPrint(select.getFinalSelect());
+        return select.getFinalSelect();
     }
 
     /**
@@ -208,7 +208,7 @@ public final class DslQueryHelper {
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
-    public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
@@ -250,7 +250,7 @@ public final class DslQueryHelper {
             select.addQueries(booleanQueries);
         }
 
-        return JsonHandler.unprettyPrint(select.getFinalSelect());
+        return select.getFinalSelect();
     }
 
     /**
@@ -259,7 +259,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static String createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
@@ -343,7 +343,7 @@ public final class DslQueryHelper {
                 select.addQueries(booleanQueries);
             }
         }
-        return JsonHandler.unprettyPrint(select.getFinalSelect());
+        return select.getFinalSelect();
     }
 
     /**
@@ -352,7 +352,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static String createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Update update = new Update();
@@ -372,7 +372,7 @@ public final class DslQueryHelper {
             // Add Actions
             update.addActions(new SetAction(searchKeys, searchValue));
         }
-        return JsonHandler.unprettyPrint(update.getFinalUpdate());
+        return update.getFinalUpdate();
     }
 
     /**
@@ -384,7 +384,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static String createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
+    public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Select selectParentsDetails = new Select();
 
@@ -416,7 +416,7 @@ public final class DslQueryHelper {
             selectParentsDetails.addQueries(inParentsIdListQuery);
         }
 
-        return JsonHandler.unprettyPrint(selectParentsDetails.getFinalSelect());
+        return selectParentsDetails.getFinalSelect();
     }
 
 

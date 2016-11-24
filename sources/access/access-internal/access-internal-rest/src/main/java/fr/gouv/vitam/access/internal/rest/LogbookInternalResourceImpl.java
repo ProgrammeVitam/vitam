@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -64,9 +63,7 @@ public class LogbookInternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
 
     /**
-     * Constructor
-     *
-     * @param configuration
+     * Default Constructor
      */
     public LogbookInternalResourceImpl() {
         LOGGER.debug("LogbookExternalResource initialized");
@@ -106,7 +103,6 @@ public class LogbookInternalResourceImpl {
     /**
      *
      * @param operationId path param, the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
      * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
      * @throws InvalidParseOperationException
@@ -146,14 +142,13 @@ public class LogbookInternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // FIXME P0 JsonNode en argument pour toutes les "query"
-    public Response selectOperation(String query)
+    public Response selectOperation(JsonNode query)
         throws InvalidParseOperationException {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             // Check correctness of request
             SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(JsonHandler.getFromString(query));
+            parser.parse(query);
             parser.getRequest().reset();
             if (! (parser instanceof SelectParserSingle)) {
                 throw new InvalidParseOperationException("Not a Select operation");
@@ -180,14 +175,13 @@ public class LogbookInternalResourceImpl {
      * @param query as JsonNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method
-     * @throws LogbookException
      * @throws InvalidParseOperationException
      */
     @POST
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(String query,
+    public Response selectOperationWithPostOverride(JsonNode query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
         Status status;
