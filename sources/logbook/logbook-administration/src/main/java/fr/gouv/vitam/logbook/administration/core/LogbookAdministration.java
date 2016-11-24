@@ -37,7 +37,9 @@ import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifier;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEABILITY;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -50,9 +52,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
+import org.bson.Document;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.BaseXx;
@@ -134,7 +138,6 @@ public class LogbookAdministration {
     }
 
     /**
-     *
      * @param logbookOperations
      * @param timestampGenerator
      * @param workspaceClientFactory
@@ -147,15 +150,15 @@ public class LogbookAdministration {
 
     /**
      * secure the logbook operation since last securisation.
-     * @return the GUID of the operation
      *
+     * @return the GUID of the operation
      * @throws TraceabilityException
-     * @throws LogbookNotFoundException 
-     * @throws InvalidParseOperationException 
-     * @throws LogbookDatabaseException 
-     * @throws InvalidCreateOperationException 
+     * @throws LogbookNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws LogbookDatabaseException
+     * @throws InvalidCreateOperationException
      */
-    // TODO: use a lock specific for a tenant and be careful on multiple Logbook instances
+    // TODO: use a distributed lock to launch this function only on one server (cf consul)
     public synchronized GUID generateSecureLogbook()
         throws TraceabilityException, LogbookNotFoundException, InvalidParseOperationException,
         LogbookDatabaseException, InvalidCreateOperationException {
@@ -268,7 +271,8 @@ public class LogbookAdministration {
         return eip;
     }
 
-    private String findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
+    @VisibleForTesting
+    String findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException {
 
@@ -285,10 +289,12 @@ public class LogbookAdministration {
         if (logbookOperation == null) {
             return null;
         }
-        String evDetData = (String) logbookOperation.get("evDetData");
-        if (evDetData == null) {
-            return null;
-        }
+
+        final List<Document> events = (List<Document>) logbookOperation.get(EVENTS);
+        Document lastEvent = Iterables.getLast(events);
+
+        String evDetData = (String) lastEvent.get(eventDetailData);
+
         TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
         return traceabilityEvent.getHash();
     }

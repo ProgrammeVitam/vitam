@@ -24,10 +24,13 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.utils.IOUtils;
+import org.bson.Document;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import com.google.common.collect.Iterables;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -36,14 +39,22 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -114,8 +125,9 @@ public class LogbookAdministrationTest {
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 1);
+        validateFile(archive, 1, "null");
     }
+
     @Test
     public void should_generate_secure_file_with_one_element() throws Exception {
 
@@ -150,16 +162,37 @@ public class LogbookAdministrationTest {
                 workspaceClientFactory, file);
         // insert initial event
         GUID guid = logbookAdministration.generateSecureLogbook();
+        Select select = new Select();
+        Query findById = QueryHelper.eq("evIdProc", guid.toString());
 
+        select.setQuery(findById);
+        select.setLimitFilter(0, 1);
+
+        String lastHash = extractLastHash(logbookOperations, select);
         // When
         logbookAdministration.generateSecureLogbook();
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 2);
+        validateFile(archive, 2, lastHash);
     }
 
-    private void validateFile(Path path, int numberOfElement) throws IOException, ArchiveException {
+    private String extractLastHash(LogbookOperationsImpl logbookOperations, Select select)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        List<LogbookOperation> logbookOperationList = logbookOperations.select(select.getFinalSelect());
+        LogbookOperation traceabilityOperation = Iterables.getOnlyElement(logbookOperationList);
+        List<Document> documents = (List<Document>) traceabilityOperation.get("events");
+        Document lastEvent = Iterables.getLast(documents);
+        String evDetData = (String) lastEvent.get("evDetData");
+
+        // a recuperer du dernier event et non pas sur l'event parent
+        TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+        return traceabilityEvent.getHash();
+
+    }
+
+    private void validateFile(Path path, int numberOfElement, String previousHash)
+        throws IOException, ArchiveException {
         try (ArchiveInputStream archiveInputStream =
             new ArchiveStreamFactory()
                 .createArchiveInputStream(ArchiveStreamFactory.ZIP, Files.newInputStream(path))) {
@@ -184,6 +217,10 @@ public class LogbookAdministrationTest {
 
             entry = archiveInputStream.getNextEntry();
             assertThat(entry.getName()).isEqualTo("computing_information.txt");
+            properties = new Properties();
+            properties.load(archiveInputStream);
+            assertThat(properties.getProperty("currentHash")).isNotNull();
+            assertThat(properties.getProperty("previousHash")).isEqualTo(previousHash);
         }
     }
 
