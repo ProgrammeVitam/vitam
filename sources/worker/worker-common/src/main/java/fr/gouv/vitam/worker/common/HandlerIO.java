@@ -10,6 +10,8 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
@@ -222,5 +224,17 @@ public interface HandlerIO extends VitamAutoCloseable {
     // TODO P2: could add a sort of cache list that could be clean without cleaning other parameters (for handler
     // parallel)
     boolean deleteLocalFile(String objectName);
+
+    /**
+     * 
+     * @return the HandlerIO LifecycleClient
+     */
+    LogbookLifeCyclesClient getLifecyclesClient();
+
+    /**
+     * 
+     * @return the helper for bulk lifecycle for LifecyclesClient
+     */
+    LogbookLifeCyclesClientHelper getHelper();
 
 }

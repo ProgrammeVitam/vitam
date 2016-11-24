@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -315,6 +316,105 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         } catch (IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void bulkCreateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        bulkCreate(eventIdProc, queue, UNIT_LIFECYCLES_URL);
+    }
+    
+    @Override
+    public void bulkCreateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        bulkCreate(eventIdProc, queue, OBJECT_GROUP_LIFECYCLES_URL);
+    }
+
+    private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue, String uri)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        if (queue != null) {
+            Response response = null;
+            try {
+                response = performRequest(HttpMethod.POST, OPERATIONS_URL + "/" + eventIdProc + uri, null,
+                    queue, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                final Status status = Status.fromStatusCode(response.getStatus());
+                switch (status) {
+                    case CREATED:
+                        LOGGER.debug(eventIdProc + " " + Response.Status.CREATED.getReasonPhrase());
+                        break;
+                    case CONFLICT:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                        throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    case BAD_REQUEST:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        throw new LogbookClientBadRequestException(
+                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    default:
+                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                }
+            } catch (VitamClientInternalException e) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            } finally {
+                consumeAnyEntityAndClose(response);
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    @Override
+    public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue, UNIT_LIFECYCLES_URL);
+    }
+
+    @Override
+    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue, OBJECT_GROUP_LIFECYCLES_URL);
+    }
+
+    private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue, String uri)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        if (queue != null) {
+            Response response = null;
+            try {
+                response = performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eventIdProc + uri, null,
+                    queue, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                final Status status = Status.fromStatusCode(response.getStatus());
+                switch (status) {
+                    case OK:
+                        LOGGER.debug(eventIdProc + " " + Response.Status.OK.getReasonPhrase());
+                        break;
+                    case NOT_FOUND:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                        throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    case BAD_REQUEST:
+                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        throw new LogbookClientBadRequestException(
+                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    default:
+                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                }
+            } catch (VitamClientInternalException e) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            } finally {
+                consumeAnyEntityAndClose(response);
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
 

@@ -289,15 +289,14 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * Run traceability secure   operation for logbook
-     *
+     * Run traceability secure operation for logbook
+     * 
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceability() {
-
         try {
             GUID guid = logbookAdministration.generateSecureLogbook();
             final ArrayNode resultAsJson = JsonHandler.createArrayNode();
@@ -697,6 +696,79 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
+     * Lifecycle Unit Bulk Create
+     * 
+     * @param idOp
+     * @param array Lifecycle Unit Logbooks as ArrayNode
+     * @return Response of CREATED
+     */
+    @POST
+    @Path("/operations/{id_op}/unitlifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkCreateUnit(@PathParam("id_op") String idOp, String array) {
+        // array as a bulk LogbookLifeCycleParameters
+        try {
+            ParametersChecker.checkParameter("Logbook parameters", array);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error("Lifecycles is incorrect", e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            LogbookLifeCycleUnitParameters[] arrayLifecycles =
+                JsonHandler.getFromString(array, LogbookLifeCycleUnitParameters[].class);
+            logbookLifeCycle.createBulkLogbookLifecycle(idOp, arrayLifecycles);
+        } catch (LogbookDatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (LogbookAlreadyExistsException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.CONFLICT).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    /**
+     * Update Lifecycle With Bulk Mode
+     * 
+     * @param idOp
+     * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
+     * @return Response with a status of OK if updated
+     */
+    @PUT
+    @Path("/operations/{id_op}/unitlifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    // Note: here let String since we need JsonHandler to parser the object
+    public Response updateBulkUnit(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
+        try {
+            LogbookLifeCycleUnitParameters[] arrayLifecycles =
+                JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleUnitParameters[].class);
+            logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
@@ -984,6 +1056,79 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String objGrpId) {
         LOGGER.debug("ObjectGroupLifeCycle commited: " + objGrpId);
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Lifecycle ObjectGroup Bulk Create
+     * 
+     * @param idOp
+     * @param array Lifecycle ObjectGroup Logbooks as ArrayNode
+     * @return Response of CREATED
+     */
+    @POST
+    @Path("/operations/{id_op}/objectgrouplifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkCreateObjectGroup(@PathParam("id_op") String idOp, String array) {
+        // array as a bulk LogbookLifeCycleParameters
+        try {
+            ParametersChecker.checkParameter("Logbook parameters", array);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error("Lifecycles is incorrect", e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
+                JsonHandler.getFromString(array, LogbookLifeCycleObjectGroupParameters[].class);
+            logbookLifeCycle.createBulkLogbookLifecycle(idOp, arrayLifecycles);
+        } catch (LogbookDatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (LogbookAlreadyExistsException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.CONFLICT).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    /**
+     * Update Lifecycle ObjectGroup With Bulk Mode
+     * 
+     * @param idOp
+     * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
+     * @return Response with a status of OK if updated
+     */
+    @PUT
+    @Path("/operations/{id_op}/objectgrouplifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    // Note: here let String since we need JsonHandler to parser the object
+    public Response updateBulkObjectGroup(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
+        try {
+            LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
+                JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleObjectGroupParameters[].class);
+            logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         return Response.status(Response.Status.OK).build();
     }
 

@@ -47,8 +47,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -80,9 +78,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     private static final String DEFAULT_STRATEGY = "default";
 
-    private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
-    private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     private HandlerIO handlerIO;
 
 
@@ -114,13 +110,13 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        try (
-            LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
+        try {
             try {
                 checkMandatoryIOParameter(actionDefinition);
 
                 // Update lifecycle of object group : STARTED
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters, params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
                 // get list of object group's objects
@@ -128,7 +124,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 // get list of object uris
                 for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
                     // Execute action on the object
-                    storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus, logbookLifeCycleClient);
+                    storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus);
                 }
             } catch (final StorageClientException e) {
                 LOGGER.error(e);
@@ -146,9 +142,18 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
                     null);
 
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookLifeCycleClient,
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters, itemStatus);
             } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
@@ -167,8 +172,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @throws StorageClientException throws when a storage error occurs
      * @throws ProcessingException throws when unexpected error occurs
      */
-    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus,
-        LogbookLifeCyclesClient logbookLifeCycleClient)
+    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus)
         throws ProcessingException, StorageClientException {
         LOGGER.debug("Storing object with guid: " + objectGUID);
         ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
@@ -187,7 +191,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycleParametersLogbookForBdo(params, objectGUID);
             logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.OK,
                 null);
-            updateLifeCycle(logbookLifeCycleClient);
+            updateLifeCycle();
 
 
         } catch (final StorageClientException e) {
@@ -196,7 +200,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             // update lifecycle of objectGroup with detail of object : KO
             logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.KO,
                 null);
-            updateLifeCycle(logbookLifeCycleClient);
+            updateLifeCycle();
             throw e;
         }
     }
@@ -246,16 +250,10 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param logbookLifeCycleClient logbook LifeCycle Client
      * @throws ProcessingException throws when error occurs
      */
-    private void updateLifeCycle(LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException {
+    private void updateLifeCycle() throws ProcessingException {
 
         try {
-            logbookLifeCycleClient.update(logbookLifecycleObjectGroupParameters);
-        } catch (final LogbookClientBadRequestException e) {
-            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        } catch (final LogbookClientServerException e) {
-            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
+            handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);

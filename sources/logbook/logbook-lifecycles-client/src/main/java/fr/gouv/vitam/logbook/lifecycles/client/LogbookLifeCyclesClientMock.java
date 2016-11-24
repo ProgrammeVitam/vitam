@@ -27,6 +27,8 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
+import java.util.Iterator;
+
 import javax.ws.rs.HttpMethod;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +43,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -146,4 +149,60 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         return new VitamRequestIterator(this, HttpMethod.GET,
             "/", null, ClientMockResultHelper.getLogbookOperation());
     }
+    
+    private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException {
+        if (queue != null) {
+            Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            if (iterator.hasNext()) {
+                logInformation(CREATE, iterator.next());
+                while (iterator.hasNext()) {
+                    logInformation(UPDATE, iterator.next());
+                }
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException {
+        if (queue != null) {
+            Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                logInformation(UPDATE, iterator.next());
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    @Override
+    public void bulkCreateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        bulkCreate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkCreateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        bulkCreate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue);
+    }
+
 }

@@ -72,8 +72,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -154,10 +152,10 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
-        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
+        try {
             try {
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookClient,
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters,
                     params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
@@ -207,7 +205,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                                     file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
                                     ObjectCheckFormatResult result =
-                                        executeOneObjectFromOG(logbookClient, objectId, jsonFormatIdentifier, file,
+                                        executeOneObjectFromOG(objectId, jsonFormatIdentifier, file,
                                             version);
 
                                     itemStatus.increment(result.getStatus());
@@ -246,21 +244,13 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                         FILE_FORMAT_UPDATED_FORMAT,
                         StatusCode.WARNING, null);
 
-                    logbookClient.update(logbookLifecycleObjectGroupParameters);
+                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
                 }
 
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
-            } catch (LogbookClientBadRequestException e) {
-                // workspace error
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
             } catch (LogbookClientNotFoundException e) {
-                // workspace error
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            } catch (LogbookClientServerException e) {
                 // workspace error
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
@@ -272,7 +262,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             }
 
             try {
-                commitLifecycleLogbook(logbookClient, itemStatus, params.getObjectName());
+                commitLifecycleLogbook(itemStatus, params.getObjectName());
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
@@ -292,6 +282,16 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
             LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
+                // Logbook error
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
     }
 
@@ -301,10 +301,10 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
      * @param response the process result
      * @throws ProcessingException thrown if one error occurred
      */
-    private void commitLifecycleLogbook(LogbookLifeCyclesClient logbookClient, ItemStatus itemStatus, String ogID)
+    private void commitLifecycleLogbook(ItemStatus itemStatus, String ogID)
         throws ProcessingException {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
-        LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(logbookClient,
+        LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
             logbookLifecycleObjectGroupParameters, itemStatus);
     }
 
@@ -313,7 +313,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         // Do not know...
     }
 
-    private ObjectCheckFormatResult executeOneObjectFromOG(LogbookLifeCyclesClient logbookClient, String objectId,
+    private ObjectCheckFormatResult executeOneObjectFromOG(String objectId,
         JsonNode formatIdentification,
         File file, JsonNode version) {
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
@@ -347,7 +347,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     StatusCode.KO, null);
 
                 try {
-                    logbookClient.update(logbookLifecycleObjectGroupParameters);
+                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
                 } catch (final LogbookClientException e) {
                     LOGGER.error(e);
                     objectCheckFormatResult.setStatus(StatusCode.FATAL);
@@ -355,7 +355,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             } else {
                 // check formatIdentification
                 JsonNode newFormatIdentification =
-                    checkAndUpdateFormatIdentification(logbookClient, objectId, formatIdentification,
+                    checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, result,
                         version);
                 // Reassign new format
@@ -394,7 +394,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             objectCheckFormatResult.getStatus(), null);
 
         try {
-            logbookClient.update(logbookLifecycleObjectGroupParameters);
+            handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
         } catch (final LogbookClientException exc) {
             LOGGER.error(exc);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
@@ -402,7 +402,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         return objectCheckFormatResult;
     }
 
-    private JsonNode checkAndUpdateFormatIdentification(LogbookLifeCyclesClient logbookClient, String objectId,
+    private JsonNode checkAndUpdateFormatIdentification(String objectId,
         JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
         final JsonNode refFormat = result.get(RESULTS).get(0);
@@ -483,7 +483,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\"}");
             try {
-                logbookClient.update(logbookLifecycleObjectGroupParameters);
+                handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
             } catch (final LogbookClientException e) {
                 LOGGER.error(e);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);

@@ -167,4 +167,66 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      */
     VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId) throws LogbookClientException, InvalidParseOperationException;
 
+    /**
+     * Bulk Create for Unit<br>
+     * <br>
+     * To be used ONLY once at top level of process startup (where objectIdentifier is set for the first time).
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to create
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientAlreadyExistsException if the element already exists
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkCreateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException;
+
+    /**
+     * Bulk Update for Unit<br>
+     * <br>
+     * To be used everywhere except very first time (when objectIdentifier already used once)
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to update
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkUpdateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
+     * Bulk Create for ObjectGroup<br>
+     * <br>
+     * To be used ONLY once at top level of process startup (where objectIdentifier is set for the first time).
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to create
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientAlreadyExistsException if the element already exists
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkCreateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException;
+
+    /**
+     * Bulk Update for ObjectGroup<br>
+     * <br>
+     * To be used everywhere except very first time (when objectIdentifier already used once)
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to update
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkUpdateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
+
 }

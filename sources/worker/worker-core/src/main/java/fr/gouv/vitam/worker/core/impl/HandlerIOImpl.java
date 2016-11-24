@@ -51,6 +51,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
@@ -83,6 +86,8 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     private final File localDirectory;
     private final Map<String, Object> memoryMap = new HashMap<>();
     private final WorkspaceClient client;
+    private final LogbookLifeCyclesClient lifecyclesClient;
+    private final LogbookLifeCyclesClientHelper helper;
 
     /**
      * Constructor with local root path
@@ -96,6 +101,18 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         this.localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
         client = WorkspaceClientFactory.getInstance().getClient();
+        lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+        helper = new LogbookLifeCyclesClientHelper();
+    }
+
+    @Override
+    public LogbookLifeCyclesClient getLifecyclesClient() {
+        return lifecyclesClient;
+    }
+
+    @Override
+    public LogbookLifeCyclesClientHelper getHelper() {
+        return helper;
     }
 
     @Override
@@ -142,11 +159,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     public void reset() {
         input.clear();
         output.clear();
+        helper.clear();
     }
 
     @Override
     public void close() {
         client.close();
+        lifecyclesClient.close();
         partialClose();
     }
 

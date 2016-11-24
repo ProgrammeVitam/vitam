@@ -43,10 +43,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -57,7 +56,8 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
  * Check SIP - Object and Archiveunit Consistency handler
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
 
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
@@ -126,37 +126,38 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         final List<String> ogList = new ArrayList<>();
 
         @SuppressWarnings("unchecked")
-        final Map<String, Object> objectGroupToUnitStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
+        final Map<String, Object> objectGroupToUnitStoredMap =
+            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
         @SuppressWarnings("unchecked")
-        final Map<String, Object> objectGroupToGuidStoredMap = (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
+        final Map<String, Object> objectGroupToGuidStoredMap =
+            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
 
         final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
-        try (
-            LogbookLifeCyclesClient logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            while (it.hasNext()) {
-                final Map.Entry<String, Object> objectGroup = it.next();
-                if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
-                    try {
-                        // Update logbook OG lifecycle
-                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        while (it.hasNext()) {
+            final Map.Entry<String, Object> objectGroup = it.next();
+            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                try {
+                    // Update logbook OG lifecycle
+                    final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
-                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(logbookLifeCycleClient,
-                            logbookLifecycleObjectGroupParameters,
-                            params, HANDLER_ID, LogbookTypeProcess.INGEST);
+                    LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                        logbookLifecycleObjectGroupParameters,
+                        params, HANDLER_ID, LogbookTypeProcess.INGEST);
 
-                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
-                            null);
-                        logbookLifeCycleClient.update(logbookLifecycleObjectGroupParameters);
-
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException | ProcessingException e) {
-                        LOGGER.error("Can not update logbook lifcycle", e);
-                    }
-                    ogList.add(objectGroup.getKey());
+                    logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
+                        null);
+                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                    String objectID =
+                        logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
+                    handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                        handlerIO.getHelper().removeUpdateDelegate(objectID));
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException | ProcessingException e) {
+                    LOGGER.error("Can not update logbook lifcycle", e);
                 }
+                ogList.add(objectGroup.getKey());
             }
-
         }
         return ogList;
     }
