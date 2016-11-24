@@ -171,7 +171,7 @@ label{
 }
 /* TXT COLOR */
 .default-color {
-  color: #8A6EFF;
+  color: #D23641;
 }
 .brand-success {
   color: #7AC943;
@@ -244,7 +244,7 @@ label{
   display: block;
 }
 .objArborescence li:last-child {
-  color: #8A6EFF;
+  color: #D23641;
   font-weight: bold;
 }
 .objArborescence li:not(:last-child)::after {
@@ -252,7 +252,7 @@ label{
   margin: 0 10px;
   content: '\e5c8';
   font-family: 'Material Icons';
-  color: #8A6EFF;
+  color: #D23641;
 }
 /**
 *
@@ -320,7 +320,7 @@ label{
   font-weight: bold;
 }
 .ui-datepicker-current-day {
-  background-color: #8A6EFF;
+  background-color: #D23641;
 }
 .ui-datepicker-current-day a {
   color: white;
@@ -897,12 +897,12 @@ label{
 }
 @keyframes simpleSwitch-std {
   to {
-    background: #8A6EFF;
+    background: #D23641;
   }
 }
 @-webkit-keyframes simpleSwitch-std {
   to {
-    background: #8A6EFF;
+    background: #D23641;
   }
 }
 @-webkit-keyframes simpleSwitch-ok {
@@ -967,7 +967,7 @@ label{
   height: 100%;
   border: none;
   background-color: transparent;
-  color: #8A6EFF;
+  color: #D23641;
 }
 
 
