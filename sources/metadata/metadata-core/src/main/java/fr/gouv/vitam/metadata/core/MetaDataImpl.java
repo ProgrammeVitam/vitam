@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -55,7 +54,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -114,12 +112,6 @@ public class MetaDataImpl implements MetaData {
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
-            GlobalDatasParser.sanityRequestCheck(insertRequest.toString());
-        } catch (final InvalidParseOperationException e) {
-            throw new MetaDataDocumentSizeException(e);
-        }
-
-        try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
@@ -139,12 +131,6 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
-
-        try {
-            GlobalDatasParser.sanityRequestCheck(objectGroupRequest.toString());
-        } catch (final InvalidParseOperationException e) {
-            throw new MetaDataDocumentSizeException(e);
-        }
 
         try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
@@ -241,12 +227,6 @@ public class MetaDataImpl implements MetaData {
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
-        }
-        try {
-            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
-            SanityChecker.checkJsonAll(updateQuery);
-        } catch (final InvalidParseOperationException eInvalidParseOperationException) {
-            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
         }
         try {
             // parse Update request

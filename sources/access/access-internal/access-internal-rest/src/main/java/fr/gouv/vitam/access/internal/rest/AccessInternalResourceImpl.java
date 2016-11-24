@@ -128,15 +128,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -169,15 +165,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -209,15 +201,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
         LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         return Response.status(Status.OK).entity(result).build();
@@ -235,11 +223,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             result = accessModule.selectObjectGroupById(query, idObjectGroup);
-        } catch (final InvalidParseOperationException exc) {
-            LOGGER.error(exc);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (final IllegalArgumentException exc) {
+        } catch (final InvalidParseOperationException |IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();

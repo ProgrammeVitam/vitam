@@ -61,6 +61,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 public class LogbookInternalResourceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
+    private static final String LOGBOOK_MODULE = "LOGBOOK";
+    private static final String CODE_VITAM = "code_vitam";
 
     /**
      * Default Constructor
@@ -73,30 +75,24 @@ public class LogbookInternalResourceImpl {
     /**
      * @param operationId the operation id
      * @return the response with a specific HTTP status
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationById(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
+    public Response getOperationById(@PathParam("id_op") String operationId) {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectOperationbyId(operationId);
-            return Response.status(Status.OK)
-                .entity(result)
-                .build();
+            return Response.status(Status.OK).entity(result).build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -105,29 +101,20 @@ public class LogbookInternalResourceImpl {
      * @param operationId path param, the operation id
      * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
-     * @throws InvalidParseOperationException
      */
     @POST
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationByPost(@PathParam("id_op") String operationId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
-        throws InvalidParseOperationException {
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
         Status status;
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
             return getOperationById(operationId);
         } else {
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -136,38 +123,28 @@ public class LogbookInternalResourceImpl {
      *
      * @param query DSL as String
      * @return Response containt the list of loglook operation
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query)
-        throws InvalidParseOperationException {
+    public Response selectOperation(JsonNode query) {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             // Check correctness of request
             SelectParserSingle parser = new SelectParserSingle();
             parser.parse(query);
             parser.getRequest().reset();
-            if (! (parser instanceof SelectParserSingle)) {
-                throw new InvalidParseOperationException("Not a Select operation");
-            }
             JsonNode result = client.selectOperation(query);
-            return Response.status(Status.OK)
-                .entity(result)
-                .build();
+            return Response.status(Status.OK).entity(result).build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -175,28 +152,19 @@ public class LogbookInternalResourceImpl {
      * @param query as JsonNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method
-     * @throws InvalidParseOperationException
      */
     @POST
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationWithPostOverride(JsonNode query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
-        throws InvalidParseOperationException {
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
         Status status;
         if (xhttpOverride != null && ("GET").equals(xhttpOverride)) {
             return selectOperation(query);
         } else {
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
 
     }
@@ -213,29 +181,23 @@ public class LogbookInternalResourceImpl {
      * 
      * @param unitLifeCycleId the unit life cycle id
      * @return the unit life cycle
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) throws InvalidParseOperationException {
+    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
-            return Response.status(Status.OK)
-                .entity(result)
-                .build();
+            return Response.status(Status.OK).entity(result).build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -245,32 +207,34 @@ public class LogbookInternalResourceImpl {
      * 
      * @param objectGroupLifeCycleId the object group life cycle id
      * @return the object group life cycle
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
-        throws InvalidParseOperationException {
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
-            return Response.status(Status.OK)
-                .entity(result)
-                .build();
+            return Response.status(Status.OK).entity(result).build();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(
-                    new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
     /***** LIFE CYCLES - END *****/
+    
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setContext(LOGBOOK_MODULE)
+
+            .setHttpCode(status.getStatusCode()).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
+            .setDescription(status.getReasonPhrase());
+    }
+
 }

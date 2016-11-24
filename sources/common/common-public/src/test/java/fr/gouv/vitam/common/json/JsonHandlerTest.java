@@ -323,5 +323,25 @@ public class JsonHandlerTest {
             // Ignore
         }
 
+        try {
+            JsonHandler.checkNullOrEmpty("message", null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
+
+        try {
+            JsonHandler.checkNullOrEmpty("message", JsonHandler.createObjectNode());
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
+
+        try {
+            JsonHandler.checkNullOrEmpty("message", JsonHandler.createArrayNode());
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
     }
 }

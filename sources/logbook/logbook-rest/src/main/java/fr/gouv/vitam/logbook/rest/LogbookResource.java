@@ -772,12 +772,11 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param unitLifeCycleId the unit life cycle id
      * @return the unit life cycle
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) throws InvalidParseOperationException {
+    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
         Status status;
         try {
             final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(unitLifeCycleId);
@@ -787,12 +786,13 @@ public class LogbookResource extends ApplicationStatusResource {
                     .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            return Response.status(Status.OK)
+            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
                     .addResult(JsonHandler.createArrayNode()))
                 .build();
-        } catch (final LogbookException | IllegalArgumentException exc) {
+        } catch (final LogbookException | IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -1136,13 +1136,11 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param objectGroupLifeCycleId the object group life cycle id
      * @return the object group life cycle
-     * @throws InvalidParseOperationException
      */
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
-        throws InvalidParseOperationException {
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
         Status status;
         try {
             final LogbookLifeCycleObjectGroup result = logbookLifeCycle.getObjectGroupById(objectGroupLifeCycleId);
@@ -1152,12 +1150,13 @@ public class LogbookResource extends ApplicationStatusResource {
                     .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            return Response.status(Status.OK)
+            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
                     .addResult(JsonHandler.createArrayNode()))
                 .build();
-        } catch (final LogbookException exc) {
+        } catch (final LogbookException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
