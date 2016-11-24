@@ -78,8 +78,10 @@ COPY vitam-command /usr/bin
 RUN chmod a+x /usr/bin/vitam-*
 
 COPY install-meteor.sh /usr/bin
-RUN chmod a+x /usr/bin/install-meteor.sh
-RUN /usr/bin/install-meteor.sh
+RUN chmod a+x /usr/bin/install-meteor.sh && \
+   /usr/bin/install-meteor.sh && \
+   mv /root/.meteor /devhome && \
+   chmod -R o+wX /devhome/.meteor
 
 COPY profile-build-repo.sh /etc/profile.d
 COPY profile-prompt-usage.sh /etc/profile.d

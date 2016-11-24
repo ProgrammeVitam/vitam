@@ -6,7 +6,6 @@ reverse
 library
 hosts-mongo-express
 
-
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
@@ -132,6 +131,7 @@ localhost rs_member_id=0 shard_id=0
 hosts-consul-server
 hosts-log-server
 hosts-elasticsearch-log
+hosts-mongoclient
 
 [hosts-consul-server]
 localhost
@@ -142,8 +142,8 @@ localhost
 [hosts-elasticsearch-log]
 localhost
 
-[mongoclient:children]
-mongos
+[hosts-mongoclient]
+localhost
 
 ########### Global vars ###########
 

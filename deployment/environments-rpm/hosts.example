@@ -17,10 +17,10 @@ hosts-mongo-express
 
 ########### Extra VITAM applications ###########
 
-[library] 
+[library]
 # TODO: Put here servers where this service will be deployed : library
 
-[hosts-mongo-express] 
+[hosts-mongo-express]
 # TODO: Put here servers where this service will be deployed : mongo-express
 
 ########### VITAM services ###########
@@ -41,7 +41,7 @@ zone-admin
 [zone-external:children]
 hosts-ihm-demo
 
-[hosts-ihm-demo] 
+[hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
 
 
@@ -52,7 +52,7 @@ hosts-ihm-demo
 hosts-ingest-external
 hosts-access-external
 
-[hosts-ingest-external] 
+[hosts-ingest-external]
 # TODO: Put here servers where this service will be deployed : ingest-external
 
 
@@ -139,7 +139,7 @@ mongos
 mongoc
 mongod
 
-[mongos] 
+[mongos]
 # TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
 # Example : vitam-iaas-mongos-01.int shard_id=0
 
@@ -160,20 +160,22 @@ mongod
 hosts-consul-server
 hosts-log-server
 hosts-elasticsearch-log
+hosts-mongoclient
 
-[hosts-consul-server] 
+[hosts-consul-server]
 # TODO: Put here servers where this service will be deployed : consul
 
 
-[hosts-log-server] 
+[hosts-log-server]
 # TODO: Put here servers where this service will be deployed : log-server (kibana/logstash)
 
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
 
-[mongoclient:children]
-mongos
+[hosts-mongoclient]
+# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
+# Example : vitam-iaas-mongos-01.int shard_id=0
 
 ########### Global vars ###########
 
