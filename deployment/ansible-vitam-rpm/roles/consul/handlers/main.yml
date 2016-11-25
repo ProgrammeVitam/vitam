@@ -3,3 +3,8 @@
   service:
     name: "{{consul_service}}"
     state: restarted
+
+- name: reload consul
+  service:
+    name: "{{consul_service}}"
+    state: reloaded

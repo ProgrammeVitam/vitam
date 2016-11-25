@@ -1,6 +1,4 @@
 ---
-# KWA TODO: General remark : be consistent between the usage of {{cluster_name}} ane elasticsearch-{{groupe}} (the package name)
-
 #### Compute variables ####
 
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
@@ -17,6 +15,7 @@
     - ansible_memory_mb.real.total >= 65536
     - elasticsearch_memory == ""
 
+
 #### Elasticsearch installation ####
 
 # tasks file for elasticsearch-cluster
@@ -25,19 +24,29 @@
   yum:
     name: vitam-{{cluster_name}}
     state: latest
+  notify:
+    - restart elasticsearch
 
-# OMA : désactivé car on est désormais en vitamdb
-# - name: create elasticsearch home directory
-#   file:
-#     path: /home/elasticsearch
-#     state: directory
-#     owner: elasticsearch
-#     mode: 0700
+- name: Disable standard Easticsearch service
+  service:
+    name: elasticsearch
+    state: stopped
+    enabled: no
 
-- name: ensure elasticsearch directories exist
+- name: Add {{cluster_name}} autostart at boot
+  service:
+    name: "vitam-{{cluster_name}}"
+    enabled: yes
+  notify:
+    - restart elasticsearch
+
+
+#### Configuration ####
+
+- name: Ensure elasticsearch directories exist
   file:
-    path: "/vitam/{{item}}/{{cluster_name}}"
-    owner: vitamdb
+    path: "{{vitam_folder_root}}/{{item}}/{{cluster_name}}"
+    owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     state: directory
     mode: "{{vitam_folder_permission}}"
@@ -46,136 +55,85 @@
     - data
     - log
     - lib
+  notify:
+    - restart elasticsearch
 
-- name: ensure elasticsearch sysconfig directory exist
+- name: Ensure elasticsearch sysconfig directory exist
   file:
-    path: "/vitam/conf/{{cluster_name}}/sysconfig"
-    owner: vitamdb
+    path: "{{vitam_folder_root}}/conf/{{cluster_name}}/sysconfig"
+    owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     state: directory
     mode: "{{vitam_folder_permission}}"
-
-#### Elasticsearch configuration ####
+  notify:
+    - restart elasticsearch
 
 # KWA Question : is it still necessary with the systemd service ?
 - name: Configure limits max_open_files for Elasticsearch
   lineinfile:
     dest: /etc/security/limits.conf
-    regexp: '^vitamdb     -    nofile    {{ elasticsearch_max_open_files }}'
+    regexp: '^{{ vitamdb_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
     insertafter: EOF
-    line: 'vitamdb     -    nofile    {{ elasticsearch_max_open_files }}'
+    line: '{{ vitamdb_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
   when: elasticsearch_max_open_files is defined
-  notify: restart elasticsearch
+  notify:
+    - restart elasticsearch
 
-- name: apply elasticsearch configuration yml 
+- name: apply elasticsearch configuration yml
   template:
     src: "elasticsearch.{{groupe}}.yml.j2"
     dest: "{{elasticsearch_conf_dir}}/elasticsearch.yml"
-    owner: vitamdb
+    owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
+  notify:
+    - restart elasticsearch
 
-- name: apply logging configuration yml 
+- name: apply logging configuration yml
   template:
     src: "logging.yml.j2"
     dest: "{{elasticsearch_conf_dir}}/logging.yml"
-    owner: vitamdb
+    owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
+  notify:
+    - restart elasticsearch
 
-- name: apply elasticsearch sysconfig default 
+- name: apply elasticsearch sysconfig default
   template:
     src: "elasticsearch.j2"
     dest: "{{elasticsearch_conf_dir}}/sysconfig/elasticsearch"
-    owner: vitamdb
+    owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
-
-
-#### Elasticsearch plugins ####
-
-# OMA: remplacé par un rpm
-# - name : get HEAD plug-in for Elasticsearch
-#   become_user: elasticsearch
-#   command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
-#   args:
-#     chdir: /usr/share/elasticsearch/bin 
-#     creates: /usr/share/elasticsearch/plugins/head
-#   environment:
-#     http_proxy: http://{{ https_reverse_proxy }}
-#     https_proxy: https://{{ https_reverse_proxy }}
-
-- name: install vitam-elasticsearch-head rpm
-  yum:
-    name: vitam-elasticsearch-head
-    state: latest
-
-# OMA : deprecated as it is now a rpm package
-# - name: install unzip
-#   yum:
-#     name: unzip
-#     state: latest
-
-# - name: add kopf plugin (zip src)
-#   unarchive:
-#     src: kopf.zip
-#     dest: /usr/share/elasticsearch/plugins/
-#     owner: elasticsearch
-#     group: elasticsearch
-#     mode: 0755
-
-- name: install vitam-elasticsearch-kopf rpm
-  yum:
-    name: vitam-elasticsearch-kopf
-    state: latest
-
-# FIXME : won't work when there is no reverse-proxy...
-# - name: configure kopf
-#   replace: 
-#       dest: /usr/share/elasticsearch/plugins/kopf/_site/kopf_external_settings.json
-#       regexp: '^.*"elasticsearch_root_path":.*$'
-#       replace: "    \"elasticsearch_root_path\": \"/elasticsearch-{{groupe}}\","
-
+  notify:
+    - restart elasticsearch
 
 #### Elasticsearch systemd service configuration ####
 
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
-- name: add elasticsearch-{{groupe}}.conf in tempfile.d 
+- name: add {{cluster_name}}.conf in tempfile.d
   template:
     src: "tempfile.d-elasticsearch.conf.j2"
-    dest: "/usr/lib/tmpfiles.d/elasticsearch-{{groupe}}.conf"
+    dest: "/usr/lib/tmpfiles.d/{{cluster_name}}.conf"
     owner: root
     group: root
     mode: 0644
   notify: create systemd tmpfiles
 
-# Ensure that at least the "create systemd tmpfiles" handlers did run
-- meta: flush_handlers
-
 # KWA Note : another file should be added here :
 # /usr/lib/sysctl.d/elasticsearch.conf
-# with content : 
+# with content :
 # vm.max_map_count=262144
 
-- name: disable standard Easticsearch service
-  service:
-    name: elasticsearch
-    state: stopped
-    enabled: no
-
-- name: add ElasticSearch-{{groupe}} autostart at boot
-  service:
-    name: "vitam-elasticsearch-{{groupe}}"
-    enabled: yes
-    state: restarted
 
 #### Consul service declaration ####
 
 # TODO: ideally get the consul configuration path in a global configuration variable
 - name: Ensure consul config dir is OK
   file:
-    path: "{{vitam_folder_root}}/conf/consul"
+    path: "{{consul_folder_conf}}"
     state: directory
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
@@ -183,14 +141,19 @@
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
-    dest: "{{vitam_folder_root}}/conf/consul/service-{{ groupe }}.json"
+    dest: "{{ consul_folder_conf }}/service-{{ cluster_name }}.json"
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
+  notify:
+   - reload consul configuration
 
-- name: Reload consul agent configuration
+- name: Ensure consul service is started
   service:
-    name: vitam-consul
-    state: reloaded
+    name: "vitam-consul"
+    state: started
 
-
+- name: Ensure service is started
+  service:
+    name: "vitam-{{cluster_name}}"
+    state: started

@@ -1,15 +1,25 @@
 ---
-
 - name: Install mongo rpm
   yum:
     name: vitam-mongoc
-    state: present
+    state: latest
+  notify:
+    - restart mongoc
+
+- name: enable mongoc
+  service:
+    name: vitam-mongoc
+    enabled: true
+  notify:
+    - restart mongoc
+
+#### Configuration ####
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
   file:
     path: "{{ vitam_folder_root }}/{{ item }}/mongoc"
     state: directory
-    owner: "{{ mongo_user}}"
+    owner: "{{ vitamdb_user}}"
     group: "{{vitam_group}}"
     mode: "{{vitam_folder_permission}}"
   with_items:
@@ -21,62 +31,29 @@
     - log
     - script
     - tmp
+  notify:
+    - restart mongoc
 
-- name: create db sub-directory
+- name: Create db directory
   file:
     path: "{{ mongoc_folder_database }}"
-    owner: "{{mongo_user}}"
+    owner: "{{vitamdb_user}}"
     group: "{{vitam_group}}"
     state: directory
     mode: "{{vitam_folder_permission}}"
+  notify:
+    - restart mongoc
 
 - name: Create the mongoc configuration server file
   template:
     src: "mongoc.conf.j2"
     dest: "{{mongo_config_path}}/mongoc.conf"
-    owner: "{{mongo_user}}"
+    owner: "{{vitamdb_user}}"
     mode: "{{vitam_conf_permission}}"
+  notify:
+    - restart mongoc
 
-- name: restart mongoc
-  service:
-    name: vitam-mongoc
-    enabled: true
-    state: restarted
-
-# Enable mongo passphrase
-
-- name: Copy the passphrase
-  template:
-    src: "keyfile.j2"
-    dest: "{{ mongo_config_path }}/keyfile"
-    owner: "{{ mongo_user}}"
-    mode: 0600
-
-# Now lest's initiate the replica set (do this only on the last node)
-
-- name: Wait for the service port to be open
-  wait_for: port={{mongoc_port}} timeout=10
-  when: inventory_hostname == "{{ groups['mongoc']|last }}"
-
-- name: Copy the script which initiate the replica set
-  template:
-    src: "init-replica.js.j2"
-    dest: "{{vitam_folder_root}}/tmp/init-replica-config.js"
-    owner: "{{mongo_user}}"
-    mode: "{{vitam_conf_permission}}"
-  when: inventory_hostname == "{{ groups['mongoc']|last }}"
-
-- name: Initiate the replica set
-  command: mongo --port {{mongoc_port}} {{vitam_folder_root}}/tmp/init-replica-config.js
-  when: inventory_hostname == "{{ groups['mongoc']|last }}"
-
-- name: Delete the init-replica.js file
-  file:
-    dest: "{{vitam_folder_root}}/tmp/init-replica.js"
-    state: "absent"
-  when: inventory_hostname == "{{ groups['mongoc']|last }}"
-
-# Consul
+#### Consul configuration ####
 
 - name: Ensure consul config dir is OK
   file:
@@ -85,7 +62,6 @@
     owner: "{{vitam_user}}"
     group: "{{vitam_group}}"
 
-# KWA : a fixer ASAP !
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
@@ -93,8 +69,46 @@
     owner: "{{vitam_user}}"
     group: "{{vitam_group}}"
     mode: "{{vitam_conf_permission}}"
+  notify:
+   - reload consul configuration
 
-- name: reload consul agent configuration
+
+# Ensure that the installation is complete and consul up before contnuing...
+- meta: flush_handlers
+
+- name: Ensure service is started
   service:
-    name: vitam-consul
-    state: reloaded
+    name: vitam-mongoc
+    state: started
+
+#### Mongo online configuration ####
+# Note : mongodb needs to be started for these elements to succeed
+
+# Enable mongo passphrase
+
+- name: Copy the passphrase
+  template:
+    src: "keyfile.j2"
+    dest: "{{ mongo_config_path }}/keyfile"
+    owner: "{{ vitamdb_user}}"
+    group: "{{vitam_group}}"
+    mode: 0600
+
+# Now lest's initiate the replica set (do this only on the last node)
+
+- name: Wait for the service port to be open
+  wait_for: port={{mongoc_port}} timeout="{{service_restart_timeout}}"
+  when: inventory_hostname == "{{ groups['mongoc']|last }}"
+
+- name: Copy the script which initiate the replica set
+  template:
+    src: "init-replica.js.j2"
+    dest: "{{vitam_folder_root}}/app/init-replica-config.js"
+    owner: "{{vitamdb_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  when: inventory_hostname == "{{ groups['mongoc']|last }}"
+
+- name: Initiate the replica set
+  command: mongo --port {{mongoc_port}} {{vitam_folder_root}}/app/init-replica-config.js
+  when: inventory_hostname == "{{ groups['mongoc']|last }}"

@@ -5,7 +5,7 @@
     name: vitam-consul
     state: reloaded
 
-- name: restart service
+- name: restart mongoc
   service:
-    name: "vitam-{{ vitam_component }}"
+    name: vitam-mongoc
     state: restarted

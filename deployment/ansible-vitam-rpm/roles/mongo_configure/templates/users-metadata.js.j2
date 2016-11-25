@@ -1,25 +1,17 @@
 
-// Create admin user
-
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "metadata" },
-            { role: "dbAdmin", db: "metadata" }
-        ]
-    }
-)
+// Switch to metadata database
+db = db.getSiblingDB('metadata')
 
 // Create metadata user
 
-db.createUser(
-    {
-        user: "{{mongoMetadataUser}}",
-        pwd: "{{mongoMetadataPassword}}",
-        roles: [
-            { role: "readWrite", db: "metadata" }
-        ]
-    }
-)
+if (! db.getUser("{{mongoMetadataUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoMetadataUser}}",
+            pwd: "{{mongoMetadataPassword}}",
+            roles: [
+                { role: "readWrite", db: "metadata" }
+            ]
+        }
+    )
+}

@@ -81,10 +81,10 @@ mongo_base_path: "{{vitam_folder_root}}"
 mongos_port: 27017
 mongoc_port: 27018
 mongod_port: 27019
-mongo_user: "vitamdb"
 mongo_authentication: "true"
 mongoclientDbName: "mongoclient"
 mongoclientPort: 27016
+mongoclientbaseUrl: "/mongoclient"
 
 vitam_mongodb_host: "mongos.service.{{consul_domain}}"
 vitam_mongodb_port: "{{mongos_port}}"
@@ -103,6 +103,7 @@ vitam_library_port: 8090
 vitam_siegfried_port: 19000
 
 vitam_user: vitam
+vitamdb_user: "vitamdb"
 vitam_group: vitam
 
 consul_domain: consul
@@ -119,3 +120,5 @@ soapui_folder_app: "{{vitam_folder_root}}/app/{{soapui_component}}"
 
 mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
 mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
+
+service_restart_timeout: 30

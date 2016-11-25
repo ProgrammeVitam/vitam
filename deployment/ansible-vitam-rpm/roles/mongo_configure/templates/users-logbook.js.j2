@@ -1,25 +1,17 @@
 
-// Create admin user
-
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "logbook" },
-            { role: "dbAdmin", db: "logbook" }
-        ]
-    }
-)
+// Switch to logbook database
+db = db.getSiblingDB('logbook')
 
 // Create logbook user
 
-db.createUser(
-    {
-        user: "{{mongoLogbookUser}}",
-        pwd: "{{mongoLogbookPassword}}",
-        roles: [
-            { role: "readWrite", db: "logbook" }
-        ]
-    }
-)
+if (! db.getUser("{{mongoLogbookUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoLogbookUser}}",
+            pwd: "{{mongoLogbookPassword}}",
+            roles: [
+                { role: "readWrite", db: "logbook" }
+            ]
+        }
+    )
+}

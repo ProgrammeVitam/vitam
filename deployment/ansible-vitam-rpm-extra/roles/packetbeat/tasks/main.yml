@@ -5,7 +5,7 @@
     name: libpcap
     state: latest
 
-# TODO Run packetbeat as a non-root user, using a specific user with full restrictions 
+# TODO Run packetbeat as a non-root user, using a specific user with full restrictions
 - name: install Packetbeat
   yum:
     name: packetbeat
@@ -25,7 +25,7 @@
     flat: yes
 
 - name: create packetbeat index
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/packetbeat'
     method: PUT
@@ -49,7 +49,7 @@
   with_lines: find {{role_path}}/files/ -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
 
 - name: restart Kibana
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   service:
     name: kibana
     state: restarted
@@ -62,3 +62,30 @@
     name: packetbeat
     enabled: yes
     state: started
+
+  # TODO: change : virtualization_type is wrong here, we should assert if curator was indeed installed
+- name: apply configuration files for curator
+  template:
+    src: "{{item}}.j2"
+    dest: "{{curator_conf_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "delete_index_packetbeat.yml"
+  delegate_to: "{{groups['hosts-log-server'][0]}}"
+  run_once: true
+  when:
+    - ansible_virtualization_type != 'docker'
+    - "{{ (groups['hosts-log-server'] | length) > 0}}"
+
+- name: create root crontab entry
+  run_once: true
+  delegate_to : "{{groups['hosts-log-server'][0]}}"
+  cron:
+    name="curator purge on packetbeat"
+    minute="10"
+    hour="0"
+    user="root"
+    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_packetbeat.yml"
+  when:
+    - ansible_virtualization_type != 'docker'
+    - "{{ (groups['hosts-log-server'] | length) > 0}}"

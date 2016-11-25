@@ -42,7 +42,7 @@ for j in ingest access; do
 		echo "	Génération pour ${i}..."
 		generatehostcertificate ${j}-external ${j}externalserverkeypassword caintermediatekeypassword ${i} server ${j}-external.service.consul
 		echo "	Conversion en p12..."
-		crtkey2p12 ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/${COMPOSANT} ingestexternalserverkeypassword ${i} ${p12_ihm_demo_password}
+		crtkey2p12 ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/${j}-external ingestexternalserverkeypassword ${i} ${p12_ihm_demo_password}
 		echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/ !"
 	done
 	echo "Fin de génération du certificat server de ${j}-external"

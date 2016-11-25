@@ -1,16 +1,16 @@
 ---
-
 # Make sure the service is open (mongos listening on 27017)
 
+# TODO: put the timeout in global variable (timeout to wait for mongo to be open)
 - name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout=30
+  wait_for: port={{mongos_port}} timeout="{{service_restart_timeout}}"
   run_once: true
 
 # Detect if authentication is enabled
 
 - name: Check if authent is enabled
   command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.status()'"
-  become_user: "{{ mongo_user}}"
+  become_user: "{{ vitamdb_user}}"
   run_once: true
   register: mongo_authent_enabled
   failed_when: false
@@ -18,23 +18,30 @@
 
 # Set mongo_no_auth facts
 
-- name: Set mongo_no_auth fact
+- name: Set default mongo facts
   set_fact:
+    mongo_credentials: ""
     mongo_no_auth: false
 
-# TODO: try to use mongo return code or explain why we parse the stdr
 - name: Set mongo_no_auth fact to true
   set_fact:
     mongo_no_auth: true
   when: "mongo_authent_enabled.rc != 0"
+
+# When authentication is required, we set mongodb admin credentials
+- name: Set mongodb authentication credentials
+  set_fact:
+    mongo_credentials: " -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet"
+  when: "mongo_authent_enabled.rc == 0"
+  no_log: true
 
 # Copy the mongodb scripts
 
 - name: Copy the database scripts files
   template:
     src: "{{item}}.j2"
-    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
-    owner: "{{mongo_user}}"
+    dest: "{{vitam_folder_root}}/app/mongos/{{item}}"
+    owner: "{{vitamdb_user}}"
     group: "{{vitam_group}}"
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
@@ -43,28 +50,29 @@
 # Enable sharding for specific databases and collections
 
 - name: Enable the sharding
-  command: mongo localhost:{{mongos_port}} {{vitam_folder_root}}/tmp/mongos/enable-sharding.js
-  become_user: "{{ mongo_user}}"
+  command: mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/enable-sharding.js
+  become_user: "{{ vitamdb_user}}"
   run_once: true
-  when: mongo_no_auth
+  no_log: true
 
 # Initiate the databases and the related users
+# FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
 
 - name: Create the users
-  command: mongo localhost:{{mongos_port}}/{{item}} {{vitam_folder_root}}/tmp/mongos/users-{{item}}.js
-  become_user: "{{ mongo_user}}"
+  command: "mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/users-{{item}}.js"
+  become_user: "{{ vitamdb_user}}"
   run_once: true
-  when: mongo_no_auth
   with_items:
     - admin
     - mongoclient
     - logbook
     - masterdata
     - metadata
+  no_log: true
 
-# Activate securite on mongo instances
+# Activate security on mongo instances
 
-# Todo check if we can activate security by default and then create the users
+# TODO: check if we can activate security by default and then create the users
 #  (caution : it seems that we can only create one user while being anonymous after security enabling)
 - name: Activate security on mongos instances
   blockinfile:
@@ -139,14 +147,14 @@
 # Make sure the service is open (mongos listening on 27017)
 
 - name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout=10
+  wait_for: port={{mongos_port}} timeout="{{service_restart_timeout}}"
   run_once: true
 
 # Initiate the databases
 
 - name: Initiate the admin database
-  command: mongo localhost:{{mongos_port}}/{{item}} -u {{mongoAdminUser}} -p {{mongoAdminPassword}} {{vitam_folder_root}}/tmp/mongos/init-{{item}}-database.js
-  become_user: "{{ mongo_user}}"
+  command: "mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/init-{{item}}-database.js"
+  become_user: "{{ vitamdb_user}}"
   run_once: true
   with_items:
     - admin
@@ -154,12 +162,3 @@
     - masterdata
     - metadata
   no_log: true
-
-# Delete the mongodb scripts
-
-- name: Delete the database scripts files
-  file:
-    dest: "{{vitam_folder_root}}/tmp/mongos/{{item}}"
-    state: "absent"
-  run_once: true
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"

@@ -1,7 +1,6 @@
 ---
 # defaults file for elasticsearrch-cluster
-vitam_user: vitamdb
-vitam_group: vitam
+
 # Memory used by elasticsearch ; if empty, will use the official elastic recommendations
 # Value must be expressed with the unit (lower case) ; for example : 32g, 512m, ...
 elasticsearch_memory: ""

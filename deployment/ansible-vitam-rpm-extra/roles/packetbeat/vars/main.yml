@@ -1,2 +1,4 @@
 ---
-# vars file for packetbeat
+
+curator_conf_dir: "{{ vitam_folder_root }}/conf/curator"
+curator_log_dir: "{{ vitam_folder_root }}/log/curator"

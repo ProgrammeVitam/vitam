@@ -5,6 +5,17 @@
   yum:
     name: rsyslog
     state: latest
+  notify:
+    - restart rsyslog
+
+- name: ensure service is started on boot && restart service
+  service:
+    name: rsyslog
+    enabled: true
+  notify:
+    - restart rsyslog
+
+#### Configuration ####
 
 - name: copy VITAM transport config file
   template:
@@ -21,17 +32,18 @@
     dest: /etc/rsyslog.conf
     regexp: '^#\$ModLoad imudp.*$'
     replace: "$ModLoad imudp"
+  notify:
+    - restart rsyslog
 
 - name: activate port 514 in rsyslog
   replace:
     dest: /etc/rsyslog.conf
     regexp: '^#\$UDPServerRun 514.*$'
     replace: "$UDPServerRun 514"
-
-
-- name: ensure service is started on boot && restart service
-  service:
-    name: rsyslog
-    enabled: true
   notify:
     - restart rsyslog
+
+- name: Ensure service is started
+  service:
+    name: "rsyslog"
+    state: started
