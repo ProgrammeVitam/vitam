@@ -151,7 +151,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_FORMAT, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -189,7 +189,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_RULES, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -228,7 +228,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_ACCESSION_REGISTER_SUMMARY, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -256,7 +256,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eipDetail = GUIDFactory.newGUID();
         parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eipDetail, STP_DELETE_ACCESSION_REGISTER_DETAIL, eipDetail,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.STARTED), eipDetail);
         try {
             helper.createDelegate(parameters);
@@ -294,7 +294,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_OPERATION, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -342,7 +342,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_OG, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -378,7 +378,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -414,7 +414,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_OG, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -450,7 +450,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_UNIT, eip,
-            LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
@@ -485,7 +485,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
         final GUID eip = GUIDFactory.newGUID();
         List<String> collectionKO = new ArrayList<>();
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, STP_DELETE_ALL, eip, LogbookTypeProcess.DATA_MANAGEMENT, StatusCode.STARTED,
+            eip, STP_DELETE_ALL, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.STARTED), eip);
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
