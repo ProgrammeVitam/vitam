@@ -71,7 +71,7 @@ Les usages principaux
 SystemPropertyUtil
 ==================
 
-Cet utilitaire propose quelques méthodes pour manipuler les Propritétés héritées du Système, notamment celle déduites de "-Dxxxx" dans la ligne de commande Java.
+Cet utilitaire propose quelques méthodes pour manipuler les Propriétés héritées du Système, notamment celle déduites de "-Dxxxx" dans la ligne de commande Java.
 
 Il intègre notamment :
 - String getVitamConfigFolder()
@@ -112,7 +112,7 @@ Il intègre notamment :
 BaseXXX
 =======
 
-Cet utilitaire propose quelques méthodes pour maipuler des Base16, Base32 et Base64.
+Cet utilitaire propose quelques méthodes pour manipuler des Base16, Base32 et Base64.
 
 CharsetUtils
 ============

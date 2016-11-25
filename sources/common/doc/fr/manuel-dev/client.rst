@@ -10,6 +10,7 @@ Client Vitam
 ============
 
 L'interface commune du client Vitam est : *fr.gouv.vitam.common.client.BasicClient*.
+
 Elle mets à disposition les méthodes suivantes :
 
 - la récupération du status du serveur distant auquel le client se connecte
