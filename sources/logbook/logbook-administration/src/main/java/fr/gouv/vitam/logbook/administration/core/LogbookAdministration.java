@@ -252,7 +252,7 @@ public class LogbookAdministration {
 
                 storageClient.storeFileFromWorkspace(Integer.toString(TENANT_ID),
                     STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
-                workspaceClient.deleteObject(eip.toString(), uri);
+                workspaceClient.deleteObject(fileName, uri);
 
                 createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, OK, null);
 

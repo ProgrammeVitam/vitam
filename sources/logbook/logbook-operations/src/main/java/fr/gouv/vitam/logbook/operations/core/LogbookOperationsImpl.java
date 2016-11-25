@@ -146,12 +146,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
         InvalidParseOperationException {
         Select select = new Select();
         Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-        select.setQuery(type);
-        select.setLimitFilter(0, 1);
-        select.addOrderByDescFilter("evDateTime");
+        Query findEvent = QueryHelper
+            .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), "STP_OP_SECURISATION.OK");
 
-        QueryHelper.and().add(QueryHelper
-            .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), "STP_OP_SECURISATION.OK"));
+        select.setLimitFilter(0, 1);
+        select.setQuery(QueryHelper.and().add(type, findEvent));
+
+        select.addOrderByDescFilter("evDateTime");
 
         return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
     }
