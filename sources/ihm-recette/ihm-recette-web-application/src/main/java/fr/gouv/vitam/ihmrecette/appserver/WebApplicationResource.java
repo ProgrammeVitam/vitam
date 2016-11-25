@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -97,6 +98,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String FILENAME_REGEX = "^[a-z0-9_-]*(\\.)(zip|tar|tar.gz|tar.bz2)$";
+    private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_REGEX, Pattern.CASE_INSENSITIVE);
     private static final String RESULTS_FIELD = "$results";
     private static final String FILE_NAME_KEY = "fileName";
     private static final String FILE_SIZE_KEY = "fileSize";
@@ -206,10 +209,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         if (sipFiles != null) {
             for (final File currentFile : sipFiles) {
-                final ObjectNode fileDetails = JsonHandler.createObjectNode();
-                fileDetails.put(FILE_NAME_KEY, currentFile.getName());
-                fileDetails.put(FILE_SIZE_KEY, currentFile.length());
-                filesListDetails.add(fileDetails);
+
+                if (FILENAME_PATTERN.matcher(currentFile.getName()).matches()) {
+                    final ObjectNode fileDetails = JsonHandler.createObjectNode();
+                    fileDetails.put(FILE_NAME_KEY, currentFile.getName());
+                    fileDetails.put(FILE_SIZE_KEY, currentFile.length());
+                    filesListDetails.add(fileDetails);
+                } else {
+                    LOGGER.warn("SIP filename incorrect {}", currentFile.getName());
+                }
             }
         }
 
@@ -276,6 +284,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("SIP directory not configured");
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
                 .build();
+        }
+
+        if (!FILENAME_PATTERN.matcher(fileName).matches()) {
+            LOGGER.error("SIP path  invalid");
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP path  invalid").build();
         }
 
         // Read the selected file into an InputStream
