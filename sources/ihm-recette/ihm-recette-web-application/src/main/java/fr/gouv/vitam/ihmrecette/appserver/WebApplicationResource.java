@@ -392,7 +392,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * @param headers
      * @param sessionId
-     * @param query options for searching
+     * @param options
      * @return Response
      */
     @POST
@@ -435,9 +435,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
                 result = UserInterfaceTransactionManager.selectOperation(query);
@@ -471,19 +470,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param operationId id of operation
-     * @param query options for searching
+     * @param options
      * @return Response
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
-
-        RequestResponse result = null;
         try {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -494,6 +492,5 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 }

@@ -6,8 +6,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AccessCollections;
@@ -22,6 +20,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -59,12 +58,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
+        SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
@@ -92,18 +91,16 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
+        SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
-        if (StringUtils.isEmpty(unitId)) {
-            throw new IllegalArgumentException(BLANK_UNIT_ID);
-        }
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
 
         try {
             response = performRequest(HttpMethod.POST, UNITS + unitId, headers,
@@ -131,12 +128,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
+        SanityChecker.checkJsonAll(updateQuery);
         if (updateQuery == null || updateQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
-        if (StringUtils.isEmpty(unitId)) {
-            throw new IllegalArgumentException(BLANK_UNIT_ID);
-        }
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
 
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, null,
@@ -163,9 +159,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        SanityChecker.checkJsonAll(selectObjectQuery);
+        if (selectObjectQuery== null || selectObjectQuery.size() == 0) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
         Response response = null;
@@ -197,9 +195,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
-        ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        SanityChecker.checkJsonAll(selectObjectQuery);
+        if (selectObjectQuery== null || selectObjectQuery.size() == 0) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
@@ -241,8 +241,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();

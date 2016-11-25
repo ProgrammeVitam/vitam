@@ -86,7 +86,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     }
 
     @Override
-    public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request:" + select);
         return ClientMockResultHelper.getLogbookResults();
     }

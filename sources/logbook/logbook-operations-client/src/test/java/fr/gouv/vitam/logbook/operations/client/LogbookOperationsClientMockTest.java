@@ -40,6 +40,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -173,7 +174,7 @@ public class LogbookOperationsClientMockTest {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1",
-            client.selectOperation(request).get("$results").get(1).get("_id").asText());
+            client.selectOperation(JsonHandler.getFromString(request)).get("$results").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0",
             client.selectOperationbyId("eventIdentifier").get("$results").get(0).get("_id").asText());
     }

@@ -65,7 +65,6 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-
     RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
@@ -123,7 +122,6 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     RequestResponse selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
-
 
     /**
      * selectOperationbyId

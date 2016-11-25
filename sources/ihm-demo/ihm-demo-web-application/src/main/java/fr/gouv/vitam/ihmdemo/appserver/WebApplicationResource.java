@@ -172,7 +172,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
             final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-            final String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
             final RequestResponse searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
             return Response.status(Status.OK).entity(searchResult).build();
 
@@ -205,7 +205,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Prepare required map
             final Map<String, String> selectUnitIdMap = new HashMap<String, String>();
             selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
             final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
@@ -271,9 +271,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 result = UserInterfaceTransactionManager.selectOperation(query);
 
@@ -439,7 +438,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            final String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
             final RequestResponse archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -466,14 +465,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileFormats(String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-        String query = "";
-        RequestResponse result = null;
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = adminClient.findDocuments(AdminCollections.FORMATS, JsonHandler.getFromString(query));
+            JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            RequestResponse result = adminClient.findDocuments(AdminCollections.FORMATS, query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -587,7 +584,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             final HashMap<String, String> qualifierProjection = new HashMap<>();
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
-            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
             final RequestResponse searchResult =
                 UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
@@ -649,7 +646,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         try {
             final HashMap<String, String> emptyMap = new HashMap<>();
-            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
                 usage, Integer.parseInt(version), filename);
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
@@ -680,14 +677,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileRules(String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-        String query = "";
-        RequestResponse result = null;
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            result = adminClient.findDocuments(AdminCollections.RULES, JsonHandler.getFromString(query));
+            JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            RequestResponse result = adminClient.findDocuments(AdminCollections.RULES, query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -875,7 +870,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
                     .collect(Collectors.toList());
-            final String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
+            final JsonNode preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query
             final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);

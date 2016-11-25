@@ -398,7 +398,7 @@ public class SelectParserSingleTest {
             } catch (final InvalidParseOperationException e) {
                 fail("Should not raized an exception");
             }
-            request.projectionParse(JsonHandler.getFromString("{}"));
+            request.projectionParse(JsonHandler.createObjectNode());
             new SelectToMongoDb(request).getFinalProjection();
             try {
                 request.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
