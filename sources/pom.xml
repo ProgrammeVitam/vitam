@@ -190,80 +190,6 @@
 				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
 			</properties>
 		</profile>
-		<profile>
-			<id>doc</id>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<configuration>
-							<doctitle>Vitam API Reference (${project.version})</doctitle>
-							<windowtitle>Vitam API Reference (${project.version})</windowtitle>
-							<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
-							<overview>${basedir}/overview.html</overview>
-							<groups>
-								<group>
-									<title>Access </title>
-									<packages>fr.gouv.vitam.access.*</packages>
-								</group>
-								<group>
-									<title>Common </title>
-									<packages>fr.gouv.vitam.common.*:fr.gouv.vitam.common</packages>
-								</group>
-								<group>
-									<title>Functional administration </title>
-									<packages>fr.gouv.vitam.functional.administration.*</packages>
-								</group>
-								<group>
-									<title>Ihm Demo </title>
-									<packages>fr.gouv.vitam.ihmdemo.*</packages>
-								</group>
-								<group>
-									<title>Ingest </title>
-									<packages>fr.gouv.vitam.ingest.*</packages>
-								</group>
-								<group>
-									<title>Logbook </title>
-									<packages>fr.gouv.vitam.logbook.*</packages>
-								</group>
-								<group>
-									<title>Metadata </title>
-									<packages>fr.gouv.vitam.metadata.*</packages>
-								</group>
-								<group>
-									<title>Processing </title>
-									<packages>fr.gouv.vitam.processing.*</packages>
-								</group>
-								<group>
-									<title>Storage Driver / Offer </title>
-									<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.driver.*</packages>
-								</group>
-								<group>
-									<title>Storage Engine </title>
-									<packages>fr.gouv.vitam.storage.engine.*</packages>
-								</group>
-								<group>
-									<title>Worker </title>
-									<packages>fr.gouv.vitam.worker.*</packages>
-								</group>
-								<group>
-									<title> Workspace </title>
-									<packages>fr.gouv.vitam.workspace.*</packages>
-								</group>
-							</groups>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>aggregate-jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 
 	<build>
@@ -452,6 +378,60 @@
 					<configuration>
 						<source>${java.version}</source>
 						<additionalparam>-Xdoclint:none</additionalparam>
+						<doctitle>Vitam API Reference (${project.version})</doctitle>
+						<windowtitle>Vitam API Reference (${project.version})</windowtitle>
+						<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
+						<overview>${basedir}/overview.html</overview>
+						<groups>
+							<group>
+								<title>Access </title>
+								<packages>fr.gouv.vitam.access.*</packages>
+							</group>
+							<group>
+								<title>Common </title>
+								<packages>fr.gouv.vitam.common.*:fr.gouv.vitam.common</packages>
+							</group>
+							<group>
+								<title>Functional administration </title>
+								<packages>fr.gouv.vitam.functional.administration.*</packages>
+							</group>
+							<group>
+								<title>Ihm Demo </title>
+								<packages>fr.gouv.vitam.ihmdemo.*</packages>
+							</group>
+							<group>
+								<title>Ingest </title>
+								<packages>fr.gouv.vitam.ingest.*</packages>
+							</group>
+							<group>
+								<title>Logbook </title>
+								<packages>fr.gouv.vitam.logbook.*</packages>
+							</group>
+							<group>
+								<title>Metadata </title>
+								<packages>fr.gouv.vitam.metadata.*</packages>
+							</group>
+							<group>
+								<title>Processing </title>
+								<packages>fr.gouv.vitam.processing.*</packages>
+							</group>
+							<group>
+								<title>Storage Driver / Offer </title>
+								<packages>fr.gouv.vitam.storage.driver.*:fr.gouv.vitam.storage.driver:fr.gouv.vitam.storage.offers.*:fr.gouv.vitam.driver.*</packages>
+							</group>
+							<group>
+								<title>Storage Engine </title>
+								<packages>fr.gouv.vitam.storage.engine.*</packages>
+							</group>
+							<group>
+								<title>Worker </title>
+								<packages>fr.gouv.vitam.worker.*</packages>
+							</group>
+							<group>
+								<title> Workspace </title>
+								<packages>fr.gouv.vitam.workspace.*</packages>
+							</group>
+						</groups>
 					</configuration>
 				</plugin>
 				<plugin>
