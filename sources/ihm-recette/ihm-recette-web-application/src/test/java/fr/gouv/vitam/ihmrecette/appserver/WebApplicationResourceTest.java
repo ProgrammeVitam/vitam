@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 
@@ -165,11 +166,14 @@ public class WebApplicationResourceTest {
             .get("/stat/" + FAKE_OPERATION_ID);
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void testGetAvailableFilesListWithSuccess() {
-        given().expect().statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
+        ResponseBody response = given().expect().statusCode(Status.OK.getStatusCode())
+            .when().get("/upload/fileslist").getBody();
+        assertTrue(response.asString().contains("SIP.zip"));
+        assertFalse(response.asString().contains("incorrect_file.txt"));
+        assertFalse(response.asString().contains("file.incorrect.zip"));
     }
 
     @Test
@@ -183,8 +187,25 @@ public class WebApplicationResourceTest {
             .build()).when(ingestClient).upload(anyObject());
 
         given().param("file_name", "SIP.zip").expect().statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/upload/SIP.zip");
+            .when().get("/upload/SIP.zip");
+        given().param("file_name", "sip2.ZIP").expect().statusCode(Status.OK.getStatusCode())
+            .when().get("/upload/sip2.ZIP");
+    }
+
+    @Test
+    public void testUploadFileFromServerFilenameIncorrect() throws Exception {
+        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
+        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
+
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
+        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
+        Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
+            .build()).when(ingestClient).upload(anyObject());
+
+        given().param("file_name", "incorrect_file.txt").expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().get("/upload/incorrect_file.txt");
+        given().param("file_name", "file.incorrect.zip").expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().get("/upload/file.incorrect.zip");
     }
 
     @Test
