@@ -222,7 +222,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                                 // then break the process
                                 if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
-                                    responses.getGlobalStatus().isGreaterOrEqualToKo()) {
+                                    responses.getGlobalStatus().isGreaterOrEqualToFatal()) {
                                     break;
                                 }
                             }
