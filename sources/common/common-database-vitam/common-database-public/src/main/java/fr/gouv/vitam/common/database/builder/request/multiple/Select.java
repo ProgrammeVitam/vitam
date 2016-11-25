@@ -230,17 +230,25 @@ public class Select extends RequestMultiple {
     }
 
     /**
-     * Specific command to get the correct Qualifier and Version from ObjectGroup
+     * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
      * 
      * @param qualifier might be either Xxx or Xxx_n
      * @param version
+     * @params additionalFields additional fields
      * @throws InvalidParseOperationException
      */
-    public void setProjectionSliceOnQualifier(String qualifier, int version) throws InvalidParseOperationException {
+    public void setProjectionSliceOnQualifier(String qualifier, int version, String... additionalFields)
+        throws InvalidParseOperationException {
         // FIXME P1 : it would be nice to be able to handle $slice in projection via builder
         String projection =
             "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
-                ",1]},\"#id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1}}";
+                ",1]},\"#id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
+        for (String field : additionalFields) {
+            projection += ",\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
+        }
+        projection += "}}";
+
+
         parseProjection(projection);
     }
 

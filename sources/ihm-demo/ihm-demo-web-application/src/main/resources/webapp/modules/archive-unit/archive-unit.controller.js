@@ -575,7 +575,7 @@ angular.module('archive.unit')
       options.usage = usage;
       options.version = version;
       options.filename = fileName;
-      window.location.href = ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options);
+      window.open(ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options), '_blank');
     };
     // **************************************************************************** //
 

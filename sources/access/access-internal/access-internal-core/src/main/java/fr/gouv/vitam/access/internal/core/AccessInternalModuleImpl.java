@@ -250,33 +250,43 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         selectRequest.parse(queryJson);
         final Select request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
-        request.setProjectionSliceOnQualifier(qualifier, version);
+        // FIXME P1: we should find a better way to do that than use json, like a POJO.
+        request.setProjectionSliceOnQualifier(qualifier, version, "FormatIdentification", "FileInfo");
+
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
+
         // FIXME P1: do not use direct access but POJO
         final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             throw new AccessInternalExecutionException("More than one object founds. Ids are : " + ids);
         }
+        LOGGER.debug(JsonHandler.prettyPrint(jsonResponse.get("$results").get(0)));
         String mimetype = null;
         String filename = null;
-        JsonNode node = jsonResponse.get("$results").get("FormatIdentification");
-        if (node != null) {
-            node = node.get("MimeType");
-            if (node != null) {
-                mimetype = node.asText();
-            }
+
+
+        final List<String> mimeTypesAsText = jsonResponse.get("$results").findValuesAsText("MimeType");
+        if (mimeTypesAsText.size() > 1) {
+            final String multipleMimetype = mimeTypesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
+            LOGGER.warn("Multiple mimetypes found {}, using the first.", multipleMimetype);
         }
-        node = jsonResponse.get("$results").get("FileInfo");
-        if (node != null) {
-            node = node.get("Filename");
-            if (node != null) {
-                filename = node.asText();
-            }
+        if (!mimeTypesAsText.isEmpty()) {
+            mimetype = mimeTypesAsText.get(0);
         }
+
+        final List<String> fileNamesAsText = jsonResponse.get("$results").findValuesAsText("Filename");
+        if (fileNamesAsText.size() > 1) {
+            final String multipleFilenames = fileNamesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
+            LOGGER.warn("Multiple filenames found {}, using the first", multipleFilenames);
+        }
+        if (!fileNamesAsText.isEmpty()) {
+            filename = fileNamesAsText.get(0);
+        }
+
         if (Strings.isNullOrEmpty(mimetype)) {
             mimetype = MediaType.APPLICATION_OCTET_STREAM;
         }

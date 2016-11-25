@@ -50,7 +50,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -70,14 +69,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -113,6 +110,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     protected static boolean isSoapUiRunning() {
         return soapUiRunning;
     }
+    
+    private static void setSoapUiRunning(boolean soapUiRunning) {
+        WebApplicationResource.soapUiRunning = soapUiRunning;
+    }
+    
 
     // TODO FIX_TENANT_ID
     private static final Integer TENANT_ID = 0;
@@ -303,9 +305,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     @GET
     @Path("/soapui/launch")
-    public Response launchSoapUiTests() {
-        if (!soapUiRunning) {
-            soapUiRunning = true;
+    public synchronized Response launchSoapUiTests() {
+        if (!WebApplicationResource.isSoapUiRunning()) {
+            WebApplicationResource.setSoapUiRunning(true);
             VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> soapUiAsync());
             return Response.status(Status.OK).build();
         } else {
@@ -328,7 +330,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (InterruptedException e) {
             LOGGER.error("Error while SOAP UI script execution", e);
         }
-        soapUiRunning = false;
+        WebApplicationResource.setSoapUiRunning(false);
     }
 
 
@@ -341,7 +343,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/soapui/running")
     @Produces(MediaType.APPLICATION_JSON)
     public Response soapUiTestsRunning() {
-        return Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("result", soapUiRunning)).build();
+        return Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("result", WebApplicationResource.soapUiRunning)).build();
     }
 
     /**

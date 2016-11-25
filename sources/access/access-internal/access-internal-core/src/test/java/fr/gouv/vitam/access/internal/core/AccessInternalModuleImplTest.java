@@ -106,11 +106,13 @@ public class AccessInternalModuleImplTest {
     // Note: this is an incorrect response since missing Qualifiers but _id is correct but within
     private static final String FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
     private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$results:[{'_id':123}, {'_id':124}]}";
+    private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
+    private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final Update updateQuery = new Update();
-    
-   
+
+
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {        
+    public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         HOST += serverPort;
@@ -130,7 +132,7 @@ public class AccessInternalModuleImplTest {
      * @return
      * @throws InvalidParseOperationException
      */
-    public JsonNode FromStringToJson(String query) throws InvalidParseOperationException {
+    public JsonNode fromStringToJson(String query) throws InvalidParseOperationException {
         return JsonHandler.getFromString(query);
 
     }
@@ -165,13 +167,13 @@ public class AccessInternalModuleImplTest {
     public void given_correct_dsl_When_select_thenOK()
         throws Exception {
         when(metaDataClient.selectUnits(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_select_thenTrows_IllegalArgumentException()
         throws Exception {
-        accessModuleImpl.selectUnit(FromStringToJson(""));
+        accessModuleImpl.selectUnit(fromStringToJson(""));
     }
 
 
@@ -179,7 +181,7 @@ public class AccessInternalModuleImplTest {
     public void given_test_AccessExecutionException()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
 
@@ -187,7 +189,7 @@ public class AccessInternalModuleImplTest {
     public void given_empty_DSLWhen_select_units_ThenThrows_InvalidParseOperationException()
         throws Exception {
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
 
     }
 
@@ -196,14 +198,14 @@ public class AccessInternalModuleImplTest {
     public void given__DSLWhen_select_units_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_DSLWhen_select_units_ThenThrows_MetaDataDocumentSizeException()
         throws Exception {
         Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
 
@@ -211,7 +213,7 @@ public class AccessInternalModuleImplTest {
     public void given_clientProblem_When_select_units_ThenThrows_AccessExecutionException()
         throws Exception {
         Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectUnits(anyObject());
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     // select Unit Id
@@ -219,13 +221,13 @@ public class AccessInternalModuleImplTest {
     public void given_correct_dsl_When_selectunitById_thenOK()
         throws Exception {
         when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_selectunitById_thenTrows_IllegalArgumentException()
         throws Exception {
-        accessModuleImpl.selectUnitbyId(FromStringToJson(""), ID);
+        accessModuleImpl.selectUnitbyId(fromStringToJson(""), ID);
     }
 
 
@@ -234,15 +236,16 @@ public class AccessInternalModuleImplTest {
     public void given_test_AccessExecutionException_unitById()
         throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(anyObject(), anyObject());
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_unitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(anyObject(), anyObject());
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(anyObject(),
+            anyObject());
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
 
 
     }
@@ -250,23 +253,24 @@ public class AccessInternalModuleImplTest {
     @Test(expected = AccessInternalExecutionException.class)
     public void given__DSLWhen_select_unitById_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
-        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(anyObject(), anyObject());
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(anyObject(),
+            anyObject());
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_selectUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .selectUnitbyId(FromStringToJson(QUERY), "");
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), "");
+            .selectUnitbyId(fromStringToJson(QUERY), "");
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), "");
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_selectUnitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .selectUnitbyId(FromStringToJson(QUERY), ID);
-        accessModuleImpl.selectUnitbyId(FromStringToJson(QUERY), ID);
+            .selectUnitbyId(fromStringToJson(QUERY), ID);
+        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -275,29 +279,29 @@ public class AccessInternalModuleImplTest {
         JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectUnits(jsonQuery);
-        accessModuleImpl.selectUnit(FromStringToJson(QUERY));
+        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_selectOGbyId_thenthrows_IllegalArgumentException() throws Exception {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .selectObjectGrouptbyId(FromStringToJson(QUERY), "");
-        accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), "");
+            .selectObjectGrouptbyId(fromStringToJson(QUERY), "");
+        accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), "");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_metadataAccessProblem_throw_AccessExecutionException() throws Exception {
         Mockito.doThrow(new ProcessingException("Fake error")).when(metaDataClient)
-            .selectObjectGrouptbyId(FromStringToJson(QUERY), "ds");
-        accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), "ds");
+            .selectObjectGrouptbyId(fromStringToJson(QUERY), "ds");
+        accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), "ds");
     }
 
     @Test
     public void given_selectObjectGroupById_OK()
         throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(FromStringToJson(QUERY), ID))
+        when(metaDataClient.selectObjectGrouptbyId(fromStringToJson(QUERY), ID))
             .thenReturn(sampleObjectGroup);
-        final JsonNode result = accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), ID);
+        final JsonNode result = accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), ID);
         assertEquals(sampleObjectGroup, result);
     }
 
@@ -305,8 +309,8 @@ public class AccessInternalModuleImplTest {
     public void given_empty_DSLWhen_selectOGById_ThenThrows_InvalidParseOperationException()
         throws Exception {
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .selectObjectGrouptbyId(FromStringToJson(QUERY), ID);
-        accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), ID);
+            .selectObjectGrouptbyId(fromStringToJson(QUERY), ID);
+        accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), ID);
     }
 
     // update by id - start
@@ -340,7 +344,7 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
-        accessModuleImpl.updateUnitbyId(FromStringToJson(""), ID);
+        accessModuleImpl.updateUnitbyId(fromStringToJson(""), ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -349,8 +353,8 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .updateUnitbyId(FromStringToJson(QUERY), ID);
-        accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
+            .updateUnitbyId(fromStringToJson(QUERY), ID);
+        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -360,7 +364,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
-        accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY_UPDATE), ID);
+        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY_UPDATE), ID);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -390,7 +394,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
-            .updateUnitbyId(FromStringToJson(QUERY), ID);
+            .updateUnitbyId(fromStringToJson(QUERY), ID);
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID);
     }
 
@@ -406,22 +410,23 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .updateUnitbyId(FromStringToJson(QUERY), "");
-        accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), "");
+            .updateUnitbyId(fromStringToJson(QUERY), "");
+        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "");
     }
 
     @Test
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
-            .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
+            .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
             anyObject()))
-                .thenReturn(responseMock);        
+                .thenReturn(responseMock);
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
+                "0");
         assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
@@ -430,27 +435,68 @@ public class AccessInternalModuleImplTest {
         assertTrue(IOUtils.contentEquals(binaryMaster, stream2));
     }
 
+    @Test
+    public void testGetOneObjectFromObjectGroupRealData_OK() throws Exception {
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_PATH)));
+        Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class))
+            .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
+            anyObject()))
+                .thenReturn(responseMock);
+        final AccessBinaryData abd =
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
+                "0");
+        assertNotNull(abd);
+        final Response binaryMasterResponse = abd.getOriginalResponse();
+        assertNotNull(binaryMasterResponse);
+        assertEquals("image/png", abd.getMimetype());
+        assertEquals("Vitam-S\u00E9nsibilisation de l' API-V1.0.png", abd.getFilename());
+    }
+    
+
+    @Test
+    public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_MULTI_PATH)));
+        Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class))
+            .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
+            anyObject()))
+                .thenReturn(responseMock);
+        final AccessBinaryData abd =
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
+                "0");
+        assertNotNull(abd);
+        final Response binaryMasterResponse = abd.getOriginalResponse();
+        assertNotNull(binaryMasterResponse);
+        assertEquals("image/png", abd.getMimetype());
+        assertEquals("Wrong name", abd.getFilename());
+    }
+
     @Test(expected = AccessInternalExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
-            .thenReturn(FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+            .thenReturn(fromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
-            .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
+            .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
             anyObject()))
                 .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
 }
