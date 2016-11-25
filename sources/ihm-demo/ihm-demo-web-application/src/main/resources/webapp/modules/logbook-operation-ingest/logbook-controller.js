@@ -52,13 +52,15 @@ angular.module('ihm.demo')
     ctrl.getLogbooks = function() {
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
+      if(ctrl.searchOptions.obIdIn === ""){
+    	  delete ctrl.searchOptions.obIdIn;
+      }
       ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
         ctrl.fileFormatList = response.data.$results;
         ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
         ctrl.resultPages = Math.ceil(response.data.$hits.total/ITEM_PER_PAGE);
-        ctrl.searchOptions = {};
         ctrl.currentPage = ctrl.currentPage || 1;
         ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
         header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
