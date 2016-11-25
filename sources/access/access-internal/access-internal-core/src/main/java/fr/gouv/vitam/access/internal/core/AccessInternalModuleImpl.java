@@ -98,16 +98,36 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
  */
 public class AccessInternalModuleImpl implements AccessInternalModule {
 
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
+
+
+
     private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
     private final LogbookOperationsClient logbookOperationClientMock;
     private final StorageClient storageClientMock;
 
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
-
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
+    private static final String _DIFF = "$diff";
+    private static final String _ID = "_id";
+    private static final String RESULTS = "$results";
+    private static final String MIME_TYPE = "MimeType";
+    private static final String METADATA_INTERNAL_SERVER_ERROR = "Metadata internal server error";
+    private static final String LOGBOOK_OPERATION_ALREADY_EXISTS = "logbook operation already exists";
+    private static final String LOGBOOK_CLIENT_BAD_REQUEST_ERROR = "logbook client bad request error";
+    private static final String LOGBOOK_CLIENT_NOT_FOUND_ERROR = "logbook client not found error";
+    private static final String METADATA_EXECUTION_EXECUTION_ERROR = "metadata execution execution error";
+    private static final String DOCUMENT_CLIENT_SERVER_ERROR = "document client server error";
+    private static final String METADATA_DOCUMENT_SIZE_ERROR = "metadata document size error";
+    private static final String ILLEGAL_ARGUMENT = "illegal argument";
+    private static final String PARSING_ERROR = "parsing error";
+    private static final String CLIENT_SERVER_ERROR = "client server error";
+    private static final String CLIENT_NOT_FOUND = "client not found";
+    private static final String BAD_REQUEST = "bad request";
+    private static final String DIFF = "#diff";
+    private static final String ID = "#id";
 
     // TODO P1 setting in other place
     private final Integer tenantId = 0;
@@ -164,10 +184,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             jsonNode = metaDataClient.selectUnits(jsonQuery);
 
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("parsing error", e);
+            LOGGER.error(PARSING_ERROR, e);
             throw e;
         } catch (final IllegalArgumentException e) {
-            LOGGER.error("illegal argument", e);
+            LOGGER.error(ILLEGAL_ARGUMENT, e);
             throw e;
         } catch (final Exception e) {
             LOGGER.error("exeption thrown", e);
@@ -259,17 +279,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         // FIXME P1: do not use direct access but POJO
-        final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
+        final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText(_ID);
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             throw new AccessInternalExecutionException("More than one object founds. Ids are : " + ids);
         }
-        LOGGER.debug(JsonHandler.prettyPrint(jsonResponse.get("$results").get(0)));
+        LOGGER.debug(JsonHandler.prettyPrint(jsonResponse.get(RESULTS).get(0)));
         String mimetype = null;
         String filename = null;
 
 
-        final List<String> mimeTypesAsText = jsonResponse.get("$results").findValuesAsText("MimeType");
+        final List<String> mimeTypesAsText = jsonResponse.get(RESULTS).findValuesAsText(MIME_TYPE);
         if (mimeTypesAsText.size() > 1) {
             final String multipleMimetype = mimeTypesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             LOGGER.warn("Multiple mimetypes found {}, using the first.", multipleMimetype);
@@ -278,7 +298,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             mimetype = mimeTypesAsText.get(0);
         }
 
-        final List<String> fileNamesAsText = jsonResponse.get("$results").findValuesAsText("Filename");
+        final List<String> fileNamesAsText = jsonResponse.get(RESULTS).findValuesAsText("Filename");
         if (fileNamesAsText.size() > 1) {
             final String multipleFilenames = fileNamesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             LOGGER.warn("Multiple filenames found {}, using the first", multipleFilenames);
@@ -394,37 +414,37 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("parsing error", ipoe);
+            LOGGER.error(PARSING_ERROR, ipoe);
             throw ipoe;
         } catch (final IllegalArgumentException iae) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("illegal argument", iae);
+            LOGGER.error(ILLEGAL_ARGUMENT, iae);
             throw iae;
         } catch (final MetaDataDocumentSizeException mddse) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("metadata document size error", mddse);
+            LOGGER.error(METADATA_DOCUMENT_SIZE_ERROR, mddse);
             throw new AccessInternalExecutionException(mddse);
         } catch (final LogbookClientServerException lcse) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("document client server error", lcse);
+            LOGGER.error(DOCUMENT_CLIENT_SERVER_ERROR, lcse);
             throw new AccessInternalExecutionException(lcse);
         } catch (final MetaDataExecutionException mdee) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("metadata execution execution error", mdee);
+            LOGGER.error(METADATA_EXECUTION_EXECUTION_ERROR, mdee);
             throw new AccessInternalExecutionException(mdee);
         } catch (final LogbookClientNotFoundException lcnfe) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("logbook client not found error", lcnfe);
+            LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_ERROR, lcnfe);
             throw new AccessInternalExecutionException(lcnfe);
         } catch (final LogbookClientBadRequestException lcbre) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
-            LOGGER.error("logbook client bad request error", lcbre);
+            LOGGER.error(LOGBOOK_CLIENT_BAD_REQUEST_ERROR, lcbre);
             throw new AccessInternalExecutionException(lcbre);
         } catch (final LogbookClientAlreadyExistsException e) {
-            LOGGER.error("logbook operation already exists", e);
+            LOGGER.error(LOGBOOK_OPERATION_ALREADY_EXISTS, e);
             throw new AccessInternalExecutionException(e);
         } catch (MetaDataClientServerException e) {
-            LOGGER.error("Metadata internal server error", e);
+            LOGGER.error(METADATA_INTERNAL_SERVER_ERROR, e);
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);
         } finally {
@@ -450,11 +470,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     objectIdentifier);
             logbookLifeCycleClient.rollback(logbookParametersEnd);
         } catch (final LogbookClientBadRequestException lcbre) {
-            LOGGER.error("bad request", lcbre);
+            LOGGER.error(BAD_REQUEST, lcbre);
         } catch (final LogbookClientNotFoundException lcbre) {
-            LOGGER.error("client not found", lcbre);
+            LOGGER.error(CLIENT_NOT_FOUND, lcbre);
         } catch (final LogbookClientServerException lcse) {
-            LOGGER.error("client server error", lcse);
+            LOGGER.error(CLIENT_SERVER_ERROR, lcse);
         }
     }
 
@@ -464,8 +484,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
         return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
             eventIdentifierProcess,
-            eventTypeProcess, logbookOutcome, "update archive unit",
-            "update unit " + objectIdentifier, objectIdentifier);
+            eventTypeProcess, logbookOutcome, VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),
+            VitamLogbookMessages.getCodeLfc(STP_UPDATE_UNIT, logbookOutcome) + objectIdentifier, objectIdentifier);
     }
 
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier,
@@ -484,13 +504,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (diff == null) {
             return "";
         }
-        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$results");
+        final JsonNode arrayNode = diff.has(_DIFF) ? diff.get(_DIFF) : diff.get(RESULTS);
         if (arrayNode == null) {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
-                return JsonHandler.writeAsString(diffNode.get("#diff"));
+            if (diffNode.get(ID) != null && unitId.equals(diffNode.get(ID).textValue())) {
+                return JsonHandler.writeAsString(diffNode.get(DIFF));
             }
         }
         // TODO P1 : empty string or error because no diff for this id ?
