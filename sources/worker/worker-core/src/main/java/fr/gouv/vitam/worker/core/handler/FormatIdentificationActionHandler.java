@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -113,10 +112,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private static final String FILE_FORMAT_NOT_FOUND = "NOT_FOUND";
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
-    private static final String FILE_FORMAT_REFERENTIAL_ERROR = "REFERENTIAL_ERROR";
+    private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
     private static final String LOGBOOK_COMMIT_KO = "LOGBOOK_COMMIT_KO";
-    private static final String FILE_FORMAT_METADATA_UPDATE = "FILE_FORMAT_METADATA_UPDATE";
-
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
@@ -239,19 +236,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     } catch (IOException e) {
                         throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                     }
-
-                    logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
-                        FILE_FORMAT_UPDATED_FORMAT,
-                        StatusCode.WARNING, null);
-
-                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
                 }
 
             } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            } catch (LogbookClientNotFoundException e) {
-                // workspace error
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             } finally {
@@ -296,7 +283,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     }
 
     /**
-     * Update lifecycle logbook at the end off process
+     * Update lifecycle logbook at the end of process
      *
      * @param response the process result
      * @throws ProcessingException thrown if one error occurred
@@ -304,6 +291,8 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private void commitLifecycleLogbook(ItemStatus itemStatus, String ogID)
         throws ProcessingException {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
+        // Reset the eventDetailData
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,"");
         LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
             logbookLifecycleObjectGroupParameters, itemStatus);
     }
@@ -345,13 +334,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
                 logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT, FILE_FORMAT_PUID_NOT_FOUND,
                     StatusCode.KO, null);
-
-                try {
-                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                } catch (final LogbookClientException e) {
-                    LOGGER.error(e);
-                    objectCheckFormatResult.setStatus(StatusCode.FATAL);
-                }
             } else {
                 // check formatIdentification
                 JsonNode newFormatIdentification =
@@ -369,7 +351,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         } catch (ReferentialException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REFERENTIAL_ERROR);
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR);
         } catch (final FormatIdentifierBadRequestException e) {
             // path does not match a file
             LOGGER.error(e);
@@ -464,30 +446,11 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         }
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_METADATA_UPDATE);
-            // TODO P0 WORKFLOW : use sub status for lifecycle message, for now we send the substatus
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(
-                    logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
-                    objectCheckFormatResult.getStatus()));
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                // TODO P0 WORKFLOW : "Des informations de formats ont été complétées par Vitam :\n" + diff.toString());
-                VitamLogbookMessages.getCodeLfc(
-                    logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.eventType),
-                    objectCheckFormatResult.getSubStatus(), objectCheckFormatResult.getStatus(), diff.toString()));
-
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-                objectCheckFormatResult.getStatus().name());
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_UPDATED_FORMAT);
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
             // TODO P1 : create a real json object
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\"}");
-            try {
-                handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-            } catch (final LogbookClientException e) {
-                LOGGER.error(e);
-                objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            }
         }
         return newFormatIdentification;
     }
