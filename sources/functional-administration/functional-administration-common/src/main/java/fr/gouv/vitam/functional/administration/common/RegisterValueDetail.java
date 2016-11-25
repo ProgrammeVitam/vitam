@@ -43,6 +43,8 @@ public class RegisterValueDetail {
     }
 
     /**
+     * set the Orginating Agency Value
+     * 
      * @param originatingAgency the originatingAgency to set
      * @return this
      */

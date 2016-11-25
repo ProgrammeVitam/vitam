@@ -112,6 +112,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * check the file format
+     * 
      * @param xmlPronom as InputStream
      * @return Response response jersey
      */
@@ -139,6 +141,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
 
     /**
+     * import the file format
+     * 
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -176,6 +180,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * Find the file format detail related to a specified Id
+     * 
+     * 
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
@@ -210,6 +217,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * retrieve all the file format inserted in the collection fileFormat
+     * 
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs
@@ -248,8 +257,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    /***************************************** rules Manager *************************************/
     /**
+     * check the rules file
+     * 
+     * 
+     * 
      * @param rulesStream as InputStream
      * @return Response response jersey
      * @throws IOException
@@ -286,6 +298,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
 
     /**
+     * import the rules file
+     * 
      * @param rulesStream as InputStream
      * @return Response jersey response
      * @throws IOException when error json occurs
@@ -325,7 +339,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     * findRuleByID
+     * findRuleByID : find the rules details based on a given Id
      *
      * @param ruleId path param as String
      * @return Response jersey response
@@ -366,7 +380,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
-     * findRulesByRuleValueQueryBuilder
+     * findRulesByRuleValueQueryBuilder: build a dsl query based on a RuleId and order the result
      *
      * @param rulesValue
      * @return
@@ -387,6 +401,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * show all file rules inserted in the collection fileRules
+     * 
      * @param select as String
      * @return Response jersey Response
      * @throws IOException when error json occurs
@@ -428,6 +444,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * create or update an accession register
+     * 
      * @param accessionRegister AccessionRegisterDetail object
      * @return Response jersey response
      */
@@ -456,6 +474,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * retrieve all accession summary from accession summary collection
+     * 
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs
@@ -502,6 +522,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
     /**
+     * retrieve accession register detail based on a given dsl query
+     * 
+     * 
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs

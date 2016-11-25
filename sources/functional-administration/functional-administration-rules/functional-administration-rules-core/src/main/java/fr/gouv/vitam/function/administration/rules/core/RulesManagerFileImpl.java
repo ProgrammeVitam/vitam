@@ -89,7 +89,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAutoCloseable {
 
-    
+
     private static final String RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER = "rulesFileStreamis a mandatory parameter";
     private static final String FILE_RULES_COLLECTION_IS_NOT_EMPTY = "File rules collection is not empty";
     private static final String RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER = "rulesFileStream is a mandatory parameter";
@@ -184,6 +184,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     /**
+     * Create a LogBook Entry related to object's update
+     * 
+     * 
      * @param logbookParametersEnd
      */
     private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
@@ -196,6 +199,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     /**
+     * Create a LogBook Entry related to object's creation
+     * 
      * @param logbookParametersStart
      */
     private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
@@ -291,6 +296,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     /**
+     * Check if the rule duration is integer
+     * 
+     * 
      * @param ruleDuration
      */
     private void checkRuleDurationIsInteger(String ruleDuration) {
@@ -349,6 +357,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
 
     /**
+     * Convert a given input stream to a file
+     * 
+     * 
      * @param rulesStream
      * @return
      * @throws IOException
