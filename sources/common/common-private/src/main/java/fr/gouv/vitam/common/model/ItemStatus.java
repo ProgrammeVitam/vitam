@@ -191,7 +191,7 @@ public class ItemStatus {
                 itemStatus1.getStatusMeter().get(i) + itemStatus2.getStatusMeter().get(i));
         }
         // update globalStatus
-        itemStatus1.setGlobalStatus(itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) > 1
+        itemStatus1.setGlobalStatus(itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1
             ? itemStatus1.getGlobalStatus() : itemStatus2.getGlobalStatus());
 
         return itemStatus1;
