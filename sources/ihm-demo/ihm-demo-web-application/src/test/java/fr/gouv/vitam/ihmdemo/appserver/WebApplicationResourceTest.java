@@ -27,9 +27,10 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -67,6 +68,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client2.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -113,6 +115,8 @@ public class WebApplicationResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ServerApplication application;
+    private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
+    private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -427,14 +431,18 @@ public class WebApplicationResourceTest {
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
         IOUtils.toByteArray(stream);
-        final String s = given()
+
+        final ResponseBody s = given()
+            .headers(FLOW_TOTAL_CHUNKS_HEADER, "1", FLOW_CHUNK_NUMBER_HEADER, "1")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream).expect()
             .statusCode(Status.OK.getStatusCode()).when()
-            .post("/ingest/upload").getHeader("Content-Disposition");
-        assertEquals("attachment; filename=Atr.xml", s);
+            .post("/ingest/upload").getBody();
+
+        JsonNode firstRequestId = JsonHandler.getFromString(s.asString());
+        assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
     }
 
     @Test

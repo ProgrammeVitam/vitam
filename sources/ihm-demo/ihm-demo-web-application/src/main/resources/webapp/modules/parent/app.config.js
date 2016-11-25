@@ -51,7 +51,8 @@ module('ihm.demo').
         controller: "uploadController"
       }).
       when('/uploadSIP2', {
-        templateUrl: "views/upload-sip-2.html"
+        templateUrl: "views/upload-sip-2.html",
+        controller: "uploadController"
       }).
       when('/archiveunit/:archiveId', {
         template: '<archive-unit></archive-unit>'
