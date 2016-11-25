@@ -24,6 +24,11 @@
       <artifactId>storage-engine-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>logbook-operations-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -54,4 +59,22 @@
 
 
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>fr.gouv.vitam.logbook.administration.main.CallTraceability</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

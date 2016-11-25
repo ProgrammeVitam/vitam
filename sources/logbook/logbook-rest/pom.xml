@@ -16,12 +16,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations</artifactId>
+			<artifactId>logbook-administration</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-administration</artifactId>
+			<artifactId>logbook-operations</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -29,7 +30,8 @@
 			<artifactId>logbook-lifecycles</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-			<dependency>
+
+		<dependency>
             <groupId>ru.yandex.qatools.embed</groupId>
             <artifactId>embedded-services</artifactId>
             <scope>test</scope>
@@ -59,11 +61,11 @@
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- #HACK test normally, use in script -->
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-operations-client</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -143,6 +145,23 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-script-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/script</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/script</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+
 
 				</executions>
 			</plugin>
@@ -204,11 +223,72 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>rpm-maven-plugin</artifactId>
+				<version>2.1.5</version>
 				<configuration>
+					<name>vitam-${unix.name}</name>
 					<disabled>false</disabled>
+					<licence>CeCILL 2.1</licence>
+					<distribution>Vitam Project</distribution>
+					<group>Application/Archiving</group>
+					<packager>Vitam Package Team</packager>
+					<defineStatements />
+					<targetOS>linux</targetOS>
+					<requires>
+						<require>systemd</require>
+						<require>java-1.8.0</require>
+						<require>vitam-user-${unix.user}</require>
+					</requires>
+					<defaultDirMode>750</defaultDirMode>
+					<defaultFileMode>640</defaultFileMode>
+					<defaultUsername>${unix.user}</defaultUsername>
+					<defaultGroupname>${unix.group}</defaultGroupname>
+					<mappings>
+						<mapping>
+							<directory>/vitam/lib/${unix.name}</directory>
+							<artifact />
+							<dependency />
+						</mapping>
+						<mapping>
+							<directory>/vitam/conf/${unix.name}</directory>
+							<sources>
+								<source>
+									<location>${project.build.directory}/conf</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/vitam/script/${unix.name}</directory>
+							<sources>
+								<source>
+									<location>${project.build.directory}/script</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/usr/lib/systemd/system/</directory>
+							<filemode>644</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directoryIncluded>false</directoryIncluded>
+							<sources>
+								<source>
+									<location>${project.build.directory}/systemd</location>
+								</source>
+							</sources>
+						</mapping>
+					</mappings>
+					<!-- Systemd hook scriptlets -->
+					<postinstallScriptlet>
+						<script>%systemd_post vitam-${unix.name}.service</script>
+					</postinstallScriptlet>
+					<preremoveScriptlet>
+						<script>%systemd_preun vitam-${unix.name}.service</script>
+					</preremoveScriptlet>
+					<postremoveScriptlet>
+						<script>%systemd_postun vitam-${unix.name}.service</script>
+					</postremoveScriptlet>
 				</configuration>
 			</plugin>
-
 		</plugins>
 
 	</build>
