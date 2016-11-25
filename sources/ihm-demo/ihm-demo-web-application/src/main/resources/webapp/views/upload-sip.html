@@ -7,7 +7,12 @@
 
 	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
 
- 			<div class="panel panel-default col-md-12">
+ 			<div class="panel panel-default col-md-12" flow-init="{target: '/ihm-demo/v1/api/ingest/upload',
+  				testChunks:false, method:'octet', simultaneousUploads: 1, ctrlScope: ctrl,
+  				requiredParams:['x-request-id']}"
+  			 flow-file-success="startUpload($flow.files[0].chunks[0].savedParams)"
+  			 flow-files-submitted="$flow.upload()">
+
     			<table class="table upload">
     				<tbody>
         				<tr>
@@ -16,13 +21,13 @@
         				<tr>
           					<h3>Fichier</h3>
           					<td height="150" width="50%" >
-          			      <input type="file" nv-file-select="" uploader="uploader" ng-click="uploader.clear()"/>
+          			      <input type="file" flow-btn flow-single-file ng-disabled="disableSelect" />
           		      </td>
           		      <td height="150">
-          				      <button type="button" class="btn btn-primary" ng-click="uploader.checkExtension($event,uploader.queue[0].file.name);uploader.uploadAll()" ng-disabled="!uploader.getNotUploadedItems().length" >
-          				        <i class="material-icons pull-left">file_download</i>
-          				        <span></span> Importer
-          				      </button>
+                        <button type="button" class="btn btn-primary" ng-disabled="disableUpload" flow-launch>
+                  				<i class="material-icons pull-left">file_download</i>
+                  				<span>Importer</span>
+                  			</button>
           		       </td>
         	        </tr>
               </tbody>
@@ -33,20 +38,20 @@
                 <thead>
                 <tr>
                     <th width="50%">Nom du fichier</th>
-                    <th ng-show="uploader.isHTML5">Taille</th>
+                    <th>Taille</th>
                     <th>Statut</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="item in uploader.queue">
-                    <td><strong>{{ item.file.name }}</strong></td>
-                    <td ng-show="uploader.isHTML5" nowrap> {{ uploader.getSize(item.file.size,2)}}</td>
+                <tr ng-repeat="file in $flow.files">
+                    <td><strong>{{file.name}}</strong></td>
+                    <td> {{ getSize(file.size,2)}}</td>
                     <td>
-                        <span ng-show="item.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>
-                        <span ng-show="item.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>
-                        <span ng-show="item.isError"><i class="glyphicon glyphicon-remove"></i></span>
-                        <span ng-show="item.isWarning"><i class="glyphicon glyphicon-warning-sign"></i></span>
-                        <span ng-show="item.isProcessing"><img src="images/loading.gif"/></span>
+                      <span ng-show="fileItem.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>
+                      <span ng-show="fileItem.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>
+                      <span ng-show="fileItem.isError"><i class="glyphicon glyphicon-remove"></i></span>
+                      <span ng-show="fileItem.isWarning"><i class="glyphicon glyphicon-warning-sign"></i></span>
+                      <span ng-show="fileItem.isProcessing"><img src="images/loading.gif"/></span>
                     </td>
                 </tr>
                 </tbody>
@@ -59,8 +64,8 @@
             <div align="center">
                 <div>
                     <div class="progress" style="">
-                        <div class="progress-bar" role="progressbar" ng-style="{ 'width': uploader.progress + '%' }"></div>
-                    </div>
+              				<div class="progress-bar" role="progressbar" ng-style="{ 'width': $flow.files[0].progress()*100 + '%' }" style="width: 0;"></div>
+              			</div>
                 </div>
             </div>
             <br>

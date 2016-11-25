@@ -95,9 +95,11 @@
       successStatuses: [200, 201, 202],
       onDropStopPropagation: false,
       initFileFn: null,
-      readFileFn: webAPIFileRead
+      readFileFn: webAPIFileRead,
+      requiredParams: [],
+      ctrlScope: null
     };
-    
+
     /**
      * Current options
      * @type {Object}
@@ -155,7 +157,7 @@
     /**
      * Set a callback for an event, possible events:
      * fileSuccess(file), fileProgress(file), fileAdded(file, event),
-     * fileRemoved(file), fileRetry(file), fileError(file, message), 
+     * fileRemoved(file), fileRetry(file), fileError(file, message),
      * complete(), progress(), error(message, file), pause()
      * @function
      * @param {string} event
@@ -295,29 +297,7 @@
      * @private
      */
     uploadNextChunk: function (preventEvents) {
-      // In some cases (such as videos) it's really handy to upload the first
-      // and last chunk of a file quickly; this let's the server check the file's
-      // metadata and determine if there's even a point in continuing.
       var found = false;
-      if (this.opts.prioritizeFirstAndLastChunk) {
-        each(this.files, function (file) {
-          if (!file.paused && file.chunks.length &&
-            file.chunks[0].status() === 'pending') {
-            file.chunks[0].send();
-            found = true;
-            return false;
-          }
-          if (!file.paused && file.chunks.length > 1 &&
-            file.chunks[file.chunks.length - 1].status() === 'pending') {
-            file.chunks[file.chunks.length - 1].send();
-            found = true;
-            return false;
-          }
-        });
-        if (found) {
-          return found;
-        }
-      }
 
       // Now, simply look for the next, best thing to upload
       each(this.files, function (file) {
@@ -407,13 +387,43 @@
         });
         // When new files are added, simply append them to the overall list
         var $ = this;
+        // Modif on listener to update event on change
         input.addEventListener('change', function (e) {
-       	  if (e.target.value) {
-            $.addFiles(e.target.files, e);
-            e.target.value = '';
-       	  }
+          if (!!e.target.files && e.target.files.length > 0) {
+            $.selectedFileEvent = e;
+            $.files = [];
+            $.opts.ctrlScope.$apply(function () {
+              $.opts.ctrlScope.disableUpload = false;
+              $.opts.ctrlScope.fileItem.isProcessing = false;
+              $.opts.ctrlScope.fileItem.isSuccess = false;
+              $.opts.ctrlScope.fileItem.isWarning = false;
+              $.opts.ctrlScope.fileItem.isError = false;
+            });
+          }
         }, false);
       }, this);
+    },
+
+    /**
+     * Assign a browse action to one or more DOM nodes.
+     * @function
+     * @param {Element} domNode
+     */
+    adssignLaunch: function(domNode) {
+        var me = this;
+        domNode[0].addEventListener('click', function (e) {
+          var event = me.selectedFileEvent;
+          if (!!event) {
+            me.addFiles(event.target.files, e);
+            me.opts.ctrlScope.$apply(function() {
+              me.opts.ctrlScope.disableUpload = true;
+              me.opts.ctrlScope.disableSelect = true;
+            });
+
+            event.value = '';
+            e.value = '';
+          }
+        }, false);
     },
 
     /**
@@ -501,14 +511,12 @@
       }
       // Kick off the queue
       this.fire('uploadStart');
-      var started = false;
-      for (var num = 1; num <= this.opts.simultaneousUploads - ret; num++) {
-        started = this.uploadNextChunk(true) || started;
-      }
-      if (!started) {
-        async(function () {
-          this.fire('complete');
-        }, this);
+
+      // FIXME Why this code is updated ? See diff with master
+      var file = this.files[0];
+      if (!file.paused && file.chunks.length &&
+        file.chunks[0].status() === 'pending') {
+        file.chunks[0].send(true);
       }
     },
 
@@ -700,7 +708,7 @@
      * @type {Flow}
      */
     this.flowObj = flowObj;
-    
+
     /**
      * Used to store the bytes read
      * @type {Blob|string}
@@ -956,6 +964,7 @@
       var percent = bytesLoaded / this.size;
       // We don't want to lose percentages when an upload is paused
       this._prevProgress = Math.max(this._prevProgress, percent > 0.9999 ? 1 : percent);
+
       return this._prevProgress;
     },
 
@@ -1050,7 +1059,7 @@
    * @function webAPIFileRead(fileObj, startByte, endByte, fileType, chunk)
    *
    */
-  function webAPIFileRead(fileObj, startByte, endByte, fileType, chunk) {
+  function webAPIFileRead(fileObj, startByte, endByte, fileType, chunk, isFirst) {
     var function_name = 'slice';
 
     if (fileObj.file.slice)
@@ -1060,7 +1069,7 @@
     else if (fileObj.file.webkitSlice)
       function_name = 'webkitSlice';
 
-    chunk.readFinished(fileObj.file[function_name](startByte, endByte, fileType));
+    chunk.readFinished(fileObj.file[function_name](startByte, endByte, fileType), isFirst);
   }
 
 
@@ -1159,7 +1168,7 @@
         endByte = this.fileObj.size;
       }
       return endByte;
-    }
+    };
 
     /**
      * Chunk end byte in a file
@@ -1172,6 +1181,12 @@
      * @type {XMLHttpRequest}
      */
     this.xhr = null;
+
+    /**
+     * Save the required params
+     * @type {null}
+     */
+    this.savedParams = {};
 
     var $ = this;
 
@@ -1228,6 +1243,7 @@
         delete this.data;
         $.event(status, $.message());
         $.flowObj.uploadNextChunk();
+
       } else {
         $.event('retry', $.message());
         $.pendingRetry = true;
@@ -1292,6 +1308,7 @@
       console.log('testMethod', testMethod);
       var data = this.prepareXhrRequest(testMethod, true);
       console.log('data', data);
+
       this.xhr.send(data);
     },
 
@@ -1312,18 +1329,20 @@
      * Finish read state
      * @function
      */
-    readFinished: function (bytes) {
+    readFinished: function (bytes, isFirst) {
       this.readState = 2;
       this.bytes = bytes;
-      this.send();
+      this.send(isFirst);
     },
 
 
     /**
      * Uploads the actual data in a POST call
+     *
      * @function
+     * @param {Boolean} isFirst true if its the first request of a file
      */
-    send: function () {
+    send: function (isFirst) {
       var preprocess = this.flowObj.opts.preprocess;
       var read = this.flowObj.opts.readFileFn;
       if (typeof preprocess === 'function') {
@@ -1339,7 +1358,7 @@
       switch (this.readState) {
         case 0:
           this.readState = 1;
-          read(this.fileObj, this.startByte, this.endByte, this.fileObj.file.type, this);
+          read(this.fileObj, this.startByte, this.endByte, this.fileObj.file.type, this, isFirst);
           return;
         case 1:
           return;
@@ -1360,7 +1379,76 @@
       this.xhr.addEventListener("error", this.doneHandler, false);
 
       var uploadMethod = evalOpts(this.flowObj.opts.uploadMethod, this.fileObj, this);
-      var data = this.prepareXhrRequest(uploadMethod, false, this.flowObj.opts.method, this.bytes);
+      var data = this.prepareXhrRequest(uploadMethod, false, this.flowObj.opts.method, this.bytes, isFirst);
+
+      // FIXME : Check success/Error case, check NPE possibility
+      var me = this;
+      if (isFirst) {
+        console.log('First request');
+        // Add callback for first request
+        this.xhr.onreadystatechange = function () {
+          // Add success callback
+          if (me.xhr.readyState == 4) {
+            if (me.xhr.status == 200) {
+              console.log(me.xhr.responseText);
+              console.log(me.xhr.response);
+
+              for (var i = 0, len = me.flowObj.opts.requiredParams.length; i < len; i++) {
+                var requiredParam = me.flowObj.opts.requiredParams[i];
+                me.savedParams[requiredParam] = JSON.parse(me.xhr.response)[requiredParam];
+              }
+            } else {
+              console.error('Error on First Request !!');
+              for (var j = 0, lenJ = me.flowObj.opts.requiredParams.length; j < lenJ; j++) {
+                me.savedParams[me.flowObj.opts.requiredParams[j]] = null;
+              }
+            }
+          }
+        };
+      } else {
+        var firstChunk = this.flowObj.files[0].chunks[0];
+        console.log('Saved Params: ' + firstChunk.savedParams);
+        console.log('Required Params: ' + this.flowObj.opts.requiredParams);
+
+        var haveAllRequired = true;
+        for (var i=0,len=this.flowObj.opts.requiredParams.length; i<len; i++) {
+          if(firstChunk.savedParams[this.flowObj.opts.requiredParams[i]] === undefined) {
+            haveAllRequired = false;
+          }
+        }
+
+        if (!haveAllRequired) {
+          var interval =
+            setInterval(function () {
+              console.error('Waiting for Saved Params: ' + firstChunk.savedParams);
+              console.error('Required Params: ' + me.flowObj.opts.requiredParams);
+
+              var haveAllRequired = true;
+              for (var i=0, len=me.flowObj.opts.requiredParams.length; i<len; i++) {
+                if (firstChunk.savedParams[me.flowObj.opts.requiredParams[i]] === undefined) {
+                  haveAllRequired = false;
+                }
+              }
+              if (haveAllRequired) {
+                clearInterval(interval);
+                for (var param in firstChunk.savedParams) {
+                  if (firstChunk.savedParams.hasOwnProperty(param)) {
+                    me.xhr.setRequestHeader(param, firstChunk.savedParams[param]);
+                  }
+                }
+                me.xhr.send(data);
+              }
+            }, 1000);
+          return;
+        } else {
+          for (var param in firstChunk.savedParams) {
+            if (firstChunk.savedParams.hasOwnProperty(param)) {
+              this.xhr.setRequestHeader(param, firstChunk.savedParams[param]);
+            }
+          }
+        }
+      }
+
       this.xhr.send(data);
     },
 
@@ -1463,7 +1551,7 @@
      * @param {Blob} [blob] to send
      * @returns {FormData|Blob|Null} data to send
      */
-    prepareXhrRequest: function(method, isTest, paramsMethod, blob) {
+    prepareXhrRequest: function(method, isTest, paramsMethod, blob, isFirst) {
       // Add data from the query options
       var query = evalOpts(this.flowObj.opts.query, this.fileObj, this, isTest);
       query = extend(query, this.getParams());
@@ -1473,14 +1561,6 @@
       console.log('target', target);
       var data = null;
       if (method === 'GET' || paramsMethod === 'octet') {
-        // Add data from the query options
-        //var params = [];
-        //each(query, function (v, k) {
-        //  console.log('params (v / k )', v, k);
-        //  params.push([encodeURIComponent(k), encodeURIComponent(v)].join('='));
-        //});
-        //console.log('params', params);
-        //target = this.getTarget(target, params);
         console.log('New target', target);
         data = blob || null;
         console.log('data', data);
@@ -1757,6 +1837,17 @@ angular.module('flow.btn', ['flow.init'])
     }
   };
 }]);
+angular.module('flow.launch', ['flow.init'])
+  .directive('flowLaunch', [function() {
+    return {
+      'restrict': 'EA',
+      'scope': false,
+      'require': '^flowInit',
+      'link': function(scope, element) {
+        scope.$flow.adssignLaunch(element);
+      }
+    };
+  }]);
 angular.module('flow.dragEvents', ['flow.init'])
 /**
  * @name flowPreventDrop
@@ -1923,5 +2014,5 @@ angular.module('flow.transfers', ['flow.init'])
     }
   };
 }]);
-angular.module('flow', ['flow.provider', 'flow.init', 'flow.events', 'flow.btn',
+angular.module('flow', ['flow.provider', 'flow.init', 'flow.events', 'flow.btn', 'flow.launch',
   'flow.drop', 'flow.transfers', 'flow.img', 'flow.dragEvents']);
