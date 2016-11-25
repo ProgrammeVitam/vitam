@@ -234,8 +234,8 @@ angular.module('archive.unit')
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$results == null || data.$results == undefined ||
               data.$hits == null || data.$hits == undefined) {
-              console.log("Erreur survenue à la mise à jour de l'archive unit");
-              self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+              console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
+              self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
             } else {
               // Archive unit found
               self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
@@ -261,20 +261,20 @@ angular.module('archive.unit')
               // Refresh archive Details
               // Cancel EditMode
               self.isEditMode = false;
-              self.showAlert($event, "Info", "Mise à jour réussie de l'archive unit");
+              self.showAlert($event, "Info", "Mise à jour réussie de l'unité archivistique");
             }
           };
 
           var failureUpdateDisplayCallback = function(errorMsg){
             // Display error message
             console.log(errorMsg);
-            self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+            self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
           };
           archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
 
         }, function (error) {
           console.log('Update Archive unit failed : ' + error.message);
-          self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+          self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
         });
     };
 
