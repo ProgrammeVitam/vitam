@@ -71,8 +71,9 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 public class UserInterfaceTransactionManagerTest {
     private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
     private static String SEARCH_UNIT_DSL_QUERY =
-        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
-            "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
+        "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
+            " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+            " }";
     private static String ID_UNIT = "1";
     private static String UNIT_DETAILS = "{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
     private static String SEARCH_RESULT =
@@ -80,8 +81,8 @@ public class UserInterfaceTransactionManagerTest {
     private static String UPDATE_FIELD_IMPACTED_RESULT =
         "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_UNIT_DSL_QUERY =
-        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
-            "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
+        "{ $queries: [{$eq : { '#id' : 1 }}]," +
+            "$actions: {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String ALL_PARENTS =
@@ -108,7 +109,7 @@ public class UserInterfaceTransactionManagerTest {
         updateResult = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT));
         allParents = JsonHandler.getFromString(ALL_PARENTS);
     }
-    
+
     @Before
     public void setupTests() throws Exception {
         PowerMockito.mockStatic(AccessExternalClientFactory.class);
@@ -120,19 +121,22 @@ public class UserInterfaceTransactionManagerTest {
 
     @Test
     public void testSuccessSearchUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
         when(accessClient.selectUnits(anyObject())).thenReturn(searchResult);
-
         // Test method
-        final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
+        final RequestResponseOK result =
+            (RequestResponseOK) UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
         assertTrue(result.getHits().getTotal() == 1);
     }
 
     @Ignore
     @Test
     public void testSuccessGetArchiveUnitDetails()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT))
+            .thenReturn(unitDetails);
 
         // Test method
         final RequestResponseOK archiveDetails =
@@ -142,20 +146,25 @@ public class UserInterfaceTransactionManagerTest {
 
     @Test
     public void testSuccessUpdateUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
         when(accessClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(updateResult);
 
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
+        final RequestResponseOK results =
+            (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
         assertTrue(results.getHits().getTotal() == 1);
     }
 
     @Ignore
     @Test
     public void testSuccessSelectObjectbyId()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        final RequestResponse result = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
-        when(accessClient.selectObjectById(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP)).thenReturn(result);
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        final RequestResponse result =
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
+            .thenReturn(result);
 
         // Test method
         final RequestResponseOK objectGroup =
@@ -167,8 +176,9 @@ public class UserInterfaceTransactionManagerTest {
     @Ignore
     @Test
     public void testSuccessGetObjectAsInputStream()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException, IOException {
-        when(accessClient.getObject(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException, IOException {
+        when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1))
             .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");

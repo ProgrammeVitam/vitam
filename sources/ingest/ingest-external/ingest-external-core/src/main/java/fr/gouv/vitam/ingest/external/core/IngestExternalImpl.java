@@ -90,7 +90,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
     private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
-    private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";    
+    private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";
 
     private static final String CAN_NOT_SCAN_VIRUS = "Can not scan virus";
 
@@ -224,7 +224,7 @@ public class IngestExternalImpl implements IngestExternal {
 
             InputStream inputStream = null;
             boolean isFileInfected = false;
-            String mimeType = CommonMediaType.ZIP;
+            String mimeType = "";
             boolean isSupportedMedia = false;
 
             // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
@@ -298,8 +298,8 @@ public class IngestExternalImpl implements IngestExternal {
                             VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO));
                     } else {
                         LOGGER.debug(SIP_FORMAT + format.getMimetype());
+                        mimeType = format.getMimetype();
                         if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
-                            mimeType = format.getMimetype();
                             isSupportedMedia = true;
                         } else {
                             LOGGER.error(SIP_WRONG_FORMAT + format.getMimetype() + IS_NOT_SUPPORTED);
@@ -466,7 +466,7 @@ public class IngestExternalImpl implements IngestExternal {
                 containerName);
         helper.updateDelegate(stpIngestFinalisationParameters);
     }
-    
+
     private void addTransferNotificationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
         StatusCode status)
         throws LogbookClientNotFoundException {
