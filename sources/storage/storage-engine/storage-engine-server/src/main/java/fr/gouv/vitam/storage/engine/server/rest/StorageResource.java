@@ -171,23 +171,23 @@ public class StorageResource extends ApplicationStatusResource {
         }
     }
 
-
-    /**
-     * Get a list of containers
-     *
-     * @param headers http headers
-     * @return Response containing the storage information as an input stream, or an error (412 or 404)
-     * @throws IOException throws an IO Exception
-     */
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, MediaType.APPLICATION_JSON})
-    // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
-    public Response getContainer(@Context HttpHeaders headers) throws IOException {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
+// TODO:Review api endpoint
+//    /**
+//     * Get a list of containers
+//     *
+//     * @param headers http headers
+//     * @return Response containing the storage information as an input stream, or an error (412 or 404)
+//     * @throws IOException throws an IO Exception
+//     */
+//    @GET
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, MediaType.APPLICATION_JSON})
+//    // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
+//    public Response getContainer(@Context HttpHeaders headers) throws IOException {
+//        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+//        Status status = Status.NOT_IMPLEMENTED;
+//        return Response.status(status).entity(getErrorEntity(status)).build();
+//    }
 
     /**
      * Create a container
