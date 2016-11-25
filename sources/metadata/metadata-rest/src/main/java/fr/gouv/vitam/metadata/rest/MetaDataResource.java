@@ -101,7 +101,6 @@ public class MetaDataResource extends ApplicationStatusResource {
             metaDataImpl.insertUnit(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -182,6 +181,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
+            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectUnitsByQuery(selectRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -248,6 +248,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
+            SanityChecker.checkJsonAll(updateRequest);
             arrayNodeResults = metaDataImpl.updateUnitbyId(updateRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -286,6 +287,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
+            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectUnitsById(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -348,6 +350,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         JsonNode queryJson;
         try {
             queryJson = JsonHandler.getFromString(insertRequest);
+            SanityChecker.checkJsonAll(queryJson);
             metaDataImpl.insertObjectGroup(queryJson);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -445,6 +448,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
+            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

@@ -308,8 +308,8 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -375,8 +375,8 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 

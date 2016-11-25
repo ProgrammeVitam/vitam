@@ -69,8 +69,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
@@ -525,33 +523,14 @@ public class LogBookLifeCycleUnitTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-    @Test
-    public void testGetUnitLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        final LogbookLifeCycleUnit logbookLifecycleUnit = new LogbookLifeCycleUnit(LIFECYCLE_SAMPLE);
-        when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenReturn(logbookLifecycleUnit);
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get(SELECT_UNIT_BY_ID_URI);
-    }
-
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_UNIT_BY_ID_URI);
-    }
-
-    @Test
-    public void testGetObjectGroupLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        final LogbookLifeCycleObjectGroup logbookLifecycleObjectGroup =
-            new LogbookLifeCycleObjectGroup(LIFECYCLE_SAMPLE);
-        when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenReturn(logbookLifecycleObjectGroup);
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get(SELECT_OBG_BY_ID_URI);
     }
 
     @SuppressWarnings("unchecked")
@@ -560,7 +539,7 @@ public class LogBookLifeCycleUnitTest {
         throws LogbookDatabaseException, LogbookNotFoundException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
 }

@@ -213,7 +213,7 @@ public class SelectUnitResourceTest {
             .when()
             .get("/units")
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 

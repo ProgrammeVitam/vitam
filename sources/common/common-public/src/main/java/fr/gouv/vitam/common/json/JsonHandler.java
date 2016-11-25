@@ -413,6 +413,25 @@ public final class JsonHandler {
     }
 
     /**
+     * Check if JsonNodes are not null and not empty
+     * 
+     * @param message default message within exception
+     * @param nodes 
+     * @throws IllegalArgumentException if nodes are null or empty
+     */
+    public static final void checkNullOrEmpty(final String message, final JsonNode ...nodes) {
+        if (nodes != null) {
+            for (JsonNode jsonNode : nodes) {
+                if (jsonNode == null || jsonNode.size() == 0) {
+                    throw new IllegalArgumentException(message);
+                }
+            }
+        } else {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    /**
      * node should have only one property
      *
      * @param nodeName name to print in case of error

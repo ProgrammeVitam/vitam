@@ -214,7 +214,7 @@ public class MetaDataImplTest {
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         try {
@@ -226,7 +226,7 @@ public class MetaDataImplTest {
         }
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         try {
