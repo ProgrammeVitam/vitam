@@ -81,7 +81,8 @@ public interface AccessInternalResource extends VitamResource {
     Response getObjectGroup(String idObjectGroup, JsonNode query);
 
     /**
-     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET" value
+     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, JsonNode query) if the "GET"
+     * value
      * is found in method override http header. Return an error otherwise.
      *
      * @param xHttpOverride value of the associated header
@@ -104,8 +105,8 @@ public interface AccessInternalResource extends VitamResource {
         JsonNode query, @Suspended final AsyncResponse asyncResponse);
 
     /**
-     * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
-     * String query) if the "GET" value is found in method override http header. Return an error otherwise.
+     * POST version of getObjectStream. Implicitly call getObjectStreamAsync(HttpHeaders headers, String idObjectGroup,
+     * JsonNode query) if the "GET" value is found in method override http header. Return an error otherwise.
      * (Async version)
      *
      * @param headers http request headers

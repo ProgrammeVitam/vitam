@@ -41,12 +41,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -61,8 +66,10 @@ import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 @Path("/processing/v1/worker_family")
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
+    private static final String PROCESSING_MODULE = "PROCESSING";
+    private static final String CODE_VITAM = "code_vitam";
 
-
+    private int tenantId = 0;
     private final ProcessDistributor distributor;
 
     /**
@@ -93,7 +100,9 @@ public class ProcessDistributorResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkerFamilies(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -106,8 +115,10 @@ public class ProcessDistributorResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response putWorkerFamilies(@Context HttpHeaders headers, String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+    public Response putWorkerFamilies(@Context HttpHeaders headers, JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -121,7 +132,9 @@ public class ProcessDistributorResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkerFamilyStatus(@Context HttpHeaders headers, @PathParam("id_family") String idFamily) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -137,8 +150,10 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -154,8 +169,10 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -171,8 +188,10 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
 
@@ -187,7 +206,9 @@ public class ProcessDistributorResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFamilyWorkersList(@Context HttpHeaders headers, @PathParam("id_family") String idFamily) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -203,8 +224,10 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteFamilyWorkers(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
 
@@ -221,7 +244,9 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkerStatus(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
         @PathParam("id_worker") String idWorker) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -270,8 +295,10 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker, String query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        @PathParam("id_worker") String idWorker, JsonNode query) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -295,6 +322,11 @@ public class ProcessDistributorResource {
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(PROCESSING_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
 }
