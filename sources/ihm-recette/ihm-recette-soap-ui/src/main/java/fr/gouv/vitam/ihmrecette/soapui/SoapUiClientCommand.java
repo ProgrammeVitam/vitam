@@ -46,11 +46,11 @@ public class SoapUiClientCommand implements SoapUiClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SoapUiClientCommand.class);
     private static final String SOAP_UI_DESC_FILE = "story-tests.xml";
 
-    private SoapUiConfig clientConfiguration;
+    private final SoapUiConfig clientConfiguration;
 
     /**
      * Constructor : Create a new SoapUi client with the given configuration
-     * 
+     *
      * @param clientConfiguration The client configuration
      */
     public SoapUiClientCommand(SoapUiConfig clientConfiguration) {
@@ -59,26 +59,26 @@ public class SoapUiClientCommand implements SoapUiClient {
 
     @Override
     public void launchTests() throws IOException, InterruptedException {
-        String executablePath = clientConfiguration.getSoapUiExecutable();
+        final String executablePath = clientConfiguration.getSoapUiExecutable();
 
-        String logbookProtocol = clientConfiguration.getAccessExternalProtocol();
-        String logbookHostName = clientConfiguration.getAccessExternalHost();
-        int logbookPort = clientConfiguration.getAccessExternalPort();
-        String logbookHost = logbookProtocol + "://" + logbookHostName + ":" + logbookPort + "/";
+        final String logbookProtocol = clientConfiguration.getAccessExternalProtocol();
+        final String logbookHostName = clientConfiguration.getAccessExternalHost();
+        final int logbookPort = clientConfiguration.getAccessExternalPort();
+        final String logbookHost = logbookProtocol + "://" + logbookHostName + ":" + logbookPort + "/";
 
-        String ingestProtocol = clientConfiguration.getIngestProtocol();
-        String ingestHostName = clientConfiguration.getIngestHost();
-        int ingestPort = clientConfiguration.getIngestPort();
-        String ingestHost = ingestProtocol + "://" + ingestHostName + ":" + ingestPort + "/";
+        final String ingestProtocol = clientConfiguration.getIngestProtocol();
+        final String ingestHostName = clientConfiguration.getIngestHost();
+        final int ingestPort = clientConfiguration.getIngestPort();
+        final String ingestHost = ingestProtocol + "://" + ingestHostName + ":" + ingestPort + "/";
 
-        String certfile = clientConfiguration.getCertfile();
-        String dataDir = clientConfiguration.getDataDir();
-        String reportingDir = clientConfiguration.getReportingDir();
-        String configDir = clientConfiguration.getConfigDir();
+        final String certfile = clientConfiguration.getCertfile();
+        final String dataDir = clientConfiguration.getDataDir();
+        final String reportingDir = clientConfiguration.getReportingDir();
+        final String configDir = clientConfiguration.getConfigDir();
 
-        String soapUiDescFilePath = PropertiesUtils.findFile(SOAP_UI_DESC_FILE).getAbsolutePath();
+        final String soapUiDescFilePath = PropertiesUtils.findFile(SOAP_UI_DESC_FILE).getAbsolutePath();
 
-        StringBuilder cmdBuilder = new StringBuilder().append(executablePath);
+        final StringBuilder cmdBuilder = new StringBuilder().append(executablePath);
         cmdBuilder.append(" -P ingestHost=").append(ingestHost);
         cmdBuilder.append(" -P logbookHost=").append(logbookHost);
         cmdBuilder.append(" -P certfile=").append(certfile);
@@ -88,19 +88,19 @@ public class SoapUiClientCommand implements SoapUiClient {
         cmdBuilder.append(" ").append(soapUiDescFilePath);
 
         LOGGER.info("Launch SOAP ui test with command: " + cmdBuilder.toString());
-        Process p = Runtime.getRuntime().exec(cmdBuilder.toString());
+        final Process p = Runtime.getRuntime().exec(cmdBuilder.toString());
 
         boolean running = true;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
         while (running) {
-            String line = reader.readLine();
+            final String line = reader.readLine();
             if (line != null) {
                 LOGGER.info(line);
             } else {
                 try {
                     Thread.sleep(500);
-                } catch (InterruptedException ex) {
+                } catch (final InterruptedException ex) {
                     running = false;
                 }
             }
@@ -109,14 +109,14 @@ public class SoapUiClientCommand implements SoapUiClient {
             }
         }
 
-        int exitVal = p.waitFor();
+        final int exitVal = p.waitFor();
         LOGGER.debug("Exit val: " + exitVal);
     }
 
     @Override
     public JsonNode getLastTestReport() throws InvalidParseOperationException {
-        String reportingDir = clientConfiguration.getReportingDir();
-        File file = new File(reportingDir, "reporting.json");
+        final String reportingDir = clientConfiguration.getReportingDir();
+        final File file = new File(reportingDir, "reporting.json");
         return JsonHandler.getFromFile(file);
     }
 

@@ -76,7 +76,7 @@ public class SSLConfiguration {
 
     /**
      * SSLConfiguration Constructor
-     * 
+     *
      * @param keystore
      * @param truststore
      * @throws IllegalArgumentException if keystore/truststore is null or empty
@@ -88,7 +88,7 @@ public class SSLConfiguration {
     }
 
     /**
-     * 
+     *
      * @param sslContext using a given SSLContext
      * @return the associate Registry for Apache Ssl configuration
      * @throws FileNotFoundException
@@ -111,10 +111,11 @@ public class SSLConfiguration {
             keyManagers = readKeyManagers();
         }
         TrustManager[] trustManagers = null;
-        if (truststore != null && ! truststore.isEmpty()) {
+        if (truststore != null && !truststore.isEmpty()) {
             trustManagers = readTrustManagers();
         } else {
-            throw new VitamException("NO TrustStore specified: any remote certifcates would have been allowed, which is not acceptable!");
+            throw new VitamException(
+                "NO TrustStore specified: any remote certifcates would have been allowed, which is not acceptable!");
         }
         SSLContext sslContext;
         try {

@@ -59,7 +59,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     /**
      * Constructor
-     * 
+     *
      * @param factory
      */
     ProcessingManagementClientRest(ProcessingManagementClientFactory factory) {
@@ -97,7 +97,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (final VitamClientInternalException e) {
             LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new ProcessingInternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -125,7 +125,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (final VitamClientInternalException e) {
             LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR2, e);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } finally {
             consumeAnyEntityAndClose(response);

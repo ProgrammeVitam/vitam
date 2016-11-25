@@ -83,7 +83,7 @@ public class AdminManagementApplicationTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
-        
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -91,7 +91,7 @@ public class AdminManagementApplicationTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         configuration = new AdminManagementConfiguration(nodes, "db-functional-administration");
         mongoDbAccess = MongoDbAccessAdminFactory.create(configuration);

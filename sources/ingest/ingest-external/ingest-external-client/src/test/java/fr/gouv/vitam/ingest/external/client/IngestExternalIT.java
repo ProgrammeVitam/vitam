@@ -64,7 +64,7 @@ public class IngestExternalIT {
         application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
         try {
             application.start();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException(
                 "Cannot start the Ingest External Application Server", e);
         }
@@ -82,14 +82,14 @@ public class IngestExternalIT {
 
     @Test
     public void givenCertifValidThenReturnOK() {
-        SecureClientConfiguration secureClientConfiguration =
+        final SecureClientConfiguration secureClientConfiguration =
             IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         secureClientConfiguration.setServerPort(serverPort);
         IngestExternalClientFactory.changeMode(secureClientConfiguration);
 
         try {
             IngestExternalClientFactory.getInstance().getClient().checkStatus();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             e.printStackTrace();
             fail();
         }
@@ -98,7 +98,7 @@ public class IngestExternalIT {
 
     @Test(expected = VitamApplicationServerException.class)
     public void givenCertifNotGrantedThenReturnForbidden() throws VitamApplicationServerException {
-        SecureClientConfiguration secureClientConfiguration =
+        final SecureClientConfiguration secureClientConfiguration =
             IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
         secureClientConfiguration.setServerPort(serverPort);
 
@@ -109,7 +109,7 @@ public class IngestExternalIT {
 
     @Test(expected = VitamApplicationServerException.class)
     public void givenCertifExpiredThenRaiseAnException() throws VitamApplicationServerException {
-        SecureClientConfiguration secureClientConfiguration =
+        final SecureClientConfiguration secureClientConfiguration =
             IngestExternalClientFactory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         secureClientConfiguration.setServerPort(serverPort);
 

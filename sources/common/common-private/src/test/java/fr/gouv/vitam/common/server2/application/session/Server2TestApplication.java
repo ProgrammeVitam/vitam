@@ -30,18 +30,19 @@ package fr.gouv.vitam.common.server2.application.session;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import org.junit.Assert;
+import org.slf4j.MDC;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.slf4j.MDC;
 
 /**
  * Server2 implementation of {@link VitamRequestIdFiltersIT} tests.
  */
 public class Server2TestApplication extends AbstractTestApplication {
 
+    @Override
     protected final Class getResourceClass() {
         return Server2Resource.class;
     }
@@ -60,7 +61,8 @@ public class Server2TestApplication extends AbstractTestApplication {
         @Path("/failIfNoRequestId")
         public String failIfNoRequestId() throws VitamThreadAccessException {
             final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
-            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is working
+            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is
+                                                                              // working
             return reqId == null ? NO_REQUEST_ID_FOUND : reqId;
         }
 

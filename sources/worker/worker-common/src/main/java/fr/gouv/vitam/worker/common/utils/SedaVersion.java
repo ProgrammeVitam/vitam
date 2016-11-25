@@ -44,7 +44,7 @@ public class SedaVersion {
      * @throws IOException throws when can not read file
      */
     public static final List<String> fileVersionList(File file) throws IOException {
-        final List<String> versionList = new ArrayList<String>();
+        final List<String> versionList = new ArrayList<>();
 
         final FileReader fr = new FileReader(file);
         final BufferedReader br = new BufferedReader(fr);

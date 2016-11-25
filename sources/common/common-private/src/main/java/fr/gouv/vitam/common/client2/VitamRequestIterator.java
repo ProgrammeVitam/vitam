@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -71,7 +71,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
      * Constructor</br>
      * </br>
      * Note: if of type AbstractMockClient or derived, request will be the returned unique result.
-     * 
+     *
      * @param client the client to use
      * @param method the method to use
      * @param path the path to use
@@ -113,14 +113,15 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         try {
             headers.add(GlobalDataRest.X_CURSOR, false);
             headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
-            response = ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
-        } catch (VitamClientInternalException e) {
+            response =
+                ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
+        } catch (final VitamClientInternalException e) {
             throw new BadRequestException(e);
         } finally {
             client.consumeAnyEntityAndClose(response);
         }
     }
-    
+
     private boolean handleFirst(Response response) {
         // TODO P1 Ignore for the moment X-Cursor-Timeout
         xCursorId = (String) response.getHeaders().getFirst(GlobalDataRest.X_CURSOR_ID);
@@ -131,7 +132,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         }
         objectResponse = response.readEntity(RequestResponseOK.class);
         iterator = objectResponse.getResults().iterator();
-        if (! iterator.hasNext()) {
+        if (!iterator.hasNext()) {
             objectResponse = null;
             iterator = null;
             return false;
@@ -143,14 +144,14 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         // TODO P1 Ignore for the moment X-Cursor-Timeout
         objectResponse = response.readEntity(RequestResponseOK.class);
         iterator = objectResponse.getResults().iterator();
-        if (! iterator.hasNext()) {
+        if (!iterator.hasNext()) {
             objectResponse = null;
             iterator = null;
             return false;
         }
         return true;
     }
-    
+
     /**
      * @return true if there is a next element
      * @throws BadRequestException (RuntimeException) if the request is in error
@@ -174,7 +175,8 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
             Response response = null;
             try {
                 headers.add(GlobalDataRest.X_CURSOR, true);
-                response = ((AbstractCommonClient) client).performRequest(method, path, headers, request, MediaType.APPLICATION_JSON_TYPE,
+                response = ((AbstractCommonClient) client).performRequest(method, path, headers, request,
+                    MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
@@ -191,7 +193,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
                         closed = true;
                         throw new BadRequestException(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                 }
-            } catch (VitamClientInternalException e) {
+            } catch (final VitamClientInternalException e) {
                 throw new BadRequestException(e);
             } finally {
                 client.consumeAnyEntityAndClose(response);
@@ -199,7 +201,8 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         } else {
             Response response = null;
             try {
-                response = ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
+                response = ((AbstractCommonClient) client).performRequest(method, path, headers,
+                    MediaType.APPLICATION_JSON_TYPE);
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
                         closed = true;
@@ -215,7 +218,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
                         LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                         throw new BadRequestException(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                 }
-            } catch (VitamClientInternalException e) {
+            } catch (final VitamClientInternalException e) {
                 throw new BadRequestException(e);
             } finally {
                 client.consumeAnyEntityAndClose(response);
@@ -247,7 +250,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
     private static boolean checkHeadersConformity(HttpHeaders headers) {
         if (headers != null) {
             boolean xcursor;
-            MultivaluedMap<String, String> map = headers.getRequestHeaders();
+            final MultivaluedMap<String, String> map = headers.getRequestHeaders();
             if (!map.containsKey(GlobalDataRest.X_CURSOR)) {
                 throw new IllegalStateException(GlobalDataRest.X_CURSOR + " should be always defined");
             }
@@ -266,7 +269,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server side to check if this is a end of cursor
-     * 
+     *
      * @param headers
      * @return True if the cursor is to be ended on Server side
      * @throws IllegalStateException if the headers are not consistent
@@ -277,7 +280,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server side to check if this is a ending of cursor
-     * 
+     *
      * @param xcursor
      * @param xcursorId
      * @return True if the cursor is to be ended on Server side
@@ -288,17 +291,17 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server side to check if this is a creation of cursor
-     * 
+     *
      * @param headers
      * @return True if the cursor is to be created on Server side
      * @throws IllegalStateException if the headers are not consistent
      */
     public static boolean isNewCursor(HttpHeaders headers) {
-        boolean xcursor = checkHeadersConformity(headers);
+        final boolean xcursor = checkHeadersConformity(headers);
         if (!xcursor) {
             return false;
         }
-        List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
+        final List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
         if (cidlist == null) {
             return xcursor;
         }
@@ -307,7 +310,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server side to check if this is a creation of cursor
-     * 
+     *
      * @param xcursor
      * @param xcursorId
      * @return True if the cursor is to be created on Server side
@@ -318,12 +321,12 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server side to get the cursor Id
-     * 
+     *
      * @param headers
      * @return the X-Cursor-ID content
      */
     public static String getCursorId(HttpHeaders headers) {
-        List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
+        final List<String> cidlist = headers.getRequestHeader(GlobalDataRest.X_CURSOR_ID);
         if (cidlist == null) {
             return "";
         }
@@ -332,7 +335,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     /**
      * Helper for server and client to set the needed headers
-     * 
+     *
      * @param builder the current ResponseBuilder
      * @param active True for create or continue, False for inactive (X-Cursor)
      * @param xcursorId may be null, else contains the current X-Cursor-Id

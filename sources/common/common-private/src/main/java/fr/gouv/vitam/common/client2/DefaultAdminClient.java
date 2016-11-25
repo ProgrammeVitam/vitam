@@ -85,7 +85,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return new AdminStatusMessage().setStatus(false);
         } finally {
@@ -96,7 +96,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
     @Override
     public VitamError adminAutotest() throws VitamClientException {
         Response response = null;
-        String name = StringUtils.getClassName(this.clientFactory);
+        final String name = StringUtils.getClassName(clientFactory);
         VitamError message = new VitamError("000000").setDescription(name)
             .setContext(name).setDescription(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
             .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
@@ -116,7 +116,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return message;
         } finally {

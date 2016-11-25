@@ -101,7 +101,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
         }
         return client;
     }
-    
+
     /**
      * Change client configuration from a Yaml files
      *

@@ -65,7 +65,7 @@ public class TraceabilityFile implements AutoCloseable {
      * @throws FileNotFoundException
      */
     public TraceabilityFile(File file) throws ArchiveException, FileNotFoundException {
-        OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
+        final OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
         archive = (ZipArchiveOutputStream) new ArchiveStreamFactory()
             .createArchiveOutputStream(ArchiveStreamFactory.ZIP, archiveStream);
 
@@ -74,25 +74,27 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * store timestamp token in a specific file
+     *
      * @param timestampToken
      * @throws IOException
      */
     public void storeTimeStampToken(byte[] timestampToken) throws IOException {
-        ZipArchiveEntry entry = new ZipArchiveEntry(TIMESTAMP_FILENAME);
+        final ZipArchiveEntry entry = new ZipArchiveEntry(TIMESTAMP_FILENAME);
         archive.putArchiveEntry(entry);
 
-        byte[] encodeBase64 = Base64.encodeBase64(timestampToken);
+        final byte[] encodeBase64 = Base64.encodeBase64(timestampToken);
         archive.write(encodeBase64);
         archive.closeArchiveEntry();
     }
 
     /**
      * store Mekle tree in a specific file
+     *
      * @param merkleTree
      * @throws IOException
      */
     public void storeMerkleTree(MerkleTree merkleTree) throws IOException {
-        ZipArchiveEntry entry = new ZipArchiveEntry(MEKLE_TREE_FILENAME);
+        final ZipArchiveEntry entry = new ZipArchiveEntry(MEKLE_TREE_FILENAME);
         archive.putArchiveEntry(entry);
         archive.write(JsonHandler.unprettyPrint(merkleTree).getBytes());
         archive.closeArchiveEntry();
@@ -103,7 +105,7 @@ public class TraceabilityFile implements AutoCloseable {
      * @throws IOException
      */
     public void initStoreOperationLog() throws IOException {
-        ZipArchiveEntry entry = new ZipArchiveEntry(LOGBOOK_OPERATIONS_FILENAME);
+        final ZipArchiveEntry entry = new ZipArchiveEntry(LOGBOOK_OPERATIONS_FILENAME);
         archive.putArchiveEntry(entry);
     }
 
@@ -125,6 +127,7 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * store information use to compute timestamp token
+     *
      * @param currentHash
      * @param previousHash
      * @param currentHashMinusOneMonth
@@ -133,7 +136,7 @@ public class TraceabilityFile implements AutoCloseable {
      */
     public void storeHashCalculationInformation(String currentHash, String previousHash,
         String currentHashMinusOneMonth, String currentHashMinusOneYear) throws IOException {
-        ZipArchiveEntry entry = new ZipArchiveEntry(COMPUTING_INFORMATION_FILENAME);
+        final ZipArchiveEntry entry = new ZipArchiveEntry(COMPUTING_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
         archive.write(String.format("currentHash=%s", currentHash).getBytes());
         archive.write(LINE_SEPARATOR.getBytes());
@@ -167,6 +170,7 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * flush the stream and close it.
+     *
      * @throws IOException
      */
     @Override

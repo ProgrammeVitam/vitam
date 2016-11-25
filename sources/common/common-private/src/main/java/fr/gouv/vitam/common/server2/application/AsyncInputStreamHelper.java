@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  * Usage:</br>
  * </br>
  * <b>Direct download, where no Http Client is called but a direct InputStream generated</b></br>
- * 
+ *
  * <pre>
  * <code>
     &#64;Path(DOWNLOAD + HttpMethod.GET)
@@ -68,10 +68,10 @@ import fr.gouv.vitam.common.stream.StreamUtils;
     }
  * </code>
  * </pre>
- * 
+ *
  * </br>
  * <b>Indirect download, where one Http Client is called to get an InputStream to forward</b></br>
- * 
+ *
  * <pre>
  * <code>
     &#64;Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
@@ -109,20 +109,20 @@ public class AsyncInputStreamHelper {
 
     /**
      * Constructor using received response containing an InputStream to forward
-     * 
+     *
      * @param asyncResponse the AsyncReponse from the Resource API
      * @param inputStream the native InputStream to send (not from a Client response)
      */
     public AsyncInputStreamHelper(AsyncResponse asyncResponse, InputStream inputStream) {
         ParametersChecker.checkParameter("Parameters should not be null", asyncResponse, inputStream);
         this.asyncResponse = asyncResponse;
-        this.receivedResponse = null;
+        receivedResponse = null;
         this.inputStream = inputStream;
     }
 
     /**
      * Constructor using native InputStream and size to forward
-     * 
+     *
      * @param asyncResponse the AsyncReponse from the Resource API
      * @param receivedResponse Received Response containing the InputStream to forward as is
      */
@@ -136,7 +136,7 @@ public class AsyncInputStreamHelper {
      * Once constructed, call this to finalize your operation in case of Error message.</br>
      * </br>
      * Note that receivedResponse if any is fully read and closed for you there.
-     * 
+     *
      * @param asyncResponse the AsyncReponse from the Resource API
      * @param errorResponse the fully prepared ErrorResponse
      */
@@ -156,7 +156,7 @@ public class AsyncInputStreamHelper {
      * Once constructed, call this to finalize your operation.</br>
      * </br>
      * Note that receivedResponse if any is closed for you there.
-     * 
+     *
      * @param responseBuilder the ResponseBuilder initialize with your own parameters and status
      */
     public void writeResponse(ResponseBuilder responseBuilder) {
@@ -165,7 +165,7 @@ public class AsyncInputStreamHelper {
             if (receivedResponse != null) {
                 try {
                     inputStream = receivedResponse.readEntity(InputStream.class);
-                } catch (IllegalStateException e) {
+                } catch (final IllegalStateException e) {
                     LOGGER.error(e);
                     writeErrorAsyncResponse(asyncResponse, getResponseError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
                     return;
@@ -182,7 +182,7 @@ public class AsyncInputStreamHelper {
      * </br>
      * Note you must not call this method if you have already a received Response but the
      * {@link #writeErrorResponse(Response)}.
-     * 
+     *
      * @param asyncResponse
      * @param errorResponse the fully prepared ErrorResponse
      */

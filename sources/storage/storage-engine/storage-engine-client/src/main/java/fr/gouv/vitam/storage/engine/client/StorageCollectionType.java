@@ -56,7 +56,7 @@ public enum StorageCollectionType {
      * Manifests collection
      */
     MANIFESTS("manifests");
-    
+
     /**
      * Name
      */

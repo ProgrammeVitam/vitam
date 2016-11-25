@@ -26,21 +26,21 @@
  */
 package fr.gouv.vitam.common.thread;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+
 /**
- * Junit Test rule used to run tests with a given {@link Executor} ; such tests should be annotated with the {@link RunWithCustomExecutor} annotation.
+ * Junit Test rule used to run tests with a given {@link Executor} ; such tests should be annotated with the
+ * {@link RunWithCustomExecutor} annotation.
  *
  * Mainly designed to allow tests to be run inside VitamThread
  *
- * Usage example :
- * <code>
+ * Usage example : <code>
  * public class ExampleTest {
  *
  *  @Rule
@@ -53,6 +53,7 @@ import java.util.concurrent.Future;
  *  }
  * }
  * </code>
+ *
  * @see RunWithCustomExecutor
  */
 public class RunWithCustomExecutorRule implements TestRule {
@@ -61,6 +62,7 @@ public class RunWithCustomExecutorRule implements TestRule {
 
     /**
      * Note : the lifecycle of the the executor should be managed outside this class.
+     *
      * @param executor The executor to use to run tests in.
      */
     public RunWithCustomExecutorRule(ExecutorService executor) {
@@ -93,17 +95,17 @@ public class RunWithCustomExecutorRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
             // Submit work in another thread
-            Future<?> future = executor.submit(() -> {
+            final Future<?> future = executor.submit(() -> {
                 try {
                     baseStatement.evaluate();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     throwable = t;
                 }
             });
             // Wait for result
             future.get();
             // Recatch exception if needed
-            if( throwable != null ) {
+            if (throwable != null) {
                 throw throwable;
             }
 

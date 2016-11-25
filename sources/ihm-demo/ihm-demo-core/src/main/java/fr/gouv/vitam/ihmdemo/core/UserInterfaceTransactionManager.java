@@ -69,8 +69,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse searchUnits(JsonNode parameters)
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnits(parameters);
         }
     }
@@ -87,8 +88,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse getArchiveUnitDetails(JsonNode preparedDslQuery, String unitId)
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitbyId(preparedDslQuery, unitId);
         }
     }
@@ -104,8 +106,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
      */
     public static RequestResponse updateUnits(JsonNode parameters, String unitId)
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.updateUnitbyId(parameters, unitId);
         }
     }
@@ -121,8 +124,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException if the query is not well formatted
      */
     public static RequestResponse selectObjectbyId(JsonNode preparedDslQuery, String objectId)
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectById(preparedDslQuery, objectId);
         }
     }
@@ -142,15 +146,15 @@ public class UserInterfaceTransactionManager {
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
-    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, JsonNode selectObjectQuery, String
-        objectGroupId, String usage, int version, String filename)
+    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, JsonNode selectObjectQuery,
+        String objectGroupId, String usage, int version, String filename)
         throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
         InvalidParseOperationException, UnsupportedEncodingException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             response = client.getObject(selectObjectQuery, objectGroupId, usage, version);
-            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
                 .header(GlobalDataRest.X_VERSION, response.getHeaderString(GlobalDataRest.X_VERSION))
                 .header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
@@ -257,8 +261,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException
      * @throws LogbookClientException
      */
-    public static RequestResponse selectOperation(JsonNode query) throws LogbookClientException, InvalidParseOperationException {
-        try(AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+    public static RequestResponse selectOperation(JsonNode query)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectOperation(query);
         }
     }
@@ -306,7 +311,7 @@ public class UserInterfaceTransactionManager {
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return client.getAccessionRegisterSummary(query);
         }
     }
@@ -327,7 +332,7 @@ public class UserInterfaceTransactionManager {
 
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return accessClient.getAccessionRegisterDetail(id, query);
         }
     }

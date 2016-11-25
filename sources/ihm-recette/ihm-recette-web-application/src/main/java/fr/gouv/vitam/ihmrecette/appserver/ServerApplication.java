@@ -51,7 +51,6 @@ import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -59,7 +58,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
@@ -159,9 +157,10 @@ public class ServerApplication extends
         context.addServlet(sh, "/*");
 
         // Cleaner filter
-        /*context.addFilter(ConsumeAllAfterResponseFilter.class, "/*", EnumSet.of(
-            DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));*/
+        /*
+         * context.addFilter(ConsumeAllAfterResponseFilter.class, "/*", EnumSet.of( DispatcherType.INCLUDE,
+         * DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+         */
         // No Authorization Filter
 
         // Replace here setFilter by adapted one for IHM
@@ -191,7 +190,7 @@ public class ServerApplication extends
             .getResource(getConfiguration().getStaticContent());
         try {
             staticContentHandler.setResourceBase(webAppDir.toURI().toString());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new VitamApplicationServerException("Web App Dir incorrect", e);
         }
 
@@ -208,8 +207,8 @@ public class ServerApplication extends
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(getConfiguration());
-        WebApplicationResource resource = new WebApplicationResource(getConfiguration());
+        final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(getConfiguration());
+        final WebApplicationResource resource = new WebApplicationResource(getConfiguration());
         serviceRegistry.register(deleteResource.getMongoDbAccessAdmin());
         resourceConfig.register(resource).register(deleteResource).register(new AdminStatusResource(serviceRegistry));
     }

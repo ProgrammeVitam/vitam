@@ -150,23 +150,27 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckContainerExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
+    public void givenNullParamWhenCheckContainerExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingContainer(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckContainerExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
+    public void givenEmptyParamWhenCheckContainerExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingContainer("");
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnTrue() throws ContentAddressableStorageServerException{
+    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnTrue()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnFalse() throws ContentAddressableStorageServerException {
+    public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnFalse()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingContainer(CONTAINER_NAME));
     }

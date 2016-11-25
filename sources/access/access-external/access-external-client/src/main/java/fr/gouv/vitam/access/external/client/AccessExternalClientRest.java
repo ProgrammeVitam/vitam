@@ -58,7 +58,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -81,7 +82,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
             return RequestResponse.parseFromResponse(response);
 
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -91,7 +92,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -115,7 +117,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -148,7 +150,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
             return RequestResponse.parseFromResponse(response);
 
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -159,9 +161,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         SanityChecker.checkJsonAll(selectObjectQuery);
-        if (selectObjectQuery== null || selectObjectQuery.size() == 0) {
+        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
@@ -183,7 +186,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
             }
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -195,9 +198,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         SanityChecker.checkJsonAll(selectObjectQuery);
-        if (selectObjectQuery== null || selectObjectQuery.size() == 0) {
+        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectId);
@@ -227,7 +231,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return response;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -241,7 +245,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse selectOperation(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -258,7 +263,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -286,7 +291,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -313,7 +318,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -340,7 +345,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
 
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -370,7 +375,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
             return RequestResponse.parseFromResponse(response);
 
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -401,7 +406,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             }
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {

@@ -511,8 +511,9 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS)
-            .readEntity(InputStream.class);
+        final InputStream stream =
+            client.getContainerAsync("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS)
+                .readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

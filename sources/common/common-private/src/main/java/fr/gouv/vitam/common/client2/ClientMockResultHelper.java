@@ -2,35 +2,27 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
- * This software is a computer program whose purpose is to implement a digital 
- * archiving back-office system managing high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  *
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 package fr.gouv.vitam.common.client2;
 
@@ -50,16 +42,16 @@ public class ClientMockResultHelper {
         "{\"$query\":{}," +
             "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
             "\"$results\":";
-    
-    private static final String UNIT = 
+
+    private static final String UNIT =
         "{\"DescriptionLevel\":\"Item\"," +
-        "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
-        "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
-        "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
-        "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
-        "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
-        "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
-        "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
+            "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+            "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+            "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+            "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+            "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+            "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+            "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -164,17 +156,18 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookResults() throws InvalidParseOperationException {
-        StringBuilder result = new StringBuilder(RESULT).append("[");
+        final StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
-            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",").append(LOGBOOK_OPERATION);
+            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",")
+                .append(LOGBOOK_OPERATION);
             if (i < 99) {
                 result.append(",");
             }
         }
         result.append("]}");
         return JsonHandler.getFromString(result.toString());
-    }  
-    
+    }
+
     /**
      * @return a default Logbook response Result
      * @throws InvalidParseOperationException
@@ -182,7 +175,7 @@ public class ClientMockResultHelper {
     public static RequestResponse getLogbooksRequestResponse() throws InvalidParseOperationException {
         return RequestResponseOK.getFromJsonNode(getLogbookResults());
     }
-    
+
     /**
      * @return one default Logbook response
      * @throws InvalidParseOperationException
@@ -190,13 +183,14 @@ public class ClientMockResultHelper {
     public static RequestResponse getLogbookRequestResponse() throws InvalidParseOperationException {
         return RequestResponseOK.getFromJsonNode(getLogbookOperation());
     }
-    
+
     /**
      * @return a default Logbook Operation
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
-        return JsonHandler.getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+        return JsonHandler
+            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
     }
 
     /**
@@ -212,7 +206,7 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
      */
@@ -221,7 +215,7 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
@@ -230,7 +224,7 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default Format
      * @throws InvalidParseOperationException
      */
@@ -239,7 +233,7 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default Rule
      * @throws InvalidParseOperationException
      */
@@ -248,7 +242,7 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
@@ -257,23 +251,23 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * 
+     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getRuleList() throws InvalidParseOperationException {
         return createReponse(RULE);
     }
-    
+
     /**
-     * 
+     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
         return createReponse(RESULT + "{}}");
     }
-    
+
     /**
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException

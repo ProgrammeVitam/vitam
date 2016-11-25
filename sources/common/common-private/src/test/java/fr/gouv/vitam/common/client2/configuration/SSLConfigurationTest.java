@@ -63,12 +63,12 @@ public class SSLConfigurationTest {
         try {
             context = config.createSSLContext();
             fail("Should raized an exception");
-        } catch (VitamException e) {
-            
+        } catch (final VitamException e) {
+
         }
 
-        truststore = new ArrayList<SSLKey>();
-        keystore = new ArrayList<SSLKey>();
+        truststore = new ArrayList<>();
+        keystore = new ArrayList<>();
         truststore.add(key);
         keystore.add(key);
 

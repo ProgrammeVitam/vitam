@@ -101,7 +101,7 @@ public class IndexUnitActionHandlerTest {
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);  
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         metadataClient = mock(MetaDataClientRest.class);
         guid = GUIDFactory.newGUID();
@@ -118,14 +118,15 @@ public class IndexUnitActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException {
         assertNotNull(IndexUnitActionHandler.getId());
         assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
+        final WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
         PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
 
         final ItemStatus response = handler.execute(params, action);
@@ -135,12 +136,14 @@ public class IndexUnitActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
-        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);        
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -149,12 +152,14 @@ public class IndexUnitActionHandlerTest {
     @Test
     public void testMetadataException() throws Exception {
         when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
@@ -163,13 +168,14 @@ public class IndexUnitActionHandlerTest {
     @Test
     public void testWorkspaceException() throws Exception {
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
@@ -183,10 +189,11 @@ public class IndexUnitActionHandlerTest {
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 
         when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(Response.status(Status.OK).entity(archiveUnitWithRules).build());
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitWithRules).build());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")

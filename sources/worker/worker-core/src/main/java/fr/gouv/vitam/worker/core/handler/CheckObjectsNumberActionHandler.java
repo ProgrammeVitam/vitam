@@ -44,7 +44,7 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-/** 
+/**
  * Handler checking that digital objects number in workspace matches with manifest.xml.
  *
  */
@@ -62,17 +62,17 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
     private HandlerIO handlerIO;
-    
+
     /**
      * Default Constructor
      */
     public CheckObjectsNumberActionHandler() {
-        this.containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
+        containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
     }
 
     /**
      * Constructor for Junit Tests
-     * 
+     *
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
     protected CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
@@ -141,9 +141,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return List of uri
      * @throws ProcessingException throws when error in execution
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
-    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException, ContentAddressableStorageServerException {
+    private List<URI> getUriListFromWorkspace(WorkerParameters params)
+        throws ProcessingException, ContentAddressableStorageServerException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
@@ -187,7 +188,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
              * count the number of digital object in the sip found in the manifest
              */
             int countConsistentDigitalObjectFromWorkspace = 0;
-            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
+            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty,
+            // ...)
             // faster and better
             for (final URI uriManifest : uriListManifest) {
                 if (uriListWorkspace.contains(uriManifest)) {

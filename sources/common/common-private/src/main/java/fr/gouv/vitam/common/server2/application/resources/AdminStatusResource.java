@@ -86,7 +86,7 @@ public class AdminStatusResource implements VitamResource {
      * Constructor AdminStatusResource
      *
      * @param statusService
-     * @param autotestService 
+     * @param autotestService
      */
     public AdminStatusResource(VitamStatusService statusService, VitamServiceRegistry autotestService) {
         this.statusService = statusService;
@@ -96,10 +96,10 @@ public class AdminStatusResource implements VitamResource {
     /**
      * Constructor AdminStatusResource
      *
-     * @param autotestService 
+     * @param autotestService
      */
     public AdminStatusResource(VitamServiceRegistry autotestService) {
-        this.statusService = new BasicVitamStatusServiceImpl();
+        statusService = new BasicVitamStatusServiceImpl();
         this.autotestService = autotestService;
     }
 
@@ -129,7 +129,7 @@ public class AdminStatusResource implements VitamResource {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
     }
-    
+
     /**
      * @return the full status including dependencies in VitamError form
      */

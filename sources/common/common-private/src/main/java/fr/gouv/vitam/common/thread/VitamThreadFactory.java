@@ -29,19 +29,20 @@ package fr.gouv.vitam.common.thread;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.validation.constraints.NotNull;
+
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
 
-import javax.validation.constraints.NotNull;
-
 /**
- * Simple ThreadFactory setting Threads to be Daemon threads (do not prevent shutdown) ; in addition, creates VitamThread allowing us to put session information in those threads.
+ * Simple ThreadFactory setting Threads to be Daemon threads (do not prevent shutdown) ; in addition, creates
+ * VitamThread allowing us to put session information in those threads.
  */
 public class VitamThreadFactory implements ThreadFactory {
 
     private static final VitamThreadFactory VITAM_THREAD_FACTORY = new VitamThreadFactory();
-    private AtomicLong threadNumber = new AtomicLong(0);
+    private final AtomicLong threadNumber = new AtomicLong(0);
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamThreadFactory.class);
 
     @Override
@@ -69,14 +70,16 @@ public class VitamThreadFactory implements ThreadFactory {
 
         /**
          * Thread constructor
+         *
          * @param runnable the real runnable
          * @param rank the thread rank
          */
         public VitamThread(Runnable runnable, long rank) {
             super(runnable, "vitam-thread-" + rank);
             LOGGER.debug("Created vitam-thread-{}", rank);
-            this.setDaemon(true);
-            // KWA Note : no need to pass the VitamSession from the creating thread to this new thread ; the VitamSession propagation between thread is the Executor's job.
+            setDaemon(true);
+            // KWA Note : no need to pass the VitamSession from the creating thread to this new thread ; the
+            // VitamSession propagation between thread is the Executor's job.
         }
 
         /**
@@ -84,7 +87,7 @@ public class VitamThreadFactory implements ThreadFactory {
          */
         @NotNull
         public VitamSession getVitamSession() {
-            return this.vitamSession.get();
+            return vitamSession.get();
         }
 
     }

@@ -97,7 +97,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void beforeTest() throws VitamApplicationServerException {
         try {
             connection = DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
-        } catch (StorageDriverException e) {
+        } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }
     }
@@ -478,26 +478,26 @@ public class ConnectionImplTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         try {
-            boolean found = connection.objectExistsInOffer(request);
+            final boolean found = connection.objectExistsInOffer(request);
             assertEquals(false, found);
         } catch (final StorageDriverException exc) {
             fail("Ne exception expected");
         }
     }
-    
+
     @Test
     public void objectExistInOfferFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
         try {
-            boolean found = connection.objectExistsInOffer(request);
+            final boolean found = connection.objectExistsInOffer(request);
             assertEquals(true, found);
         } catch (final StorageDriverException exc) {
             fail("Ne exception expected");
         }
     }
 
-    
+
     @Test
     public void objectExistInOfferPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());

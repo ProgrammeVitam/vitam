@@ -495,14 +495,15 @@ public abstract class BuilderToken {
     }
 
     /**
-     * Projection args model <br><br>
-     * 
+     * Projection args model <br>
+     * <br>
+     *
      * specific fields: nbunits, dua, ... <br>
      * $fields : [ #nbunits:1, #dua:1, #all:1... ]
      *
      * #all:1 means all, while #all:0 means none
      */
- 
+
     public static enum PROJECTIONARGS {
         /**
          * Id of the item
@@ -668,7 +669,7 @@ public abstract class BuilderToken {
      * }
      * </pre>
      */
-    
+
     /**
      * Update model
      *

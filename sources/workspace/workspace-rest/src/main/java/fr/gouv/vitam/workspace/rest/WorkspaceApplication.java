@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.VitamServer;
@@ -74,7 +75,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      * runs the APPLICATION
      *
      * @param args Workspace Configuration
-     * @throws VitamApplicationServerException 
+     * @throws VitamApplicationServerException
      * @throws Exception Thrown if something goes wrong
      */
     public static void main(String[] args) {

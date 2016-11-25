@@ -30,12 +30,12 @@ package fr.gouv.vitam.access.external.api;
  * All collections in in access external module
  */
 public enum AccessCollections {
-    
+
     /**
      * Accession Register summary Collection
      */
     ACCESSION_REGISTER("accession-register"),
-    
+
     /**
      * Accession Register detail Collection
      */
@@ -46,7 +46,7 @@ public enum AccessCollections {
     private AccessCollections(final String collection) {
         name = collection;
     }
-    
+
     /**
      *
      * @return the name of the collection
@@ -54,7 +54,7 @@ public enum AccessCollections {
     public String getName() {
         return name;
     }
-    
+
     /**
      * @param value
      * @return True if the name of the collection equals

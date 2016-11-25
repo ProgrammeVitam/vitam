@@ -44,7 +44,7 @@ public class SoapUiClientFactory {
     private SoapUiClientType clientType = SoapUiClientType.MOCK;
 
     /**
-     * Initialize the factory configuration 
+     * Initialize the factory configuration
      */
     private SoapUiClientFactory() {
         changeConfiguration(CONFIGURATION_FILENAME);
@@ -103,29 +103,29 @@ public class SoapUiClientFactory {
 
     /**
      * Change client configuration from server/host params
-     * 
+     *
      * @param configurationPath
      */
     public final void changeConfiguration(String configurationPath) {
         changeClientType(SoapUiClientType.MOCK);
         SoapUiConfig configuration = null;
-        
+
         if (configurationPath == null) {
-        	LOGGER.error("Error when retrieving configuration file {}, using mock",
-                    configurationPath);
-        	return;
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath);
+            return;
         }
 
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), SoapUiConfig.class);
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock",
-            		configurationPath, fnf);
+                configurationPath, fnf);
         }
 
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
-            		configurationPath);
+                configurationPath);
         } else {
             changeClientType(SoapUiClientType.NORMAL);
             clientConfiguration = configuration;

@@ -205,7 +205,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * Method to filter what should never be indexed
-     * 
+     *
      * @param unit
      * @return the new Unit without the unwanted fields
      */
@@ -292,9 +292,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * updateBulkUnitsEntriesIndexes
-     * 
+     *
      * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
-     * 
+     *
      * @param cursor :containing all Units to be indexed
      */
     final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) {

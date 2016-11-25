@@ -106,8 +106,9 @@ public class FakeDriverImpl implements Driver {
         @Override
         public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
 
-            return new GetObjectResult("0", new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
+            return new GetObjectResult("0",
+                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override

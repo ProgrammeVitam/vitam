@@ -45,7 +45,7 @@ public enum AdminCollections {
     private AdminCollections(final String collection) {
         name = collection;
     }
-    
+
     /**
      *
      * @return the name of the collection
@@ -53,7 +53,7 @@ public enum AdminCollections {
     public String getName() {
         return name;
     }
-    
+
     /**
      * @param value
      * @return True if the name of the collection equals

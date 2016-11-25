@@ -41,7 +41,7 @@ public class SizedInputStreamTest {
             try (SizedInputStream sis = new SizedInputStream(fis)) {
                 assertEquals(0, sis.getSize());
 
-                byte[] array = new byte[1024 * 1024];
+                final byte[] array = new byte[1024 * 1024];
 
                 sis.read(array);
                 assertEquals(1024 * 1024, sis.getSize());
@@ -70,7 +70,7 @@ public class SizedInputStreamTest {
     public void getSizeReadByArrayBuffer() throws Exception {
         try (FakeInputStream fis = new FakeInputStream(1024 * 1024, false)) {
             try (SizedInputStream sis = new SizedInputStream(fis)) {
-                byte[] array = new byte[10];
+                final byte[] array = new byte[10];
                 sis.read(array, 0, 10);
                 assertEquals(10, sis.getSize());
                 sis.read(array, 0, 10);

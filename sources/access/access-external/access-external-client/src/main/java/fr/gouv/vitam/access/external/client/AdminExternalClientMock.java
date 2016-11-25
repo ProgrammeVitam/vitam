@@ -23,7 +23,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
 
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException {
+    public Status checkDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
             return Status.OK;
@@ -32,7 +33,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException {        
+    public Status createDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         return Status.OK;
     }

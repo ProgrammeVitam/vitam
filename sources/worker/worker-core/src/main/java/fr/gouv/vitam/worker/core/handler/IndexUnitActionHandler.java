@@ -222,7 +222,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        final List<Object> archiveUnitDetails = new ArrayList<Object>();
+        final List<Object> archiveUnitDetails = new ArrayList<>();
         XMLEventReader reader = null;
 
         try {
@@ -343,7 +343,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (XMLStreamException e) {
+                } catch (final XMLStreamException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }

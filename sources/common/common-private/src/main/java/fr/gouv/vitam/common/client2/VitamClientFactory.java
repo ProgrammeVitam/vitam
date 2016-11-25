@@ -277,7 +277,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             notChunkedPoolingManager.close();
         }
         if (clientConfiguration.isSecure()) {
-            SecureClientConfiguration sclientConfiguration = (SecureClientConfiguration) clientConfiguration;
+            final SecureClientConfiguration sclientConfiguration = (SecureClientConfiguration) clientConfiguration;
             sslConfiguration = sclientConfiguration.getSslConfiguration();
             ParametersChecker.checkParameter("sslConfiguration is a mandatory parameter", sslConfiguration);
             Registry<ConnectionSocketFactory> registry;
@@ -500,7 +500,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     * 
+     *
      * @return the VitamThreadPoolExecutor used by the server
      */
     public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {

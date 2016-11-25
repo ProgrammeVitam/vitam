@@ -111,37 +111,43 @@ public class BenchmarkResourceInputStreamIT {
             long start = System.nanoTime();
             Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             long stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
-            
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
             method = HttpMethod.POST;
             start = System.nanoTime();
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
-            
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
             method = HttpMethod.PUT;
             start = System.nanoTime();
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
         }
     }
 
@@ -153,39 +159,46 @@ public class BenchmarkResourceInputStreamIT {
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
             long start = System.nanoTime();
-            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT + method,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            Response response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             long stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
-            
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
             method = HttpMethod.POST;
             start = System.nanoTime();
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
-            
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
             method = HttpMethod.PUT;
             start = System.nanoTime();
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream = StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);
             stop = System.nanoTime();
-            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " + (stop-start)/1000000 + "ms so " +
-                ((stop - start) / BenchmarkResourceProduceInputStream.size) + " ns/bytes");
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
         }
     }
 }

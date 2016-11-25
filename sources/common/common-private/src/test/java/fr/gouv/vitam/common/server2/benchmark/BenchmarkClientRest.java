@@ -91,7 +91,7 @@ public class BenchmarkClientRest extends DefaultClient {
             } finally {
                 consumeAnyEntityAndClose(response);
             }
-        } catch (VitamClientException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error(e);
             return -1;
         }
@@ -151,6 +151,7 @@ public class BenchmarkClientRest extends DefaultClient {
     /**
      * Make protected method available
      */
+    @Override
     public Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
         MediaType accept) throws VitamClientInternalException {
         return super.performRequest(httpMethod, path, headers, accept);

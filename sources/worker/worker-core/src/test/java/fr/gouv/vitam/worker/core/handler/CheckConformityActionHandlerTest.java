@@ -114,9 +114,9 @@ public class CheckConformityActionHandlerTest {
 
         // assertNotNull(objectGroup);
         handler = new CheckConformityActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
-        List<IOParameter> in = new ArrayList<>();
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);

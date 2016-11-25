@@ -81,7 +81,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    
+
     private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
     private final List<URI> uriListManifestOK = new ArrayList<>();
     private final List<URI> uriOutNumberListManifestKO = new ArrayList<>();
@@ -100,8 +100,10 @@ public class CheckObjectsNumberActionHandlerTest {
     @Before
     public void setUp() throws Exception {
         workParams = WorkerParametersFactory.newWorkerParameters();
-        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckObjectsNumberActionHandlerTest");
+        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName("CheckObjectsNumberActionHandlerTest");
 
         containerExtractionUtilsFactory = mock(ContainerExtractionUtilsFactory.class);
         containerExtractionUtils = mock(ContainerExtractionUtils.class);
@@ -183,7 +185,8 @@ public class CheckObjectsNumberActionHandlerTest {
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel()))
+            .isEqualTo(1);
     }
 
     @Test
@@ -204,7 +207,8 @@ public class CheckObjectsNumberActionHandlerTest {
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
+            .isEqualTo(2);
     }
 
     @Test
@@ -224,7 +228,8 @@ public class CheckObjectsNumberActionHandlerTest {
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
+            .isEqualTo(1);
     }
 
 
@@ -247,8 +252,10 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getItemsStatus().get(HANDLER_ID).getData().get("errorNumber")).isEqualTo(1);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
+            .isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
+            .isEqualTo(2);
     }
 
     @Test
@@ -269,8 +276,10 @@ public class CheckObjectsNumberActionHandlerTest {
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
+            .isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
+            .isEqualTo(2);
     }
 
     @Test
@@ -291,7 +300,9 @@ public class CheckObjectsNumberActionHandlerTest {
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
+            .isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
+            .isEqualTo(2);
     }
 }

@@ -68,7 +68,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -108,13 +107,13 @@ public class AdminAutotestStatusResourceImplTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-        ElasticsearchAccess databaseEs = new ElasticsearchAccess(CLUSTER_NAME, nodes);
-        
+        final ElasticsearchAccess databaseEs = new ElasticsearchAccess(CLUSTER_NAME, nodes);
+
         dataBasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -123,7 +122,7 @@ public class AdminAutotestStatusResourceImplTest {
             .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        MongoDbAccess databaseMd = new MyMongoDbAccess(new MongoClient(new ServerAddress(
+        final MongoDbAccess databaseMd = new MyMongoDbAccess(new MongoClient(new ServerAddress(
             HOST_NAME, dataBasePort),
             VitamCollection.getMongoClientOptions(new ArrayList<>())), CLUSTER_NAME, false);
 
@@ -225,13 +224,13 @@ public class AdminAutotestStatusResourceImplTest {
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.OK.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -256,13 +255,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -287,13 +286,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -317,13 +316,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -346,7 +345,7 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(false, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             assertEquals(0, error.getErrors().size());

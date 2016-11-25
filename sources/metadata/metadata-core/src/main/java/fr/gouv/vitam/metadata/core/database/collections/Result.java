@@ -184,35 +184,35 @@ public abstract class Result {
     }
 
     /**
-     * 
+     *
      * @return the filtered list for Select operation
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
-        VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
-        LOGGER.debug(this.toString());
+        final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
+        LOGGER.debug(toString());
         if (finalResult == null) {
             if (nbResult != 0) {
                 throw new InvalidParseOperationException("Invalid number of Result and List of results");
             }
             return SingletonUtils.singletonList();
         }
-        
-        BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
+
+        final BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
         if (result == null) {
             if (nbResult != 0) {
                 throw new InvalidParseOperationException("Invalid number of Result and List of results");
             }
             return SingletonUtils.singletonList();
         }
-        
-        int size = result.size();
+
+        final int size = result.size();
         if (size != nbResult) {
             throw new InvalidParseOperationException("Invalid number of Result and List of results");
         }
-        List<MetadataDocument<?>> list = new ArrayList<>(size);
-        for (Object object : result) {
-            MetadataDocument<?> metadataDocument = (MetadataDocument<?>) object;
+        final List<MetadataDocument<?>> list = new ArrayList<>(size);
+        for (final Object object : result) {
+            final MetadataDocument<?> metadataDocument = (MetadataDocument<?>) object;
             MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
             list.add(metadataDocument);
         }

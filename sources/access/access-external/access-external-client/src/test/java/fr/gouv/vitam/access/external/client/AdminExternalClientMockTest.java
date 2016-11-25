@@ -18,6 +18,7 @@ public class AdminExternalClientMockTest {
 
     AdminExternalClient client;
     private static final String DOCUMENT_ID = "1";
+
     @Before
     public void givenMockConfExistWhenAccessExternalCreateMockedClientThenReturnOK() {
         AdminExternalClientFactory.changeMode(null);

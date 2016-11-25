@@ -141,7 +141,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                     logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
                         null);
                     handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                    String objectID =
+                    final String objectID =
                         logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
                     handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
                         handlerIO.getHelper().removeUpdateDelegate(objectID));

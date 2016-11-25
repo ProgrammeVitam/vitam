@@ -50,7 +50,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 /**
  * Access web server application
  */
-public class AccessInternalApplication  extends AbstractVitamApplication<AccessInternalApplication, AccessInternalConfiguration> {
+public class AccessInternalApplication
+    extends AbstractVitamApplication<AccessInternalApplication, AccessInternalConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalApplication.class);
     private static final String CONF_FILE_NAME = "access.conf";
@@ -59,9 +60,10 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
     // Only for Junit TODO P2
     static AccessInternalModule mock = null;
     static VitamServiceRegistry serviceRegistry = null;
+
     /**
      * AccessApplication constructor
-     * 
+     *
      * @param configuration
      */
     public AccessInternalApplication(String configuration) {
@@ -70,7 +72,7 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
 
     /**
      * AccessApplication constructor
-     * 
+     *
      * @param configuration
      */
     AccessInternalApplication(AccessInternalConfiguration configuration) {
@@ -104,8 +106,7 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
     }
 
     @Override
-    protected void setFilter(ServletContextHandler context) {
-    }
+    protected void setFilter(ServletContextHandler context) {}
 
 
     @Override
@@ -114,22 +115,22 @@ public class AccessInternalApplication  extends AbstractVitamApplication<AccessI
         // Logbook dependency
         serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
             .register(LogbookOperationsClientFactory.getInstance())
-         // Metadata dependency
+            // Metadata dependency
             .register(MetaDataClientFactory.getInstance())
-        // Storage dependency
+            // Storage dependency
             .register(StorageClientFactory.getInstance());
         if (mock != null) {
             resourceConfig.register(new AccessInternalResourceImpl(mock))
-            .register(new AdminStatusResource());
+                .register(new AdminStatusResource());
         } else {
             resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
-            .register(new LogbookInternalResourceImpl())
-            .register(new AdminStatusResource(serviceRegistry));
+                .register(new LogbookInternalResourceImpl())
+                .register(new AdminStatusResource(serviceRegistry));
         }
     }
 
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
         serviceRegistry = newServiceRegistry;
     }
-    
+
 }

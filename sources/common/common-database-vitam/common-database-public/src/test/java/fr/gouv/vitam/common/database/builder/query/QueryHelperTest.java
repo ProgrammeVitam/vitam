@@ -314,7 +314,7 @@ public class QueryHelperTest {
         try {
             Query query = term("var", "value");
             assertTrue(query.isReady());
-            final Map<String, Object> map = new HashMap<String, Object>();
+            final Map<String, Object> map = new HashMap<>();
             map.put("var1", "val1");
             map.put("var2", "val2");
             map.put("var3", new Date(0));

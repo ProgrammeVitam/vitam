@@ -88,7 +88,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
-    
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -97,7 +97,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
+        final LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         PowerMockito.when(factory.getClient()).thenReturn(logbookLifeCyclesClient);
@@ -111,23 +111,26 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final List<IOParameter> in;
         action = new HandlerIOImpl(OBJ, "workerId");
         in = new ArrayList<>();
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         action.reset();
         action.addOutIOParameters(in);
-        Map<String, Object> map = new HashMap<>();
-        map.put("id9", "id8");        
+        final Map<String, Object> map = new HashMap<>();
+        map.put("id9", "id8");
         action.addOuputResult(0, map);
         action.addOuputResult(1, map);
         action.reset();
         action.addInIOParameters(in);
-        
+
         handler = new CheckObjectUnitConsistencyActionHandler();
 
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
+            .isEqualTo(1);
         action.close();
     }
 
@@ -144,7 +147,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.reset();
         action.addOutIOParameters(in);
         action.addOuputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)));
-        action.addOuputResult(1, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)));
+        action.addOuputResult(1,
+            JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)));
         action.reset();
         action.addInIOParameters(in);
 
@@ -153,7 +157,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
+            .isEqualTo(1);
         action.close();
     }
 
@@ -162,19 +167,19 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, IOException, ProcessingException {
 
-        HandlerIO action = new HandlerIOImpl("", "");
+        final HandlerIO action = new HandlerIOImpl("", "");
         handler = new CheckObjectUnitConsistencyActionHandler();
         handler.execute(params, action);
     }
 
-//    @Test(expected = ProcessingException.class)
-//    public void givenObjectUnitConsistencyWithOnlytOneInputThrowsException()
-//        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-//        InvalidParseOperationException, IOException, ProcessingException {
-//
-//        HandlerIO action = new HandlerIO("", "");
-//        action.addInput(PropertiesUtils.getResourceFile(OG_AU));
-//        handler = new CheckObjectUnitConsistencyActionHandler();
-//        handler.execute(params, action);
-//    }
+    // @Test(expected = ProcessingException.class)
+    // public void givenObjectUnitConsistencyWithOnlytOneInputThrowsException()
+    // throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+    // InvalidParseOperationException, IOException, ProcessingException {
+    //
+    // HandlerIO action = new HandlerIO("", "");
+    // action.addInput(PropertiesUtils.getResourceFile(OG_AU));
+    // handler = new CheckObjectUnitConsistencyActionHandler();
+    // handler.execute(params, action);
+    // }
 }

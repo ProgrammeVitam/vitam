@@ -169,7 +169,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("rawtypes")
     @Test
     public void testGetAvailableFilesListWithSuccess() {
-        ResponseBody response = given().expect().statusCode(Status.OK.getStatusCode())
+        final ResponseBody response = given().expect().statusCode(Status.OK.getStatusCode())
             .when().get("/upload/fileslist").getBody();
         assertTrue(response.asString().contains("SIP.zip"));
         assertFalse(response.asString().contains("incorrect_file.txt"));
@@ -351,7 +351,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testRunningSoapUiTest() {
         if (!WebApplicationResource.isSoapUiRunning()) {
-            ResponseBody body =
+            final ResponseBody body =
                 given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/running").getBody();
             assertTrue(body.prettyPrint().contains("false"));
         } else {

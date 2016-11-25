@@ -51,7 +51,7 @@ public class StreamUtils {
      * Copy InputStream to OutputStream efficiently<br/>
      * <br/>
      * InputStream will be closed, but not the OutputStream in order to be compatible with StreamingOutput
-     * 
+     *
      * @param inputStream
      * @param outputStream
      * @return the copied length
@@ -87,17 +87,17 @@ public class StreamUtils {
                 // Ensure everything is written and Input are closed (not Output)
                 try {
                     outputStream.flush();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
                 try {
                     inputChannel.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
                 try {
                     inputStream.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }

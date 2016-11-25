@@ -37,7 +37,7 @@ public class AccessExternalException extends VitamException {
 
     /**
      * constructor with message
-     * 
+     *
      * @param message message to associate with the exception
      */
     public AccessExternalException(String message) {
@@ -46,7 +46,7 @@ public class AccessExternalException extends VitamException {
 
     /**
      * constructor with throwable
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public AccessExternalException(Throwable cause) {
@@ -55,7 +55,7 @@ public class AccessExternalException extends VitamException {
 
     /**
      * constructor with message and throwable
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

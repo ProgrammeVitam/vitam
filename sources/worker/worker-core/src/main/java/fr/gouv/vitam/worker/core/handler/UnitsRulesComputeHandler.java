@@ -121,8 +121,8 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
-        long time = System.currentTimeMillis();
-        this.handlerIO = handler;
+        final long time = System.currentTimeMillis();
+        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
@@ -135,7 +135,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
                 calculateMaturityDate(params, itemStatus);
                 itemStatus.increment(StatusCode.OK);
-            } catch (ProcessingException e) {
+            } catch (final ProcessingException e) {
                 LOGGER.debug(e);
                 itemStatus.increment(StatusCode.KO);
             }
@@ -162,7 +162,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.FATAL);
             }
         }
-        LOGGER.debug("[exit] execute... /Elapsed Time:" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
@@ -206,7 +206,7 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             new Select();
         select.addOrderByDescFilter(FileRules.RULEID);
         final BooleanQuery query = or();
-        for (String ruleId : rulesId) {
+        for (final String ruleId : rulesId) {
             query.add(eq(FileRules.RULEID, ruleId));
         }
         select.setQuery(query);
@@ -220,9 +220,9 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     }
 
     /**
-     * 
+     *
      * parses xml unit file and add endate
-     * 
+     *
      * @param xmlInput
      * @param params
      * @param itemStatus
@@ -370,21 +370,21 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (XMLStreamException e) {
+                } catch (final XMLStreamException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
             if (writer != null) {
                 try {
                     writer.close();
-                } catch (XMLStreamException e) {
+                } catch (final XMLStreamException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
@@ -405,9 +405,9 @@ public class UnitsRulesComputeHandler extends ActionHandler {
 
     private JsonNode getRuleNodeByID(String ruleId, JsonNode jsonResult) {
         if (jsonResult != null) {
-            ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
-            for (JsonNode rule : rulesResult) {
-                String ruleIdFromList = rule.get(FileRules.RULEID).asText();
+            final ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
+            for (final JsonNode rule : rulesResult) {
+                final String ruleIdFromList = rule.get(FileRules.RULEID).asText();
                 if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
                     return rule;
                 }
@@ -419,15 +419,15 @@ public class UnitsRulesComputeHandler extends ActionHandler {
     private String getEndDate(String startDateString, String ruleId, JsonNode rulesResults)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
         if (!StringUtils.isBlank(startDateString) && !StringUtils.isBlank(ruleId)) {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
-            Date startDate = simpleDateFormat.parse(startDateString);
-            JsonNode ruleNode = getRuleNodeByID(ruleId, rulesResults);
+            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+            final Date startDate = simpleDateFormat.parse(startDateString);
+            final JsonNode ruleNode = getRuleNodeByID(ruleId, rulesResults);
             if (checkRulesParameters(ruleNode)) {
-                String duration = ruleNode.get(FileRules.RULEDURATION).asText();
-                String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
-                RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromMonth(measurement);
-                int calendarUnit = ruleMeasurement.getCalendarUnitType();
-                Calendar cal = Calendar.getInstance();
+                final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
+                final String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
+                final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromMonth(measurement);
+                final int calendarUnit = ruleMeasurement.getCalendarUnitType();
+                final Calendar cal = Calendar.getInstance();
                 cal.setTime(startDate);
                 cal.add(calendarUnit, Integer.parseInt(duration));
                 return simpleDateFormat.format(cal.getTime());
@@ -444,8 +444,8 @@ public class UnitsRulesComputeHandler extends ActionHandler {
      * @param ruleNode
      */
     private boolean checkRulesParameters(JsonNode ruleNode) {
-        return (ruleNode != null && ruleNode.get(FileRules.RULEDURATION) != null &&
-            ruleNode.get(FileRules.RULEMEASUREMENT) != null);
+        return ruleNode != null && ruleNode.get(FileRules.RULEDURATION) != null &&
+            ruleNode.get(FileRules.RULEMEASUREMENT) != null;
     }
 
     /**

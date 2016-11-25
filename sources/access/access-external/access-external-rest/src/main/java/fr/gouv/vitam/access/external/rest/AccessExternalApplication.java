@@ -69,7 +69,7 @@ public class AccessExternalApplication
 
     /**
      * AccessApplication constructor
-     * 
+     *
      * @param configuration
      */
     public AccessExternalApplication(String configuration) {

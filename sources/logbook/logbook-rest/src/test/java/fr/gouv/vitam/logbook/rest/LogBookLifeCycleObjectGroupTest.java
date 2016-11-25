@@ -118,7 +118,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
             logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
@@ -313,7 +313,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
                 @Override
                 public boolean matches(Object item) {
-                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                    return item != null && item instanceof String && !((String) item).isEmpty();
                 }
 
                 @Override

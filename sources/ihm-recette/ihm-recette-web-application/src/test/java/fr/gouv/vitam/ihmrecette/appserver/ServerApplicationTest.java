@@ -41,7 +41,7 @@ public class ServerApplicationTest {
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         final File newConf = File.createTempFile("test", IHM_RECETTE_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        ServerApplicationWithoutMongo application = new ServerApplicationWithoutMongo(newConf.getAbsolutePath());
+        final ServerApplicationWithoutMongo application = new ServerApplicationWithoutMongo(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
@@ -59,13 +59,13 @@ public class ServerApplicationTest {
     }
 
     @Test
-    @Ignore //FIXME  do unit test
+    @Ignore // FIXME do unit test
     public void givenConfigFileFailedWhenConfigureApplicationThenRaiseAnException() throws Exception {
         new ServerApplication("ihm-recette-test-noPort.conf");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @Ignore //FIXME  do unit test
+    @Ignore // FIXME do unit test
     public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
         new ServerApplication(new WebApplicationConfig());
     }

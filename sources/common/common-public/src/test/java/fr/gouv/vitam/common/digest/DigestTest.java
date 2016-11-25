@@ -179,18 +179,18 @@ public class DigestTest {
         assertTrue(digest2.equals(digest));
         assertFalse(digest2.equals(null));
         assertFalse(digest2.equals(new Object()));
-        
-        DigestType digestType = DigestType.fromValue(DigestType.SHA512.getName());
+
+        final DigestType digestType = DigestType.fromValue(DigestType.SHA512.getName());
         assertEquals(DigestType.SHA512, digestType);
     }
 
     @Test
     public void testError() throws IOException {
         try {
-            DigestType digestType = DigestType.fromValue("unknown");
+            final DigestType digestType = DigestType.fromValue("unknown");
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
-         // Ignore
+        } catch (final IllegalArgumentException e) {
+            // Ignore
         }
         try {
             Digest.digest((File) null, DigestType.MD5);

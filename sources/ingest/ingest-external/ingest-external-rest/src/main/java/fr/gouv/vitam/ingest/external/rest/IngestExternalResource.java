@@ -57,13 +57,13 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
-    private IngestExternalConfiguration ingestExternalConfiguration;
+    private final IngestExternalConfiguration ingestExternalConfiguration;
 
     /**
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration
-     * 
+     *
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
@@ -74,7 +74,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * upload the file in local
      *
      * @param uploadedInputStream data input stream
-     * @param asyncResponse 
+     * @param asyncResponse
      */
     @Path("ingests")
     @POST
@@ -88,7 +88,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream) {
         try {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
-            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+            final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             ingestExtern.upload(uploadedInputStream, asyncResponse);
         } catch (final IngestExternalException exc) {
             LOGGER.error(exc);
@@ -98,7 +98,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
                             "Unknown", "Unknown", exc.getMessage()))
                         .type(MediaType.APPLICATION_XML_TYPE).build());
-            } catch (IngestExternalException e) {
+            } catch (final IngestExternalException e) {
                 // Really bad
                 LOGGER.error(e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,

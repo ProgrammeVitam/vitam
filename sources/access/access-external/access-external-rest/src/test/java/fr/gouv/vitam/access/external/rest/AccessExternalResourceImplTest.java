@@ -168,7 +168,8 @@ public class AccessExternalResourceImplTest {
 
         PowerMockito.mockStatic(AccessInternalClientFactory.class);
         clientAccessInternal = PowerMockito.mock(AccessInternalClient.class);
-        AccessInternalClientFactory clientAccessInternalFactory = PowerMockito.mock(AccessInternalClientFactory.class);
+        final AccessInternalClientFactory clientAccessInternalFactory =
+            PowerMockito.mock(AccessInternalClientFactory.class);
         PowerMockito.when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
         PowerMockito.when(AccessInternalClientFactory.getInstance().getClient())
             .thenReturn(clientAccessInternal);
@@ -189,7 +190,7 @@ public class AccessExternalResourceImplTest {
     }
 
     /**
-     * 
+     *
      * @param data
      * @return query DSL with Options
      * @throws InvalidParseOperationException
@@ -200,7 +201,7 @@ public class AccessExternalResourceImplTest {
     }
 
     /**
-     * 
+     *
      * @param data
      * @return query DSL with id as Roots
      * @throws InvalidParseOperationException
@@ -212,7 +213,7 @@ public class AccessExternalResourceImplTest {
     }
 
     private Map<String, Object> getStreamHeaders() {
-        Map<String, Object> headers = new HashMap<>();
+        final Map<String, Object> headers = new HashMap<>();
         headers.put(GlobalDataRest.X_TENANT_ID, "0");
         headers.put(GlobalDataRest.X_QUALIFIER, "qualif");
         headers.put(GlobalDataRest.X_VERSION, 1);
@@ -234,7 +235,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if the send parameter doesn't have Json format
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -290,7 +291,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if he sent parameter contains HTML tags in getUnitById function
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -308,7 +309,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if he sent parameter contains HTML tags in createOrSelectUnitById function
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -326,7 +327,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if he sent parameter contains HTML tags in updateUnitById function
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -345,7 +346,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if he sent parameter contains HTML tags in getObjectGroup function
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -363,7 +364,7 @@ public class AccessExternalResourceImplTest {
 
     /**
      * Checks if he sent parameter contains HTML tags in getObjectGroupPost function
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -405,31 +406,32 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testErrorSelectUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {        
-        
+        InvalidParseOperationException {
+
         try {
             PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
-            .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .body(BAD_QUERY_TEST).when().get("units/goodId").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .body(BAD_QUERY_TEST).when().get("units/goodId").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
         }
 
 
         try {
             PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
-            .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+                .thenThrow(InvalidParseOperationException.class);
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().get("units/badId").then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
         }
 
         try {
-            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+            PowerMockito
+                .when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body("INTERAL_SEVER_ERROR").when().get("units/badId").then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -445,7 +447,7 @@ public class AccessExternalResourceImplTest {
         try {
             PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
                 .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().put("units/goodId").then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -454,16 +456,17 @@ public class AccessExternalResourceImplTest {
         try {
             PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().put("units/badId").then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
         }
 
         try {
-            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+            PowerMockito
+                .when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body("INTERAL_SEVER_ERROR").when().put("units/badId").then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -515,7 +518,7 @@ public class AccessExternalResourceImplTest {
     @Test
     public void getObjectGroupPost() throws Exception {
         reset(clientAccessInternal);
-        JsonNode result = JsonHandler.getFromString(BODY_TEST);
+        final JsonNode result = JsonHandler.getFromString(BODY_TEST);
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
                 .thenReturn(result);
@@ -550,12 +553,13 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testGetObjectStream() throws Exception {
 
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
         reset(clientAccessInternal);
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM, headers);
-        JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
+        final Response response =
+            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                MediaType.APPLICATION_OCTET_STREAM, headers);
+        final JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
 
         PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
             .thenReturn(response);
@@ -587,7 +591,7 @@ public class AccessExternalResourceImplTest {
     public void testErrorsGetObjects()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
+        final JsonNode queryJson = JsonHandler.getFromString("\"" + anyString() + "\"");
 
         PowerMockito.when(clientAccessInternal.getObject(queryJson, anyString(), anyString(), anyInt()))
             .thenThrow(new InvalidParseOperationException(""));
@@ -644,7 +648,7 @@ public class AccessExternalResourceImplTest {
     public void testGetDocumentsError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getAccessionRegister(anyObject());

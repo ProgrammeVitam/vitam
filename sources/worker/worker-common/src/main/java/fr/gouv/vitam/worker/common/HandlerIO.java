@@ -25,7 +25,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Add Input parameters
-     * 
+     *
      * @param list
      * @throws IllegalArgumentException if an error occurs
      */
@@ -33,7 +33,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Add Output parameters
-     * 
+     *
      * @param list
      * @throws IllegalArgumentException if an error occurs
      */
@@ -51,7 +51,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Return one Object from input
-     * 
+     *
      * @param rank
      * @return the rank-th object
      */
@@ -64,7 +64,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Return one ProcessingUri from output
-     * 
+     *
      * @param rank
      * @return the rank-th ProcessingUri
      */
@@ -72,7 +72,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Add one output result (no delete)
-     * 
+     *
      * @param rank the position in the output
      * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
      * @return this
@@ -83,7 +83,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Add one output result
-     * 
+     *
      * @param rank the position in the output
      * @param object the result to store (WORKSPACE to workspace and must be a File, MEMORY to memory whatever it is)
      * @param deleteLocal if true, will delete the local file in case of WORKSPACE only
@@ -94,13 +94,13 @@ public interface HandlerIO extends VitamAutoCloseable {
     HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException;
 
     /**
-     * 
+     *
      * @return the container Name
      */
     String getContainerName();
 
     /**
-     * 
+     *
      * @return the worker Id
      */
     String getWorkerId();
@@ -111,7 +111,7 @@ public interface HandlerIO extends VitamAutoCloseable {
     File getLocalPathRoot();
 
     /**
-     * 
+     *
      * @param name
      * @return a File pointing to a local path in Tmp directory under protected Worker instance space
      */
@@ -119,7 +119,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Check if input and output have the very same number of elements and for Input the associated types
-     * 
+     *
      * @param outputNumber the number of outputArguments
      * @param clasz the list of Class that should be in the InputParameters
      * @return true if everything ok
@@ -130,7 +130,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to write a file to Workspace<br/>
      * <br/>
      * To be used when not specified within the Output Parameters
-     * 
+     *
      * @param workspacePath path within the workspath, without the container (implicit)
      * @param sourceFile the source file to write
      * @param toDelete if True, will delete the local file
@@ -143,7 +143,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to write an InputStream to Workspace<br/>
      * <br/>
      * To be used when not specified within the Output Parameters
-     * 
+     *
      * @param workspacePath path within the workspath, without the container (implicit)
      * @param inputStream the source InputStream to write
      * @throws ProcessingException
@@ -155,7 +155,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to load a file from Workspace (or local cache) and save it into local cache.<br/>
      * <br/>
      * To be used when not specified within the Input parameters
-     * 
+     *
      * @param objectName
      * @return file if found
      * @throws IOException
@@ -172,7 +172,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to get an InputStream (using local cache if possible) from Workspace<br/>
      * <br/>
      * To be used when not specified within the Input parameters
-     * 
+     *
      * @param objectName
      * @return the InputStream
      * @throws IOException
@@ -187,7 +187,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to get an InputStream (without cache) from Workspace<br/>
      * <br/>
      * To be used when not specified within the Input parameters
-     * 
+     *
      * @param objectName
      * @return the InputStream
      * @throws ContentAddressableStorageNotFoundException
@@ -196,10 +196,10 @@ public interface HandlerIO extends VitamAutoCloseable {
     Response getInputStreamNoCachedFromWorkspace(String objectName)
         throws ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException;
-    
+
     /**
      * Consume any entity and close response
-     * 
+     *
      * @param response
      */
     void consumeAnyEntityAndClose(Response response);
@@ -212,12 +212,12 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException throws when error occurs
      */
     JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException;
-    
+
     /**
      * Helper to delete a local file<br/>
      * <br/>
      * To be used when not specified within the Input/Output parameters
-     * 
+     *
      * @param objectName
      * @return True if deleted
      */
@@ -226,13 +226,13 @@ public interface HandlerIO extends VitamAutoCloseable {
     boolean deleteLocalFile(String objectName);
 
     /**
-     * 
+     *
      * @return the HandlerIO LifecycleClient
      */
     LogbookLifeCyclesClient getLifecyclesClient();
 
     /**
-     * 
+     *
      * @return the helper for bulk lifecycle for LifecyclesClient
      */
     LogbookLifeCyclesClientHelper getHelper();

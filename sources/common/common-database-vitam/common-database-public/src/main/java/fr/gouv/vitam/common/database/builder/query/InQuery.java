@@ -86,7 +86,7 @@ public class InQuery extends Query {
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
-                longVals = new HashSet<Long>();
+                longVals = new HashSet<>();
                 longVals.add(value);
                 currentObject = array;
                 currentQUERY = inQuery;
@@ -125,7 +125,7 @@ public class InQuery extends Query {
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
-                doubleVals = new HashSet<Double>();
+                doubleVals = new HashSet<>();
                 doubleVals.add(value);
                 currentObject = array;
                 currentQUERY = inQuery;
@@ -165,7 +165,7 @@ public class InQuery extends Query {
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
-                stringVals = new HashSet<String>();
+                stringVals = new HashSet<>();
                 stringVals.add(value);
                 currentObject = array;
                 currentQUERY = inQuery;
@@ -205,7 +205,7 @@ public class InQuery extends Query {
                 final ArrayNode array = sub.putArray(variableName.trim());
                 final String sdate = LocalDateUtil.fromDate(value).toString();
                 array.add(GlobalDatas.getDate(value));
-                stringVals = new HashSet<String>();
+                stringVals = new HashSet<>();
                 stringVals.add(sdate);
                 currentObject = array;
                 currentQUERY = inQuery;
@@ -244,7 +244,7 @@ public class InQuery extends Query {
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
-                booleanVals = new HashSet<Boolean>();
+                booleanVals = new HashSet<>();
                 booleanVals.add(value);
                 currentObject = array;
                 currentQUERY = inQuery;
@@ -282,7 +282,7 @@ public class InQuery extends Query {
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
-                stringVals = new HashSet<String>();
+                stringVals = new HashSet<>();
                 for (final String value : values) {
                     try {
                         GlobalDatas.sanityValueCheck(value);
@@ -330,7 +330,7 @@ public class InQuery extends Query {
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
-                stringVals = new HashSet<String>();
+                stringVals = new HashSet<>();
                 for (final Date value : values) {
                     final String sdate = LocalDateUtil.fromDate(value).toString();
                     if (!stringVals.contains(sdate)) {
@@ -375,7 +375,7 @@ public class InQuery extends Query {
         final ObjectNode sub =
             ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
-        longVals = new HashSet<Long>();
+        longVals = new HashSet<>();
         for (final long value : values) {
             if (!longVals.contains(value)) {
                 array.add(value);
@@ -414,7 +414,7 @@ public class InQuery extends Query {
         final ObjectNode sub =
             ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
-        doubleVals = new HashSet<Double>();
+        doubleVals = new HashSet<>();
         for (final double value : values) {
             if (!doubleVals.contains(value)) {
                 array.add(value);
@@ -454,7 +454,7 @@ public class InQuery extends Query {
         final ObjectNode sub =
             ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
-        booleanVals = new HashSet<Boolean>();
+        booleanVals = new HashSet<>();
         for (final boolean value : values) {
             if (!booleanVals.contains(value)) {
                 array.add(value);
@@ -502,7 +502,7 @@ public class InQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
-            stringVals = new HashSet<String>();
+            stringVals = new HashSet<>();
         }
         for (final String val : inValue) {
             try {
@@ -533,7 +533,7 @@ public class InQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
-            stringVals = new HashSet<String>();
+            stringVals = new HashSet<>();
         }
         for (final Date val : inValue) {
             final String sdate = LocalDateUtil.fromDate(val).toString();
@@ -560,7 +560,7 @@ public class InQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (longVals == null) {
-            longVals = new HashSet<Long>();
+            longVals = new HashSet<>();
         }
         for (final long l : inValue) {
             if (!longVals.contains(l)) {
@@ -586,7 +586,7 @@ public class InQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (doubleVals == null) {
-            doubleVals = new HashSet<Double>();
+            doubleVals = new HashSet<>();
         }
         for (final double d : inValue) {
             if (!doubleVals.contains(d)) {
@@ -612,7 +612,7 @@ public class InQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (booleanVals == null) {
-            booleanVals = new HashSet<Boolean>();
+            booleanVals = new HashSet<>();
         }
         for (final boolean b : inValue) {
             if (!booleanVals.contains(b)) {

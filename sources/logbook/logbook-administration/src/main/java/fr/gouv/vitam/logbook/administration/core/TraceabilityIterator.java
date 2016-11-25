@@ -56,14 +56,13 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
      * @param mongoCursor
      */
     public TraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
-        this.numberOfLine = 0;
+        numberOfLine = 0;
         this.mongoCursor = mongoCursor;
     }
 
     /**
-     * Returns {@code true} if the iteration has more elements.
-     * (In other words, returns {@code true} if {@link #next} would
-     * return an element rather than throwing an exception.)
+     * Returns {@code true} if the iteration has more elements. (In other words, returns {@code true} if {@link #next}
+     * would return an element rather than throwing an exception.)
      *
      * @return {@code true} if the iteration has more elements
      */
@@ -77,7 +76,8 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
      *
      * @return the next element in the iteration
      */
-    @Override public LogbookOperation next() {
+    @Override
+    public LogbookOperation next() {
         numberOfLine += 1;
         lastDocument = mongoCursor.next();
         return lastDocument;
@@ -87,12 +87,12 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
      * @return the last date of document or event
      */
     public String endDate() {
-        String evDateTime = lastDocument.getString(EVENT_DATE_TIME);
+        final String evDateTime = lastDocument.getString(EVENT_DATE_TIME);
         final List<Document> events = (List<Document>) lastDocument.get(EVENTS);
 
         if (events != null && events.size() > 0) {
-            Document last = Iterables.getLast(events);
-            String lastEventDate = last.getString(EVENT_DATE_TIME);
+            final Document last = Iterables.getLast(events);
+            final String lastEventDate = last.getString(EVENT_DATE_TIME);
             return lastEventDate.compareTo(evDateTime) > 0 ? lastEventDate : evDateTime;
         }
         return evDateTime;

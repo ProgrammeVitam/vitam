@@ -55,7 +55,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
 
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     public LogbookApplication(String configuration) {
@@ -64,7 +64,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
 
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     public LogbookApplication(LogbookConfiguration configuration) {
@@ -105,7 +105,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        LogbookResource resource = new LogbookResource(getConfiguration());
+        final LogbookResource resource = new LogbookResource(getConfiguration());
         // Database dependency
         serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess());
         resourceConfig.register(resource)

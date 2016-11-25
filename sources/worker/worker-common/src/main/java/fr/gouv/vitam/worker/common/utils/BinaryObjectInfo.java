@@ -83,7 +83,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * @param uri 
+     * @param uri
      * @param String the uri of the binary data to set
      * @return BinaryObjectInfo
      */
@@ -145,7 +145,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * 
+     *
      * @return the rank in version
      */
     public int getRank() {
@@ -153,7 +153,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * 
+     *
      * @param rank the rank in version
      * @return this
      */

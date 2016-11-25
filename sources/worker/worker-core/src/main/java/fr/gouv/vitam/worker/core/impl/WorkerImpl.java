@@ -144,7 +144,7 @@ public class WorkerImpl implements Worker {
         }
 
         final ItemStatus responses = new ItemStatus(step.getStepName());
-        
+
         try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId)) {
             for (final Action action : step.getActions()) {
                 // Reset handlerIO for next execution

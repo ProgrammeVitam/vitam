@@ -55,7 +55,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 /**
  * Access client <br>
  * <br>
- * 
+ *
  */
 
 // TODO P1 : tenantId should be determined otherwise with a config or so
@@ -82,6 +82,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
     }
+
     @Override
     public JsonNode selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -105,7 +106,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             consumeAnyEntityAndClose(response);
@@ -136,7 +137,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             consumeAnyEntityAndClose(response);
@@ -166,7 +167,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             consumeAnyEntityAndClose(response);
@@ -204,7 +205,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
             return response.readEntity(JsonNode.class);
 
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
@@ -252,7 +253,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                         INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
             }
             return response;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
             if (status != Status.OK) {
@@ -260,7 +261,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
         }
     }
-    
+
 
     /* Logbook internal */
 
@@ -282,7 +283,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -310,7 +311,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -338,7 +339,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -367,7 +368,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {

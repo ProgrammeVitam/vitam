@@ -169,7 +169,7 @@ public class LogbookLifeCycleUnitParametersTest {
         final LogbookLifeCycleUnitParameters llcup = new LogbookLifeCycleUnitParameters(new HashMap());
         assertEquals(true, llcup.getMapParameters().isEmpty());
     }
-    
+
 
     @Test
     public void testConstructorAndFinalMessage() {

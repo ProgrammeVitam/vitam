@@ -121,7 +121,7 @@ public class LogbookResourceTest {
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
@@ -267,14 +267,14 @@ public class LogbookResourceTest {
     public void testBulk() {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
-        LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
         queue.add(start);
         queue.add(append);
         append = LogbookParametersFactory.newLogbookOperationParameters(

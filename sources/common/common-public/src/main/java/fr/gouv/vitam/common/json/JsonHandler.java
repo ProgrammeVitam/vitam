@@ -414,14 +414,14 @@ public final class JsonHandler {
 
     /**
      * Check if JsonNodes are not null and not empty
-     * 
+     *
      * @param message default message within exception
-     * @param nodes 
+     * @param nodes
      * @throws IllegalArgumentException if nodes are null or empty
      */
-    public static final void checkNullOrEmpty(final String message, final JsonNode ...nodes) {
+    public static final void checkNullOrEmpty(final String message, final JsonNode... nodes) {
         if (nodes != null) {
-            for (JsonNode jsonNode : nodes) {
+            for (final JsonNode jsonNode : nodes) {
                 if (jsonNode == null || jsonNode.size() == 0) {
                     throw new IllegalArgumentException(message);
                 }
@@ -579,7 +579,7 @@ public final class JsonHandler {
         } finally {
             try {
                 inputStream.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
@@ -606,7 +606,7 @@ public final class JsonHandler {
         } finally {
             try {
                 inputStream.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
@@ -615,7 +615,7 @@ public final class JsonHandler {
 
     /**
      * From one ArrayNode, get a new ArrayNode from offset to limit items
-     * 
+     *
      * @param array
      * @param offset
      * @param limit

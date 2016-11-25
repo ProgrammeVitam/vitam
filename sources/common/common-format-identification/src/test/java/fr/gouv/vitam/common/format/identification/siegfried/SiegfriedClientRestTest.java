@@ -103,8 +103,7 @@ public class SiegfriedClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        protected void platformSecretConfiguration() {
-        }
+        protected void platformSecretConfiguration() {}
 
         @Override
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {

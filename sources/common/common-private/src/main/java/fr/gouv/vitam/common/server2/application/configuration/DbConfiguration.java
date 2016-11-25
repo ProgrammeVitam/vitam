@@ -38,10 +38,10 @@ import java.util.List;
  *
  */
 public interface DbConfiguration extends VitamApplicationConfiguration {
-    
+
     /**
      * Must return the value of a 'mongoDbNodes' attribute
-     * 
+     *
      * @return the list of mongodb node which contains the dbHost and dbPort
      */
     List<MongoDbNode> getMongoDbNodes();
@@ -52,24 +52,24 @@ public interface DbConfiguration extends VitamApplicationConfiguration {
      * @return the database host value
      */
     String getDbName();
-    
+
     /**
      * Must return the value of a 'dbName' attribute
-     * 
+     *
      * @return the database user name
      */
     String getDbUserName();
-    
+
     /**
      * Must return the value of a 'dbName' attribute
-     * 
+     *
      * @return the database user's password
      */
     String getDbPassword();
-    
+
     /**
      * Must return the value of a 'dbName' attribute
-     * 
+     *
      * @return boolean is autenticated or not
      */
     boolean isDbAuthentication();

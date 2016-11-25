@@ -48,7 +48,7 @@ public interface MetaData {
      * @param insertRequest as String { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      * @throws MetaDataNotFoundException Throw if parent of this unit is not found
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database

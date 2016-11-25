@@ -516,7 +516,7 @@ public abstract class AbstractRequest {
 
     /**
      * Get the json final of request
-     * 
+     *
      * @return the Final json containing all 2 parts: query and filter
      */
     protected abstract ObjectNode getFinal();

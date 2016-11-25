@@ -95,7 +95,7 @@ public class AccessResourceTest {
                 " \"$filter\": { \"$orderby\": \"#id\" }, " +
                 " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
                 " }";
-        JsonNode queryJson = JsonHandler.getFromString(selectQuery);
+        final JsonNode queryJson = JsonHandler.getFromString(selectQuery);
         assertNotNull(client.selectUnits(queryJson));
         assertNotNull(client.selectUnitbyId(queryJson, ID));
     }

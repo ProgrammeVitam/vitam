@@ -83,11 +83,11 @@ public class VitamCollectionTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccess(CLUSTER_NAME, nodes);
@@ -124,7 +124,7 @@ public class VitamCollectionTest {
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);
-        assertEquals(esClient, vitamCollection.getEsClient());        
+        assertEquals(esClient, vitamCollection.getEsClient());
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
         final MongoCollection<CollectionSample> collection =
             (MongoCollection<CollectionSample>) vitamCollection.getCollection();

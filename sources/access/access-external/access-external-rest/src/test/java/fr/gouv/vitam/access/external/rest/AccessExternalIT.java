@@ -59,18 +59,20 @@ public class AccessExternalIT {
         final File conf = PropertiesUtils.findFile(ACCESS_EXTERNAL_CONF);
 
         try {
-            AccessExternalApplication application = new AccessExternalApplication(conf.getAbsolutePath());
+            final AccessExternalApplication application = new AccessExternalApplication(conf.getAbsolutePath());
             application.start();
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException(
                 "Cannot start the Access External Application Server", e);
         }
     }
+
     @Test
     public void givenCertifValidThenReturnOK() throws FileNotFoundException, IOException {
         final AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
-        SecureClientConfigurationImpl secureConfig = PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF),
-            SecureClientConfigurationImpl.class);
+        final SecureClientConfigurationImpl secureConfig =
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF),
+                SecureClientConfigurationImpl.class);
         secureConfig.setServerPort(serverPort);
         AccessExternalClientFactory.changeMode(secureConfig);
         try (final AccessExternalClient client = factory.getClient()) {
@@ -80,18 +82,18 @@ public class AccessExternalIT {
             fail();
         }
     }
-    
+
     @Test
     public void givenCertifExpiredThenReturnKO() throws FileNotFoundException, IOException {
         final AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
-        SecureClientConfigurationImpl secureConfig = PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF_EXPIRED),
-            SecureClientConfigurationImpl.class);
+        final SecureClientConfigurationImpl secureConfig =
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF_EXPIRED),
+                SecureClientConfigurationImpl.class);
         secureConfig.setServerPort(serverPort);
         AccessExternalClientFactory.changeMode(secureConfig);
         try (final AccessExternalClient client = factory.getClient()) {
             client.checkStatus();
             fail();
-        } catch (final VitamException e) {
-        }
+        } catch (final VitamException e) {}
     }
 }

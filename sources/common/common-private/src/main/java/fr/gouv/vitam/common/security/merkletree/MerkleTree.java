@@ -43,7 +43,7 @@ public class MerkleTree {
 
     /**
      * Initialize the needed parameters for MerkleTree constructor
-     * 
+     *
      * @param root : the root of the MerkleTree
      * @param l : the left sheet of the MerkleTree
      * @param r : the right sheet of the MerkleTree
@@ -55,7 +55,7 @@ public class MerkleTree {
     }
 
     /**
-     * 
+     *
      * @return root for type byte[]
      */
     public byte[] getRoot() {
@@ -64,7 +64,7 @@ public class MerkleTree {
 
     /**
      * setter root
-     * 
+     *
      * @param root
      */
     public void setRoot(byte[] root) {
@@ -72,7 +72,7 @@ public class MerkleTree {
     }
 
     /**
-     * 
+     *
      * @return left sheet for type MerkleTree
      */
     public MerkleTree getL() {
@@ -81,7 +81,7 @@ public class MerkleTree {
 
     /**
      * setter left sheet
-     * 
+     *
      * @param l
      */
     public void setL(MerkleTree l) {
@@ -89,16 +89,16 @@ public class MerkleTree {
     }
 
     /**
-     * 
+     *
      * @return right sheet for type MerkleTree
      */
     public MerkleTree getR() {
-        return this.r;
+        return r;
     }
 
     /**
      * setter right sheet
-     * 
+     *
      * @param r
      */
     public void setR(MerkleTree r) {

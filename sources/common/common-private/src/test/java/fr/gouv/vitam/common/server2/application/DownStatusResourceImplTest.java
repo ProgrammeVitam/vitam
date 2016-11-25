@@ -84,25 +84,25 @@ public class DownStatusResourceImplTest {
         final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
             new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-            @Override
-            public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                throws IllegalStateException {
-                TestApplication.statusService = new VitamStatusService() {
-                    @Override
-                    public boolean getResourcesStatus() {
-                        return false;
-                    }
+                @Override
+                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    TestApplication.statusService = new VitamStatusService() {
+                        @Override
+                        public boolean getResourcesStatus() {
+                            return false;
+                        }
 
-                    @Override
-                    public ObjectNode getAdminStatus() throws InvalidParseOperationException {
-                        return JsonHandler.createObjectNode();
-                    }
-                };
-                final TestApplication application = new TestApplication(TEST_CONF);
-                return startAndReturn(application);
-            }
+                        @Override
+                        public ObjectNode getAdminStatus() throws InvalidParseOperationException {
+                            return JsonHandler.createObjectNode();
+                        }
+                    };
+                    final TestApplication application = new TestApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
 
-        };
+            };
         final StartApplicationResponse<TestApplication> response =
             testFactory.findAvailablePortSetToApplication();
         port = response.getServerPort();
@@ -150,14 +150,14 @@ public class DownStatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnServiceUnavailable() throws Exception {
 
-        Map<String, String> headersMap =
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
         RestAssured.given()
-        .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-        .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-        .when()
-        .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -170,10 +170,10 @@ public class DownStatusResourceImplTest {
         String jsonAsString;
         com.jayway.restassured.response.Response response;
 
-        Map<String, String> headersMap =
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
 
-        response =RestAssured.given()
+        response = RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
@@ -196,14 +196,14 @@ public class DownStatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnServiceUnavailable() throws Exception {
-        Map<String, String> headersMap =
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_STATUS_URI);
 
         RestAssured.given()
-        .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-        .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-        .when()
-        .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         try {
             client.checkStatus();
             fail("Should raized an exception");

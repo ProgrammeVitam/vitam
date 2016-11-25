@@ -46,7 +46,8 @@ public class AccessInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        AccessInternalClientFactory.changeMode(AccessInternalClientFactory.changeConfigurationFile("access-client.conf"));
+        AccessInternalClientFactory
+            .changeMode(AccessInternalClientFactory.changeConfigurationFile("access-client.conf"));
     }
 
     @Test

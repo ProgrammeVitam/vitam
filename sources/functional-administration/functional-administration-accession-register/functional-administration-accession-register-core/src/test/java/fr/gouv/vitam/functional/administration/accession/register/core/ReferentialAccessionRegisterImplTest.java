@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -92,7 +92,7 @@ public class ReferentialAccessionRegisterImplTest {
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
 
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
@@ -111,18 +111,18 @@ public class ReferentialAccessionRegisterImplTest {
 
     @After
     public void afterTest() {
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
     }
 
     @Test
     public void testcreateAccessionRegister() throws Exception {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(1, collection.count());
-        JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
+        final JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
         assertEquals(2, totalUnit.get("Total").asInt());
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
@@ -133,14 +133,14 @@ public class ReferentialAccessionRegisterImplTest {
     public void testFindAccessionRegisterDetail()
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
 
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
+        final List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
         assertEquals(2, detail.size());
-        AccessionRegisterDetail item = detail.get(0);
+        final AccessionRegisterDetail item = detail.get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
     }
 
@@ -148,13 +148,13 @@ public class ReferentialAccessionRegisterImplTest {
     public void testFindAccessionRegisterSummary()
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        List<AccessionRegisterSummary> summary = accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        final List<AccessionRegisterSummary> summary = accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertEquals(1, summary.size());
-        AccessionRegisterSummary item = summary.get(0);
+        final AccessionRegisterSummary item = summary.get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
     }
 }

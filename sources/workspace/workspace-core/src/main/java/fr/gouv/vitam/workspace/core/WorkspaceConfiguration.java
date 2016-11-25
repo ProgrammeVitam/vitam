@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplic
 /**
  * workspace jetty configuration
  */
-public class WorkspaceConfiguration extends DefaultVitamApplicationConfiguration{
+public class WorkspaceConfiguration extends DefaultVitamApplicationConfiguration {
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     private String storagePath;
 

@@ -124,21 +124,22 @@ public class UserInterfaceTransactionManagerTest {
         InvalidParseOperationException {
         when(accessClient.selectUnits(anyObject())).thenReturn(searchResult);
         // Test method
-        final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager.searchUnits
-            (JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+        final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
         assertTrue(result.getHits().getTotal() == 1);
     }
 
     @Ignore
     @Test
     public void testSuccessGetArchiveUnitDetails()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT)).thenReturn
-            (unitDetails);
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT))
+            .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK archiveDetails =
-            (RequestResponseOK) UserInterfaceTransactionManager.getArchiveUnitDetails(JsonHandler.getFromString
-                (SELECT_ID_DSL_QUERY), ID_UNIT);
+            (RequestResponseOK) UserInterfaceTransactionManager
+                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -156,14 +157,16 @@ public class UserInterfaceTransactionManagerTest {
     @Ignore
     @Test
     public void testSuccessSelectObjectbyId()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        final RequestResponse result = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        final RequestResponse result =
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
         when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
             .thenReturn(result);
         // Test method
         final RequestResponseOK objectGroup =
-            (RequestResponseOK) UserInterfaceTransactionManager.selectObjectbyId(JsonHandler.getFromString
-                    (OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
+            (RequestResponseOK) UserInterfaceTransactionManager
+                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
         assertTrue(
             objectGroup.getResults().get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
     }
@@ -171,16 +174,17 @@ public class UserInterfaceTransactionManagerTest {
     @Ignore
     @Test
     public void testSuccessGetObjectAsInputStream()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException, IOException {
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException, IOException {
         when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1))
             .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
         // Test method
         // TODO: comment due to async mode, review this call (but test already ignored)
-        //assertTrue(IOUtils.contentEquals(streamToTest,
-        //    UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
-        //);
+        // assertTrue(IOUtils.contentEquals(streamToTest,
+        // UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
+        // );
     }
 
     @Test

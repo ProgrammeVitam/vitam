@@ -27,8 +27,8 @@
 package fr.gouv.vitam.functional.administration.common.exception;
 
 /**
- *  Accession Register Exception 
- * 
+ * Accession Register Exception
+ *
  */
 public class AdminManagementClientServerException extends ReferentialException {
 

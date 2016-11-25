@@ -40,17 +40,23 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 /**
- *
+ * Utility to launch the Traceability through command line and external scheduler
  */
 public class CallTraceability {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceability.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
 
+    /**
+     * @param args ignored
+     * @throws InvalidParseOperationException
+     * @throws LogbookClientServerException
+     */
     public static void main(String[] args) throws InvalidParseOperationException, LogbookClientServerException {
 
         platformSecretConfiguration();
-        LogbookOperationsClientFactory logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
+        final LogbookOperationsClientFactory logbookOperationsClientFactory =
+            LogbookOperationsClientFactory.getInstance();
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.traceability();

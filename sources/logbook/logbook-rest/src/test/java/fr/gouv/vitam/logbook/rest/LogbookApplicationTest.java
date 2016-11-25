@@ -85,7 +85,7 @@ public class LogbookApplicationTest {
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(

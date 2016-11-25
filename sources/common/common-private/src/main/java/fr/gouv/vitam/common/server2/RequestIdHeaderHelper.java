@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.server2;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -33,8 +35,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-
-import javax.ws.rs.core.MultivaluedMap;
 
 /**
  * Helper class to manage the X_REQUEST_ID and VitamSession links
@@ -65,7 +65,7 @@ public class RequestIdHeaderHelper {
 
     /**
      * Extracts the X-REQUEST-ID from the headers to save it through the VitamSession
-     * 
+     *
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @param ctx Context, or rather http message type (request or response)
      */
@@ -90,8 +90,8 @@ public class RequestIdHeaderHelper {
             if (vitamSession.getRequestId() != null && !vitamSession.getRequestId().equals(requestId)) {
                 LOGGER.info(
                     "Note : the requestId stored in session was not empty and different from the received " +
-                    "requestId before {} handling ! Some cleanup must have failed... " +
-                    "Old requestId will be discarded in session.",
+                        "requestId before {} handling ! Some cleanup must have failed... " +
+                        "Old requestId will be discarded in session.",
                     ctx);
             }
 
@@ -103,7 +103,7 @@ public class RequestIdHeaderHelper {
             } else {
                 LOGGER.debug("No requestId found in {} ; setting it as empty in the current VitamSession", ctx);
             }
-        } catch (VitamThreadAccessException e) {
+        } catch (final VitamThreadAccessException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             LOGGER.warn(
                 "Got an exception while trying to set the requestId {} in the current session ; exception was : {}",
@@ -114,7 +114,7 @@ public class RequestIdHeaderHelper {
 
     /**
      * Retrieves the request id from the VitamSession and add a X-REQUEST-ID header
-     * 
+     *
      * @param headers List of target HTTP headers ; required header will be added to this list.
      * @param ctx Context, or rather http message type (request or response)
      */
@@ -135,10 +135,10 @@ public class RequestIdHeaderHelper {
                 // TODO: should be warn here.
                 LOGGER.info(
                     "No RequestId found in session (somebody should have set it) ! " +
-                    "{} header will not be set in the http {}.",
+                        "{} header will not be set in the http {}.",
                     GlobalDataRest.X_REQUEST_ID, ctx);
             }
-        } catch (VitamThreadAccessException e) {
+        } catch (final VitamThreadAccessException e) {
             LOGGER.warn(
                 "Got an exception while trying to get the requestId from the current session ; exception was : {}",
                 e.getMessage());

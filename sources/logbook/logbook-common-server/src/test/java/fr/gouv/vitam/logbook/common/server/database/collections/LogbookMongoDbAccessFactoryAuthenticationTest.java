@@ -47,12 +47,13 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         mongo.stop();
         junitHelper.releasePort(port);
     }
-    
+
     @Test
     public void testCreateLogbook() throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess = new LogbookMongoDbAccessFactory().create(
+        new LogbookMongoDbAccessFactory();
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(
             new DbConfigurationImpl(nodes, databaseName, true, user, pwd));
         assertNotNull(mongoDbAccess);
         assertEquals("db-logbook", mongoDbAccess.getMongoDatabase().getName());

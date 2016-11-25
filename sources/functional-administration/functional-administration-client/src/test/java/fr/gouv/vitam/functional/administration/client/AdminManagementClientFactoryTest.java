@@ -108,7 +108,7 @@ public class AdminManagementClientFactoryTest {
     public void changeClientTypeAndGetExceptionTest() {
         AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", 100));
         AdminManagementClientFactory.getInstance().setVitamClientType(VitamClientType.valueOf("BAD"));
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
     }
 
     @Test

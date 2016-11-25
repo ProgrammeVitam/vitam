@@ -45,8 +45,8 @@ public final class LogbookMongoDbAccessFactory {
      * @throws IllegalArgumentException if argument is null
      */
     public static final LogbookMongoDbAccessImpl create(DbConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration", configuration);        
-        MongoClient mongoClient =
+        ParametersChecker.checkParameter("configuration", configuration);
+        final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false);
     }

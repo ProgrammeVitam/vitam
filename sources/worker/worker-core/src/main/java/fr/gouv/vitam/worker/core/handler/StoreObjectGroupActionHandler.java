@@ -246,7 +246,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     /**
      * Update the lifecycle with the current ObjectGroup lifecycle parameters.
-     * 
+     *
      * @param logbookLifeCycleClient logbook LifeCycle Client
      * @throws ProcessingException throws when error occurs
      */

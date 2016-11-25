@@ -77,7 +77,7 @@ public class IOParameter {
     }
 
     /**
-     * 
+     *
      * @return optional
      */
     public boolean getOptional() {
@@ -107,7 +107,7 @@ public class IOParameter {
 
     /**
      * Set the optional.
-     * 
+     *
      * @param optional the optional to set
      *
      * @return this

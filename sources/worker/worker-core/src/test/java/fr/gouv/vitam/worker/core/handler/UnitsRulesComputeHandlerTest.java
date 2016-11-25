@@ -61,7 +61,7 @@ public class UnitsRulesComputeHandlerTest {
     private InputStream archiveUnit;
     private HandlerIOImpl action;
 
-    public UnitsRulesComputeHandlerTest() throws FileNotFoundException { 
+    public UnitsRulesComputeHandlerTest() throws FileNotFoundException {
 
     }
 
@@ -129,7 +129,8 @@ public class UnitsRulesComputeHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }

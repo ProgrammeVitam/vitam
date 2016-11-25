@@ -40,12 +40,12 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,6 +72,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
@@ -106,7 +110,8 @@ public class WorkerIT {
     static MongodProcess mongod;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -169,13 +174,14 @@ public class WorkerIT {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-                .build());
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .build());
         mongod = mongodExecutable.start();
 
         // launch metadata
-        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_METADATA));
         metadataApplication = new MetaDataApplication(CONFIG_METADATA_PATH);
         metadataApplication.start();
         SystemPropertyUtil.clear(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT);
@@ -183,30 +189,30 @@ public class WorkerIT {
 
         // launch logbook
         SystemPropertyUtil
-                .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
         lgbapplication.start();
-        ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
+        final ClientConfiguration configuration = new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK);
         LogbookLifeCyclesClientFactory.changeMode(configuration);
         LogbookOperationsClientFactory.changeMode(configuration);
 
         // launch workspace
         SystemPropertyUtil
-                .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
         workspaceApplication.start();
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch processing
         SystemPropertyUtil
-                .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
 
         // launch worker
         SystemPropertyUtil
-                .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
         WorkerClientFactory.changeMode(getWorkerClientConfiguration());
@@ -236,8 +242,8 @@ public class WorkerIT {
 
     private static WorkerClientConfiguration getWorkerClientConfiguration() {
         final WorkerClientConfiguration workerClientConfiguration =
-                new WorkerClientConfiguration("localhost",
-                        PORT_SERVICE_WORKER);
+            new WorkerClientConfiguration("localhost",
+                PORT_SERVICE_WORKER);
         return workerClientConfiguration;
     }
 
@@ -259,7 +265,7 @@ public class WorkerIT {
             RestAssured.port = PORT_SERVICE_METADATA;
             RestAssured.basePath = METADATA_PATH;
             get(BasicClient.STATUS_URL).then().statusCode(204);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -267,33 +273,33 @@ public class WorkerIT {
 
     private void printAndCheckXmlConfiguration() {
         LOGGER.warn("XML Configuration: " +
-                "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
-                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-                SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
-                "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
-                "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
-                "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
-                "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
-                "\n\tjavax.xml.transform.TransformerFactory: " +
-                SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
-                "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
-                "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
+            "\n\tjavax.xml.parsers.SAXParserFactory: " + SystemPropertyUtil.get("javax.xml.parsers.SAXParserFactory") +
+            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+            SystemPropertyUtil.get("javax.xml.parsers.DocumentBuilderFactory") +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " + SystemPropertyUtil.get("javax.xml.datatype.DatatypeFactory") +
+            "\n\tjavax.xml.stream.XMLEventFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLEventFactory") +
+            "\n\tjavax.xml.stream.XMLInputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLInputFactory") +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " + SystemPropertyUtil.get("javax.xml.stream.XMLOutputFactory") +
+            "\n\tjavax.xml.transform.TransformerFactory: " +
+            SystemPropertyUtil.get("javax.xml.transform.TransformerFactory") +
+            "\n\tjavax.xml.validation.SchemaFactory: " + SystemPropertyUtil.get("javax.xml.validation.SchemaFactory") +
+            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.get("javax.xml.xpath.XPathFactory"));
         try {
             LOGGER.warn("XML Implementation: " +
-                    "\n\tjavax.xml.parsers.SAXParserFactory: " +
-                    javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-                    javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.datatype.DatatypeFactory: " +
-                    javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
-                    "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.transform.TransformerFactory: " +
-                    javax.xml.transform.TransformerFactory.newInstance().getClass() +
-                    "\n\tjavax.xml.validation.SchemaFactory: " +
-                    javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
-                    "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
+                "\n\tjavax.xml.parsers.SAXParserFactory: " +
+                javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
+                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+                javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
+                "\n\tjavax.xml.datatype.DatatypeFactory: " +
+                javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
+                "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
+                "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
+                "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
+                "\n\tjavax.xml.transform.TransformerFactory: " +
+                javax.xml.transform.TransformerFactory.newInstance().getClass() +
+                "\n\tjavax.xml.validation.SchemaFactory: " +
+                javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
+                "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
         } catch (DatatypeConfigurationException | FactoryConfigurationError | TransformerFactoryConfigurationError e) {
             e.printStackTrace();
         }
@@ -316,7 +322,7 @@ public class WorkerIT {
             RestAssured.basePath = WORKSPACE_PATH;
 
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(CONTAINER_NAME);
             workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -327,12 +333,12 @@ public class WorkerIT {
 
             workerClient = WorkerClientFactory.getInstance().getClient();
             final ItemStatus retStepControl =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
             final ItemStatus retStepCheckStorage =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
             assertNotNull(retStepCheckStorage);
             assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
@@ -349,7 +355,7 @@ public class WorkerIT {
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -367,7 +373,7 @@ public class WorkerIT {
             RestAssured.basePath = WORKSPACE_PATH;
 
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+                PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(CONTAINER_NAME);
             workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -379,13 +385,13 @@ public class WorkerIT {
 
             workerClient = WorkerClientFactory.getInstance().getClient();
             final ItemStatus retStepControl =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
 
             final ItemStatus retStepCheckStorage =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
             assertNotNull(retStepCheckStorage);
             assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
@@ -402,7 +408,7 @@ public class WorkerIT {
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -421,7 +427,7 @@ public class WorkerIT {
             RestAssured.basePath = WORKSPACE_PATH;
 
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
+                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(CONTAINER_NAME);
             workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -432,12 +438,12 @@ public class WorkerIT {
 
             workerClient = WorkerClientFactory.getInstance().getClient();
             final ItemStatus retStepControl =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -455,7 +461,7 @@ public class WorkerIT {
             RestAssured.basePath = WORKSPACE_PATH;
 
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
+                PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(CONTAINER_NAME);
             workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -466,13 +472,13 @@ public class WorkerIT {
 
             workerClient = WorkerClientFactory.getInstance().getClient();
             final ItemStatus retStepControl =
-                    workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
             assertEquals(5, retStepControl.getItemsStatus().size());
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -482,9 +488,9 @@ public class WorkerIT {
     public void testRegistration() throws Exception {
         try {
             final WorkerRemoteConfiguration remoteConfiguration =
-                    new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
+                new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
             final WorkerBean workerBean =
-                    new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
+                new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
                 processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
@@ -493,7 +499,7 @@ public class WorkerIT {
                 processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, "1");
             }
             processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -512,7 +518,7 @@ public class WorkerIT {
 
         try {
             final InputStream inputJSON =
-                    PropertiesUtils.getResourceAsStream(stepFilePath);
+                PropertiesUtils.getResourceAsStream(stepFilePath);
             step = objectMapper.readValue(inputJSON, Step.class);
 
         } catch (final IOException e) {
@@ -535,7 +541,7 @@ public class WorkerIT {
         String unitName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                    "UnitsLevel/ingestLevelStack.json").getEntity();
+                "UnitsLevel/ingestLevelStack.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
             @SuppressWarnings("rawtypes")
@@ -553,7 +559,7 @@ public class WorkerIT {
         String objectName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                    "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
+                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (final Exception e) {

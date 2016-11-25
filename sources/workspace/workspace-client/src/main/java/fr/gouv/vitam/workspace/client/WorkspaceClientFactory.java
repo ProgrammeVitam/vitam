@@ -59,7 +59,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
 
     /**
      * change mode client by server url
-     * 
+     *
      * @param serviceUrl as String
      */
     public static final void changeMode(String serviceUrl) {

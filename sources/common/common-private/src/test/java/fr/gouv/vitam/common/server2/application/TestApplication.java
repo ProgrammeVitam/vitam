@@ -93,18 +93,18 @@ public class TestApplication extends AbstractVitamApplication<TestApplication, T
         if (statusService == null) {
             if (serviceRegistry == null) {
                 resourceConfig.register(new AdminStatusResource())
-                .register(new TestResourceImpl(getConfiguration()));
+                    .register(new TestResourceImpl(getConfiguration()));
             } else {
                 resourceConfig.register(new AdminStatusResource(serviceRegistry))
-                .register(new TestResourceImpl(getConfiguration()));
+                    .register(new TestResourceImpl(getConfiguration()));
             }
         } else {
             if (serviceRegistry == null) {
                 resourceConfig.register(new AdminStatusResource(statusService))
-                .register(new TestResourceImpl(getConfiguration(), statusService));
+                    .register(new TestResourceImpl(getConfiguration(), statusService));
             } else {
                 resourceConfig.register(new AdminStatusResource(statusService, serviceRegistry))
-                .register(new TestResourceImpl(getConfiguration(), statusService));
+                    .register(new TestResourceImpl(getConfiguration(), statusService));
             }
         }
     }

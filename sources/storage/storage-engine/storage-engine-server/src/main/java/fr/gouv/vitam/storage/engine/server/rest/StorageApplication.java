@@ -54,7 +54,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     /**
      * StorageApplication constructor
-     * 
+     *
      * @param configuration
      */
     protected StorageApplication(String configuration) {
@@ -63,7 +63,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     /**
      * StorageApplication constructor
-     * 
+     *
      * @param configuration
      */
     public StorageApplication(StorageConfiguration configuration) {

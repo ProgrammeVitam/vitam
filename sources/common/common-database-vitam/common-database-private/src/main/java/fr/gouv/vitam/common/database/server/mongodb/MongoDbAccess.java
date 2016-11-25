@@ -74,7 +74,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         try {
             mongoClient.getDatabase(dbname).runCommand(new BasicDBObject("ping", "1"));
             return true;
-        } catch (MongoException e) {
+        } catch (final MongoException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return false;
         }
@@ -134,28 +134,28 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     public void close() {
         mongoClient.close();
     }
-    
+
     /**
      * Create a mongoDB client according to the configuration and using the MongoClientOptions specific to the
      * sub-systems (ex: metadata,logbook)
-     * 
+     *
      * @param configuration
      * @param options
      * @return the MongoClient
      */
     public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
-        List<MongoDbNode> nodes = configuration.getMongoDbNodes();
-        List<ServerAddress> serverAddress = new ArrayList<ServerAddress>();
-        for (MongoDbNode node : nodes){
+        final List<MongoDbNode> nodes = configuration.getMongoDbNodes();
+        final List<ServerAddress> serverAddress = new ArrayList<>();
+        for (final MongoDbNode node : nodes) {
             serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
         }
-        
+
         if (configuration.isDbAuthentication()) {
 
             // create user with username, password and specify the database name
-            MongoCredential credential = MongoCredential.createCredential(
+            final MongoCredential credential = MongoCredential.createCredential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
-            
+
             // create an instance of mongoclient
             return new MongoClient(serverAddress, Arrays.asList(credential), options);
         } else {
@@ -167,10 +167,10 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     public String toString() {
         return dbname;
     }
-    
+
     /**
      * Change the target database
-     * 
+     *
      * @param dbname Name of the target database
      */
     public void setDatabase(String dbname) {

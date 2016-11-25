@@ -39,11 +39,11 @@ import fr.gouv.vitam.common.digest.DigestType;
  */
 public class MerkleTreeAlgo {
 
-    private DigestType digestType;
+    private final DigestType digestType;
     private List<MerkleTree> currentList = new ArrayList<>();
 
     /**
-     * 
+     *
      * @param digestType
      */
     public MerkleTreeAlgo(DigestType digestType) {
@@ -52,12 +52,12 @@ public class MerkleTreeAlgo {
 
     /**
      * adds sheet to the MerkleTree
-     * 
+     *
      * @param str
      */
     public void addSheet(String str) {
-        MerkleTree tree = new MerkleTree();
-        Digest digest = new Digest(digestType);
+        final MerkleTree tree = new MerkleTree();
+        final Digest digest = new Digest(digestType);
         tree.setRoot(digest.update(str.getBytes()).digest());
         tree.setL(null);
         tree.setR(null);
@@ -65,7 +65,7 @@ public class MerkleTreeAlgo {
     }
 
     /**
-     * 
+     *
      * @param operations
      */
     private boolean isPowerOfTwo(List<MerkleTree> operations) {
@@ -77,13 +77,13 @@ public class MerkleTreeAlgo {
 
     /**
      * aggregates two args to generate their Hash
-     * 
+     *
      * @param arg0
      * @param arg1
      * @return byte[] generated Hash
      */
     private byte[] compute(byte[] arg0, byte[] arg1) {
-        Digest digest = new Digest(digestType);
+        final Digest digest = new Digest(digestType);
         digest.update(arg0);
         digest.update(arg1);
         return digest.digest();
@@ -91,7 +91,7 @@ public class MerkleTreeAlgo {
 
     /**
      * adds padding when sheet number isn't 2^n
-     * 
+     *
      */
     private void addPadding() {
         if (!isPowerOfTwo(currentList)) {
@@ -102,14 +102,14 @@ public class MerkleTreeAlgo {
     }
 
     /**
-     * 
+     *
      * @return MerkleTree
      */
     public MerkleTree generateMerkle() {
         addPadding();
         MerkleTree tree = Iterables.getFirst(currentList, null);
         while (currentList.size() > 1) {
-            List<MerkleTree> nextList = new ArrayList<>();
+            final List<MerkleTree> nextList = new ArrayList<>();
             for (int i = 0; i < currentList.size(); i = i + 2) {
                 tree = new MerkleTree();
                 tree.setRoot(compute(currentList.get(i).getRoot(), currentList.get(i + 1).getRoot()));

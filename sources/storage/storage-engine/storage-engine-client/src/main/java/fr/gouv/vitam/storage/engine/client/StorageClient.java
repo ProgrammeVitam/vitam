@@ -125,7 +125,7 @@ public interface StorageClient extends BasicClient {
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param guid vitam guid of the object to be returned
-     * @param type 
+     * @param type
      * @return the object requested
      * @throws StorageServerClientException if the Server got an internal error
      * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not

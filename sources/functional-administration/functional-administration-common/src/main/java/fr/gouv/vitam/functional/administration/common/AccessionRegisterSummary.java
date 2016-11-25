@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -70,7 +70,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
 
     /**
      * Constructor
-     * 
+     *
      * @param document
      */
     public AccessionRegisterSummary(Document document) {
@@ -104,7 +104,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterSummary setId(String id) {
-        this.append(VitamDocument.ID, id);
+        append(VitamDocument.ID, id);
         return this;
     }
 
@@ -113,7 +113,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setOriginatingAgency(String orgAgency) {
-        this.append(ORIGINATING_AGENCY, orgAgency);
+        append(ORIGINATING_AGENCY, orgAgency);
         return this;
     }
 
@@ -122,7 +122,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalUnits(RegisterValueDetail totalUnits) {
-        this.append(TOTAL_UNITS, totalUnits);
+        append(TOTAL_UNITS, totalUnits);
         return this;
     }
 
@@ -138,7 +138,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalObjectGroups(RegisterValueDetail totalObjectGroups) {
-        this.append(TOTAL_OBJECTGROUPS, totalObjectGroups);
+        append(TOTAL_OBJECTGROUPS, totalObjectGroups);
         return this;
     }
 
@@ -154,7 +154,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalObjects(RegisterValueDetail total) {
-        this.append(TOTAL_OBJECTS, total);
+        append(TOTAL_OBJECTS, total);
         return this;
     }
 
@@ -170,12 +170,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setObjectSize(RegisterValueDetail objectSize) {
-        this.append(OBJECT_SIZE, objectSize);
+        append(OBJECT_SIZE, objectSize);
         return this;
     }
 
     /**
-     * 
+     *
      * @return String
      */
     public RegisterValueDetail getTotalObjectSize() {
@@ -204,16 +204,16 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setCreationDate(String creationDate) {
-        this.append(CREATION_DATE, creationDate);
+        append(CREATION_DATE, creationDate);
         return this;
     }
 
     /**
-     * 
+     *
      * @return String
      */
     public String getOriginatingAgency() {
-        return this.getString(ORIGINATING_AGENCY);
+        return getString(ORIGINATING_AGENCY);
     }
 
 

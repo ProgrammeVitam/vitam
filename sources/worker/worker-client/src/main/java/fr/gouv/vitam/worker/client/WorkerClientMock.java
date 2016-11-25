@@ -43,9 +43,9 @@ class WorkerClientMock extends AbstractMockClient implements WorkerClient {
         throws WorkerNotFoundClientException, WorkerServerClientException {
         final ItemStatus mockResponse = new ItemStatus("StepId");
 
-        ItemStatus itemStatus = new ItemStatus("ItemId");
+        final ItemStatus itemStatus = new ItemStatus("ItemId");
         itemStatus.setMessage("message");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
 
         mockResponse.setItemsStatus("ItemId", itemStatus);

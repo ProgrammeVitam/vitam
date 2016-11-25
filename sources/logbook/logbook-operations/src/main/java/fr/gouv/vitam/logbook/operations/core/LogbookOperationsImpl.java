@@ -120,9 +120,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     private Select logbookOperationsAfterDateQuery(final LocalDateTime date) throws InvalidCreateOperationException {
 
-        Query parentQuery = QueryHelper.gte("evDateTime", date.toString());
-        Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", date.toString());
-        Select select = new Select();
+        final Query parentQuery = QueryHelper.gte("evDateTime", date.toString());
+        final Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", date.toString());
+        final Select select = new Select();
         select.setQuery(QueryHelper.or().add(parentQuery, sonQuery));
         return select;
     }
@@ -130,10 +130,10 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public LogbookOperation findFirstTraceabilityOperationOKAfterDate(final LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException {
-        Select select = new Select();
-        Query query = QueryHelper.gt("evDateTime", date.toString());
-        Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-        Query status =
+        final Select select = new Select();
+        final Query query = QueryHelper.gt("evDateTime", date.toString());
+        final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
+        final Query status =
             QueryHelper.eq(LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(), "STP_OP_SECURISATION.OK");
         select.setQuery(QueryHelper.and().add(query, type, status));
         select.setLimitFilter(0, 1);
@@ -144,9 +144,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public LogbookOperation findLastTraceabilityOperationOK()
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException {
-        Select select = new Select();
-        Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-        Query findEvent = QueryHelper
+        final Select select = new Select();
+        final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
+        final Query findEvent = QueryHelper
             .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), "STP_OP_SECURISATION.OK");
 
         select.setLimitFilter(0, 1);

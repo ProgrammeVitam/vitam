@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -141,7 +140,7 @@ public class MetaDataImplTest {
         dbRequestFactory = mock(DbRequestFactoryImpl.class);
         PowerMockito.when(DbRequestFactoryImpl.getInstance()).thenReturn(dbRequestFactory);
         when(dbRequestFactory.create()).thenReturn(request);
-        when(mongoDbAccessFactory.create(null)).thenReturn(null);
+        when(MongoDbAccessMetadataFactory.create(null)).thenReturn(null);
 
     }
 
@@ -257,7 +256,7 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        int oldValue = GlobalDatasParser.limitRequest;
+        final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
             metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(createLongString(1001)));
@@ -374,7 +373,7 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_UpdateUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        int oldValue = GlobalDatasParser.limitRequest;
+        final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
             metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
@@ -442,7 +441,7 @@ public class MetaDataImplTest {
         secondUnit.put("description", "MODIFIED description");
         secondSelectResult.addFinal(secondUnit);
 
-        JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
+        final JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
             "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
 
         when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
@@ -453,7 +452,7 @@ public class MetaDataImplTest {
             .updateUnitbyId(updateRequest, "unitId");
         assertEquals(wanted, ret.toString());
 
-        RequestResponseOK response = new RequestResponseOK()
+        final RequestResponseOK response = new RequestResponseOK()
             .setHits(ret.size(), 0, 1)
             .setQuery(updateRequest)
             .addAllResults(ret);

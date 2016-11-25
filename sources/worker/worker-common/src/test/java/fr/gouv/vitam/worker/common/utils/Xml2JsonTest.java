@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -80,8 +80,8 @@ public class Xml2JsonTest {
     @Test
     public void testUsingCurrentImplementation()
         throws IOException, XMLStreamException, FactoryConfigurationError, InvalidParseOperationException {
-        XMLEventReader reader = getXMLEventReader();
-        String elementGuid = GUIDFactory.newGUID().getId();
+        final XMLEventReader reader = getXMLEventReader();
+        final String elementGuid = GUIDFactory.newGUID().getId();
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + JSON_EXTENSION);
         final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
         final FileWriter tmpFileWriter = new FileWriter(tmpFile);
@@ -92,7 +92,7 @@ public class Xml2JsonTest {
         reader.close();
         tmpFileWriter.close();
         LOGGER.warn(FileUtil.readFile(tmpFile));
-        JsonNode json = JsonHandler.getFromFile(tmpFile);
+        final JsonNode json = JsonHandler.getFromFile(tmpFile);
         LOGGER.warn(JsonHandler.prettyPrint(json));
         assertFalse(json.get("Aaa").get("Bbb").isArray());
     }
@@ -100,8 +100,8 @@ public class Xml2JsonTest {
     @Test
     public void testUsingStaxonExtended()
         throws IOException, XMLStreamException, FactoryConfigurationError, InvalidParseOperationException {
-        XMLEventReader reader = getXMLEventReader();
-        String elementGuid = GUIDFactory.newGUID().getId();
+        final XMLEventReader reader = getXMLEventReader();
+        final String elementGuid = GUIDFactory.newGUID().getId();
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + JSON_EXTENSION);
         final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
             .namespaceDeclarations(false).build();
@@ -113,7 +113,7 @@ public class Xml2JsonTest {
         reader.close();
         tmpFileWriter.close();
         LOGGER.warn(FileUtil.readFile(tmpFile));
-        JsonNode json = JsonHandler.getFromFile(tmpFile);
+        final JsonNode json = JsonHandler.getFromFile(tmpFile);
         LOGGER.warn(JsonHandler.prettyPrint(json));
         assertFalse(json.get("Aaa").get("Bbb").isArray());
         assertTrue(json.get("Aaa").get("Ddd").get("Bbb").size() == 3);
@@ -121,8 +121,8 @@ public class Xml2JsonTest {
 
     @Test
     public void testUsingJSONObject() throws InvalidParseOperationException {
-        JSONObject xml = XML.toJSONObject(XML_SRC);
-        JsonNode json = JsonHandler.getFromString(xml.toString());
+        final JSONObject xml = XML.toJSONObject(XML_SRC);
+        final JsonNode json = JsonHandler.getFromString(xml.toString());
         LOGGER.warn(JsonHandler.prettyPrint(json));
         assertTrue(json.get("Aaa").get("Bbb").isArray());
         assertTrue(json.get("Aaa").get("Bbb").size() == 4);
@@ -133,17 +133,17 @@ public class Xml2JsonTest {
     @Test
     public void testUsingJSONObjectVitam() throws InvalidParseOperationException {
         fr.gouv.vitam.worker.common.utils.XML.ARRAY_PATH.addAll(Arrays.asList("Eee", "Ggg", "Ddd", "Bbb"));
-        JSONObject xml = fr.gouv.vitam.worker.common.utils.XML.toJSONObject(XML_SRC);
-        JsonNode json = JsonHandler.getFromString(xml.toString());
+        final JSONObject xml = fr.gouv.vitam.worker.common.utils.XML.toJSONObject(XML_SRC);
+        final JsonNode json = JsonHandler.getFromString(xml.toString());
         LOGGER.warn(JsonHandler.prettyPrint(json));
         assertTrue(json.get("Aaa").get("Bbb").isArray());
         assertTrue(json.get("Aaa").get("Bbb").size() == 4);
         assertTrue(json.get("Aaa").get("Ddd").size() == 1);
         assertTrue(json.get("Aaa").get("Ddd").get(0).get("Bbb").size() == 3);
         LOGGER.warn(fr.gouv.vitam.worker.common.utils.XML.toString(xml));
-        JSONObject xml2 =
+        final JSONObject xml2 =
             fr.gouv.vitam.worker.common.utils.XML.toJSONObject(fr.gouv.vitam.worker.common.utils.XML.toString(xml));
-        JsonNode json2 = JsonHandler.getFromString(xml2.toString());
+        final JsonNode json2 = JsonHandler.getFromString(xml2.toString());
         LOGGER.warn(JsonHandler.prettyPrint(json2));
         assertEquals(JsonHandler.prettyPrint(json), JsonHandler.prettyPrint(json2));
     }

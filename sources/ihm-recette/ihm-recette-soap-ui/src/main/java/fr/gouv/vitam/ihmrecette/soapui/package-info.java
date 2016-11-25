@@ -28,6 +28,6 @@ package fr.gouv.vitam.ihmrecette.soapui;
 
 /**
  * SoapUI tools for launch tests and get results
- * 
+ *
  */
 

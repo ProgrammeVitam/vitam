@@ -45,8 +45,8 @@ public class SSLKey {
     }
 
     /**
-     * @param keyPath 
-     * @param keyPassword 
+     * @param keyPath
+     * @param keyPassword
      * @throws IllegalArgumentException if keyPath/keyPassword is null or empty
      */
     public SSLKey(String keyPath, String keyPassword) {

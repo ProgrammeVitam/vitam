@@ -65,28 +65,28 @@ public class InQuery extends fr.gouv.vitam.common.database.builder.query.InQuery
         for (final JsonNode value : array) {
             if (value.isBoolean()) {
                 if (booleanVals == null) {
-                    booleanVals = new HashSet<Boolean>();
+                    booleanVals = new HashSet<>();
                 }
                 booleanVals.add(value.asBoolean());
             } else if (value.isDouble()) {
                 if (doubleVals == null) {
-                    doubleVals = new HashSet<Double>();
+                    doubleVals = new HashSet<>();
                 }
                 doubleVals.add(value.asDouble());
             } else if (value.canConvertToLong()) {
                 if (longVals == null) {
-                    longVals = new HashSet<Long>();
+                    longVals = new HashSet<>();
                 }
                 longVals.add(value.asLong());
             } else if (value.has(Query.DATE)) {
                 final String date = value.get(Query.DATE).asText();
                 if (stringVals == null) {
-                    stringVals = new HashSet<String>();
+                    stringVals = new HashSet<>();
                 }
                 stringVals.add(date);
             } else {
                 if (stringVals == null) {
-                    stringVals = new HashSet<String>();
+                    stringVals = new HashSet<>();
                 }
                 stringVals.add(value.asText());
             }

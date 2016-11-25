@@ -58,10 +58,10 @@ import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationRe
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server2.benchmark.BenchmarkConfiguration;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 
 public class DefaultSslClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);
@@ -159,8 +159,8 @@ public class DefaultSslClientTest {
 
     @Test
     public void testClientBuilder() throws Exception {
-        SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
-        ArrayList<SSLKey> truststore = new ArrayList<SSLKey>();
+        final SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
+        final ArrayList<SSLKey> truststore = new ArrayList<>();
         truststore.add(key);
         final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
         final SecureClientConfiguration configuration =
@@ -201,7 +201,7 @@ public class DefaultSslClientTest {
 
     @Test
     public void givenCertifValidThenReturnOK() {
-        SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
+        final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
@@ -227,7 +227,7 @@ public class DefaultSslClientTest {
 
     @Test
     public void givenCertifNotGrantedThenReturnForbidden() {
-        SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
+        final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
         configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
@@ -243,14 +243,13 @@ public class DefaultSslClientTest {
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
             fail("Should Raized an exception");
-        } catch (final VitamException e) {
-        }
+        } catch (final VitamException e) {}
     }
 
 
     @Test
     public void givenCertifExpiredThenRaiseAnException() throws VitamException {
-        SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
+        final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
@@ -267,7 +266,7 @@ public class DefaultSslClientTest {
             client.checkStatus();
             fail("SHould Raized an exception");
         } catch (final VitamException e) {
-            
+
         }
     }
 

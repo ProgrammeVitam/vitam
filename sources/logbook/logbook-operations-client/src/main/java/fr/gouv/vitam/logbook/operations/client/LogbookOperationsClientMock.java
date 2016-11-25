@@ -121,7 +121,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     public void bulkCreate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookOperationParameters> iterator = queue.iterator();
+            final Iterator<LogbookOperationParameters> iterator = queue.iterator();
             if (iterator.hasNext()) {
                 logInformation(CREATE, iterator.next());
                 while (iterator.hasNext()) {
@@ -139,7 +139,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     public void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookOperationParameters> iterator = queue.iterator();
+            final Iterator<LogbookOperationParameters> iterator = queue.iterator();
             while (iterator.hasNext()) {
                 logInformation(UPDATE, iterator.next());
             }
@@ -152,13 +152,13 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
     @Override
     public void commitCreateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
         bulkCreate(eventIdProc, queue);
     }
 
     @Override
     public void commitUpdateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
         bulkUpdate(eventIdProc, queue);
     }
 

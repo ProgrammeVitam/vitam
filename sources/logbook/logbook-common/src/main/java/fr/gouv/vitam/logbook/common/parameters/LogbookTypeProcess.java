@@ -60,8 +60,8 @@ public enum LogbookTypeProcess {
      */
     MASTERDATA,
     /**
-     * traceabiliy  type process
+     * traceabiliy type process
      */
     TRACEABILITY
-    
+
 }

@@ -219,7 +219,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO ioParam) {
         checkMandatoryParameters(params);
         handlerIO = ioParam;
-        ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
+        final ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             checkMandatoryIOParameter(ioParam);
@@ -236,7 +236,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
 
-        } catch (CycleFoundException e) {
+        } catch (final CycleFoundException e) {
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } finally {
@@ -331,7 +331,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart()
                         .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
-                    String orgAgId = reader.getElementText();
+                    final String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
@@ -343,7 +343,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart()
                         .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
-                    String orgAgId = reader.getElementText();
+                    final String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
@@ -460,7 +460,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (XMLStreamException e) {
+                } catch (final XMLStreamException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
@@ -470,9 +470,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void parseMetadataManagementRules(XMLEventReader reader, StartElement element, String currentRuleInProcess)
         throws ProcessingException {
         try {
-            StringWriter stringWriterRule = new StringWriter();
-            XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-            XMLEventWriter xw =
+            final StringWriter stringWriterRule = new StringWriter();
+            final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
+            final XMLEventWriter xw =
                 xmlOutputFactory.createXMLEventWriter(stringWriterRule);
             final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
             String currentRuleId = null;
@@ -484,7 +484,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 XMLEvent event = reader.nextEvent();
 
                 if (event.isEndElement() &&
-                    (currentRuleInProcess.equalsIgnoreCase(((EndElement) event).getName().getLocalPart()))) {
+                    currentRuleInProcess.equalsIgnoreCase(((EndElement) event).getName().getLocalPart())) {
                     xw.add(event);
 
                     // Add to map
@@ -536,7 +536,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // 1- Update created Unit life cycles
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
-                LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
+                final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
                 llcp.setBeginningLog(HANDLER_ID, null, null);
                 logbookLifeCycleClient.update(llcp);
 
@@ -562,7 +562,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // management rules id to add
             Set<String> globalMgtIdExtra = null;
             while (true) {
-                XMLEvent event = reader.nextEvent();
+                final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
                     startCopy = true;
                 }
@@ -608,7 +608,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             }
                         }
 
-                        StringBuilder rules = new StringBuilder();
+                        final StringBuilder rules = new StringBuilder();
                         if (!Strings.isNullOrEmpty(listRulesForCurrentUnit)) {
                             rules.append(listRulesForCurrentUnit);
                         }
@@ -623,20 +623,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                         writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
                     } else if (event.isEndElement() &&
-                        (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart()))) {
+                        SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart())) {
 
                         if (isRootArchive && globalMgtIdExtra != null) {
-                            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+                            final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 
                             // Add inherited rules from Management bloc
-                            for (String id : globalMgtIdExtra) {
-                                StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(id);
-                                StringReader stringReader = new StringReader(stringWriter.toString());
-                                XMLEventReader xmlEventReaderRule =
+                            for (final String id : globalMgtIdExtra) {
+                                final StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(id);
+                                final StringReader stringReader = new StringReader(stringWriter.toString());
+                                final XMLEventReader xmlEventReaderRule =
                                     inputFactory.createXMLEventReader(stringReader);
                                 boolean startCopyRule = false;
                                 while (true) {
-                                    XMLEvent eventRule = xmlEventReaderRule.nextEvent();
+                                    final XMLEvent eventRule = xmlEventReaderRule.nextEvent();
                                     if (eventRule.isStartElement() &&
                                         GLOBAL_MGT_RULE_TAG
                                             .equals(eventRule.asStartElement().getName().getLocalPart())) {
@@ -681,9 +681,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private String getListOfRulesFormater(Set<String> rulesId) {
-        StringBuilder sbRules = new StringBuilder();
+        final StringBuilder sbRules = new StringBuilder();
         if (rulesId != null) {
-            for (String ruleId : rulesId) {
+            for (final String ruleId : rulesId) {
                 sbRules.append(ruleId).append(SedaConstants.RULE_SEPARATOR);
             }
         }
@@ -775,7 +775,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             final Iterator<?> it = startElement.getAttributes();
             String binaryObjectId = "";
-            BinaryObjectInfo bo = new BinaryObjectInfo();
+            final BinaryObjectInfo bo = new BinaryObjectInfo();
 
             if (it.hasNext()) {
                 binaryObjectId = ((Attribute) it.next()).getValue();
@@ -882,8 +882,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             final Iterator<?> it1 = event.asStartElement().getAttributes();
 
                             if (it1.hasNext()) {
-                                String al = ((Attribute) it1.next()).getValue();
-                                DigestType d = DigestType.fromValue(al);
+                                final String al = ((Attribute) it1.next()).getValue();
+                                final DigestType d = DigestType.fromValue(al);
                                 bo.setAlgo(d);
                             }
                             break;
@@ -951,8 +951,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         JsonNode objectNode = mapNewTechnicalDataObjectGroupToBDO(jsonBDO, binaryDataOjectId);
         objectNode = addExtraField(objectNode);
         // No check on objectNode BINARY_DATA_OBJECT node, cannot be null or empty
-        binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId, objectNode.get(BINARY_DATA_OBJECT).get
-            (SedaConstants.TAG_DO_VERSION).textValue());
+        binaryDataObjectIdToVersionDataObject.put(binaryDataOjectId,
+            objectNode.get(BINARY_DATA_OBJECT).get(SedaConstants.TAG_DO_VERSION).textValue());
         JsonHandler.writeAsFile(objectNode,
             handlerIO.getNewLocalFile(jsonFileName)); // write the new BinaryDataObject
         return objectNode;
@@ -1319,9 +1319,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 } else if (event.isStartElement() && ruleTag.equals(event.asStartElement().getName())) {
                     Set<String> setRuleIds = unitIdToSetOfRuleId.get(elementID);
                     if (setRuleIds == null) {
-                        setRuleIds = new HashSet<String>();
+                        setRuleIds = new HashSet<>();
                     }
-                    String idRule = reader.getElementText();
+                    final String idRule = reader.getElementText();
                     setRuleIds.add(idRule);
                     unitIdToSetOfRuleId.put(elementID, setRuleIds);
 
@@ -1397,7 +1397,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, 0);
-                List<String> versionList = new ArrayList<>();
+                final List<String> versionList = new ArrayList<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);
                     final File binaryObjectFile =
@@ -1414,14 +1414,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategory.split("_").length == 1) {
-                        String nodeCategoryNumbered = nodeCategory + "_1";
+                        final String nodeCategoryNumbered = nodeCategory + "_1";
                         ((ObjectNode) binaryNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
                     }
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<>();
                         nodeCategoryArray.add(binaryNode);
                     } else {
-                        int binaryNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) - 1;
+                        final int binaryNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) - 1;
                         nodeCategoryArray.add(binaryNodePosition, binaryNode);
                     }
                     categoryMap.put(nodeCategory, nodeCategoryArray);
@@ -1509,7 +1509,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (final JsonNode node : entry.getValue()) {
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
-                String guid = binaryDataObjectIdToGuid.get(id);
+                final String guid = binaryDataObjectIdToGuid.get(id);
                 ((ObjectNode) node).put(SedaConstants.PREFIX_ID, guid);
                 ((ObjectNode) node).put(SedaConstants.TAG_SIZE, objectGuidToBinaryObject.get(guid).getSize());
                 ((ObjectNode) node).put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(guid).getUri());

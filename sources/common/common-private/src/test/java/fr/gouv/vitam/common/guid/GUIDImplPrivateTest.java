@@ -353,7 +353,7 @@ public class GUIDImplPrivateTest {
         int n;
 
         public Generator(final int n, final GUIDImplPrivate[] UUIDs, final int base) {
-            this. n = n;
+            this.n = n;
             this.UUIDs = UUIDs;
             this.base = base;
         }

@@ -100,9 +100,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
-        Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
-        AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-        ResponseBuilder responseBuilder =
+        final Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
+        final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+        final ResponseBuilder responseBuilder =
             Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
         helper.writeResponse(responseBuilder);
         return response;

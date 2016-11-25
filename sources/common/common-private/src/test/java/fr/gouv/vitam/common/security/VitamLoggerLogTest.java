@@ -30,32 +30,32 @@ import org.junit.Test;
 
 public class VitamLoggerLogTest {
     // The class is currently a dummy log class needed by ESAPI . We make dummy unit tests .
-    // TODO P1 : If the VitamLoggerLog become a 'real' class, the unit test must be improved 
+    // TODO P1 : If the VitamLoggerLog become a 'real' class, the unit test must be improved
     @Test
-    public void test_getter_setter(){
-        VitamLoggerLog vll = new VitamLoggerLog(null);
+    public void test_getter_setter() {
+        final VitamLoggerLog vll = new VitamLoggerLog(null);
         vll.setLevel(0);
         vll.getESAPILevel();
-        vll.fatal(null,null);
-        vll.fatal(null,null,null);
+        vll.fatal(null, null);
+        vll.fatal(null, null, null);
         vll.isFatalEnabled();
-        vll.error(null,null);
-        vll.error(null,null,null);
+        vll.error(null, null);
+        vll.error(null, null, null);
         vll.isErrorEnabled();
-        vll.warning(null,null);
-        vll.warning(null,null,null);
+        vll.warning(null, null);
+        vll.warning(null, null, null);
         vll.isWarningEnabled();
-        vll.info(null,null);
-        vll.info(null,null,null);
+        vll.info(null, null);
+        vll.info(null, null, null);
         vll.isInfoEnabled();
-        vll.debug(null,null);
-        vll.debug(null,null,null);
+        vll.debug(null, null);
+        vll.debug(null, null, null);
         vll.isDebugEnabled();
-        vll.trace(null,null);
-        vll.trace(null,null,null);
+        vll.trace(null, null);
+        vll.trace(null, null, null);
         vll.isTraceEnabled();
-        vll.always(null,null);
-        vll.always(null,null,null);
+        vll.always(null, null);
+        vll.always(null, null, null);
     }
 
 }

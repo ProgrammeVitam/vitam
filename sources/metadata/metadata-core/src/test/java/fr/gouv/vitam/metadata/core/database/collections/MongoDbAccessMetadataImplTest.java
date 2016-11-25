@@ -95,12 +95,12 @@ public class MongoDbAccessMetadataImplTest {
     public static void setup() throws IOException, VitamException {
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
@@ -114,10 +114,10 @@ public class MongoDbAccessMetadataImplTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccessFactory = new MongoDbAccessMetadataFactory();
-        
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess = mongoDbAccessFactory
+        mongoDbAccess = MongoDbAccessMetadataFactory
             .create(new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes));
 
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();

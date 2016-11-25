@@ -290,7 +290,7 @@ public class StorageClientIT {
              * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (Exception svce) { // not yet implemented }
              */
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }

@@ -299,7 +299,7 @@ public class DbRequest {
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.C_OBJECTGROUP,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        final Set<String> newRoots = new HashSet<String>();
+        final Set<String> newRoots = new HashSet<>();
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final ObjectGroup og = cursor.next();
@@ -336,7 +336,7 @@ public class DbRequest {
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
-        final Set<String> newRoots = new HashSet<String>();
+        final Set<String> newRoots = new HashSet<>();
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
@@ -594,7 +594,7 @@ public class DbRequest {
         final AggregateIterable<Unit> aggregateIterable =
             MetadataCollections.C_UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
         if (aggregate != null) {
             @SuppressWarnings("unchecked")
             final List<Map<String, Integer>> array = (List<Map<String, Integer>>) aggregate.get("deptharray");
@@ -799,9 +799,9 @@ public class DbRequest {
 
     /**
      * indexFieldsUpdated : Update index related to Fields updated
-     * 
+     *
      * @param last : contains the Result to be indexed
-     * 
+     *
      * @throws Exception
      */
     private void indexFieldsUpdated(Result last) throws Exception {
@@ -810,9 +810,9 @@ public class DbRequest {
             return;
         }
         if (last.getCurrentIds().size() == 1) {
-            finalQuery = eq(Unit.ID, last.getCurrentIds().iterator().next());
+            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
         } else {
-            finalQuery = in(Unit.ID, last.getCurrentIds());
+            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper

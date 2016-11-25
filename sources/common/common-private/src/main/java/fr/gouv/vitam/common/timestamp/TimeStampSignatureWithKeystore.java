@@ -70,11 +70,11 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
 
     private final DigestCalculatorProvider digestCalculatorProvider;
     private PrivateKey key;
-    private String tspPolicy;
+    private final String tspPolicy;
     private Certificate[] certificateChain;
 
     /**
-     * @param pkcs12Path       file link to pkcs12 keystore
+     * @param pkcs12Path file link to pkcs12 keystore
      * @param keystorePassword
      * @throws KeyStoreException
      * @throws CertificateException
@@ -86,12 +86,12 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
         throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
         UnrecoverableKeyException {
 
-        this.digestCalculatorProvider = new BcDigestCalculatorProvider();
+        digestCalculatorProvider = new BcDigestCalculatorProvider();
 
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        final KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
         try (FileInputStream fileInputStream = new FileInputStream(pkcs12Path)) {
-            String alias = loadKeystoreAndfindUniqueAlias(keystorePassword, keyStore, fileInputStream);
+            final String alias = loadKeystoreAndfindUniqueAlias(keystorePassword, keyStore, fileInputStream);
 
             key = (PrivateKey) keyStore.getKey(alias, keystorePassword);
             certificateChain = keyStore.getCertificateChain(alias);
@@ -105,8 +105,8 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
         throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
         keyStore.load(fileInputStream, keystorePassword);
 
-        Enumeration<String> aliases = keyStore.aliases();
-        String alias = aliases.nextElement();
+        final Enumeration<String> aliases = keyStore.aliases();
+        final String alias = aliases.nextElement();
         if (aliases.hasMoreElements()) {
             throw new IllegalArgumentException("Keystore has many key");
         }
@@ -123,23 +123,24 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
     @Override
     public TimeStampResponse sign(TimeStampRequest request)
         throws OperatorCreationException, TSPException, CertificateEncodingException {
-        DigestCalculator digestCalculator =
+        final DigestCalculator digestCalculator =
             digestCalculatorProvider.get(new AlgorithmIdentifier(request.getMessageImprintAlgOID()));
-        String tspAlgorithm = computeTspAlgorithm(key, VitamConfiguration.getDefaultTimestampDigestType());
+        final String tspAlgorithm = computeTspAlgorithm(key, VitamConfiguration.getDefaultTimestampDigestType());
 
-        SignerInfoGenerator signerInfoGen =
+        final SignerInfoGenerator signerInfoGen =
             new JcaSimpleSignerInfoGeneratorBuilder().build(tspAlgorithm, key, (X509Certificate) certificateChain[0]);
 
-        ASN1ObjectIdentifier tsaPolicy = new ASN1ObjectIdentifier(tspPolicy);
+        final ASN1ObjectIdentifier tsaPolicy = new ASN1ObjectIdentifier(tspPolicy);
 
-        TimeStampTokenGenerator tokenGen = new TimeStampTokenGenerator(signerInfoGen, digestCalculator, tsaPolicy);
+        final TimeStampTokenGenerator tokenGen =
+            new TimeStampTokenGenerator(signerInfoGen, digestCalculator, tsaPolicy);
 
         tokenGen.addCertificates(new CollectionStore<>(Arrays.asList(certificateChain)));
 
-        TimeStampResponseGenerator timeStampResponseGenerator =
+        final TimeStampResponseGenerator timeStampResponseGenerator =
             new TimeStampResponseGenerator(tokenGen, TSPAlgorithms.ALLOWED);
 
-        Date currentDate = LocalDateUtil.getDate(LocalDateUtil.now());
+        final Date currentDate = LocalDateUtil.getDate(LocalDateUtil.now());
 
         return timeStampResponseGenerator.generate(request, BigInteger.ONE, currentDate);
     }

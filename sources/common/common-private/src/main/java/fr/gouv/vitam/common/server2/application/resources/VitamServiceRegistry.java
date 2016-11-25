@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -54,9 +54,9 @@ public class VitamServiceRegistry {
     private static final String SERVICE_IS_UNAVAILABLE = " service is unavailable";
     private static final String SERVICE_IS_AVAILABLE = " service is available";
 
-    private List<VitamClientFactoryInterface<?>> clientFactories = new ArrayList<>();
-    private List<VitamClientFactoryInterface<?>> clientOptionalFactories = new ArrayList<>();
-    private List<DatabaseConnection> databaseFactories = new ArrayList<>();
+    private final List<VitamClientFactoryInterface<?>> clientFactories = new ArrayList<>();
+    private final List<VitamClientFactoryInterface<?>> clientOptionalFactories = new ArrayList<>();
+    private final List<DatabaseConnection> databaseFactories = new ArrayList<>();
     private VitamStatusService applicationStatus = new BasicVitamStatusServiceImpl();
 
     /**
@@ -68,7 +68,7 @@ public class VitamServiceRegistry {
 
     /**
      * Register one Client factory
-     * 
+     *
      * @param factory Http Client Factory
      * @return this
      */
@@ -81,7 +81,7 @@ public class VitamServiceRegistry {
 
     /**
      * Register one Optional Client factory
-     * 
+     *
      * @param factory optional Http Client Factory
      * @return this
      */
@@ -94,7 +94,7 @@ public class VitamServiceRegistry {
 
     /**
      * Register one Database
-     * 
+     *
      * @param database database connection
      * @return this
      */
@@ -107,7 +107,7 @@ public class VitamServiceRegistry {
 
     /**
      * Register the Status service of this application (unique)
-     * 
+     *
      * @param service
      * @return this
      */
@@ -119,7 +119,7 @@ public class VitamServiceRegistry {
     }
 
     /**
-     * 
+     *
      * @return the number of registered services, including itself
      */
     public int getRegisteredServices() {
@@ -134,15 +134,15 @@ public class VitamServiceRegistry {
      * @return boolean
      */
     public boolean getResourcesStatus() {
-        for (VitamClientFactoryInterface<?> factory : clientFactories) {
+        for (final VitamClientFactoryInterface<?> factory : clientFactories) {
             try (MockOrRestClient client = factory.getClient()) {
                 client.checkStatus();
-            } catch (VitamApplicationServerException e) {
+            } catch (final VitamApplicationServerException e) {
                 LOGGER.info("Can't connect to factory: " + factory.toString(), e);
                 return false;
             }
         }
-        for (DatabaseConnection database : databaseFactories) {
+        for (final DatabaseConnection database : databaseFactories) {
             if (!database.checkConnection()) {
                 LOGGER.info("Can't connect to database: " + database.toString());
                 return false;
@@ -153,7 +153,7 @@ public class VitamServiceRegistry {
 
     /**
      * Check all the registered dependencies, except optional
-     * 
+     *
      * @param retry the number retry in case of unavailability
      * @param retryDelay the delay in ms between each retry
      * @throws VitamApplicationServerException if any of the dependencies are unavailable
@@ -167,7 +167,7 @@ public class VitamServiceRegistry {
             }
             Thread.sleep(retryDelay);
         }
-        String status =
+        final String status =
             "Dependencies in error after " + retry + " checks : " + JsonHandler.prettyPrint(getAutotestStatus());
         LOGGER.error(status);
         throw new VitamApplicationServerException(status);
@@ -182,21 +182,21 @@ public class VitamServiceRegistry {
      * @return ServerIdentity
      */
     public ObjectNode getAutotestStatus() {
-        VitamError status = new VitamError("000000").setDescription(ServerIdentity.getInstance().getName())
+        final VitamError status = new VitamError("000000").setDescription(ServerIdentity.getInstance().getName())
             .setContext(ServerIdentity.getInstance().getRole());
         int test = 0;
         boolean globalStatus = true;
-        List<VitamError> list = new ArrayList<>();
-        for (VitamClientFactoryInterface<?> factory : clientFactories) {
+        final List<VitamError> list = new ArrayList<>();
+        for (final VitamClientFactoryInterface<?> factory : clientFactories) {
             test++;
-            String name = StringUtils.getClassName(factory);
-            VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
+            final String name = StringUtils.getClassName(factory);
+            final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             try (MockOrRestClient client = factory.getClient()) {
                 client.checkStatus();
                 sub.setDescription(name + SERVICE_IS_AVAILABLE)
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
-            } catch (VitamApplicationServerException e) {
+            } catch (final VitamApplicationServerException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 LOGGER.warn(
                     "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
@@ -207,16 +207,16 @@ public class VitamServiceRegistry {
             }
             list.add(sub);
         }
-        for (VitamClientFactoryInterface<?> factory : clientOptionalFactories) {
+        for (final VitamClientFactoryInterface<?> factory : clientOptionalFactories) {
             test++;
-            String name = StringUtils.getClassName(factory);
-            VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
+            final String name = StringUtils.getClassName(factory);
+            final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             try (MockOrRestClient client = factory.getClient()) {
                 client.checkStatus();
                 sub.setDescription(name + SERVICE_IS_AVAILABLE)
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
-            } catch (VitamApplicationServerException e) {
+            } catch (final VitamApplicationServerException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 LOGGER.warn("Can't connect to Optional factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" +
                     e.getMessage());
@@ -228,10 +228,10 @@ public class VitamServiceRegistry {
             }
             list.add(sub);
         }
-        for (DatabaseConnection database : databaseFactories) {
+        for (final DatabaseConnection database : databaseFactories) {
             test++;
-            String name = StringUtils.getClassName(database);
-            VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
+            final String name = StringUtils.getClassName(database);
+            final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             if (database.checkConnection()) {
                 sub.setDescription(name + SERVICE_IS_AVAILABLE)
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
@@ -246,7 +246,7 @@ public class VitamServiceRegistry {
             list.add(sub);
         }
         test++;
-        VitamError sub = new VitamError(Integer.toString(test)).setContext(status.getContext());
+        final VitamError sub = new VitamError(Integer.toString(test)).setContext(status.getContext());
         if (applicationStatus.getResourcesStatus()) {
             sub.setHttpCode(Status.OK.getStatusCode()).setMessage("Internal" + SERVICE_IS_AVAILABLE)
                 .setDescription(status.getDescription() + SERVICE_IS_AVAILABLE)

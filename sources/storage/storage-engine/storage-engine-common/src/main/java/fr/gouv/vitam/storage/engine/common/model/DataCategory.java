@@ -34,7 +34,7 @@ public enum DataCategory {
     /**
      * Archive Unit
      */
-    UNIT("unit"), 
+    UNIT("unit"),
     /**
      * Binary Object
      */
@@ -42,7 +42,7 @@ public enum DataCategory {
     /**
      * Object Group
      */
-    OBJECT_GROUP("objectGroup"), 
+    OBJECT_GROUP("objectGroup"),
     /**
      * Logbook (any)
      */

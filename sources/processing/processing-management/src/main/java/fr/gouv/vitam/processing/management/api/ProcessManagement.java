@@ -49,7 +49,7 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * @throws WorkflowNotFoundException thrown if the workflow was not found
      * @throws ProcessingException thrown in case of a technical exception in the execution
      * @throws IllegalArgumentException thrown in case parameters workParams or workflowId are null
-     * 
+     *
      */
     ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
 }

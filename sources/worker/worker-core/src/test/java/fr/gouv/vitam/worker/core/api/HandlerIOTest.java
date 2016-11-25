@@ -55,10 +55,10 @@ public class HandlerIOTest {
         final HandlerIOImpl io = new HandlerIOImpl(GUIDFactory.newGUID().getId(), GUIDFactory.newGUID().getId());
         assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
         final File file = PropertiesUtils.getResourceFile("sip.xml");
-        List<IOParameter> in = new ArrayList<>();
-        ProcessingUri uri = new ProcessingUri(UriPrefix.MEMORY, "file");
+        final List<IOParameter> in = new ArrayList<>();
+        final ProcessingUri uri = new ProcessingUri(UriPrefix.MEMORY, "file");
         in.add(new IOParameter().setUri(uri));
-        List<IOParameter> out = new ArrayList<>();
+        final List<IOParameter> out = new ArrayList<>();
         out.add(new IOParameter().setUri(uri));
         // First create a Memory out
         io.addOutIOParameters(out);
@@ -72,7 +72,7 @@ public class HandlerIOTest {
         assertEquals(1, io.getInput().size());
         assertEquals(io.getInput().get(0), file);
         assertEquals(io.getInput(0), file);
-        List<Class<?>> clasz = new ArrayList<>();
+        final List<Class<?>> clasz = new ArrayList<>();
         clasz.add(File.class);
         assertTrue(io.checkHandlerIO(1, clasz));
         assertFalse(io.checkHandlerIO(1, new ArrayList<>()));
@@ -100,13 +100,13 @@ public class HandlerIOTest {
 
         try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
-            List<IOParameter> in = new ArrayList<>();
+            final List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
-            List<IOParameter> out = new ArrayList<>();
+            final List<IOParameter> out = new ArrayList<>();
             out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")));
             io.addInIOParameters(in);
             io.addOutIOParameters(out);
-            Object object = io.getInput(0);
+            final Object object = io.getInput(0);
             assertEquals(File.class, object.getClass());
 
             io.addOuputResult(0, object, true);
@@ -121,21 +121,21 @@ public class HandlerIOTest {
 
         final HandlerIOImpl io = new HandlerIOImpl("containerName", "workerId");
         assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
-        List<IOParameter> in = new ArrayList<>();
+        final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
 
         final HandlerIOImpl io2 = new HandlerIOImpl("containerName", "workerId2");
         assertTrue(io2.checkHandlerIO(0, new ArrayList<>()));
 
         io.addInIOParameters(in);
-        Object object = io.getInput(0);
+        final Object object = io.getInput(0);
         assertEquals(File.class, object.getClass());
         assertTrue(((File) object).exists());
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
         io2.addInIOParameters(in);
-        Object object2 = io2.getInput(0);
+        final Object object2 = io2.getInput(0);
         assertEquals(File.class, object2.getClass());
         assertTrue(((File) object2).exists());
         io.close();
@@ -152,7 +152,7 @@ public class HandlerIOTest {
 
         try (final HandlerIO io = new HandlerIOImpl("containerName", "workerId")) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
-            List<IOParameter> in = new ArrayList<>();
+            final List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(false));
             io.addInIOParameters(in);
         }

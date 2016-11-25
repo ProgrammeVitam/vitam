@@ -164,9 +164,11 @@ public interface ContentAddressableStorage {
     /**
      * Retrieves an object representing the data at location containerName/objectName
      * <p>
-     * <b>WARNING</b> : use this method only if the response has to be consumed right away. 
-     * If the response has to be forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync} instead
+     * <b>WARNING</b> : use this method only if the response has to be consumed right away. If the response has to be
+     * forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync}
+     * instead
      * </p>
+     *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
      * @return the object you intended to receive
@@ -178,7 +180,7 @@ public interface ContentAddressableStorage {
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
-    
+
     // TODO P1 : getObjectAsync should replace getObject in the future. and getObject uses should be reviewed
     /**
      * Retrieves an object representing the data at location containerName/objectName

@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * 	Processing Management API package
+ * Processing Management API package
  *
  */
 package fr.gouv.vitam.processing.management.api;

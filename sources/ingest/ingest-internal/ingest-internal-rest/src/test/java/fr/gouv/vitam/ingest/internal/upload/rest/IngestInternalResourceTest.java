@@ -96,8 +96,8 @@ public class IngestInternalResourceTest {
     private static WorkspaceClient workspaceClient;
     private static ProcessingManagementClient processingClient;
 
-    private List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
-    private List<LogbookParameters> operationList2 = new ArrayList<LogbookParameters>();
+    private List<LogbookParameters> operationList = new ArrayList<>();
+    private List<LogbookParameters> operationList2 = new ArrayList<>();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -243,11 +243,11 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
 
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).uncompressObject(Matchers.anyObject(), Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject());
 
         final GUID processId = GUIDFactory.newGUID();
 
@@ -292,7 +292,7 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageCompressedFileException("Test")).when(workspaceClient)
-            .uncompressObject(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
+            .uncompressObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
 
         final GUID processId = GUIDFactory.newGUID();
         final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);

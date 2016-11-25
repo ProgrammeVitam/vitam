@@ -86,7 +86,7 @@ public class ReferentialFormatFileImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(

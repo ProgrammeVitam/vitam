@@ -46,7 +46,7 @@ public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * Getter : path of the root directory to serve static files from
-     * 
+     *
      * @return the path
      */
     public String getDirectoryPath() {
@@ -55,7 +55,7 @@ public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * Setter : path of the root directory to serve static files from
-     * 
+     *
      * @param directoryPath Root path
      */
     public void setDirectoryPath(String directoryPath) {

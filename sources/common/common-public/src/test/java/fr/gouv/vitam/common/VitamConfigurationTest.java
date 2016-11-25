@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 public class VitamConfigurationTest {
 
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
-    private static final String SECRET="vitamsecret";
+    private static final String SECRET = "vitamsecret";
 
     @Test
     public void testPojo() {
@@ -89,17 +89,17 @@ public class VitamConfigurationTest {
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
-        
-        vitamConfiguration2.setSecret(SECRET);
-        vitamConfiguration2.setFilterActivation(true);
-        
+
+        VitamConfiguration.setSecret(SECRET);
+        VitamConfiguration.setFilterActivation(true);
+
         assertEquals(SECRET, VitamConfiguration.getSecret());
         assertEquals(true, VitamConfiguration.isFilterActivation());
-        
+
         assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
         assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
         assertEquals(DigestType.SHA512, VitamConfiguration.getDefaultDigestType());
-        
+
 
         try {
             vitamConfiguration2.setConfig(null);

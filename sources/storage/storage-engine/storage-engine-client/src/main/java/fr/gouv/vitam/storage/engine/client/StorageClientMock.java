@@ -115,11 +115,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
     }
-    
+
     @Override
     public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT), MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
 }

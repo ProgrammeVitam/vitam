@@ -55,7 +55,7 @@ public class JavaExecuteScript {
      * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
-     * @throws IngestExternalException 
+     * @throws IngestExternalException
      * @throws IngestExternException
      * @throws FileNotFoundException
      */
@@ -97,13 +97,13 @@ public class JavaExecuteScript {
             watchdog.stop();
             try {
                 pumpStreamHandler.stop();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             out.reset();
             try {
                 out.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }

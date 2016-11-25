@@ -35,14 +35,11 @@ import java.util.List;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
-
 /**
  *
  */
 public class DbConfigurationImplTest {
-    
+
     private static final String host = "localhost";
     private static final int port = 12345;
 
@@ -53,14 +50,14 @@ public class DbConfigurationImplTest {
     public void testBadConfiguration() {
         DbConfigurationImpl dbConfiguration0 = new DbConfigurationImpl();
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(host, -16));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode((String) null, port));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
@@ -77,35 +74,35 @@ public class DbConfigurationImplTest {
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("", port));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(host, 0));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("", 265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("AAA", -265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("AAA", 265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
@@ -118,13 +115,13 @@ public class DbConfigurationImplTest {
         final DbConfigurationImpl dbConfiguration0 = new DbConfigurationImpl();
         assertNull(dbConfiguration0.getMongoDbNodes());
         assertNull(dbConfiguration0.getDbName());
-        
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("AAA", 394));
         dbConfiguration0.setMongoDbNodes(nodes);
         assertEquals(394, dbConfiguration0.getMongoDbNodes().get(0).getDbPort());
         assertEquals("AAA", dbConfiguration0.getMongoDbNodes().get(0).getDbHost());
-        
+
         dbConfiguration0.setDbName("BBB");
         assertEquals("BBB", dbConfiguration0.getDbName());
         final DbConfigurationImpl dbConfiguration1 = new DbConfigurationImpl(nodes, "BBB");
@@ -147,7 +144,7 @@ public class DbConfigurationImplTest {
     @Test
     public void testEmpty() {
         final DbConfigurationImpl dbConfiguration0 = new DbConfigurationImpl();
-        List<MongoDbNode> nodes = dbConfiguration0.getMongoDbNodes();
+        final List<MongoDbNode> nodes = dbConfiguration0.getMongoDbNodes();
         assertNull(nodes);
     }
 }

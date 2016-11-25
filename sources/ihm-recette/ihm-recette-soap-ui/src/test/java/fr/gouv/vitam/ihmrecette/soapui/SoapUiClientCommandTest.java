@@ -35,34 +35,34 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class SoapUiClientCommandTest {
-	private static final String SOAP_UI_CONF = "soapui.conf";
-	private SoapUiClient client;
+    private static final String SOAP_UI_CONF = "soapui.conf";
+    private SoapUiClient client;
 
-	@Before
-	public void initTests() {
-		SoapUiClientFactory.getInstance().changeConfiguration(SOAP_UI_CONF);
-		client = SoapUiClientFactory.getInstance().getClient();
-	}
+    @Before
+    public void initTests() {
+        SoapUiClientFactory.getInstance().changeConfiguration(SOAP_UI_CONF);
+        client = SoapUiClientFactory.getInstance().getClient();
+    }
 
-	@Test
-	// FIXME - Can we test Soap UI locally ? Should Soap-UI be installed ? How to test without it ?
-	@Ignore
-	// TODO - Must be tested in Tests IT ?
-	public void testLaunchTest() {
-		try {
-			client.launchTests();
-		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    @Test
+    // FIXME - Can we test Soap UI locally ? Should Soap-UI be installed ? How to test without it ?
+    @Ignore
+    // TODO - Must be tested in Tests IT ?
+    public void testLaunchTest() {
+        try {
+            client.launchTests();
+        } catch (IOException | InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-	@Test
-	// FIXME - File is resolved with absolute path. Can't check with PropertiesUtils.findFile() => How to test it ?
-	@Ignore
-	// TODO - Must be tested in Tests IT ?
-	public void testGetReport() throws InvalidParseOperationException {
-		client.getLastTestReport();
-	}
+    @Test
+    // FIXME - File is resolved with absolute path. Can't check with PropertiesUtils.findFile() => How to test it ?
+    @Ignore
+    // TODO - Must be tested in Tests IT ?
+    public void testGetReport() throws InvalidParseOperationException {
+        client.getLastTestReport();
+    }
 
 }

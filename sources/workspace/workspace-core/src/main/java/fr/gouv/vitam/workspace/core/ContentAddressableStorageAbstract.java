@@ -304,7 +304,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             context.close();
         }
     }
-    
+
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
@@ -639,7 +639,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         /**
          * Allow to "fakely" reopen this InputStream
-         * 
+         *
          * @param isclosed
          */
         public void setClosed(boolean isclosed) {

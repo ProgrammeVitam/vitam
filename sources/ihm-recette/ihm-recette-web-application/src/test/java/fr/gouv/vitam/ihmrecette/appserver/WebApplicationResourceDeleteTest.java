@@ -126,7 +126,7 @@ public class WebApplicationResourceDeleteTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
@@ -154,24 +154,24 @@ public class WebApplicationResourceDeleteTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> mongoNodes = new ArrayList<>();
+        final List<MongoDbNode> mongoNodes = new ArrayList<>();
         mongoNodes.add(new MongoDbNode("localhost", databasePort));
 
         RestAssured.port = serverPort;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
 
-        DbConfigurationImpl adminConfiguration =
+        final DbConfigurationImpl adminConfiguration =
             new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMasterdataDbName(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration);
 
-        DbConfigurationImpl logbookConfiguration =
+        final DbConfigurationImpl logbookConfiguration =
             new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
-        MetaDataConfiguration metaDataConfiguration =
+        final MetaDataConfiguration metaDataConfiguration =
             new MetaDataConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMetadataDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
@@ -224,11 +224,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteFormatOK() {
         try {
-            GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
+            final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -236,11 +236,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteRulesFileOK() {
         try {
-            GUID idRule = addData(FunctionalAdminCollections.RULES);
+            final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/rules");
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -248,14 +248,14 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testAccessionRegisterOK() {
         try {
-            GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-            GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+            final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+            final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/accessionregisters");
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -263,11 +263,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteLogbookOperationOK() {
         try {
-            GUID idOperation = addData(LogbookCollections.OPERATION);
+            final GUID idOperation = addData(LogbookCollections.OPERATION);
             assertTrue(existsData(LogbookCollections.OPERATION, idOperation.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/logbook/operation");
             assertFalse(existsData(LogbookCollections.OPERATION, idOperation.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -275,12 +275,12 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteLogbookLifecycleOGOK() {
         try {
-            GUID idLfcOg = addData(LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            final GUID idLfcOg = addData(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/lifecycle/objectgroup");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -288,11 +288,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteLogbookLifecycleUnitOK() {
         try {
-            GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
+            final GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/logbook/lifecycle/unit");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -300,11 +300,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteMetadataOGOK() {
         try {
-            GUID idOg = addData(MetadataCollections.C_OBJECTGROUP);
+            final GUID idOg = addData(MetadataCollections.C_OBJECTGROUP);
             assertTrue(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/metadata/objectgroup");
             assertFalse(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -312,11 +312,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteMetadataUnitOK() {
         try {
-            GUID idUnit = addData(MetadataCollections.C_UNIT);
+            final GUID idUnit = addData(MetadataCollections.C_UNIT);
             assertTrue(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
             given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/metadata/unit");
             assertFalse(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -325,12 +325,12 @@ public class WebApplicationResourceDeleteTest {
     public void testDeleteAllOk() {
         try {
             // insert and check data
-            GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
+            final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            GUID idRule = addData(FunctionalAdminCollections.RULES);
+            final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
-            GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-            GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+            final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+            final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             // delete all
@@ -340,7 +340,7 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             fail("Exception using mongoDbAccess");
         }
     }
@@ -387,16 +387,16 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addData(FunctionalAdminCollections collection)
         throws ReferentialException {
-        GUID guid = GUIDFactory.newGUID();
-        ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        final GUID guid = GUIDFactory.newGUID();
+        final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         mongoDbAccessAdmin.insertDocument(data1, collection);
         return guid;
     }
 
     @SuppressWarnings("rawtypes")
     public GUID addData(MetadataCollections collection) {
-        GUID guid = GUIDFactory.newGUID();
-        ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        final GUID guid = GUIDFactory.newGUID();
+        final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         MetadataDocument document;
         if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
             document = new ObjectGroup(data1);
@@ -412,8 +412,8 @@ public class WebApplicationResourceDeleteTest {
 
     @SuppressWarnings("rawtypes")
     public GUID addData(LogbookCollections collection) {
-        GUID guid = GUIDFactory.newGUID();
-        ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        final GUID guid = GUIDFactory.newGUID();
+        final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         VitamDocument document;
         if (collection.equals(LogbookCollections.OPERATION)) {
             document = new LogbookOperation(data1);
@@ -432,13 +432,13 @@ public class WebApplicationResourceDeleteTest {
         throws ReferentialException {
         try {
             return mongoDbAccessAdmin.getDocumentById(id, collection) != null;
-        } catch (ReferentialException exc) {
+        } catch (final ReferentialException exc) {
             return false;
         }
     }
 
     public boolean existsData(LogbookCollections collection, String id) {
-        BasicDBObject bbo = new BasicDBObject("_id", id);
+        final BasicDBObject bbo = new BasicDBObject("_id", id);
         mongoDbAccessLogbook.getMongoDatabase().listCollectionNames();
         return mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getClasz().getSimpleName()).find(bbo)
             .first() != null;
@@ -446,7 +446,7 @@ public class WebApplicationResourceDeleteTest {
     }
 
     public boolean existsData(MetadataCollections collection, String id) {
-        BasicDBObject bbo = new BasicDBObject("_id", id);
+        final BasicDBObject bbo = new BasicDBObject("_id", id);
         return mongoDbAccessMetadata.getMongoDatabase().getCollection(collection.getClasz().getSimpleName()).find(bbo)
             .first() != null;
     }

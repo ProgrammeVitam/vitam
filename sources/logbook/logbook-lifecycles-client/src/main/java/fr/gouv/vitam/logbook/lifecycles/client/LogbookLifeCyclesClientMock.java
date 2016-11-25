@@ -140,7 +140,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-                "/", null, ClientMockResultHelper.getLogbookOperation());
+            "/", null, ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
@@ -149,11 +149,11 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         return new VitamRequestIterator(this, HttpMethod.GET,
             "/", null, ClientMockResultHelper.getLogbookOperation());
     }
-    
+
     private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            final Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
             if (iterator.hasNext()) {
                 logInformation(CREATE, iterator.next());
                 while (iterator.hasNext()) {
@@ -170,7 +170,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            final Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
             while (iterator.hasNext()) {
                 logInformation(UPDATE, iterator.next());
             }

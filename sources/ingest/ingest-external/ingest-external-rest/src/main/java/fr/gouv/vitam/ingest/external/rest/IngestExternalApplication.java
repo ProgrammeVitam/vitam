@@ -64,7 +64,8 @@ public final class IngestExternalApplication
 
     /**
      * Ingest External constructor
-     * @param configuration 
+     *
+     * @param configuration
      */
     public IngestExternalApplication(String configuration) {
         super(IngestExternalConfiguration.class, configuration);
@@ -124,7 +125,7 @@ public final class IngestExternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        IngestExternalResource resource = new IngestExternalResource(getConfiguration());
+        final IngestExternalResource resource = new IngestExternalResource(getConfiguration());
         serviceRegistry.register(IngestInternalClientFactory.getInstance());
         // FIXME P1 Siegfried missing but different configuration...
         resourceConfig.register(resource)

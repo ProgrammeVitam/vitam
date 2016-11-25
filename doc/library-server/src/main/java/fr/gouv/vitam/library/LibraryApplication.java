@@ -61,7 +61,7 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
 
     /**
      * LibraryApplication constructor
-     * 
+     *
      * @param configuration
      */
     protected LibraryApplication(String configuration) {

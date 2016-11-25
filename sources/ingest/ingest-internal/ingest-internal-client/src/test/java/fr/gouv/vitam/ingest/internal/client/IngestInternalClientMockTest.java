@@ -90,9 +90,9 @@ public class IngestInternalClientMockTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        InputStream inputstreamMockATR =
+        final InputStream inputstreamMockATR =
             IOUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
-        InputStream inputStream =
+        final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         final Response response = client.uploadInitialLogbook(operationList);
@@ -102,7 +102,7 @@ public class IngestInternalClientMockTest {
 
         try {
             assertTrue(IOUtils.contentEquals(inputstreamMockATR, response2.readEntity(InputStream.class)));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }

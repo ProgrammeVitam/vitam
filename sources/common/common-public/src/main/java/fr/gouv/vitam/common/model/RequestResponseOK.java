@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * default results : is an empty list (immutable)
  *
  */
-public final class RequestResponseOK extends RequestResponse{
+public final class RequestResponseOK extends RequestResponse {
     @JsonProperty("$hits")
     private DatabaseCursor hits = new DatabaseCursor(0, 0, 0);
     @JsonProperty("$results")
@@ -62,7 +62,7 @@ public final class RequestResponseOK extends RequestResponse{
 
     /**
      * Add one result
-     * 
+     *
      * @param result
      * @return this
      */
@@ -144,7 +144,7 @@ public final class RequestResponseOK extends RequestResponse{
     public JsonNode getQuery() {
         return query;
     }
-    
+
     /**
      * @param query
      * @return this
@@ -157,7 +157,7 @@ public final class RequestResponseOK extends RequestResponse{
     }
 
     /**
-     * 
+     *
      * @param node
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException

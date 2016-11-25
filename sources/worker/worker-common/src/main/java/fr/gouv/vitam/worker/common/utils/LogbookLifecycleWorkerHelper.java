@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -53,7 +53,7 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * 
+     *
      * @param params
      * @return the ObjectID
      */
@@ -68,7 +68,7 @@ public class LogbookLifecycleWorkerHelper {
      * @param params the parameters
      * @param lfcEventType
      * @param logbookTypeProcess
-     * @param additionalParams 
+     * @param additionalParams
      * @throws ProcessingException
      */
     public static void updateLifeCycleStartStep(LogbookLifeCyclesClientHelper helper,
@@ -133,8 +133,8 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @param helper
      * @param logbookLifecycleParameters logbook LC parameters
      * @param itemStatus the Item Status

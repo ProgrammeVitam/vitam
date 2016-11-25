@@ -140,7 +140,8 @@ public class VitamCollection {
             .connectTimeout(VitamConfiguration.getConnectTimeout())
             .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getMaxClientPerHost())
             .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
-            .threadsAllowedToBlockForConnectionMultiplier(VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
+            .threadsAllowedToBlockForConnectionMultiplier(
+                VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
             .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
             .writeConcern(WriteConcern.ACKNOWLEDGED).readConcern(ReadConcern.DEFAULT)
             .readPreference(ReadPreference.secondaryPreferred())

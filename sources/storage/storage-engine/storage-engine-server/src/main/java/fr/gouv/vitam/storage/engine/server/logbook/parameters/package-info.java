@@ -27,6 +27,6 @@
 
 /**
  * Storage Engine Server Logbook parameters
- * 
+ *
  */
 package fr.gouv.vitam.storage.engine.server.logbook.parameters;

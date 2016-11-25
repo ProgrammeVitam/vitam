@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
  * Vitam Restassured like client for Junit test</br>
  * </br>
  * Example:
- * 
+ *
  * <pre>
  * <code>
  *   GET http://host:port/service/v1/resource/path1/monid1/path2/monid2
@@ -350,8 +350,8 @@ public class VitamRestTestClient extends DefaultClient {
         }
 
         /**
-         * The response content is returned according to type, except if status code is different than the one
-         * expected. </br>
+         * The response content is returned according to type, except if status code is different than the one expected.
+         * </br>
          * <b>Important:</b> if the entityType is an InputStream, it will be already consumed and closed.
          *
          * @param <T> the type of the entityType

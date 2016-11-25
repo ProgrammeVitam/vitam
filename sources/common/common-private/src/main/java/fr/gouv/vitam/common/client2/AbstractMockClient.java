@@ -82,15 +82,17 @@ public class AbstractMockClient implements MockOrRestClient {
      */
     public static class FakeInboundResponse extends Response {
         private final Response response;
+
         /**
-         * 
+         *
          * @param status
          * @param entity
          * @param mediaType
          * @param headers
          */
-        public FakeInboundResponse(Status status, Object entity, MediaType mediaType, MultivaluedHashMap<String, Object> headers) {
-            ResponseBuilder builder = Response.status(status);
+        public FakeInboundResponse(Status status, Object entity, MediaType mediaType,
+            MultivaluedHashMap<String, Object> headers) {
+            final ResponseBuilder builder = Response.status(status);
             if (entity != null) {
                 builder.entity(entity);
                 if (mediaType != null) {
@@ -98,7 +100,7 @@ public class AbstractMockClient implements MockOrRestClient {
                 }
             }
             if (headers != null) {
-                for (Entry<String, List<Object>> entry : headers.entrySet()) {
+                for (final Entry<String, List<Object>> entry : headers.entrySet()) {
                     for (final Object value : entry.getValue()) {
                         builder.header(entry.getKey(), value);
                     }

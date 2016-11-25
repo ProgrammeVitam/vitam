@@ -104,7 +104,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        MetaDataResource resource = new MetaDataResource(getConfiguration());
+        final MetaDataResource resource = new MetaDataResource(getConfiguration());
         serviceRegistry.register(resource.getMongoDbAccess()).register(resource.getMongoDbAccess().getEsClient());
         resourceConfig.register(resource).register(new AdminStatusResource(serviceRegistry));
     }

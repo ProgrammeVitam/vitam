@@ -26,19 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server2.application.session;
 
+import org.glassfish.jersey.server.ResourceConfig;
+
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.TestApplication;
-import org.glassfish.jersey.server.ResourceConfig;
 
 /**
  * Simple TestApplication for quickly instanciating only one resource class.
+ *
  * @see Server1TestApplication
  * @see Server2TestApplication
  */
 public abstract class AbstractTestApplication extends TestApplication {
 
     protected abstract Class getResourceClass();
+
     private final String configFile;
 
     /**
@@ -57,13 +60,14 @@ public abstract class AbstractTestApplication extends TestApplication {
     }
 
 
-    public static VitamApplicationTestFactory.StartApplicationResponse<AbstractTestApplication> startTestApplication(final AbstractTestApplication application) {
+    public static VitamApplicationTestFactory.StartApplicationResponse<AbstractTestApplication> startTestApplication(
+        final AbstractTestApplication application) {
         final MinimalTestVitamApplicationFactory<AbstractTestApplication> testFactory =
             new MinimalTestVitamApplicationFactory<AbstractTestApplication>() {
 
                 @Override
                 public StartApplicationResponse<AbstractTestApplication> startVitamApplication(int reservedPort)
-                        throws IllegalStateException {
+                    throws IllegalStateException {
                     return startAndReturn(application);
                 }
 

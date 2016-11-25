@@ -73,7 +73,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest Extrenal Internal Server Error", e);
             throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
         } finally {

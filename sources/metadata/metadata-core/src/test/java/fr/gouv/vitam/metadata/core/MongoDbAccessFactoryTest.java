@@ -82,12 +82,12 @@ public class MongoDbAccessFactoryTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        nodes = new ArrayList<ElasticsearchNode>();
+        nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         // MongoDB
@@ -116,9 +116,10 @@ public class MongoDbAccessFactoryTest {
 
     @Test
     public void testCreateFn() {
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess = new MongoDbAccessMetadataFactory()
+        new MongoDbAccessMetadataFactory();
+        mongoDbAccess = MongoDbAccessMetadataFactory
             .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());

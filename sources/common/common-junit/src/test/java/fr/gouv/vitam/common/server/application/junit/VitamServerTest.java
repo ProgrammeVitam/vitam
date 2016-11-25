@@ -203,18 +203,19 @@ public class VitamServerTest {
             minimalTestVitamApplicationFactory.startAndReturn(application);
         assertEquals(10, startApplicationResponde.getServerPort());
     }
-    
+
     @Test
     public void testResponseHelper() {
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM, null);
+        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM, null);
         assertTrue(response.getStatus() == Status.OK.getStatusCode());
         assertTrue(response.readEntity(InputStream.class) instanceof InputStream);
-        
+
         response = ResponseHelper.getOutboundResponse(Status.OK, null, MediaType.APPLICATION_OCTET_STREAM, null);
         assertTrue(response.getStatus() == Status.OK.getStatusCode());
         assertTrue(response.readEntity(String.class).equals(""));
-        
-        Map<String, String> map = new HashMap<>();
+
+        final Map<String, String> map = new HashMap<>();
         map.put("testkey", "testvalue");
         response = ResponseHelper.getOutboundResponse(Status.OK, null, MediaType.APPLICATION_OCTET_STREAM, map);
         assertTrue(response.getStatus() == Status.OK.getStatusCode());
@@ -224,8 +225,8 @@ public class VitamServerTest {
         try {
             response = ResponseHelper.getOutboundResponse(null, null, MediaType.APPLICATION_OCTET_STREAM, map);
             fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-            
+        } catch (final IllegalArgumentException e) {
+
         }
         response = ResponseHelper.getOutboundResponse(Status.OK, null, null, null);
         assertTrue(response.getHeaderString("Content-Type").equals(MediaType.APPLICATION_JSON));

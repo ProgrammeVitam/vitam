@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -91,14 +92,14 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     /**
      * Constructor with local root path
-     * 
+     *
      * @param containerName
      * @param workerId
      */
     public HandlerIOImpl(String containerName, String workerId) {
         this.containerName = containerName;
         this.workerId = workerId;
-        this.localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
+        localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
         client = WorkspaceClientFactory.getInstance().getClient();
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
@@ -208,7 +209,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     @Override
     public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal) throws ProcessingException {
-        ProcessingUri uri = output.get(rank);
+        final ProcessingUri uri = output.get(rank);
         if (uri == null) {
             throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + rank);
         }
@@ -249,7 +250,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
 
     @Override
     public File getNewLocalFile(String name) {
-        File file = new File(localDirectory.getAbsolutePath() + "/" + name);
+        final File file = new File(localDirectory.getAbsolutePath() + "/" + name);
         file.getParentFile().mkdirs();
         return file;
     }
@@ -262,7 +263,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             return false;
         }
         for (int i = 0; i < getInput().size(); i++) {
-            Object object = getInput(i);
+            final Object object = getInput(i);
             if (object == null || !clasz.get(i).isInstance(object)) {
                 LOGGER.error("Input class should be {} but is {}",
                     clasz.get(i).getName(), object != null ? object.getClass().getName() : "Null object");
@@ -278,7 +279,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         try {
             ParametersChecker.checkParameter("Workspace path is a mandatory parameter", workspacePath);
             ParametersChecker.checkParameter("Source file is a mandatory parameter", sourceFile);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new ProcessingException(e);
         }
         if (!sourceFile.canRead()) {
@@ -289,9 +290,9 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             if (toDelete && !sourceFile.delete()) {
                 LOGGER.warn("File could not be deleted: " + sourceFile);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
             throw new ProcessingException("Cannot write file to workspace: " + containerName + "/" + workspacePath, e);
         }
     }
@@ -301,15 +302,16 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         throws ProcessingException {
         try {
             client.putObject(containerName, workspacePath, inputStream);
-        } catch (ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Cannot write stream to workspace: " + containerName + "/" + workspacePath, e);
+        } catch (final ContentAddressableStorageServerException e) {
+            throw new ProcessingException("Cannot write stream to workspace: " + containerName + "/" + workspacePath,
+                e);
         }
     }
 
     /**
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
-     * 
+     *
      * @param containerName container name
      * @param objectName object name
      * @param workerId worker id
@@ -352,7 +354,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        File file = getNewLocalFile(objectName);
+        final File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
             try {
@@ -373,7 +375,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        File file = getNewLocalFile(objectName);
+        final File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
             try {
@@ -415,7 +417,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
                 LOGGER.error("Json not found");
                 throw new ProcessingException("Json not found");
             }
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.debug("Json wrong format", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -425,13 +427,13 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             if (is != null) {
                 StreamUtils.closeSilently(is);
             }
-            WorkspaceClient.staticConsumeAnyEntityAndClose(response);
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public boolean deleteLocalFile(String objectName) {
-        File file = getNewLocalFile(objectName);
+        final File file = getNewLocalFile(objectName);
         if (file.exists()) {
             return file.delete();
         }

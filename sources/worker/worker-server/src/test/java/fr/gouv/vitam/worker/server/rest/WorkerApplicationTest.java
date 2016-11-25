@@ -67,7 +67,7 @@ public class WorkerApplicationTest {
             .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888")
             .setUrlMetadata("http://localhost:8888").setUrlWorkspace("http://localhost:8888");
 
-        File newWorkerConf = File.createTempFile("test", WORKER_CONF, worker.getParentFile());
+        final File newWorkerConf = File.createTempFile("test", WORKER_CONF, worker.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
         worker = newWorkerConf;
 

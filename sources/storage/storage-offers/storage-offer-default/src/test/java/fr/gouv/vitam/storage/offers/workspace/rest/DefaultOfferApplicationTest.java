@@ -46,17 +46,17 @@ public class DefaultOfferApplicationTest {
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        
+
         try {
             new DefaultOfferApplication(DEFAULT_OFFER_CONF);
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        
+
         try {
             new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
             fail("Should raize an IllegalStateException");
-        } catch (IllegalStateException exc) {
+        } catch (final IllegalStateException exc) {
             // Result Expected
         }
     }

@@ -86,25 +86,28 @@ public class SelectParserSingle extends RequestParserSingle {
      * Allow to add one condition to the current parsed Request</br>
      * </br>
      * Example:</br>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
      *   SelectParserSingle parser = new SelectParserSingle(...);
      *   parser.parse(jsonQuery);
      *   parser.addCondition(eq(FieldName, value));
      *   JsonNode newJsonQuery = parser.getRootNode();
-     * </code></pre>
-     * 
+     * </code>
+     * </pre>
+     *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
-        SelectParserSingle newOne = new SelectParserSingle(this.adapter);
+        final SelectParserSingle newOne = new SelectParserSingle(adapter);
         newOne.parse(rootNode);
-        Select select = newOne.getRequest();
-        Query query = select.getQuery();
-        Query newQuery = QueryHelper.and().add(query, condition);
+        final Select select = newOne.getRequest();
+        final Query query = select.getQuery();
+        final Query newQuery = QueryHelper.and().add(query, condition);
         getRequest().setQuery(newQuery);
-        JsonNode newJsonNode = getRequest().getFinalSelect().deepCopy();
+        final JsonNode newJsonNode = getRequest().getFinalSelect().deepCopy();
         parse(newJsonNode);
         newOne.request = null;
         newOne.rootNode = null;

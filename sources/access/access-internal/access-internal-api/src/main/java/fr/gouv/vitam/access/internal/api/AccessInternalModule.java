@@ -95,7 +95,7 @@ public interface AccessInternalModule {
 
     /**
      * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
-     * 
+     *
      * @param asyncResponse the async Response
      * @param idObjectGroup The Object Group Id
      * @param queryJson the DSL query

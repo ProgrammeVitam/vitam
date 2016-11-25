@@ -43,7 +43,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     /**
      * MetaDataConfiguration constructor
-     * 
+     *
      * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
      * @param clusterName

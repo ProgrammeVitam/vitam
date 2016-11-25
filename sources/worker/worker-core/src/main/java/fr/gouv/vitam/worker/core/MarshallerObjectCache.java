@@ -48,7 +48,7 @@ public class MarshallerObjectCache {
 
     /**
      * Cache of the marshaller object
-     * 
+     *
      * @param c : class whom we want the JAXB Marshaller
      * @return The JAXB Marshaller for the class given in argument
      * @throws JAXBException

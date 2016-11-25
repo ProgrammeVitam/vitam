@@ -66,12 +66,12 @@ public class IngestExternalClientMockTest {
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
         final InputStream responseStream = client.upload(firstStream).readEntity(InputStream.class);
 
-        InputStream inputstreamMockATR =
+        final InputStream inputstreamMockATR =
             IOUtils.toInputStream(IngestExternalClientMock.MOCK_INGEST_EXTERNAL_RESPONSE_STREAM);
         assertNotNull(responseStream);
         try {
             assertTrue(IOUtils.contentEquals(responseStream, inputstreamMockATR));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }

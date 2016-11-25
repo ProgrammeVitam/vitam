@@ -41,10 +41,10 @@ public class MongoDbAccessAdminFactoryTest {
         mongo.stop();
         junitHelper.releasePort(port);
     }
-    
+
     @Test
-    public void testCreateAdmin(){
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+    public void testCreateAdmin() {
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(nodes, databaseName, true, user, pwd));

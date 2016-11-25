@@ -41,7 +41,7 @@ public class ProcessStepTest {
         assertEquals(10, new ProcessStep().setElementToProcess(10).getElementToProcess());
         assertEquals(1, new ProcessStep().setElementProcessed(1).getElementProcessed());
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
-        Step step = new Step();
+        final Step step = new Step();
         assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0).getElementToProcess());
         assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 1).getElementProcessed());
     }
@@ -53,9 +53,9 @@ public class ProcessStepTest {
 
     @Test
     public void equalsTest() {
-        Step step = new Step();
+        final Step step = new Step();
         step.setStepName("1");
-        ProcessStep processStep = new ProcessStep(step, "containerName", "workflowId", 0, 1, 0);
+        final ProcessStep processStep = new ProcessStep(step, "containerName", "workflowId", 0, 1, 0);
         assertEquals(processStep, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0));
 
         assertNotEquals(processStep, new Object());

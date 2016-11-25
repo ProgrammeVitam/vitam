@@ -138,7 +138,7 @@ public class IngestExternalImpl implements IngestExternal {
         final GUID containerName = guid;
         final GUID objectName = guid;
         final GUID ingestGuid = guid;
-        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
 
@@ -147,7 +147,7 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid, INGEST_WORKFLOW, containerName,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " +ingestGuid.toString(),
+                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " + ingestGuid.toString(),
                 ingestGuid);
 
             // TODO P1 should be the file name from a header
@@ -189,10 +189,10 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
-            String containerNamePath = containerName != null ? containerName.getId() : "containerName";
-            String objectNamePath = objectName != null ? objectName.getId() : "objectName";
+            final String containerNamePath = containerName != null ? containerName.getId() : "containerName";
+            final String objectNamePath = objectName != null ? objectName.getId() : "objectName";
             final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
-            File file = new File(filePath);
+            final File file = new File(filePath);
             if (!file.canRead()) {
                 LOGGER.error(CAN_NOT_READ_FILE);
                 throw new IngestExternalException(CAN_NOT_READ_FILE);
@@ -286,12 +286,12 @@ public class IngestExternalImpl implements IngestExternal {
                 try {
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
                     // instantiate SiegFried
-                    FormatIdentifier formatIdentifier =
+                    final FormatIdentifier formatIdentifier =
                         FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
                     // call siegFried
-                    List<FormatIdentifierResponse> formats =
+                    final List<FormatIdentifierResponse> formats =
                         formatIdentifier.analysePath(file.toPath());
-                    FormatIdentifierResponse format = getFirstPronomFormat(formats);
+                    final FormatIdentifierResponse format = getFirstPronomFormat(formats);
                     if (format == null) {
                         formatParameters.setStatus(StatusCode.KO);
                         formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -310,29 +310,29 @@ public class IngestExternalImpl implements IngestExternal {
                     }
 
 
-                } catch (FormatIdentifierNotFoundException e) {
+                } catch (final FormatIdentifierNotFoundException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
 
-                } catch (FormatIdentifierFactoryException e) {
+                } catch (final FormatIdentifierFactoryException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
 
-                } catch (FormatIdentifierTechnicalException e) {
+                } catch (final FormatIdentifierTechnicalException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (FileFormatNotFoundException e) {
+                } catch (final FileFormatNotFoundException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (FormatIdentifierBadRequestException e) {
+                } catch (final FormatIdentifierBadRequestException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -414,15 +414,15 @@ public class IngestExternalImpl implements IngestExternal {
                 // then call back ingestClient with updateFinalLogbook
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
-                    Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
-                    AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
-                    ResponseBuilder responseBuilder =
+                    final Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
+                    final AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
+                    final ResponseBuilder responseBuilder =
                         Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                     asyncHelper.writeResponse(responseBuilder);
                     return response;
                 }
-                AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, responseNoProcess);
-                ResponseBuilder responseBuilder =
+                final AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, responseNoProcess);
+                final ResponseBuilder responseBuilder =
                     Response.status(responseNoProcess.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                 asyncHelper.writeResponse(responseBuilder);
                 return responseNoProcess;
@@ -489,7 +489,7 @@ public class IngestExternalImpl implements IngestExternal {
      * @return the first pronom file format or null if not found
      */
     private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
-        for (FormatIdentifierResponse format : formats) {
+        for (final FormatIdentifierResponse format : formats) {
             if (PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
                 return format;
             }

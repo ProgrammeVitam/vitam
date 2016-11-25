@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,7 +87,7 @@ public class DslQueryHelperTest {
         "$action : " + updateAction + " }";
 
     private static final String UNIT_ID = "1";
-    private static List<String> IMMEDIATE_PARENTS = new ArrayList<String>();
+    private static List<String> IMMEDIATE_PARENTS = new ArrayList<>();
 
 
     @BeforeClass
@@ -154,10 +156,10 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 1);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") != null);
-        assertTrue((selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 1);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     @Test
@@ -174,10 +176,10 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 1);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") != null);
-        assertTrue((selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 1);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     /**
@@ -197,10 +199,10 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 0);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") == null);
-        assertTrue((selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 0);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     /**
@@ -248,8 +250,8 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
         assertTrue(updateParser instanceof UpdateParserMultiple);
-        assertTrue((updateParser.getRequest()).getActions().size() == 2);
-        assertTrue((updateParser.getRequest()).getRoots().size() == 1);
+        assertTrue(updateParser.getRequest().getActions().size() == 2);
+        assertTrue(updateParser.getRequest().getRoots().size() == 1);
 
     }
 
@@ -269,7 +271,7 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
         assertTrue(updateParser instanceof UpdateParserMultiple);
-        assertTrue((updateParser.getRequest()).getActions().size() == 1);
+        assertTrue(updateParser.getRequest().getActions().size() == 1);
     }
 
     /**
@@ -315,17 +317,17 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
         assertTrue(
-            (selectParser.getRequest()).getProjection().get("$fields")
+            selectParser.getRequest().getProjection().get("$fields")
                 .has(UiConstants.ID.getResultCriteria()));
         assertTrue(
-            (selectParser.getRequest()).getProjection().get("$fields")
+            selectParser.getRequest().getProjection().get("$fields")
                 .has(UiConstants.TITLE.getResultCriteria()));
         assertTrue(
-            (selectParser.getRequest()).getProjection().get("$fields")
+            selectParser.getRequest().getProjection().get("$fields")
                 .has(UiConstants.UNITUPS.getResultCriteria()));
     }
 
@@ -347,9 +349,9 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
         final Map<String, String> queryMap2 = new HashMap();
         queryMap2.put(ORIGINATING_AGENCY, "id01");
@@ -359,9 +361,9 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
         assertTrue(selectParser2 instanceof SelectParserMultiple);
-        assertTrue((selectParser2.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser2.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser2.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
     }
 
 
@@ -382,9 +384,9 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue((selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
         final Map<String, String> queryMap2 = new HashMap();
         queryMap2.put(RULETYPE, "AppraisingRule");
@@ -394,9 +396,9 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
         assertTrue(selectParser2 instanceof SelectParserMultiple);
-        assertTrue((selectParser2.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser2.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser2.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
 
         final Map<String, String> queryMap3 = new HashMap();
         queryMap3.put(RULETYPE, "AppraisingRule,test");
@@ -406,9 +408,9 @@ public class DslQueryHelperTest {
 
         final RequestParserMultiple selectParser3 = RequestParserHelper.getParser(selectRequest3);
         assertTrue(selectParser3 instanceof SelectParserMultiple);
-        assertTrue((selectParser3.getRequest()).getNbQueries() == 1);
-        assertTrue((selectParser3.getRequest()).getRoots().size() == 0);
-        assertTrue((selectParser3.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser3.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser3.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser3.getRequest().getFilter().get("$orderby") == null);
     }
 
 }

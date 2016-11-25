@@ -65,8 +65,8 @@ public class FormatIdentificationActionHandlerTest {
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private InputStream objectGroup;
-    private InputStream objectGroup2;
+    private final InputStream objectGroup;
+    private final InputStream objectGroup2;
     private WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
     private HandlerIOImpl handlerIO;

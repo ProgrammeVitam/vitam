@@ -26,16 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server2.application.session;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
 
 /**
  * Localhost REST client factory ; for testing with REST client only. Used in {@link VitamRequestIdFiltersIT} tests.
@@ -57,7 +57,8 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
         final LocalhostClient client;
         switch (getVitamClientType()) {
             case MOCK:
-                throw new UnsupportedOperationException("No mock for this class is implemented (this class is for REST testing purpose only)");
+                throw new UnsupportedOperationException(
+                    "No mock for this class is implemented (this class is for REST testing purpose only)");
             case PRODUCTION:
                 client = new LocalhostClient(this);
                 break;
@@ -79,16 +80,16 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
         }
 
         public String doRequest(final String subResource) {
-            return doRequest(subResource,  new MultivaluedHashMap<>());
+            return doRequest(subResource, new MultivaluedHashMap<>());
         }
 
-        public String doRequest (final String subResource, final MultivaluedHashMap<String, Object> headers) {
+        public String doRequest(final String subResource, final MultivaluedHashMap<String, Object> headers) {
             Response response = null;
             try {
                 response = performRequest(HttpMethod.GET, subResource, headers,
-                         MediaType.TEXT_PLAIN_TYPE);
+                    MediaType.TEXT_PLAIN_TYPE);
                 return response.readEntity(String.class);
-            } catch (VitamClientInternalException e) {
+            } catch (final VitamClientInternalException e) {
                 throw new IllegalStateException(INTERNAL_SERVER_ERROR, e); // access-common
             } finally {
                 consumeAnyEntityAndClose(response);

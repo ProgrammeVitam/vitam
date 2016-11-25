@@ -36,7 +36,7 @@ public class FileFormatTest {
 
     @Test
     public void cleanNullFileFormatFieldValues() {
-        FileFormat fm = new FileFormat();
+        final FileFormat fm = new FileFormat();
         // theoretically never null
         fm.setPUID("PUID");
         assertNull(fm.get(FileFormat.VERSION_PRONOM));

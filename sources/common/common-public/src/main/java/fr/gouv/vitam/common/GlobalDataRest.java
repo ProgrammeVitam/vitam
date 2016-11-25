@@ -78,12 +78,12 @@ public class GlobalDataRest {
      * The X_STRATEGY_ID header, used in requests to use a particular strategy
      */
     public static final String X_STRATEGY_ID = "X-Strategy-Id";
-    
+
     /**
      * The X_PLATFORM_ID header
      */
     public static final String X_PLATFORM_ID = "X-Platform-Id";
-    
+
     /**
      * The X_TIMESTAMP header
      */
@@ -101,7 +101,7 @@ public class GlobalDataRest {
      * Timeout (in epoch) for Http based cursor
      */
     public static final String X_CURSOR_TIMEOUT = "X-Cursor-Timeout";
-    
+
     /**
      * Digest value
      */

@@ -71,7 +71,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), insertQuery);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
@@ -90,7 +90,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -104,7 +104,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_UNITS_QUERY_NULL.getMessage(), selectQuery);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
@@ -119,7 +119,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -132,7 +132,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         if (Strings.isNullOrEmpty(unitId)) {
@@ -150,7 +150,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -165,7 +165,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL.getMessage(), selectQuery);
             ParametersChecker.checkParameter(ErrorMessage.BLANK_PARAM.getMessage(), objectGroupId);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         if (Strings.isNullOrEmpty(objectGroupId)) {
@@ -185,7 +185,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetadataInvalidSelectException(ErrorMessage.MISSING_SELECT_QUERY.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -198,7 +198,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), updateQuery, unitId);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         if (Strings.isNullOrEmpty(unitId)) {
@@ -216,7 +216,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -246,7 +246,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {

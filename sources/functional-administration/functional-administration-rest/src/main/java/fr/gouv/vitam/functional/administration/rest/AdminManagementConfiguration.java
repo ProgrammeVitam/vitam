@@ -44,7 +44,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     /**
      * Constructor
-     * 
+     *
      * @param mongoDbNodes the database hosts and ports
      * @param dbName the database name
      */

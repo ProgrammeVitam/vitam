@@ -218,7 +218,8 @@ public class DefaultOfferServiceTest {
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
                         new ByteArrayInputStream(bytes.clone()), false);
                     assertEquals(computedDigest,
-                        Digest.digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
+                        Digest
+                            .digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
                             .toString());
                 }
                 bb.clear();
@@ -250,8 +251,9 @@ public class DefaultOfferServiceTest {
 
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
-        
-        final Response response = offerService.getObject(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID_2, new AsyncResponseJunitTest());
+
+        final Response response = offerService.getObject(CONTAINER_PATH,
+            objectInit.getType().getFolder() + "/" + OBJECT_ID_2, new AsyncResponseJunitTest());
         assertNotNull(response);
     }
 

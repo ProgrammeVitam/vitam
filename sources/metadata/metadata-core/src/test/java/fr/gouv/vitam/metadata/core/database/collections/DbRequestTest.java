@@ -197,11 +197,11 @@ public class DbRequestTest {
         junitHelper = JunitHelper.getInstance();
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
-        
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
@@ -915,7 +915,7 @@ public class DbRequestTest {
         assertEquals(1, result.currentIds.size());
         assertEquals(1, (int) result.nbResult);
 
-        final Set<String> currentIds = new HashSet<String>();
+        final Set<String> currentIds = new HashSet<>();
         currentIds.add("UNITS");
         currentIds.add("OBJECTGROUPS");
         result.setCurrentIds(currentIds);
@@ -1235,7 +1235,7 @@ public class DbRequestTest {
         // insert title ARchive 3
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1255,7 +1255,7 @@ public class DbRequestTest {
         // check old value should not exist in the collection
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser2 = new SelectParserMultiple();
-        Select select1 = new Select();
+        final Select select1 = new Select();
         select1.addQueries(match("title", "Archive3").setDepthLimit(1))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser2.parse(select1.getFinalSelect());
@@ -1266,7 +1266,7 @@ public class DbRequestTest {
         // check new value should exist in the collection
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple();
-        Select select = new Select();
+        final Select select = new Select();
         select.addQueries(match("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);

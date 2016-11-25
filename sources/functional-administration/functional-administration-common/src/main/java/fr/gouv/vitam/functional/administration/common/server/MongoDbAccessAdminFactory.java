@@ -44,7 +44,7 @@ public final class MongoDbAccessAdminFactory {
     private MongoDbAccessAdminFactory() {
         // Empty
     }
-    
+
     /**
      * Creation of one MongoDbAccess
      *
@@ -60,7 +60,7 @@ public final class MongoDbAccessAdminFactory {
         }
         FunctionalAdminCollections.class.getEnumConstants();
 
-        MongoClient mongoClient =
+        final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
     }

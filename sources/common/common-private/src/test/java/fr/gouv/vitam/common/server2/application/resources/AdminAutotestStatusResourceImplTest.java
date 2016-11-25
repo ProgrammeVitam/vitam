@@ -54,7 +54,6 @@ import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.TestApplication;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -95,7 +94,7 @@ public class AdminAutotestStatusResourceImplTest {
         serverPort = response.getServerPort();
         application = response.getApplication();
         factory = new TestVitamAdminClientFactory(serverPort, TEST_RESOURCE_URI);
-        DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
+        final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
         TestApplication.serviceRegistry.register(factory).register((DatabaseConnection) null)
             .register((VitamStatusService) null).register(fakeDb);
         client = factory.getClient();
@@ -146,12 +145,14 @@ public class AdminAutotestStatusResourceImplTest {
 
     private static class DatabaseConnectionImpl implements DatabaseConnection {
         private static boolean status = true;
+
         @Override
         public boolean checkConnection() {
             return status;
         }
-        
+
     }
+
     /**
      * Tests the state of the module through autotest
      *
@@ -168,13 +169,13 @@ public class AdminAutotestStatusResourceImplTest {
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.OK.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -189,7 +190,7 @@ public class AdminAutotestStatusResourceImplTest {
             assertTrue(TestApplication.serviceRegistry.getResourcesStatus());
             try {
                 TestApplication.serviceRegistry.checkDependencies(1, 10);
-            } catch (VitamApplicationServerException e) {
+            } catch (final VitamApplicationServerException e) {
                 fail("Should not raized an exception");
             }
         }
@@ -203,13 +204,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.OK.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -224,13 +225,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertTrue(TestApplication.serviceRegistry.getResourcesStatus());
             try {
                 TestApplication.serviceRegistry.checkDependencies(1, 10);
-            } catch (VitamApplicationServerException e) {
+            } catch (final VitamApplicationServerException e) {
                 fail("Should not raized an exception");
             }
         }
 
         // Now shutdown one by one
-        
+
         // Fake DB
         LOGGER.warn("TEST DB KO");
         DatabaseConnectionImpl.status = false;
@@ -240,13 +241,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -262,8 +263,8 @@ public class AdminAutotestStatusResourceImplTest {
             try {
                 TestApplication.serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (VitamApplicationServerException e) {
-                
+            } catch (final VitamApplicationServerException e) {
+
             }
         }
 
@@ -276,13 +277,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -298,8 +299,8 @@ public class AdminAutotestStatusResourceImplTest {
             try {
                 TestApplication.serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (VitamApplicationServerException e) {
-                
+            } catch (final VitamApplicationServerException e) {
+
             }
         }
 
@@ -312,13 +313,13 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
-            VitamError error = clientAdmin.adminAutotest();
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -334,8 +335,8 @@ public class AdminAutotestStatusResourceImplTest {
             try {
                 TestApplication.serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (VitamApplicationServerException e) {
-                
+            } catch (final VitamApplicationServerException e) {
+
             }
         }
 
@@ -354,12 +355,12 @@ public class AdminAutotestStatusResourceImplTest {
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             assertEquals(0, error.getErrors().size());
-            ObjectNode node = TestApplication.serviceRegistry.getAutotestStatus();
+            final ObjectNode node = TestApplication.serviceRegistry.getAutotestStatus();
             error = VitamError.getFromJsonNode(node);
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (VitamError sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {

@@ -59,10 +59,10 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 
 public class DefaultClientTest extends VitamJerseyTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
@@ -216,7 +216,8 @@ public class DefaultClientTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, "{}", MediaType.APPLICATION_JSON_TYPE,
+        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, "{}",
+            MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
     }
@@ -297,42 +298,42 @@ public class DefaultClientTest extends VitamJerseyTest {
             when(mock.get()).thenThrow(new ForbiddenException());
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAcceptableException());
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.NOT_ACCEPTABLE.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAllowedException("POST"));
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAuthorizedException(Response.status(Status.UNAUTHORIZED).build()));
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotSupportedException());
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new ServiceUnavailableException());
             response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
             assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
         try {
@@ -340,7 +341,7 @@ public class DefaultClientTest extends VitamJerseyTest {
             response =
                 client.performRequest(HttpMethod.GET, "/statusNotFound", null, MediaType.APPLICATION_JSON_TYPE, true);
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
         }
     }

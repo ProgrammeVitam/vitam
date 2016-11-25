@@ -36,6 +36,7 @@ public interface MetadataRuleInterface {
      * @return the RuleId
      */
     public String getRuleId();
+
     /**
      * @param id
      * @return ??

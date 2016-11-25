@@ -39,7 +39,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * Class Utils to get Objects from a container into the workspace
  */
 public class ContainerExtractionUtils {
-    // FIXME P1 REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in every
+    // FIXME P1 REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in
+    // every
     // class!
     // Each class then can add extra organization for its own
     // TODO P1
@@ -61,12 +62,12 @@ public class ContainerExtractionUtils {
      * @param workParams parameters of workspace server
      * @return List of Uri
      * @throws ProcessingException - throw when workspace is unavailable.
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      *
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
-        throws ProcessingException, ContentAddressableStorageServerException{
-        //WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
+        throws ProcessingException, ContentAddressableStorageServerException {
+        // WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             final String guidContainer = workParams.getContainerName();
             return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
@@ -79,10 +80,10 @@ public class ContainerExtractionUtils {
      * @param workspaceClient
      * @param guidContainer
      * @return List<URI> - list uri
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     private List<URI> getDigitalObjectUriListFromWorkspace(WorkspaceClient workspaceClient, String guidContainer)
-        throws ProcessingException, ContentAddressableStorageServerException{
+        throws ProcessingException, ContentAddressableStorageServerException {
         final List<URI> uriListWorkspace =
             workspaceClient.getListUriDigitalObjectFromFolder(guidContainer, DIGITAL_OBJECT_FOLDER_NAME);
         uriListWorkspace.remove(uriListWorkspace.size() - 1);

@@ -57,7 +57,7 @@ public class VitamLoggerLogFactory implements LogFactory {
 
     /**
      * getter of the Logger by class
-     * 
+     *
      * @param clazz
      * @return Logger
      */

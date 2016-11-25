@@ -55,18 +55,19 @@ public class ProcessManagementApplication
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.processing.port";
 
     static VitamServiceRegistry serviceRegistry = null;
+
     /**
      * ProcessManagementApplication constructor
-     * 
+     *
      * @param configuration
      */
     public ProcessManagementApplication(String configuration) {
         super(ServerConfiguration.class, configuration);
     }
-    
+
     /**
      * ProcessManagementApplication constructor
-     * 
+     *
      * @param configuration
      */
     ProcessManagementApplication(ServerConfiguration configuration) {
@@ -110,9 +111,9 @@ public class ProcessManagementApplication
         WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
         // Logbook dependency
         serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
-         // Workspace dependency
+            // Workspace dependency
             .register(WorkspaceClientFactory.getInstance())
-        // Metadata dependency: optional ???
+            // Metadata dependency: optional ???
             .registerOptional(MetaDataClientFactory.getInstance());
         // FIXME P1 worker optional register: How to do it ?
         resourceConfig

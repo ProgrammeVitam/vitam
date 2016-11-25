@@ -31,8 +31,8 @@ package fr.gouv.vitam.access.internal.api;
  * Lists different type of data the access component can access to.
  */
 
-//TODO P1 : maybe factor in a common module with
-//Storage module DataCategory component
+// TODO P1 : maybe factor in a common module with
+// Storage module DataCategory component
 
 public enum DataCategory {
     UNIT, OBJECT_GROUP

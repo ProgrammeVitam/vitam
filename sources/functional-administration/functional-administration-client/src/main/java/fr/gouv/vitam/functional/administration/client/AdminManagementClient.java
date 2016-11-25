@@ -32,6 +32,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -126,17 +127,17 @@ public interface AdminManagementClient extends MockOrRestClient {
         IOException, AdminManagementClientServerException;
 
     /**
-     * @param register AccessionRegisterDetail 
+     * @param register AccessionRegisterDetail
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
-     * @throws AdminManagementClientServerException 
+     * @throws AdminManagementClientServerException
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetail register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**
      * Get the accession register summary matching the given query
-     * 
+     *
      * @param query The DSL Query as Json Node
      * @return The AccessionregisterSummary list as a response JsonNode
      * @throws InvalidParseOperationException
@@ -146,7 +147,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Get the accession register details matching the given query
-     * 
+     *
      * @param query The DSL Query as a JSON Node
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException

@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- *	Processing Management Rest package
+ * Processing Management Rest package
  *
  */
 package fr.gouv.vitam.processing.management.rest;

@@ -52,7 +52,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
 
     /**
      * DbConfiguration constructor with authentication
-     * 
+     *
      * @param mongoDbNodes database server IP address and port
      * @param dbName database name
      * @param dbAuthentication
@@ -79,7 +79,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
 
     /**
      * DbConfiguration constructor
-     * 
+     *
      * @param mongoDbNodes database server IP address and port
      * @param dbName database name
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
@@ -94,7 +94,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         }
         this.mongoDbNodes = mongoDbNodes;
         this.dbName = dbName;
-        this.dbAuthentication = false;
+        dbAuthentication = false;
     }
 
     @Override
@@ -156,7 +156,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbUserName(String userName) {
-        this.dbUserName = userName;
+        dbUserName = userName;
         return this;
     }
 
@@ -165,7 +165,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbPassword(String password) {
-        this.dbPassword = password;
+        dbPassword = password;
         return this;
     }
 
@@ -174,7 +174,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbAuthentication(boolean authentication) {
-        this.dbAuthentication = authentication;
+        dbAuthentication = authentication;
         return this;
     }
 }

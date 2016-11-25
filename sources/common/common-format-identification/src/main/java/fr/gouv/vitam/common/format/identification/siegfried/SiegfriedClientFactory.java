@@ -58,6 +58,7 @@ public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedCl
      *
      * @return the default Siegfried client
      */
+    @Override
     public SiegfriedClient getClient() {
         SiegfriedClient client;
         switch (getVitamClientType()) {

@@ -278,7 +278,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /***********************************************************************************
      * Rules Manager
-     * 
+     *
      * @throws FileNotFoundException
      ***********************************************************************************/
 

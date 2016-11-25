@@ -157,7 +157,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param headers headers HTTP to add to request, may be null
      * @param accept asked type of response
      * @return the response from the server
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
         MediaType accept) throws VitamClientInternalException {
@@ -175,14 +175,14 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the response from the server
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
         MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
         try {
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
             return builder.method(httpMethod);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -197,7 +197,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param contentType the media type of the body to send, null if body is null
      * @param accept asked type of response
      * @return the response from the server
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
@@ -209,7 +209,7 @@ abstract class AbstractCommonClient implements BasicClient {
                 body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
             return builder.method(httpMethod, Entity.entity(body, contentType));
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -225,7 +225,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the response from the server
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
@@ -237,7 +237,7 @@ abstract class AbstractCommonClient implements BasicClient {
                 body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
             return builder.method(httpMethod, Entity.entity(body, contentType));
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -254,7 +254,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param callback
      * @param <T> the type of the Future result (generally Response)
      * @return the response from the server
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
         MultivaluedHashMap<String, Object> headers,
@@ -272,7 +272,7 @@ abstract class AbstractCommonClient implements BasicClient {
             } else {
                 return builder.async().method(httpMethod, callback);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -287,7 +287,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param contentType the media type of the body to send, null if body is null
      * @param accept asked type of response
      * @return the response from the server as a Future
-     * @throws VitamClientInternalException 
+     * @throws VitamClientInternalException
      */
     protected Future<Response> performAsyncRequest(String httpMethod, String path,
         MultivaluedHashMap<String, Object> headers,
@@ -303,7 +303,7 @@ abstract class AbstractCommonClient implements BasicClient {
             } else {
                 return builder.async().method(httpMethod);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -377,18 +377,19 @@ abstract class AbstractCommonClient implements BasicClient {
         if (newPath.codePointAt(0) != '/') {
             newPath = "/" + newPath;
         }
-        
+
         String baseUri = getResourcePath() + newPath;
-        if(url.endsWith(VitamConfiguration.ADMIN_PATH)){
-            baseUri=VitamConfiguration.ADMIN_PATH + newPath;
+        if (url.endsWith(VitamConfiguration.ADMIN_PATH)) {
+            baseUri = VitamConfiguration.ADMIN_PATH + newPath;
         }
 
         // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
         if (clientFactory.useAuthorizationFilter()) {
-            Map<String,String> authorizationHeaders = AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,baseUri);
-            if(authorizationHeaders.size()==2){
-                builder.header(GlobalDataRest.X_TIMESTAMP,authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
-                builder.header(GlobalDataRest.X_PLATFORM_ID,authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
+            final Map<String, String> authorizationHeaders =
+                AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod, baseUri);
+            if (authorizationHeaders.size() == 2) {
+                builder.header(GlobalDataRest.X_TIMESTAMP, authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
+                builder.header(GlobalDataRest.X_PLATFORM_ID, authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
             }
         }
         return builder;
@@ -428,9 +429,9 @@ abstract class AbstractCommonClient implements BasicClient {
     boolean getChunkedMode() {
         return clientFactory.getChunkedMode();
     }
-    
+
     /**
-     * 
+     *
      * @return the VitamClientFactory
      */
     public VitamClientFactory<?> getVitamClientFactory() {

@@ -484,9 +484,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook operations
-     * 
+     *
      ***/
 
     @Test
@@ -509,9 +509,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook operationById
-     * 
+     *
      ***/
     @Test
     public void selectLogbookOperationByID() throws Exception {
@@ -534,9 +534,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
 
     /***
-     * 
+     *
      * logbook lifecycle units
-     * 
+     *
      ***/
     @Test
     public void selectLogbookLifeCyclesUnit() throws Exception {
@@ -558,9 +558,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook lifecycle object
-     * 
+     *
      ***/
     @Test
     public void selectLogbookLifeCyclesObject() throws Exception {
@@ -582,9 +582,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * Accession register test
-     * 
+     *
      ***/
 
     @Test

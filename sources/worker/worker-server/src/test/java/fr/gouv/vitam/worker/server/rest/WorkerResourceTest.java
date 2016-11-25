@@ -176,9 +176,9 @@ public class WorkerResourceTest {
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
 
-        ItemStatus itemStatus = new ItemStatus("ID");
+        final ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
         final ItemStatus responses = new ItemStatus("ID");
         Mockito.reset(worker);

@@ -58,15 +58,15 @@ public abstract class RequestResponse {
     }
 
     /**
-     * 
+     *
      * @return the Json representation
      * @throws IllegalStateException
      */
     @JsonIgnore
     public JsonNode toJsonNode() {
         try {
-            return JsonHandler.getFromString(this.toString());
-        } catch (InvalidParseOperationException e) {
+            return JsonHandler.getFromString(toString());
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new IllegalStateException(e);
         }
@@ -77,26 +77,26 @@ public abstract class RequestResponse {
      * <br/>
      * Might return an empty VitamError in case response is empty with only the HttpCode set and the Code set to empty
      * String.
-     * 
+     *
      * @param response
      * @return The associate RequestResponseOk or VitamError
      * @throws IllegalStateException if the response cannot be parsed to one of the two model
      */
     @JsonIgnore
     public static RequestResponse parseFromResponse(Response response) throws IllegalStateException {
-        String result = response.readEntity(String.class);
+        final String result = response.readEntity(String.class);
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
                 try {
                     return JsonHandler.getFromString(result, RequestResponseOK.class);
-                } catch (InvalidParseOperationException e) {
+                } catch (final InvalidParseOperationException e) {
                     // Issue, trying VitamError model
                     LOGGER.warn("Issue while decoding RequestResponseOk", e);
                 }
             } else if (result.contains("httpCode")) {
                 try {
                     return JsonHandler.getFromString(result, VitamError.class);
-                } catch (InvalidParseOperationException e) {
+                } catch (final InvalidParseOperationException e) {
                     // Issue, while trying VitamError model
                     LOGGER.warn("Issue while decoding VitamError", e);
                 }
@@ -107,10 +107,10 @@ public abstract class RequestResponse {
     }
 
     /**
-     * 
+     *
      * @param response
      * @return the RequestResponseOk
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     @JsonIgnore
     public static RequestResponseOK parseRequestResponseOk(Response response) throws InvalidParseOperationException {
@@ -118,10 +118,10 @@ public abstract class RequestResponse {
     }
 
     /**
-     * 
+     *
      * @param response
      * @return the VitamError
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     @JsonIgnore
     public static VitamError parseVitamError(Response response) throws InvalidParseOperationException {

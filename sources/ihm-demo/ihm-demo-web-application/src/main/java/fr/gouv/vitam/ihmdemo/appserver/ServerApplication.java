@@ -73,7 +73,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     /**
      * ServerApplication constructor
-     * 
+     *
      * @param configuration
      */
     public ServerApplication(String configuration) {
@@ -82,7 +82,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     /**
      * ServerApplication constructor
-     * 
+     *
      * @param configuration
      */
     ServerApplication(WebApplicationConfig configuration) {
@@ -177,7 +177,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .getResource(getConfiguration().getStaticContent());
         try {
             staticContentHandler.setResourceBase(webAppDir.toURI().toString());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new VitamApplicationServerException("Web App Dir incorrect", e);
         }
 

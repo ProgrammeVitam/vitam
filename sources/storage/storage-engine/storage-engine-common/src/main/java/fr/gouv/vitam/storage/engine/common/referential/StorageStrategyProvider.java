@@ -37,7 +37,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 public interface StorageStrategyProvider {
     /**
      * Retrieve a storage strategy by its id
-     * 
+     *
      * @param idStrategy the id of the storage strategy to retrieve
      * @return an object representation of a storage strategy
      * @throws StorageTechnicalException if any unwanted technical issue happens

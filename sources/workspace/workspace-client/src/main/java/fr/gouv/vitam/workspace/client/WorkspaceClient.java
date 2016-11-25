@@ -104,7 +104,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -139,7 +139,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -164,7 +164,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName, null,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return Response.Status.OK.getStatusCode() == response.getStatus();
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -191,7 +191,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -219,7 +219,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -237,7 +237,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + FOLDERS + folderName, null,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return Response.Status.OK.getStatusCode() == response.getStatus();
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -263,7 +263,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -290,7 +290,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
 
@@ -311,8 +311,8 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-                ResponseBuilder responseBuilder =
+                final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+                final ResponseBuilder responseBuilder =
                     Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                 helper.writeResponse(responseBuilder);
                 return response;
@@ -324,7 +324,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
 
@@ -356,7 +356,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -374,7 +374,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName + OBJECTS + objectName, null,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return Response.Status.OK.getStatusCode() == response.getStatus();
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -402,7 +402,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 }
                 return Collections.<URI>emptyList();
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -451,7 +451,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                         throw new ContentAddressableStorageServerException(
                             ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     }
-                } catch (VitamClientInternalException e) {
+                } catch (final VitamClientInternalException e) {
                     LOGGER.error(INTERNAL_SERVER_ERROR2, e);
                     throw new ContentAddressableStorageServerException(e);
                 } finally {
@@ -494,7 +494,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -518,7 +518,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageNotFoundException(response.getStatusInfo().getReasonPhrase());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
@@ -546,7 +546,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {

@@ -38,7 +38,7 @@ public class DummyHandlerTest {
     @Test
     public void dummyHandlerTest()
         throws Exception {
-        DummyHandler handler = new DummyHandler();
+        final DummyHandler handler = new DummyHandler();
 
         assertEquals("DummyHandler", DummyHandler.getId());
         final ItemStatus response = handler.execute(null, null);

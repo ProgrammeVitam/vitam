@@ -94,9 +94,10 @@ public abstract class RequestSingle extends AbstractRequest {
 
     /**
      * Get the json final of request
-     * 
+     *
      * @return the Final json containing all 2 parts: query and filter
      */
+    @Override
     protected final ObjectNode getFinal() {
         final ObjectNode node = JsonHandler.createObjectNode();
         if (query != null) {
@@ -132,7 +133,7 @@ public abstract class RequestSingle extends AbstractRequest {
      */
     @Override
     public List<Query> getQueries() {
-        final List<Query> queries = new ArrayList<Query>();
+        final List<Query> queries = new ArrayList<>();
         queries.add(query);
         return queries;
     }

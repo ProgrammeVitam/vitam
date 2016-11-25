@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public final class SedaUtilInfo {
 
-    Map<String, BinaryObjectInfo> binaryObjectMap = new HashMap<String, BinaryObjectInfo>();
+    Map<String, BinaryObjectInfo> binaryObjectMap = new HashMap<>();
 
     /**
      * @return binaryObjectMap

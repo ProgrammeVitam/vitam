@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplic
 /**
  * Storage configuration class mapping
  */
-public final class StorageConfiguration extends DefaultVitamApplicationConfiguration{
+public final class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlWorkspace;
 

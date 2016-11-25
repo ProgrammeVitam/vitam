@@ -111,9 +111,9 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
             WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
             // Logbook dependency
             serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
-             // Workspace dependency
+                // Workspace dependency
                 .register(WorkspaceClientFactory.getInstance())
-            // Metadata dependency
+                // Metadata dependency
                 .register(MetaDataClientFactory.getInstance());
             // FIXME P1 Siegfried missing but different configuration...
             // Processing dependency: optional ?

@@ -113,7 +113,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * check the file format
-     * 
+     *
      * @param xmlPronom as InputStream
      * @return Response response jersey
      */
@@ -130,7 +130,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(status).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -142,7 +142,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * import the file format
-     * 
+     *
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -167,7 +167,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -181,8 +181,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * Find the file format detail related to a specified Id
-     * 
-     * 
+     *
+     *
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
@@ -209,7 +209,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -218,7 +218,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * retrieve all the file format inserted in the collection fileFormat
-     * 
+     *
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs
@@ -235,10 +235,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
-            RequestResponseOK responseEntity = new RequestResponseOK()
+            final RequestResponseOK responseEntity = new RequestResponseOK()
                 .setHits(fileFormatList.size(), 0, fileFormatList.size())
                 .setQuery(select);
-            for (FileFormat format : fileFormatList) {
+            for (final FileFormat format : fileFormatList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(format));
             }
             return Response.status(Status.OK)
@@ -250,7 +250,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -259,9 +259,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * check the rules file
-     * 
-     * 
-     * 
+     *
+     *
+     *
      * @param rulesStream as InputStream
      * @return Response response jersey
      * @throws IOException
@@ -286,7 +286,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -299,7 +299,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * import the rules file
-     * 
+     *
      * @param rulesStream as InputStream
      * @return Response jersey response
      * @throws IOException when error json occurs
@@ -328,7 +328,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(status)
                 .build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -372,7 +372,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -402,7 +402,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * show all file rules inserted in the collection fileRules
-     * 
+     *
      * @param select as String
      * @return Response jersey Response
      * @throws IOException when error json occurs
@@ -419,10 +419,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select);
-            RequestResponseOK responseEntity = new RequestResponseOK()
+            final RequestResponseOK responseEntity = new RequestResponseOK()
                 .setHits(filerulesList.size(), 0, filerulesList.size())
                 .setQuery(select);
-            for (FileRules rule : filerulesList) {
+            for (final FileRules rule : filerulesList) {
                 responseEntity.addResult(JsonHandler.toJsonNode(rule));
             }
             return Response.status(Status.OK)
@@ -436,7 +436,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -445,7 +445,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * create or update an accession register
-     * 
+     *
      * @param accessionRegister AccessionRegisterDetail object
      * @return Response jersey response
      */
@@ -463,10 +463,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(Status.CREATED).build();
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
@@ -475,7 +475,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * retrieve all accession summary from accession summary collection
-     * 
+     *
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs
@@ -497,20 +497,20 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(new RequestResponseOK()
                     .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
                     .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
                 .build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
         final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
-        for (AccessionRegisterSummary register : fileFundRegisters) {
+        for (final AccessionRegisterSummary register : fileFundRegisters) {
             resultArrayNode.add(JsonHandler.toJsonNode(register));
         }
         return Response.status(Status.OK)
@@ -523,8 +523,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * retrieve accession register detail based on a given dsl query
-     * 
-     * 
+     *
+     *
      * @param select as String
      * @return Response jersay Response
      * @throws IOException when error json occurs
@@ -538,7 +538,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response findDetailAccessionRegister(JsonNode select)
         throws InvalidParseOperationException, IOException, ReferentialException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
-        List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<AccessionRegisterDetail>();
+        List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<>();
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(select);
@@ -546,16 +546,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
         final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
-        for (AccessionRegisterDetail register : fileAccessionRegistersDetail) {
+        for (final AccessionRegisterDetail register : fileAccessionRegistersDetail) {
             resultArrayNode.add(JsonHandler.toJsonNode(register));
         }
 

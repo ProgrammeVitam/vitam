@@ -58,7 +58,7 @@ public class UpdateToMongodb extends RequestToMongodb {
      */
     public Bson getFinalUpdate() throws InvalidParseOperationException {
         final List<Action> actions = requestParser.getRequest().getActions();
-        final List<Bson> bactions = new ArrayList<Bson>(actions.size());
+        final List<Bson> bactions = new ArrayList<>(actions.size());
         for (final Action action : actions) {
             bactions.add(UpdateActionToMongodb.getCommand(action));
         }

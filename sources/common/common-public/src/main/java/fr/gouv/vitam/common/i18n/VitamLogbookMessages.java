@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -50,7 +50,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param propertyFilename
      */
     private VitamLogbookMessages(String propertyFilename) {
@@ -58,7 +58,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param propertyFilename
      * @param locale
      */
@@ -68,7 +68,7 @@ public class VitamLogbookMessages {
 
     /**
      * Retrieve all the messages
-     * 
+     *
      * @return map of messages
      */
     public static Map<String, String> getAllMessages() {
@@ -77,7 +77,7 @@ public class VitamLogbookMessages {
 
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @return the Label of this step or handler or full named
      */
@@ -87,7 +87,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @return the Label of this step or handler or full named
      */
@@ -96,16 +96,17 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param stepOrHandler
      * @return the final EventType code
      */
     public static final String getEventTypeLfc(String stepOrHandler) {
         return LIFECYCLE + SEPARATOR + stepOrHandler;
     }
+
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @return the Label of this step or handler or full named with sub transaction
@@ -116,7 +117,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @return the Label of this step or handler or full named with sub transaction
@@ -127,7 +128,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param stepOrHandler
      * @param code
      * @return the code to place within outcomeDetail (Logbooks)
@@ -137,7 +138,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param stepOrHandler
      * @param code
      * @return the code to place within outcomeDetail (Logbooks)
@@ -147,7 +148,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param stepOrHandler
      * @param transaction
      * @param code
@@ -158,7 +159,7 @@ public class VitamLogbookMessages {
     }
 
     /**
-     * 
+     *
      * @param stepOrHandler
      * @param transaction
      * @param code
@@ -170,7 +171,7 @@ public class VitamLogbookMessages {
 
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param code the code from which the message is needed
      * @return the code label of this step or handler or full named
@@ -181,7 +182,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param code the code from which the message is needed
      * @return the code label of this step or handler or full named
@@ -192,7 +193,7 @@ public class VitamLogbookMessages {
 
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @param code the code from which the message is needed
@@ -204,7 +205,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @param code the code from which the message is needed
@@ -217,7 +218,7 @@ public class VitamLogbookMessages {
 
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param code the code from which the message is needed
      * @param args list of extra argument to apply as MessageFormat.format(message, args)
@@ -229,7 +230,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param code the code from which the message is needed
      * @param args list of extra argument to apply as MessageFormat.format(message, args)
@@ -241,7 +242,7 @@ public class VitamLogbookMessages {
 
     /**
      * Operation Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @param code the code from which the message is needed
@@ -254,7 +255,7 @@ public class VitamLogbookMessages {
 
     /**
      * Lifecycle Logbook context
-     * 
+     *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)
      * @param transaction transaction name (within this handler)
      * @param code the code from which the message is needed
@@ -264,10 +265,10 @@ public class VitamLogbookMessages {
     public static final String getCodeLfc(String stepOrHandler, String transaction, StatusCode code, Object... args) {
         return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, code), args);
     }
-    
+
     /**
      * Get a message labe knowing its full code key
-     * 
+     *
      * @param completeCodeKey the key of the label to be retrieved
      * @return the label of a particular full code key
      */

@@ -59,12 +59,13 @@ public class AbstractMockClientTest {
         client.consumeAnyEntityAndClose(null);
         client.close();
     }
-    
+
     @Test
     public void testFakeInboundResponse() {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add("test", "test");        
-        FakeInboundResponse fakeInboundResponse = new FakeInboundResponse(Status.OK, "test", MediaType.APPLICATION_JSON_TYPE, headers);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add("test", "test");
+        final FakeInboundResponse fakeInboundResponse =
+            new FakeInboundResponse(Status.OK, "test", MediaType.APPLICATION_JSON_TYPE, headers);
         assertEquals(Status.OK.getStatusCode(), fakeInboundResponse.getStatus());
         assertNotNull(fakeInboundResponse.getStatusInfo());
         assertNotNull(fakeInboundResponse.getEntity());

@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * IngestInternal client factory<br>
- * 
+ *
  * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
  * <br>
  * mock IngestInternal client will be returned

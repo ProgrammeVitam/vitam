@@ -136,9 +136,9 @@ public class StatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnStatusOk() throws Exception {
-        Map<String, String> headersMap =
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
-            RestAssured.given()
+        RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
@@ -158,14 +158,14 @@ public class StatusResourceImplTest {
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
         com.jayway.restassured.response.Response response;
-        
-        Map<String, String> headersMap =
+
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
         response =
             RestAssured.given()
-            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-            .when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+                .when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals(result.get("status").toString(), "true");
@@ -187,18 +187,18 @@ public class StatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatusNoContent() throws Exception {
-        Map<String, String> headersMap =
+        final Map<String, String> headersMap =
             AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
-        
-            RestAssured.given()
+
+        RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
             .get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
         client.checkStatus();
     }
-    
-    
+
+
     /**
      * Check sendServerVersion in error case
      *
@@ -206,19 +206,18 @@ public class StatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetNotFoundResource_ThenReturnNotFoudWithoutJettyVersion() throws Exception {
-        Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI+"/NotFound");
-        
-            Response response =RestAssured.given()
+        final Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI + "/NotFound");
+
+        final Response response = RestAssured.given()
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
-            .get(MODULE_STATUS_URI+"/NotFound").
-            then().statusCode(Status.NOT_FOUND.getStatusCode())
+            .get(MODULE_STATUS_URI + "/NotFound").then().statusCode(Status.NOT_FOUND.getStatusCode())
             .extract().response();
-            
-            String body = response.getBody().asString();
-            assertFalse(body.contains("Powered by Jetty"));
+
+        final String body = response.getBody().asString();
+        assertFalse(body.contains("Powered by Jetty"));
 
     }
 }

@@ -41,7 +41,8 @@ import fr.gouv.vitam.common.model.StatusCode;
  * Contains global process status, messages and list of action results <br>
  */
 
-//TODO P1 : should become a real POJO, extract all methods that should not be in a POJO (getGlobalProcessStatusCode, etc)
+// TODO P1 : should become a real POJO, extract all methods that should not be in a POJO (getGlobalProcessStatusCode,
+// etc)
 public class ProcessResponse implements EngineResponse {
 
     /**
@@ -76,7 +77,7 @@ public class ProcessResponse implements EngineResponse {
      *
      * object is list of response 's action
      */
-    //TODO P1 : remove interface to use a real POJO
+    // TODO P1 : remove interface to use a real POJO
     private Map<String, List<EngineResponse>> stepResponses;
 
     /**
@@ -118,7 +119,7 @@ public class ProcessResponse implements EngineResponse {
         ParametersChecker.checkParameter("Handler id is a mandatory parameter", handlerId);
         ParametersChecker.checkParameter("Outcome Detail Message is a mandatory parameter", message);
         if (outcomeMessages == null) {
-            outcomeMessages = new HashMap<String, OutcomeMessage>();
+            outcomeMessages = new HashMap<>();
         }
         outcomeMessages.put(handlerId, message);
         return this;

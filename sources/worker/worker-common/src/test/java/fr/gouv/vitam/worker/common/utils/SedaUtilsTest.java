@@ -81,31 +81,34 @@ public class SedaUtilsTest {
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;    
+    private WorkspaceClientFactory workspaceClientFactory;
     private final InputStream seda;
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setCurrentStep("TEST");
 
     public SedaUtilsTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
     }
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);        
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);        
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
     }
 
     // TODO P1 : WARN sometimes bug on jenkins
     @Test
-    public void givenGuidWhenXmlExistThenReturnValid() throws Exception {        
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
+    public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
     }
@@ -114,8 +117,9 @@ public class SedaUtilsTest {
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
-        final InputStream is = new ByteArrayInputStream(str.getBytes());        
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString())).thenReturn(Response.status(Status.OK).entity(is).build());        
+        final InputStream is = new ByteArrayInputStream(str.getBytes());
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyString()))
+            .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
@@ -126,7 +130,8 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject())).thenReturn(Response.status(Status.OK).entity(is).build());
+        when(workspaceClient.getObject(Matchers.anyObject(), Matchers.anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(is).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(is);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
@@ -144,7 +149,8 @@ public class SedaUtilsTest {
 
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(seda).build());
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
@@ -180,7 +186,8 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);

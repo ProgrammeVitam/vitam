@@ -40,30 +40,30 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class SoapUiClientMockTest {
-	private SoapUiClient client;
+    private SoapUiClient client;
 
-	@Before
-	public void initTests() {
-		SoapUiClientFactory.getInstance().changeConfiguration(null);
-		client = SoapUiClientFactory.getInstance().getClient();
-	}
+    @Before
+    public void initTests() {
+        SoapUiClientFactory.getInstance().changeConfiguration(null);
+        client = SoapUiClientFactory.getInstance().getClient();
+    }
 
-	@Test
-	public void testLaunchTest() {
-		try {
-			client.launchTests();
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
+    @Test
+    public void testLaunchTest() {
+        try {
+            client.launchTests();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Test
-	public void testGetReport() throws InvalidParseOperationException {
-		JsonNode response = client.getLastTestReport();
-		JsonNode params = response.get("params");
-		assertTrue(params.isArray());
-		
-		ArrayNode array = (ArrayNode) params;
-		assertEquals(2, array.size());
-	}
+    @Test
+    public void testGetReport() throws InvalidParseOperationException {
+        final JsonNode response = client.getLastTestReport();
+        final JsonNode params = response.get("params");
+        assertTrue(params.isArray());
+
+        final ArrayNode array = (ArrayNode) params;
+        assertEquals(2, array.size());
+    }
 }

@@ -120,7 +120,7 @@ public class JsonHandlerTest {
         try {
             JsonHandler.getMapFromInputStream(null);
             fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // OK
         }
         final Map<String, Object> map =

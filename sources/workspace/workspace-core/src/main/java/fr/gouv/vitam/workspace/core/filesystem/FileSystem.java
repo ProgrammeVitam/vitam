@@ -55,7 +55,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     public FileSystem(WorkspaceConfiguration configuration) {
         super(configuration);
     }
-    
+
     @Override
     public BlobStoreContext getContext(WorkspaceConfiguration configuration) {
         final Properties props = new Properties();

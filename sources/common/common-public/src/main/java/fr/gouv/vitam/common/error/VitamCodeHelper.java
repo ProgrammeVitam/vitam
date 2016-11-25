@@ -233,7 +233,7 @@ public class VitamCodeHelper {
 
     /**
      * Get the vitam code
-     * 
+     *
      * @param vitamCode
      *
      * @return the vitam code in String

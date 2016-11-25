@@ -61,10 +61,10 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 
 /**
@@ -210,7 +210,7 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public void postAsync(String arg, @Suspended final AsyncResponse asyncResponse) {
             final Response response = expectedResponse.post();
-            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() >= 500) {
                 throw new IllegalArgumentException("Error");
             } else if (response.getStatus() >= 400) {
@@ -336,28 +336,32 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
 
     @Test
     public void asyncCommandWithBodyRestTestClient() throws Exception {
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
+        Response response = ResponseHelper.getOutboundResponse(Status.OK,
+            new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
                 .addHeader("X-Request-Id", "abcd")
                 .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
                 .status(Status.OK).when().post("resourceasync", String.class));
-        response = new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN_TYPE, null);
+        response = new AbstractMockClient.FakeInboundResponse(Status.OK,
+            new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN_TYPE, null);
         when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
                 .addHeader("X-Request-Id", "abcd")
                 .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
                 .status(Status.OK).when().post("resourceasync", String.class));
-        response = ResponseHelper.getOutboundResponse(Status.BAD_REQUEST, DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN, null);
+        response = ResponseHelper.getOutboundResponse(Status.BAD_REQUEST, DEFAULT_XML_CONFIGURATION_FILE,
+            MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         assertEquals("Error",
             testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
                 .addHeader("X-Request-Id", "abcd")
                 .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
                 .status(Status.BAD_REQUEST).when().post("resourceasync", String.class));
-        response = ResponseHelper.getOutboundResponse(Status.INTERNAL_SERVER_ERROR, DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN, null);
+        response = ResponseHelper.getOutboundResponse(Status.INTERNAL_SERVER_ERROR, DEFAULT_XML_CONFIGURATION_FILE,
+            MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         // Here no equality since an exception raises a 500 error
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)

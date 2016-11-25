@@ -49,7 +49,7 @@ public abstract class AbstractJsonType {
 
     /**
      * Generates Json
-     * 
+     *
      * @return the corresponding JsonNode
      */
     public ObjectNode generateJson() {

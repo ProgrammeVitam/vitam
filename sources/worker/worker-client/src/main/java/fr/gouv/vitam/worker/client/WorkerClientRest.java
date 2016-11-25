@@ -65,12 +65,13 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.POST, "/" + "tasks", null, JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.POST, "/" + "tasks", null, JsonHandler.toJsonNode(step),
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return handleCommonResponseStatus(step, response, ItemStatus.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
             throw new WorkerServerClientException("Step description incorrect", e);
         } finally {
@@ -98,10 +99,13 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
                 try {
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " + VitamThreadUtils.getVitamSession().getRequestId()
-                        + " Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
-                } catch (VitamThreadAccessException e) {
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of <unknown request id> Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " +
+                        VitamThreadUtils.getVitamSession().getRequestId() + " Request, stepname:  " +
+                        step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                } catch (final VitamThreadAccessException e) {
+                    LOGGER.error(
+                        INTERNAL_SERVER_ERROR + " during execution of <unknown request id> Request, stepname:  " +
+                            step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR);
         }

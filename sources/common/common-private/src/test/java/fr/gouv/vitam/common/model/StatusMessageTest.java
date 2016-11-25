@@ -52,8 +52,8 @@ public class StatusMessageTest {
 
     @Test
     public void testToString() throws Exception {
-        StatusMessage statusMessage = new StatusMessage(ServerIdentity.getInstance());
-        String jsonExpected = JsonHandler.writeAsString(statusMessage);
+        final StatusMessage statusMessage = new StatusMessage(ServerIdentity.getInstance());
+        final String jsonExpected = JsonHandler.writeAsString(statusMessage);
         assertEquals(jsonExpected, statusMessage.toString());
     }
 }

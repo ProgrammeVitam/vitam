@@ -134,7 +134,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         @POST
         @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response  uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType, InputStream uploadedInputStream) {
+        public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+            InputStream uploadedInputStream) {
             return expectedResponse.post();
         }
 
@@ -267,7 +268,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        
+
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);

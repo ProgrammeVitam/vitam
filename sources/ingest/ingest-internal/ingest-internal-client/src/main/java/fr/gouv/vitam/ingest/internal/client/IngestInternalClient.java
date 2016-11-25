@@ -57,7 +57,7 @@ public interface IngestInternalClient extends MockOrRestClient {
 
     /**
      * Create only Logbook
-     * 
+     *
      * @param logbookParametersList
      * @return Response as just CREATED
      * @throws VitamException
@@ -67,7 +67,7 @@ public interface IngestInternalClient extends MockOrRestClient {
 
     /**
      * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
-     * 
+     *
      * @param logbookParametersList
      * @throws VitamClientException
      */

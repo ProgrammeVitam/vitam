@@ -46,9 +46,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Class helper to manage specifics Vitam headers
  */
 
-//TODO P1: This is a copy of the api-design module header management. In another item we should refactor both to make this
-//http header management common vitam.
- 
+// TODO P1: This is a copy of the api-design module header management. In another item we should refactor both to make
+// this
+// http header management common vitam.
+
 public final class HttpHeaderHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HttpHeaderHelper.class);
@@ -198,7 +199,7 @@ public final class HttpHeaderHelper {
 
     /**
      * Transform string in input list to their lowercase value
-     * 
+     *
      * @param list a list of strings to be lowercase
      * @return a list of string containing all elements of the input list but each elements is in lowercase
      */

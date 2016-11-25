@@ -580,7 +580,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             stream = (InputStream) workspace.getObject(containerName, objectName).getEntity();
 
             helper = new AsyncInputStreamHelper(asyncResponse, stream);
-            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
 
         } catch (final InvalidParseOperationException | IllegalArgumentException e) {

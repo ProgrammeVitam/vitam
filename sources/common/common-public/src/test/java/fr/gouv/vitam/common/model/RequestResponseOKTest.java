@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,8 +64,8 @@ public class RequestResponseOKTest {
 
     private static final String ERROR_JSON =
         "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
-        "[{\"httpCode\":0,\"code\":\"1\"}]}";
+            "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+            "[{\"httpCode\":0,\"code\":\"1\"}]}";
 
     private static final String OK_JSON =
         "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
@@ -93,10 +94,10 @@ public class RequestResponseOKTest {
             OK_JSON,
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
-            RequestResponseOK copy =
+            final RequestResponseOK copy =
                 JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             fail("should not failed");
         }
         requestResponseOK.addResult(query);
@@ -114,10 +115,10 @@ public class RequestResponseOKTest {
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
-            RequestResponseOK copy =
+            final RequestResponseOK copy =
                 JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             fail("should not failed");
         }
 
@@ -141,6 +142,7 @@ public class RequestResponseOKTest {
         assertFalse(code.isGreaterOrEqualToFatal());
         assertFalse(code.isGreaterOrEqualToKo());
     }
+
     @Test
     public void testFromResponse() throws InvalidParseOperationException {
         results = JsonHandler.createArrayNode();
@@ -149,15 +151,16 @@ public class RequestResponseOKTest {
         final RequestResponseOK requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(results);
-        Response response = getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
+        Response response =
+            getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
         RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
         assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
         assertTrue(requestResponse.isOk());
         response = getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseRequestResponseOk(response);
         assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
-        
-        VitamError error = new VitamError("0");
+
+        final VitamError error = new VitamError("0");
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");
@@ -170,26 +173,26 @@ public class RequestResponseOKTest {
         response = getOutboundResponse(Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseVitamError(response);
         assertEquals(ERROR_JSON, JsonHandler.unprettyPrint(requestResponse));
-        
+
         response = getOutboundResponse(Status.BAD_GATEWAY, null, MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseFromResponse(response);
         assertTrue(requestResponse instanceof VitamError);
         assertEquals(Status.BAD_GATEWAY.getStatusCode(), ((VitamError) requestResponse).getHttpCode());
         assertEquals("", ((VitamError) requestResponse).getCode());
         assertFalse(requestResponse.isOk());
-        
+
         // Bad response
         response = getOutboundResponse(Status.BAD_GATEWAY, "{ \"notcorrect\": 1}", MediaType.APPLICATION_JSON, null);
         try {
             requestResponse = RequestResponse.parseFromResponse(response);
             System.err.println(requestResponse.toString());
             fail("Should raized an exception");
-        } catch (IllegalStateException e) {
+        } catch (final IllegalStateException e) {
             // Correct
         }
     }
-    
-    
+
+
     public static Response getOutboundResponse(Status status, Object entity, String contentType,
         Map<String, String> headers) {
         if (status == null) {
@@ -198,9 +201,9 @@ public class RequestResponseOKTest {
         final Response response = Mockito.mock(Response.class);
         when(response.getStatus()).thenReturn(status.getStatusCode());
         if (entity == null) {
-            when(response.readEntity(Mockito.any(Class.class))).thenReturn("");
+            when(response.readEntity(Matchers.any(Class.class))).thenReturn("");
         } else {
-            when(response.readEntity(Mockito.any(Class.class))).thenReturn(entity);
+            when(response.readEntity(Matchers.any(Class.class))).thenReturn(entity);
         }
         boolean contentTypeFound = false;
         if (!Strings.isNullOrEmpty(contentType)) {
@@ -208,7 +211,7 @@ public class RequestResponseOKTest {
             contentTypeFound = true;
         }
         if (headers != null) {
-            for (Entry<String, String> entry : headers.entrySet()) {
+            for (final Entry<String, String> entry : headers.entrySet()) {
                 when(response.getHeaderString(entry.getKey())).thenReturn(entry.getValue());
             }
         }

@@ -45,8 +45,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
- * Property Utility class 
- * 
+ * Property Utility class
+ *
  * NOTE for developers: Do not add LOGGER there
  */
 
@@ -58,7 +58,7 @@ public final class PropertiesUtils {
     private PropertiesUtils() {
         // Empty
     }
-    
+
     /**
      * Get the InputStream representation from the local path to the Resources directory
      *
@@ -260,7 +260,7 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return clasz.cast(mapper.readValue(yamlFileReader, clasz));
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new IOException(e);
         }
     }
@@ -280,7 +280,7 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return mapper.readValue(yamlFileReader, typeReference);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new IOException(e);
         }
     }
@@ -300,7 +300,7 @@ public final class PropertiesUtils {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
             return clasz.cast(mapper.readValue(yamlInputStream, clasz));
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new IOException(e);
         }
     }

@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class CollectionSample extends VitamDocument<CollectionSample> {
 
     /**
-    * 
+    *
     */
     private static final long serialVersionUID = -132115596185118655L;
 
@@ -51,7 +51,7 @@ public class CollectionSample extends VitamDocument<CollectionSample> {
     }
 
     /**
-     * 
+     *
      */
     public CollectionSample() {
         // Empty

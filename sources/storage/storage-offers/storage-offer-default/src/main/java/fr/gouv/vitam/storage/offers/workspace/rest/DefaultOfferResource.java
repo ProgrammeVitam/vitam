@@ -84,7 +84,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
     private static final String CODE_VITAM = "code_vitam";
 
-    private int tenantId = 0;
+    private final int tenantId = 0;
 
     /**
      * Constructor
@@ -95,7 +95,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     /**
      * Get the information on the offer objects collection (free and used capacity, etc)
-     * 
+     *
      * @param xTenantId
      * @return information on the offer objects collection
      *
@@ -222,7 +222,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            SizedInputStream sis = new SizedInputStream(input);
+            final SizedInputStream sis = new SizedInputStream(input);
             final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, sis,
                 xCommandHeader.equals(StorageConstants.COMMAND_END));
             return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis
@@ -246,7 +246,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@PathParam("id") String idObject) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status = Status.NOT_IMPLEMENTED;
+        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -273,7 +273,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -301,7 +301,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     /**
      * Add error response in async response using with vitamCode
-     * 
+     *
      * @param vitamCode vitam error Code
      * @param asyncResponse asynchronous response
      */

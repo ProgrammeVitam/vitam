@@ -51,7 +51,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
     JsonNode selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * select Unit By Id
@@ -64,7 +65,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
     JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * update Unit By Id
@@ -77,7 +79,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
     JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
@@ -90,7 +93,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
     JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * Retrieve an Object data as an input stream
@@ -105,12 +109,13 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
     Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
-    
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
+
 
     /**
      * selectOperation
-     * 
+     *
      * @param select
      * @return Json representation
      * @throws LogbookClientException
@@ -120,7 +125,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectOperationbyId
-     * 
+     *
      * @param processId
      * @return Json representation
      * @throws LogbookClientException
@@ -130,7 +135,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectUnitLifeCycleById
-     * 
+     *
      * @param idUnit
      * @return Json representation
      * @throws LogbookClientException
@@ -140,7 +145,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectObjectGroupLifeCycleById
-     * 
+     *
      * @param idObject
      * @return Json representation
      * @throws LogbookClientException

@@ -73,7 +73,7 @@ public class BasicVitamServer implements VitamServer {
         ParametersChecker.checkValue("You must provide a valid port number", port, 1);
         this.port = port;
         server = new Server(vitamThreadPoolExecutor);
-        ServerConnector serverConnector = new ServerConnector(server);
+        final ServerConnector serverConnector = new ServerConnector(server);
         serverConnector.setPort(port);
         server.addConnector(serverConnector);
     }
@@ -279,9 +279,9 @@ public class BasicVitamServer implements VitamServer {
         ParametersChecker.checkParameter("Handler must not be nul", handler);
         this.handler = handler;
     }
-    
+
     /**
-     * 
+     *
      * @return the VitamThreadPoolExecutor used by the server
      */
     public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {

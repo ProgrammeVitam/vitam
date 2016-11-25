@@ -175,7 +175,7 @@ public interface LogbookOperationsClient extends BasicClient {
     /**
      * Call traceability logbook operation <br>
      * <br>
-     * 
+     *
      * @return logbook operation as String
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException

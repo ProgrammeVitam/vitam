@@ -201,7 +201,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                                     // Retrieve the file
                                     file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
-                                    ObjectCheckFormatResult result =
+                                    final ObjectCheckFormatResult result =
                                         executeOneObjectFromOG(objectId, jsonFormatIdentifier, file,
                                             version);
 
@@ -233,7 +233,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                         handlerIO.transferInputStreamToWorkspace(
                             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
                             isos);
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
                     }
                 }
@@ -292,7 +292,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
         throws ProcessingException {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, ogID);
         // Reset the eventDetailData
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,"");
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, "");
         LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
             logbookLifecycleObjectGroupParameters, itemStatus);
     }
@@ -336,7 +336,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     StatusCode.KO, null);
             } else {
                 // check formatIdentification
-                JsonNode newFormatIdentification =
+                final JsonNode newFormatIdentification =
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, result,
                         version);
@@ -348,7 +348,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setSubStatus(null);
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR);
@@ -396,7 +396,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
         }
         if (newFormatIdentification != null) {
-            JsonNode fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID);
+            final JsonNode fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID);
             if (!puid.equals(fiPuid)) {
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
                 if (fiPuid != null && fiPuid.size() != 0) {
@@ -410,7 +410,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 metadatasUpdated = true;
             }
             final JsonNode name = refFormat.get(FileFormat.NAME);
-            JsonNode fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
+            final JsonNode fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
             if (!name.equals(fiFormatLitteral)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -427,7 +427,7 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 metadatasUpdated = true;
             }
             final JsonNode mimeType = refFormat.get(FileFormat.MIME_TYPE);
-            JsonNode fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE);
+            final JsonNode fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE);
             if (!mimeType.equals(fiMimeType)) {
                 if (diff.length() != 0) {
                     diff.append('\n');

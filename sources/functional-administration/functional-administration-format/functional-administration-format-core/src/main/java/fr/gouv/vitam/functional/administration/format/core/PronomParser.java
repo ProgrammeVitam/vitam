@@ -104,8 +104,8 @@ public class PronomParser {
         JsonNode jsonPronom = null;
         final ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
 
-        final List<String> extensions = new ArrayList<String>();
-        final List<String> priorityOverIdList = new ArrayList<String>();
+        final List<String> extensions = new ArrayList<>();
+        final List<String> priorityOverIdList = new ArrayList<>();
         final Map<String, String> idToPUID = new HashMap<>();
 
         try {
@@ -213,8 +213,8 @@ public class PronomParser {
 
     /**
      * Construct a FileFormat from a given Map
-     * 
-     * 
+     *
+     *
      * @param fileFormat
      * @param attributes
      * @return
@@ -237,8 +237,8 @@ public class PronomParser {
 
     /**
      * Copy attributes from a FileFormat Destination to FilaFormat Source
-     * 
-     * 
+     *
+     *
      * @param fileFormatSource
      * @param fileFormatDest
      */

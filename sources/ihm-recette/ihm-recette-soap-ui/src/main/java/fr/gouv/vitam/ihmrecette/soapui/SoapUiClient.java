@@ -39,6 +39,7 @@ public interface SoapUiClient {
 
     /**
      * Launch Soap UI tests with the actual configuration
+     *
      * @throws IOException Error occures while read input files or write report
      * @throws InterruptedException Error in soap-ui processus
      */
@@ -46,7 +47,7 @@ public interface SoapUiClient {
 
     /**
      * Get the report result as Json of the last SOAP-UI launch
-     * 
+     *
      * @return The report of the last tests as json
      * @throws InvalidParseOperationException If error occures while parsing json
      */

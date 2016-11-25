@@ -151,7 +151,7 @@ public class ParserTokens extends BuilderToken {
 
         /**
          * Used in projection for getObject
-         * 
+         *
          * @param token
          * @return True if this token is valid, even starting with a "_"
          */

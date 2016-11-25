@@ -36,7 +36,7 @@ public class SoapUiConfig {
     private String ingestProtocol;
     private int ingestPort;
     private String ingestHost;
-    
+
     private String accessExternalProtocol;
     private int accessExternalPort;
     private String accessExternalHost;
@@ -46,7 +46,7 @@ public class SoapUiConfig {
     private String reportingDir;
     private String configDir;
     private String soapUiExecutable;
-    
+
     /**
      * @return ingestPort
      */
@@ -165,7 +165,7 @@ public class SoapUiConfig {
         this.certfile = certfile;
         return this;
     }
-    
+
     /**
      * @return dataDir
      */
@@ -181,9 +181,9 @@ public class SoapUiConfig {
         ParametersChecker.checkParameter("dataDir is mandatory", dataDir);
         this.dataDir = dataDir;
         return this;
-    }    
-    
-    
+    }
+
+
     /**
      * @return reportingDir
      */
@@ -217,7 +217,7 @@ public class SoapUiConfig {
         this.configDir = configDir;
         return this;
     }
-    
+
     /**
      * @return soapUiExecutable
      */
@@ -234,5 +234,5 @@ public class SoapUiConfig {
         this.soapUiExecutable = soapUiExecutable;
         return this;
     }
-    
+
 }

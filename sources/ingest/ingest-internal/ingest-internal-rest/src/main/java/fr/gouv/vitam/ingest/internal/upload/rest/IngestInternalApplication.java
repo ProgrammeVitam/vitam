@@ -55,7 +55,8 @@ public class IngestInternalApplication
 
     /**
      * Ingest Internal constructor
-     * @param configuration 
+     *
+     * @param configuration
      */
     public IngestInternalApplication(String configuration) {
         super(IngestInternalConfiguration.class, configuration);
@@ -96,7 +97,7 @@ public class IngestInternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        IngestInternalResource resource = new IngestInternalResource(getConfiguration());
+        final IngestInternalResource resource = new IngestInternalResource(getConfiguration());
         // Register Workspace
         serviceRegistry.register(WorkspaceClientFactory.getInstance())
             // Register Logbook for Operation

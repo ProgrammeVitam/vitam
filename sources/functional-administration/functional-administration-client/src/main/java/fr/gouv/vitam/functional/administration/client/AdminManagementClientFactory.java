@@ -31,9 +31,10 @@ import java.io.IOException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+
 /**
  * Admin management client factory use to get client by type "rest" or "mock"
  */
@@ -102,7 +103,7 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
         }
         return configuration;
     }
-    
+
     /**
      *
      * @param configuration null for MOCK

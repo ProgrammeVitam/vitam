@@ -35,31 +35,36 @@ public class AccessExternalClientMockTest {
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitsThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql)));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalUpdateUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectOfUnitbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException, IOException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, IOException {
         assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectbyIDThenReturnResult()
-        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
         assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID));
     }
 

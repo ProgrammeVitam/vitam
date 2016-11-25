@@ -193,8 +193,8 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                 final JsonNode warnNode = match.get("warning");
                 if (warnNode != null) {
                     final String warn = warnNode.asText();
-                    int pos = warn.indexOf("fmt/");
-                    int xpos = warn.indexOf("x-fmt/");
+                    final int pos = warn.indexOf("fmt/");
+                    final int xpos = warn.indexOf("x-fmt/");
                     int start = -1;
                     if (pos > 0 && xpos > 0) {
                         start = pos < xpos ? pos : xpos;
@@ -209,7 +209,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                             end = warn.length();
                         }
                         if (end > start) {
-                            String newFormatId = warn.substring(start, end);
+                            final String newFormatId = warn.substring(start, end);
                             if (LOGGER.isDebugEnabled()) {
                                 LOGGER.debug("Find a format " + formatId + " for " + namespace);
                             }
@@ -219,7 +219,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                                 new FormatIdentifierResponse(format, mimetype, newFormatId, namespace);
                             matchesFormats.add(formatIdentifier);
                         }
-                   }
+                    }
                 }
             }
         }

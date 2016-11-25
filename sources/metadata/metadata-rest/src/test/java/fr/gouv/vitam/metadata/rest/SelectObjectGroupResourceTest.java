@@ -120,11 +120,11 @@ public class SelectObjectGroupResourceTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         dataBasePort = junitHelper.findAvailablePort();
@@ -136,7 +136,7 @@ public class SelectObjectGroupResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =

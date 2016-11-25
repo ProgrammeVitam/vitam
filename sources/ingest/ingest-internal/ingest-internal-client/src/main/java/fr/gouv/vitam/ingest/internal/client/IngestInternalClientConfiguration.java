@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
  */
 
 public class IngestInternalClientConfiguration extends ClientConfigurationImpl {
-    
+
     /**
      * Empty constructor used by YAMLFactory to instanciate the object
      */

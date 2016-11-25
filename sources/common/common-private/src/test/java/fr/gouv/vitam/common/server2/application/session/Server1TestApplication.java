@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
  */
 public class Server1TestApplication extends AbstractTestApplication {
 
+    @Override
     protected final Class getResourceClass() {
         return Server1Resource.class;
     }
@@ -66,7 +67,8 @@ public class Server1TestApplication extends AbstractTestApplication {
 
 
     /**
-     * Implementation of test Server1 ; note : returned values from REST interfaces should serve to the validation of the results in {@link VitamRequestIdFiltersIT}
+     * Implementation of test Server1 ; note : returned values from REST interfaces should serve to the validation of
+     * the results in {@link VitamRequestIdFiltersIT}
      */
     @Path("/server1")
     public static class Server1Resource {
@@ -88,10 +90,12 @@ public class Server1TestApplication extends AbstractTestApplication {
 
         @GET
         @Path("/callWithThreadPoolRequestId")
-        public String setRequestIdAndCallServer2WithThreadPool() throws ExecutionException, InterruptedException, VitamThreadAccessException {
+        public String setRequestIdAndCallServer2WithThreadPool()
+            throws ExecutionException, InterruptedException, VitamThreadAccessException {
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1-with-threadpool");
             LOGGER.debug("RequestId set. Forwarding execution to ThreadPool.");
-            Future<String> future = VitamThreadPoolExecutor.getDefaultExecutor().submit(() -> clientFactory.getClient().doRequest("failIfNoRequestId"));
+            final Future<String> future = VitamThreadPoolExecutor.getDefaultExecutor()
+                .submit(() -> clientFactory.getClient().doRequest("failIfNoRequestId"));
             return future.get();
         }
 
@@ -102,7 +106,8 @@ public class Server1TestApplication extends AbstractTestApplication {
             LOGGER.debug("RequestId not set.");
             clientFactory.getClient().doRequest("setRequestIdInResponse");
             final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
-            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is working
+            Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is
+                                                                              // working
             return reqId;
         }
 

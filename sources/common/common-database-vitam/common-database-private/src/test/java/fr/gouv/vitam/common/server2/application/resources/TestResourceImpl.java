@@ -32,9 +32,6 @@ import javax.ws.rs.Produces;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server2.application.resources.VitamStatusService;
 
 
 /**

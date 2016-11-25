@@ -57,12 +57,12 @@ public enum RuleMeasurementEnum {
      * Constructor
      */
     private RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType) {
-        this.type = ruleMeasurement;
+        type = ruleMeasurement;
         this.calendarUnitType = calendarUnitType;
     }
 
     /**
-     * 
+     *
      * @return the type of the measure
      */
     public String getType() {
@@ -70,7 +70,7 @@ public enum RuleMeasurementEnum {
     }
 
     /**
-     * 
+     *
      * @return the Calendar Unit Type
      */
     public int getCalendarUnitType() {
@@ -78,12 +78,12 @@ public enum RuleMeasurementEnum {
     }
 
     /**
-     * 
+     *
      * @param month
      * @return the associated RuleMeasurementEnum according to parameter
      */
     public static RuleMeasurementEnum getEnumFromMonth(String month) {
-        for(RuleMeasurementEnum e : values()) {
+        for (final RuleMeasurementEnum e : values()) {
             if (e.getType().equalsIgnoreCase(month)) {
                 return e;
             }

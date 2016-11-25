@@ -50,7 +50,7 @@ public interface AdminClient extends BasicClient {
     /**
      * Check the dependencies and return a VitamError status where getHttpCode contains either 200 for OK or 503 for
      * error and a sub list of VitamErrors for each tested subservices
-     * 
+     *
      * @return the VitamError status, both in case of OK or ServiceUnavailable
      * @throws VitamClientException
      */

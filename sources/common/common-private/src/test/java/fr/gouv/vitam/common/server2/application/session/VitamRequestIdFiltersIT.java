@@ -57,12 +57,14 @@ public class VitamRequestIdFiltersIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Start server 2
-        final StartApplicationResponse<AbstractTestApplication> response2 = AbstractTestApplication.startTestApplication(new Server2TestApplication());
+        final StartApplicationResponse<AbstractTestApplication> response2 =
+            AbstractTestApplication.startTestApplication(new Server2TestApplication());
         serverPort2 = response2.getServerPort();
         application2 = response2.getApplication();
         // Configure and start server 1
         Server1TestApplication.setServer2Port(serverPort2);
-        StartApplicationResponse<AbstractTestApplication> response1 = AbstractTestApplication.startTestApplication(new Server1TestApplication());
+        final StartApplicationResponse<AbstractTestApplication> response1 =
+            AbstractTestApplication.startTestApplication(new Server1TestApplication());
         serverPort1 = response1.getServerPort();
         application1 = response1.getApplication();
         // Configure local client factory
@@ -87,13 +89,16 @@ public class VitamRequestIdFiltersIT {
 
     /**
      * Test purpose : validate simple RequestId propagation between server 1 and 2 ; sequence :
-     * <p><ol>
+     * <p>
+     * <ol>
      * <li>junit test sends a request with a client (no request id in header) ;</li>
      * <li>server1 gets the request, add a requestId and calls server2 ;</li>
-     * <li>server2 gets the request, extract the requestId from the thread context, validate the consistency with the MDC and return the extracted requestId in the response body ;</li>
+     * <li>server2 gets the request, extract the requestId from the thread context, validate the consistency with the
+     * MDC and return the extracted requestId in the response body ;</li>
      * <li>server1 transfers back the response (unchanged) to the client ;</li>
      * <li>the client validate the body of the response to be the awaited requestId seen by the server2.
-     * </ol><p>
+     * </ol>
+     * <p>
      */
     @Test
     public void testServer1ToServer2RequestIdPropagation() {
@@ -112,7 +117,8 @@ public class VitamRequestIdFiltersIT {
     }
 
     /**
-     * Test purpose : same as previous ones insequence ; check especially if the thread context is correctly cleaned up between requests.
+     * Test purpose : same as previous ones insequence ; check especially if the thread context is correctly cleaned up
+     * between requests.
      */
     @Test
     public void testRequestIdCleanupBetweenRequests() {
@@ -127,7 +133,8 @@ public class VitamRequestIdFiltersIT {
     }
 
     /**
-     * Test purpose : same as first one, but the client in server1 is called in another thread (to check the passing of the requestId between threads).
+     * Test purpose : same as first one, but the client in server1 is called in another thread (to check the passing of
+     * the requestId between threads).
      */
     @Test
     public void testServer1ToServer2RequestIdPropagationWithThreadPool() {

@@ -118,6 +118,7 @@ public class DisableAutomaticRetryTest extends JerseyTest {
         public ServerSocket serverSocket;
         public int connectionCount = 0;
         public volatile boolean run = false;
+
         @Override
         public void run() {
             LOGGER.info("AutoCloseServer started");

@@ -37,6 +37,7 @@ public interface DbRequestFactory {
 
     /**
      * Creation of an DbRequest
+     *
      * @return the DbRequest
      */
     public DbRequest create();

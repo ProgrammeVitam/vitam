@@ -89,7 +89,7 @@ public class ExtractObjectNumSedaTest {
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
         when(client.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
-        HandlerIO handlerIO = mock(HandlerIO.class);
+        final HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
         utils = SedaUtilsFactory.create(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);

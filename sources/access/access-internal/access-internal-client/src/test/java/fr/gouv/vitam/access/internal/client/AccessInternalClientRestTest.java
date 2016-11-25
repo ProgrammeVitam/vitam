@@ -80,13 +80,14 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     protected AccessInternalClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     final String queryDsql =
-            "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-                    " \"$filter\": { \"$orderby\": \"#id\" }, " +
-                    " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-                    " }";
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
@@ -115,13 +116,13 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             throw new IllegalStateException("Cannot start the application", e);
         }
         return new StartApplicationResponse<AbstractApplication>()
-                .setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
     }
 
     // Define your Application class if necessary
     public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
         protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
             super(TestVitamApplicationConfiguration.class, configuration);
         }
@@ -152,7 +153,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnits(JsonNode queryDsl,
-                                 @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
 
@@ -162,8 +163,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitById(JsonNode queryDsl,
-                                    @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-                                    @PathParam("id_unit") String id_unit) {
+            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+            @PathParam("id_unit") String id_unit) {
             return expectedResponse.post();
         }
 
@@ -198,7 +199,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-                                       @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
+            @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
             return expectedResponse.post();
         }
 
@@ -208,8 +209,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public void getObjectStreamAsync(@Context HttpHeaders headers,
-                                         @PathParam("id_object_group") String idObjectGroup,
-                                         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+            @PathParam("id_object_group") String idObjectGroup,
+            JsonNode query, @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.get());
         }
 
@@ -219,8 +220,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public void getObjectStreamPostAsync(@Context HttpHeaders headers,
-                                             @PathParam("id_object_group") String idObjectGroup, JsonNode query,
-                                             @Suspended final AsyncResponse asyncResponse) {
+            @PathParam("id_object_group") String idObjectGroup, JsonNode query,
+            @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.post());
         }
 
@@ -231,39 +232,39 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
-            throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
-            InvalidParseOperationException {
+        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenSelectUnit_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString("");
+        final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnits(queryJson)).isNotNull();
 
     }
@@ -275,70 +276,70 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenResourceNotFound_whenSelectUnitById_ThenRaiseAnException()
-            throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
-            InvalidParseOperationException {
+        throws AccessInternalClientNotFoundException, AccessInternalClientServerException,
+        InvalidParseOperationException {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectUnitbyId(queryJson, ID);
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenSelectUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString("");
+        final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void givenBlankID_whenSelectUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnitbyId(queryJson, "")).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_IDFilledwhenSelectUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString("");
+        final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
@@ -346,10 +347,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_whenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString("");
+        final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
     }
 
@@ -357,10 +358,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, "")).isNotNull();
     }
 
@@ -368,32 +369,32 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBlankRequest_IDFilledWhenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        JsonNode queryJson = JsonHandler.getFromString("");
+        final JsonNode queryJson = JsonHandler.getFromString("");
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test(expected = AccessInternalClientServerException.class)
     public void given500_whenUpdateUnit_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
@@ -409,7 +410,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
 
@@ -418,7 +419,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
 
@@ -427,7 +428,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
 
@@ -436,7 +437,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
 
@@ -445,7 +446,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
 
@@ -461,7 +462,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
@@ -470,7 +471,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
@@ -479,7 +480,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
@@ -488,7 +489,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
 
@@ -497,7 +498,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         final InputStream stream = client.getObject(queryJson, ID, USAGE, VERSION).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
