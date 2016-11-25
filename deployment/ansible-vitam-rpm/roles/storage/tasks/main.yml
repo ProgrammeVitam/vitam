@@ -2,8 +2,15 @@
 # tasks file for storage-engine
 - name: copy file for driver in data
   copy:
-    src=fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
-    dest={{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
-    owner={{vitam_user}}
-    group={{vitam_group}}
-    mode={{vitam_conf_permission}}
+    src: "fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
+    dest: "{{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
+    owner: "{{vitam_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  notify:
+    - restart service
+
+- name: Ensure service is started
+  service:
+    name: "vitam-{{ vitam_component }}"
+    state: started

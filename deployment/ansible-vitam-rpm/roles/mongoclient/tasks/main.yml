@@ -50,5 +50,32 @@
   wait_for:
     host: "{{ ansible_hostname }}"
     port: "{{ mongoclient_port }}"
-    timeout: 5
-  ignore_errors: yes
+    timeout: "{{service_restart_timeout}}"
+  ignore_errors: true
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{consul_folder_conf}}"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{consul_folder_conf}}/service-mongoclient.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  notify:
+   - reload consul configuration
+
+# OMA : usefull ?
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
+
+

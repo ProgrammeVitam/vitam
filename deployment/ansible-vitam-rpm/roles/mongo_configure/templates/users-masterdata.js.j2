@@ -1,25 +1,17 @@
 
-// Create admin user
-
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "masterdata" },
-            { role: "dbAdmin", db: "masterdata" }
-        ]
-    }
-)
+// Switch to masterdata database
+db = db.getSiblingDB('masterdata')
 
 // Create functional-admin user
 
-db.createUser(
-    {
-        user: "{{mongoFunctionalAdminUser}}",
-        pwd: "{{mongoFunctionalAdminPassword}}",
-        roles: [
-            { role: "readWrite", db: "masterdata" }
-        ]
-    }
-)
+if (! db.getUser("{{mongoFunctionalAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoFunctionalAdminUser}}",
+            pwd: "{{mongoFunctionalAdminPassword}}",
+            roles: [
+                { role: "readWrite", db: "masterdata" }
+            ]
+        }
+    )
+}

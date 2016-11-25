@@ -1,47 +1,57 @@
 ---
 # tasks file for log-server
-- name: install vitam user for /vitam browser
-  yum:
-    name=vitam-user-vitam
-    state=latest
 
 #### Kibana installation ####
 
-- name: install kibana rpm from repo
+- name: Install kibana rpm from repo
   yum:
     name: kibana
     state: latest
+  notify:
+    - systemctl reload-daemon
+    - restart kibana
 
-- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
-  command: systemctl daemon-reload
-
-- name: add kibana autostart at boot
+- name: Add kibana autostart at boot
   service:
     name: kibana
     enabled: yes
-    state: started
+  notify:
+    - restart kibana
 
-- name: configure Kibana connection to elasticsearch
+- name: Configure Kibana connection to elasticsearch
   replace:
     dest: /opt/kibana/config/kibana.yml
     regexp: '^# elasticsearch\.url:.*$'
     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
+  notify:
+    - restart kibana
 
 #### Logstash installation ####
 
-- name: install java (prerequisite for other components)
+- name: Install java (prerequisite for other components)
   yum:
-    name=java-1.8.0
-    state=latest
+    name: java-1.8.0
+    state: latest
 
-- name: install logstash rpm from repo
+- name: Install logstash rpm from repo
   yum:
     name: logstash-all-plugins
     state: latest
+  notify:
+    - restart logstash
 
-- name: ensure logstash directories exist
+- name: Enable logstash
+  service:
+    name: logstash
+    enabled: yes
+  notify:
+    - restart logstash
+
+## Logstash configuration
+
+- name: Ensure logstash directories exist
   file:
-    path: "/vitam/{{item}}/logstash"
+    path: "{{vitam_folder_root}}/{{item}}/logstash"
     owner: logstash
     state: directory
     mode: "{{vitam_folder_permission}}"
@@ -50,6 +60,8 @@
     - log
     - conf
     - lib
+  notify:
+    - restart logstash
 
 - name: ensure json conf extra  directory exists
   file:
@@ -57,16 +69,10 @@
     owner: logstash
     state: directory
     mode: "{{vitam_folder_permission}}"
+  notify:
+    - restart logstash
 
-# - name: configure Kibana connection to elasticsearch
-#   replace:
-#     dest: /opt/kibana/config/kibana.yml
-#     regexp: '^# elasticsearch\.url:.*$'
-#     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
-#   notify:
-#     - restart kibana
-
-
+# TODO: Check if useful, else remove.
 - name: create conf subdir for logstash (useless)
   file:
     path: /opt/logstash/conf
@@ -74,13 +80,14 @@
     owner: logstash
     mode: 0755
 
-# FIXME OMA : still necessary ???
 - name: copy default logstash file (preferIPv4)
   template:
     src: logstash.j2
     dest: /etc/default/logstash
     owner: root
     mode: 0644
+  notify:
+    - restart logstash
 
 - name: configure logstash sysconfig file
   template:
@@ -88,41 +95,8 @@
     dest: /etc/sysconfig/logstash
     owner: root
     mode: 0664
-
-# - name: Update heap for logstash (total mem/4)
-#   replace:
-#       dest: /etc/sysconfig/logstash
-#       regexp: '^#LS_HEAP_SIZE=.*$'
-#       replace: 'LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"'
-#   register: logstash_updated
-
-# - name: Define log file for logstash
-#   replace:
-#       dest: /etc/sysconfig/logstash
-#       regexp: '^#LS_LOG_FILE=.*$'
-#       replace: 'LS_LOG_FILE="{{logstash_log_dir}}/logstash.log"'
-#   register: logstash_updated
-
-# - name: Define gc log file for logstash
-#   replace:
-#       dest: /etc/sysconfig/logstash
-#       regexp: '^#LS_GC_LOG_FILE=.*$'
-#       replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"'
-#   register: logstash_updated
-
-# - name: Implement the Vitam GC log standard fot logstash
-#   replace:
-#       dest: /etc/sysconfig/logstash
-#       regexp: '^#LS_JAVA_OPTS=.*$'
-#       replace: 'LS_JAVA_OPTS="-Xloggc:{{logstash_log_dir}}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
-#   register: logstash_updated
-
-# - name: Define config dir for logstash
-#   replace:
-#       dest: /etc/sysconfig/logstash
-#       regexp: '^#LS_CONF_DIR=.*$'
-#       replace: 'LS_CONF_DIR="{{logstash_conf_dir}}"'
-#   register: logstash_updated
+  notify:
+    - restart logstash
 
 - name: configure logstash parser
   template:
@@ -134,6 +108,8 @@
     - "01-logstash-vitam-input.conf"
     - "02-logstash-vitam-filter.conf"
     - "03-logstash-vitam-output.conf"
+  notify:
+    - restart logstash
 
 - name: add json extra conf
   template:
@@ -142,25 +118,23 @@
     owner: logstash
   with_items:
     - "elasticsearch-template.json"
+  notify:
+    - restart logstash
 
 - name: add vitam patterns conf
   template:
     src: "vitam-patterns.j2"
     dest: "/opt/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-2.0.5/patterns/vitam"
     owner: logstash
-
-- name: restart logstash
-  service:
-    name: logstash
-    state: restarted
+  notify:
+    - restart logstash
 
 
-#### Consul service declaration ####
+#### Consul configuration ####
 
-# TODO: ideally get the consul configuration path in a global configuration variable
 - name: Ensure consul config dir is OK
   file:
-    path: "{{vitam_folder_root}}/conf/consul"
+    path: "{{consul_folder_conf}}"
     state: directory
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
@@ -168,35 +142,20 @@
 - name: Deploy consul agent service declaration
   template:
     src: "service-{{ item }}.json.j2"
-    dest: "{{vitam_folder_root}}/conf/consul/service-{{ item }}.json"
+    dest: "{{consul_folder_conf}}/service-{{ item }}.json"
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
   with_items:
     - kibana
     - logstash
-
-- name: Reload consul agent configuration
-  service:
-    name: vitam-consul
-    state: reloaded
-
-
-
-
-# - name: create symbolic link for parser
-#   file:
-#     src: /opt/logstash/conf/logstash-vitam.conf
-#     dest: /etc/logstash/conf.d/logstash-vitam.conf
-#     state: link
-#   notify:
-#     - restart logstash
-
+  notify:
+   - reload consul configuration
 
 #### Curator ####
-# Disabled when docker detected (local deployement)
-# todo: check if localhost instead of ansible_virtualization_type != docker
 
+# Disabled when docker detected (local deployement)
+# TODO: check if localhost instead of ansible_virtualization_type != docker
 - name: remove PyYAML.x86_64 as incompatible with Curator
   yum:
     name: PyYAML.x86_64
@@ -209,9 +168,10 @@
     state: latest
   when: ansible_virtualization_type != 'docker'
 
+# TODO: Change owner to vitam:vitam ; apply on the next tasks
 - name: ensure Curator directories exist
   file:
-    path: "/vitam/{{item}}/curator"
+    path: "{{vitam_folder_root}}/{{item}}/curator"
     owner: root
     state: directory
     mode: 0755
@@ -236,31 +196,34 @@
 
 - name: create root crontab entry for curator for deleting old indexes
   cron:
-    name="curator delete index "
-    minute="10"
-    hour="0"
-    user="root"
-    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
+    name: "curator delete index "
+    minute: "10"
+    hour: "0"
+    user: "root"
+    job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
   when: ansible_virtualization_type != 'docker'
 
 - name: create root crontab entry for curator for closing old indexes
   cron:
-    name="curator close index"
-    minute="05"
-    hour="0"
-    user="root"
-    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
+    name: "curator close index"
+    minute: "05"
+    hour: "0"
+    user: "root"
+    job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'
 
 - name: create root crontab entry for curator for closing old indexes on metrics
   cron:
-    name="curator close & delete old metrics index"
-    minute="09"
-    hour="0"
-    user="root"
-    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/metrics_index.yml"
+    name: "curator close & delete old metrics index"
+    minute: "09"
+    hour: "0"
+    user: "root"
+    job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/metrics_index.yml"
   when: ansible_virtualization_type != 'docker'
 
+
+
+#### Kibana dashboards configuration ####
 
 - name: load dashboards into Elasticsearch log .kibana index
   when: "{{ (groups['hosts-log-server'] | length) > 0}}"
@@ -315,3 +278,18 @@
     body: '{"defaultIndex": "metrics-vitam-jersey-*"}'
     body_format: json
     status_code: 200, 201
+
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
+
+- name: Ensure kibana service is started
+  service:
+    name: "kibana"
+    state: started
+
+- name: Ensure logstash service is started
+  service:
+    name: "logstash"
+    state: started

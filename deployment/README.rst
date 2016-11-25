@@ -46,7 +46,30 @@ ou
 
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
-Pour déployer les extra seulement nécessaire pour le projet :
+3. Pour déployer les extra seulement nécessaire pour le projet :
+
+a. extra complet
+
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+
+ou
+
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+b. ihm-recette seulement
+
+``ansible-playbook ansible-vitam-rpm-extra/ihm-recette.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+
+ou
+
+``ansible-playbook ansible-vitam-rpm-extra/ihm-recette.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+
+4. Pour redéployer les rpm VITAM sans modification de configuration
+
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
+
+et
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
 
 (et renseigner le mot de passe demandé)

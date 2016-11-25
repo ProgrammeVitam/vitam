@@ -1,5 +1,4 @@
 ---
-
 # Don't add rpm_version when set to '*' to install the package with his exact name
 # state: latest to handle snapshot versions
 - name: Install rpm {{ rpm_name }}
@@ -8,8 +7,18 @@
     state: latest
   tags:
     - update_package_vitam
+  notify:
+    - restart service
 
-# OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
+- name: ensure service is enabled
+  service:
+    name: "vitam-{{ vitam_component }}"
+    enabled: true
+  notify:
+    - restart service
+
+
+#### Configuration ####
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
   file:
@@ -27,6 +36,30 @@
     - log
     - script
     - tmp
+  notify:
+    - restart service
+
+- name: Ensure that the sysconfig sub-directory exists
+  file:
+    path: "{{ vitam_folder_conf }}/sysconfig"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_folder_permission }}"
+  notify:
+    - restart service
+
+- name: Deploy common configuration files in sysconfig subdir
+  template:
+    src: "{{item}}.j2"
+    dest: "{{vitam_folder_conf}}/sysconfig/{{item}}"
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items:
+    - "java_opts"
+  notify:
+    - restart service
 
 - name: Deploy common configuration files
   template:
@@ -44,31 +77,57 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
+  notify:
+    - restart service
+
+# TODO: Explain the with_items and when line, or better find a cleaner way (split with separate command ?).
+# Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
+- name: Deploy specific configuration files (can override the common configuration files)
+  template:
+    src: "{{role_path}}/templates/{{ vitam_component }}/{{item}}.j2"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "{{ lookup('pipe', 'test -d {{role_path}}/templates/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
+  no_log: false # OMA test as there may be secrets in verbose output
+  notify:
+    - restart service
+
+- name: copy files section
+  copy:
+    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "{{ lookup('pipe', 'test -d {{role_path}}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\; || true').split('\n') }}"
+  notify:
+    - restart service
+
+- name: copy files section (symbolic links to sources)
+  copy:
+    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "{{ lookup('pipe', 'test -d {{role_path}}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type l -exec basename {} \\; || true').split('\n') }}"
+  notify:
+    - restart service
 
 - name: ensure external messages file is absent
   file:
     path: "{{ vitam_folder_conf }}/vitam-logbook-messages_fr.properties"
     state: absent
+  notify:
+    - restart service
 
-- name: Ensure that the sysconfig sub-directory exists
-  file:
-    path: "{{ vitam_folder_conf }}/sysconfig"
-    state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+#### Consul configuration ####
 
-- name: Deploy common configuration files in sysconfig subdir
-  template:
-    src: "{{item}}.j2"
-    dest: "{{vitam_folder_conf}}/sysconfig/{{item}}"
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  with_items:
-    - "java_opts"
-
-# KWA : a fixer ASAP !
 - name: Ensure consul config dir is OK
   file:
     path: "{{consul_folder_conf}}"
@@ -76,7 +135,6 @@
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
 
-# KWA : a fixer ASAP !
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
@@ -87,45 +145,12 @@
   notify:
    - reload consul configuration
 
-# Ensure that the installation is complete and consul up before contnuing...
-- meta: flush_handlers
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
 
-- name: Deploy specific configuration files (can override the common configuration files)
-  template:
-    src: "{{role_path}}/templates/{{ vitam_component }}/{{item}}.j2"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
-  no_log: false # OMA test as there may be secrets in verbose output
-
-- name: copy files section
-  copy:
-    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\;').split('\n') }}"
-
-- name: copy files section (symbolic links to sources)
-  copy:
-    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type l -exec basename {} \\;').split('\n') }}"
-
-# OMA: disabled as hooks are now integrated for postinst, preun && postun in pom.xml
-# - name: systemctl reload-daemon
-#   command: systemctl daemon-reload
-
-- name: (re)-start service
+- name: Ensure service is started
   service:
     name: "vitam-{{ vitam_component }}"
-    enabled: true
-    state: restarted
-  tags:
-    - update_package_vitam
+    state: started

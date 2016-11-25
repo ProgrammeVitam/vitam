@@ -12,6 +12,8 @@ function check_password_file {
 		export ANSIBLE_VAULT_PASSWD="--vault-password-file vault_pass.txt"
 	fi
 }
+
+# Génération de la CA root
 function generate_ca_root {
 	# Arguments
 	MDP_CAROOT_KEY=${1}
@@ -45,6 +47,7 @@ function generate_ca_root {
 	    -batch
 }
 
+# Génration de la CA intermédiaire
 function generate_ca_interm {
 	# Arguments
 	MDP_CAINTERMEDIATE_KEY=${1}
@@ -87,7 +90,7 @@ function generate_ca_interm {
 	-batch
 }
 
-
+# Génration d'un certificat serveur
 function generatehostcertificate {
 	# Arguments
 	COMPOSANT=${1}
@@ -119,6 +122,7 @@ function generatehostcertificate {
 		-name CA_intermediate -extensions ${RSA_TYPE}_RSA_SSL -batch
 }
 
+# Génration d'un certificat client
 function generateclientcertificate {
 	# Arguments
 	CLIENT_NAME=${1}
@@ -146,6 +150,7 @@ function generateclientcertificate {
 	# cat ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.crt >> ${REPERTOIRE_CERTIFICAT}/client/${CLIENT_NAME}/${CLIENT_NAME}.pem
 }
 
+# Génération d'un p12 et d'un pem depuis un certificat
 function crtkey2p12 {
 	# Arguments
 	BASEFILE=${1}
@@ -153,6 +158,7 @@ function crtkey2p12 {
 	COMPOSANT=${3}
 	MDP_P12=${4} #
 
+	echo "	Génération du p12..."
 	openssl pkcs12 -export \
 		-inkey "${BASEFILE}.key" \
 		-in "${BASEFILE}.crt" \
@@ -161,11 +167,15 @@ function crtkey2p12 {
 		-out "${BASEFILE}.p12" \
 		-passout pass:"${MDP_P12}";
 
-	echo "PEM from P12..."
+	echo "	Transformation du p12 en pem..."
+	if [ -f ${BASEFILE}.pem ]
+	then
+		rm -f ${BASEFILE}.pem
+	fi
 	openssl pkcs12 -nodes -in ${BASEFILE}.p12 -passin pass:"${MDP_P12}" -out ${BASEFILE}.pem
 }
 
-
+# Générer un truststore
 function generatetruststore {
 	# Arguments
     CERT=${1}
@@ -213,6 +223,7 @@ function generatetruststore {
 # 	fi
 # }
 
+# Pour incorporer un certificat dans un grantedstore
 function addcrtinjks {
 	# Arguments
 	STORE=${1}
@@ -228,6 +239,7 @@ function addcrtinjks {
 		-alias ${ALIAS}
 }
 
+# Pour incorporer un certificat p12 dans un grantedstore
 function addp12injks {
 	# Arguments
 	STORE=${1}
@@ -242,6 +254,7 @@ function addp12injks {
 		-destkeystore ${1} -storepass ${MDP_STORE} -keypass ${MDP_STORE} -deststorepass ${MDP_STORE} -destkeypass ${MDP_STORE} -deststoretype JKS
 }
 
+# Pour incorporer une CA dans un store
 function addcainjks {
 	# Arguments
 	STORE=${1}

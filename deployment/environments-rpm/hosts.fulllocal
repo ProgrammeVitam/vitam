@@ -18,6 +18,10 @@ localhost
 [hosts-mongo-express]
 localhost
 
+[elasticsearch:children] # EXTRA : elasticsearch
+hosts-elasticsearch-data
+hosts-elasticsearch-log
+
 ########### VITAM services ###########
 
 [vitam:children]

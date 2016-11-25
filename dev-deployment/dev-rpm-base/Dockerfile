@@ -89,6 +89,9 @@ COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
 COPY wheel-nopwd /etc/sudoers.d
 
+# Disable fastestmirror ; helps gain several seconds per yum invocation
+COPY fastestmirror.conf /etc/yum/pluginconf.d
+
 ENV TERM xterm
 
 ##################################  CONTAINER SETTINGS  #################################

@@ -16,7 +16,7 @@ for j in access ingest; do
 	mkdir -p ansible-vitam-rpm/roles/vitam/files/${j}-external
 	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 		# FIXME : be more restrictive on jks files
-		cp ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/${j}-external/
+		cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/${j}-external/
 	done
 	echo "	Fichiers recopiés"
 	echo "------------------------"
@@ -24,10 +24,10 @@ done
 
 echo "	Recopie pour ihm-demo..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/ihm-demo
-cp ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-demo/keystore_ihm-demo.p12
+cp -f ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-demo/keystore_ihm-demo.p12
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	# FIXME : be more restrictive on jks files
-	cp ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-demo/
+	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-demo/
 done
 echo "	Fichiers recopiés"
 echo "------------------------"
@@ -35,10 +35,13 @@ echo "------------------------"
 
 echo "	Recopie pour ihm-recette..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/ihm-recette
-cp ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-recette/keystore_ihm-recette.p12
+# recopie du p12
+cp -f ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-recette/keystore_ihm-recette.p12
+# recopie du pem
+cp -f ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/*pem ansible-vitam-rpm/roles/vitam/files/ihm-recette/keystore_ihm-recette.pem
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	# FIXME : be more restrictive on jks files
-	cp ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-recette/
+	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/ihm-recette/
 done
 echo "	Fichiers recopiés"
 echo "------------------------"
@@ -51,7 +54,7 @@ echo "	Recopie pour logbook..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/logbook
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-logbook ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	# FIXME : be more restrictive on jks files
-	cp ${REPERTOIRE_CERTIFICAT}/timestamping/hosts/${i}/*p12 ansible-vitam-rpm/roles/vitam/files/logbook/
+	cp -f ${REPERTOIRE_CERTIFICAT}/timestamping/hosts/${i}/*p12 ansible-vitam-rpm/roles/vitam/files/logbook/
 done
 echo "	Fichiers recopiés"
 echo "------------------------"

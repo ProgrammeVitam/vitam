@@ -76,7 +76,7 @@
    - role: mongoclient
 #     mongoclient_user: "{{mongoClientUser}}"
 #     mongoclient_pwd: "{{mongoClientPassword}}"
-     mongoclient_root_url: "http://{{ansible_hostname}}/mongoclient"
+     mongoclient_root_url: "http://{{ansible_hostname}}{{ mongoclientbaseUrl }}"
      mongoclient_port: "{{mongoclientPort}}"
      mongoclient_confdb:
        host: "{{vitam_mongodb_host}}"
