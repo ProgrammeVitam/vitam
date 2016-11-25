@@ -147,7 +147,7 @@ public class IngestExternalImpl implements IngestExternal {
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid, INGEST_WORKFLOW, containerName,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
+                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " +ingestGuid.toString(),
                 ingestGuid);
 
             // TODO P1 should be the file name from a header

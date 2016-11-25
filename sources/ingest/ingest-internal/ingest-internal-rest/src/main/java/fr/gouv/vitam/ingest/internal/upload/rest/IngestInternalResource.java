@@ -74,7 +74,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -283,7 +282,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                            OutcomeMessage.WORKFLOW_INGEST_KO.value());
+                        		VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
                     }
@@ -312,7 +311,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, OutcomeMessage.WORKFLOW_INGEST_KO.value());
+                        
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,  
+                        		VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.KO) );
+
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
                     }
@@ -425,19 +427,16 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
             ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
-            if (StatusCode.OK.equals(itemStatus.getGlobalStatus()) ||
-                StatusCode.WARNING.equals(itemStatus.getGlobalStatus())) {
-                callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
-                    OutcomeMessage.WORKFLOW_INGEST_OK.value());
-            } else {
-                callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
-                    OutcomeMessage.WORKFLOW_INGEST_KO.value());
-            }
+   
+            callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
+                		 VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, itemStatus.getGlobalStatus()));
+          
             return itemStatus;
         } catch (WorkflowNotFoundException | ProcessingInternalServerException | IllegalArgumentException |
             ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
             LOGGER.error(exc);
-            callLogbookUpdate(client, parameters, StatusCode.FATAL, OutcomeMessage.WORKFLOW_INGEST_KO.value());
+            callLogbookUpdate(client, parameters, StatusCode.FATAL, 
+            		VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.FATAL));
             throw new IngestInternalException(exc);
         } finally {
             if (processingManagementClientMock == null && processingClient != null) {
