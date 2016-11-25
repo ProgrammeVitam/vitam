@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResou
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
@@ -79,11 +81,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID = "Missing the tenant ID (X-Tenant-Id)";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
+    private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
+    private static final String CODE_VITAM = "code_vitam";
+
+    private int tenantId = 0;
 
     /**
      * Constructor
-     *
-     * @param configuration the workspace offer configuration to be applied
      */
     public DefaultOfferResource() {
         LOGGER.debug("DefaultOfferResource initialized");
@@ -239,8 +243,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      */
     @DELETE
     @Path("/objects/{id:.+}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@PathParam("id") String idObject) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -307,6 +314,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     .setMessage(vitamCode.getMessage())
                     .setDescription(vitamCode.getMessage()))
                 .toString()).build());
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
 }

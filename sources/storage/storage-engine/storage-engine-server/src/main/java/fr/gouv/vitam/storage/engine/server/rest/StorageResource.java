@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -80,6 +82,10 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
 @javax.ws.rs.ApplicationPath("webresources")
 public class StorageResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
+    private static final String STORAGE_MODULE = "STORAGE";
+    private static final String CODE_VITAM = "code_vitam";
+
+    private int tenantId = 0;
     private final StorageDistribution distribution;
 
     /**
@@ -175,10 +181,12 @@ public class StorageResource extends ApplicationStatusResource {
      */
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, MediaType.APPLICATION_JSON})
     // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
     public Response getContainer(@Context HttpHeaders headers) throws IOException {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -194,7 +202,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createContainer(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -209,7 +219,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteContainer(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -224,7 +236,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkContainer(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
 
@@ -239,7 +253,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjects(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -254,7 +270,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectInformation(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -446,7 +464,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getLogbooks(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -463,7 +483,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -504,7 +526,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -519,7 +543,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
 
@@ -536,7 +562,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUnits(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -553,7 +581,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -598,7 +628,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
         JsonNode query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -613,7 +645,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -628,7 +662,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -644,7 +680,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectGroups(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -661,7 +699,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -709,7 +749,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateObjectGroupMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
         JsonNode query) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -726,7 +768,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -743,7 +787,9 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     private Response buildErrorResponse(VitamCode vitamCode) {
@@ -900,6 +946,11 @@ public class StorageResource extends ApplicationStatusResource {
                     .setMessage(vitamCode.getMessage())
                     .setDescription(vitamCode.getMessage()))
                 .toString()).build());
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
 }
