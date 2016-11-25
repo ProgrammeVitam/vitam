@@ -41,6 +41,8 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -204,13 +206,41 @@ public class LogbookOperationsClientMockTest {
         client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
     }
 
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void bulkCreateEmptyQueueTest() throws Exception {
+        LogbookOperationsClientFactory.changeMode(null);
+
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
+    }
+
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void bulkUpdateEmptyQueueTest() throws Exception {
+        LogbookOperationsClientFactory.changeMode(null);
+
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
+    }
+
     @Test
-    public void closeExecution() throws Exception {
+    public void closeExecution() {
         LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
         client.close();
     }
+
+    @Test
+    public void traceabilityTest() throws Exception {
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        RequestResponse response = client.traceability();
+        assertNotNull(response);
+        assertTrue(response instanceof RequestResponseOK);
+    }
+
 
 }
