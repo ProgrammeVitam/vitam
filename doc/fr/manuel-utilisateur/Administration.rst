@@ -7,6 +7,8 @@ Cette partie décrit les fonctionnalités d'administration suivantes proposées 
 - Import et consultation du référentiel des formats
 - Import et consultation du référentiel des règles de gestion
 
+NB : Cette partie est disponible via l'IHM de démonstration.
+
 Journal des opérations
 ======================
 
@@ -17,10 +19,10 @@ Ces opérations sont :
 - Entrée (développée en bêta)
 - Mise à jour  des métadonnées de description (développée en bêta)
 - Données de base (développée en bêta)
-- Audit (non encore développé)
-- Elimination (non encore développé)
-- Préservation (non encore développé)
-- Vérification (non encore développé)
+- Audit (non encore développée)
+- Elimination (non encore développée)
+- Préservation (non encore développée)
+- Vérification (non encore développée)
 
 Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Journal des opérations".
 
@@ -36,7 +38,7 @@ Pour effectuer une recherche précise, on utilise les champs "ID" ou "Type d'op�
 
 NB : Il est impossible d'effectuer une recherche croisée par ID et type d'opération.
 
-Pour initier la recherche, l"utilisateur saisit son critère de recherche et clique sur le bouton "Rechercher".
+Pour initier la recherche, l'utilisateur saisit son critère de recherche et clique sur le bouton "Rechercher".
 
 .. image:: images/op_recherche.jpg
 
@@ -84,7 +86,7 @@ Import du référentiel des formats
 ---------------------------------
 
 L'import du référentiel des formats s'effectue depuis l'écran "Import du référentiel des formats".
-Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Import du référentiel des formats".
+Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Import du référentiel des formats". (Administration/Import du référentiel des formats)
 
 .. image:: images/menu_import_rf.jpg
 
@@ -162,7 +164,7 @@ Le détail d'un format est composé des informations suivantes :
 - Priorité sur les versions précédentes
 - Version de PRONOM : contient un lien renvoyant vers la fiche correspondante au format dans le référentiel des formats PRONOM sur le site des Archives nationale britanniques
 
-Un clic sur le bouton "Close" ou hors de la fenêtre "modale" referme celle-ci.
+Un clic sur le bouton "Fermer" ou hors de la fenêtre "modale" referme celle-ci.
 
 Référentiel des règles de gestion
 =================================
@@ -225,8 +227,8 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, deux cas sont 
 Recherche d'une règle de gestion
 --------------------------------
 
-La recherche d'une règle de gestion dans le référentiel des règles de gestion s'effectue depuis l'écran "Référentiel des règles de gestion" (Administration/Référentiel des règles de gestion)
-Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Référentiel des règles de gestion".
+La recherche d'une règle de gestion dans le référentiel des règles de gestion s'effectue depuis l'écran "Référentiel des règles de gestion".
+Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Référentiel des règles de gestion" (Administration/Référentiel des règles de gestion)
 
 .. image:: images/menu_rg.jpg
 

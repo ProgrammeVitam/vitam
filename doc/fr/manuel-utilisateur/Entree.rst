@@ -5,7 +5,9 @@ Cette partie décrit l'entrée manuelle d'archives dans Vitam, c'est-à-dire, le
 
 Dans l’univers numérique, peuvent être transférés à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnées de leurs métadonnées.
 
-Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (se référer au livrable "Design SIP" : 20160712_Design_SIP_v1.0)
+Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (se référer au livrable "Design SIP" : 20161011 Design SIP v1.1)
+
+NB : Cette partie est disponible via l'IHM de démonstration.
 
 Transfert d'un SIP dans Vitam
 =============================
@@ -14,11 +16,11 @@ Le transfert d'un SIP dans Vitam s'effectue depuis l'écran "Transfert", accessi
 
 .. image:: images/menu_entree.jpg
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Choisissez un fichier », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
+Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Choisissez un fichier », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP", et le nom du fichier correspondant s'affiche à droite du bouton "Choisissez un ficher".
+Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP", Une fois le SIP sélectionné, le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
-Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
+Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
 Les informations visibles à l'écran sont :
 
@@ -26,11 +28,11 @@ Les informations visibles à l'écran sont :
 
   - Nom du fichier,
   - Taille : Affiche la taille du SIP en Ko, Mo ou Go en fonction de la taille arrondie au dixième près,
-  - Statut representé sous forme d'une icône, une croix si le transfert est en erreur, une coche si le transfert est en succès.
+  - Statut representé sous forme d'une icône, une croix si le transfert est en erreur, une coche si le transfert est en succès et un triangle d'avertissement si le transfert est en avertissement.
 
 - Une barre de progression affiche l’avancement du téléchargement du SIP dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
-NB : Suite au téléchargement du SIP, un temps d'attente est necessaire pour traitement du SIP par le système avant affichage du statut final.
+NB : Suite au téléchargement du SIP, un temps d'attente est necessaire pour traitement du SIP par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
 .. image:: images/upload_sip.jpg
 
@@ -39,7 +41,7 @@ Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
 .. image:: images/upload_sip_KO.jpg
 
-Toute opération d'entrée (succès ou échec) fait l'objet d'une écriture dans le journal des opérations.
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et la génération d'un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
 Journal des opérations d'entrée
 ===============================
@@ -63,7 +65,7 @@ Pour effectuer une recherche précise, on utilise le champ "Lot d'archive" corre
 
 Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le bouton "Rechercher".
 
-La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera retourné. La recherche porte sur toutes les opérations d'entrées quel que soit leur statut (En cours, succès et échec)
+La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera retourné. La recherche porte sur toutes les opérations d'entrées quel que soit leur statut (En cours, succès,avertissement et échec)
 
 .. image:: images/op_entree.jpg
 
@@ -93,7 +95,7 @@ Pour cela, il clique sur la ligne de l'entrée voulue.
 Une fenêtre de type "modale" s'ouvre, pour présenter le détail de cette entrée, sans perdre le focus sur la liste globale des résultats.
 
 L'utilisateur peut consulter sur cet écran toutes les informations contenues dans le journal des opérations associées à cette entrée.
-Le processus d'entrée est décrit étape par étape avec des messages correspondant au résultat de chaque étape (avec les informations de début et de fin d'étape) et de chaque tâche (associée à une étape, seul l'information de fin de tâche est affichée).
+Le processus d'entrée est décrit étape par étape avec des messages correspondant au résultat de chaque étape (avec les informations de début et de fin d'étape) et de chaque tâche (associée à une étape, seule l'information de fin de tâche est affichée).
 
 Le détail est affiché sous forme de tableau comportant pour chaque événement les éléments suivants :
 
@@ -104,4 +106,4 @@ Le détail est affiché sous forme de tableau comportant pour chaque événement
 
 .. image:: images/op_entree_detail.jpg
 
-Un clic sur le bouton "Close" ou hors de la fenêtre "modale" referme celle-ci.
+Un clic sur le bouton "Fermer" ou hors de la fenêtre "modale" referme celle-ci.

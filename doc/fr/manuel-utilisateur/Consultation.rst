@@ -3,6 +3,8 @@ Recherche et consultation
 
 Cette partie décrit les fonctionnalités de recherche et de consultation d'une unité archivistique dans Vitam.
 
+NB : Cette partie est disponible via l'IHM de démonstration.
+
 Recherche d'une unité archivistique
 ===================================
 
@@ -20,8 +22,8 @@ Recherche simple
 ----------------
 
 La recherche simple s'effectue en utilisant le champ principal. Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques.
-L'opérateur booléen par défaut est le "Ou". La recherche permet de trouver les mots clés cherchés appartenant aux deux ensemble visés, ou à l'un ou à l'autre.
-il n'est pas possible de paramétrer cet opérateur booléen.
+La recherche simple s'effectue sur chacun des mots entrés de manière indépendante.
+La recherche permet de trouver les mots clés cherchés appartenant aux deux ensembles visés, titre et description, ou bien à l’un ou à l’autre. Il n’est pas possible de la paramétrer.
 
 Pour initier la recherche simple, l'utilisateur presse la touche "Entrée" de son clavier ou clique sur le pictogramme de loupe. Un pictogramme en forme de croix permet de supprimer le texte saisi dans le champ de recherche.
 
@@ -29,7 +31,7 @@ Pour initier la recherche simple, l'utilisateur presse la touche "Entrée" de so
 
 Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractère demandée sont remontés. Exemple : pour une recheche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
 
- Les caractéristiques du mode de recherche sont les suivantes :
+Les caractéristiques du mode de recherche sont les suivantes :
 
 - La recherche n'est pas sensible à la casse
 - Les résultats ne tiennent pas compte des accents / c cédilles (ç)
@@ -42,14 +44,21 @@ La recherche avancée permet à l'utilisateur d'effectuer sa requête dans un ou
 
 Le ou les mots saisis vont être recherchés dans les métadonnées suivantes :
 
-- Titre de l'archive
+- Titre de l'unité archivistique
 - Description de l'archive
 - ID de l'archive (attribué par le système)
 - Dates Extrêmes (Date de début et date de fin)
 
 Pour initier la recherche avancée, l'utilisateur saisit ses éléments de recherche, puis clique sur le bouton "Rechercher".
 
-NB : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ.
+NB 1 : Lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
+
+- La date de début doit être antérieur à la date de fin
+- Les deux champs dates doivent être renseignés
+
+.. image:: images/date_KO.jpg
+
+NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ.
 
 .. image:: images/search_v2.jpg
 
@@ -61,7 +70,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 - ID
 - Titre
 - Date de l'unité
-- Objet disponible (une coche est affichée si l'unité archivistique dispose un ou des objets, dans le cas contraire, une croix est affichée)
+- Objet disponible (une coche est affichée si l'unité archivistique dispose d'un ou des objets, dans le cas contraire, une croix est affichée)
 
 L'îcone "Résultat (X)" indique le nombre de résultats trouvé lorsque l'utilisateur effectue une recherche.
 
@@ -81,7 +90,7 @@ La consultation de ce détail s'affiche dans un nouvel onglet, afin de préserve
 Détail de l'Unité Archivistique
 -------------------------------
 
-Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objet associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité dans Vitam.
+Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité dans Vitam.
 
 En premier, s'affiche la ou les arborescences de l'unité archivistique.
 Il est possible de cliquer sur les noeuds de l'arborecsence pour naviguer entre les unités archivistiques pères.
@@ -97,7 +106,7 @@ Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegar
 
 .. image:: images/detail_v2.jpg
 
-Si des objets sont disponibles, le bloc "Groupe d'Objet" affiche le ou les objets présents dans le groupe d'objet ainsi que les métadonnées associées.
+Si des objets sont disponibles, le bloc "Groupe d'Objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées.
 
 Chaque objet est listé dans un tableau, une ligne du tableau correspondant à un objet. Les colonnes affichent les informations suivantes :
 
@@ -105,29 +114,29 @@ Chaque objet est listé dans un tableau, une ligne du tableau correspondant à u
 - la taille de l'objet
 - l'extention du format de l'objet
 - la date de dernière modification
-- téléchargement : une îcone ("flèche verte") pour télécharger l'objet
+- le téléchargement : une îcone ("flèche bleue pointant vers le bas") pour télécharger l'objet
 
 .. image:: images/detail_v3.jpg
 
 
-Journaux de Cycle de Vie
+Journaux du Cycle de Vie
 ========================
 
-Au moment de l'entrée, une fois le processus d'entrée terminé avec succès, pour chaque nouvelle unité archivistique et groupe d'objet créés, un journal de cycle de vie leur est généré.
+Au moment de l'entrée, une fois le processus d'entrée terminé avec succès, pour chaque nouvelle unité archivistique et groupe d'objets créés, un journal du cycle de vie leur est généré.
 Il trace tous les événements qui impactent l'unité archivistique et les objets, dès leur prise en charge dans le système.
 
-Journal de cycle de vie d'une unité archivistique
+Journal du cycle du vie d'une unité archivistique
 -------------------------------------------------
 
-Le journal de cycle de vie de l'unité archivistique est disponible depuis le détail de l'unité archivistique.
+Le journal du cycle du vie de l'unité archivistique est disponible depuis le détail de l'unité archivistique.
 
 .. image:: images/JCV_AU_bouton.jpg
 
-Pour y accéder, l'utilisateur clique sur le bouton "Journal de cycle de vie". Un nouvel onglet s'ouvre avec le journal du cycle de vie, le titre de la page reprenant l'ID du l'unité archivistique.
+Pour y accéder, l'utilisateur clique sur le bouton "Journal du cycle de vie". Un nouvel onglet s'ouvre avec le journal du cycle de vie, le titre de la page reprenant l'ID de l'unité archivistique.
 
 .. image:: images/JCV_AU.jpg
 
-Par défaut, l'écran du journal de cycle de vie de l'unité archivistique affiche les informations suivantes :
+Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affiche les informations suivantes :
 
 - Intitulé de l'événement
 - Date de fin de l'événement
@@ -143,25 +152,25 @@ Une liste déroulante ("Informations supplémentaires") est proposée afin de s�
 - Code d'erreur technique
 - Informations complémentaires sur le résultat
 - Identifiant de l'agent réalisant l'opération
-- Identifiant interne
+- Identifiant interne de l'unité archivistique
 - Identifiant du tenant (technique)
 
-NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponible du journal de cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner".
+NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponible du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner".
 
 .. image:: images/JCV_AU_supp.jpg
 
-Journal de cycle de vie du groupe d'objet
+Journal du cycle de vie du groupe d'objet
 -----------------------------------------
 
-Le journal de cycle de vie du groupe d'objet est disponible depuis le détail de l'unité archivistique.
+Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique.
 
 .. image:: images/JCV_GO_bouton.jpg
 
-Pour y accéder, l'utilisateur clique sur le bouton "Journal de cycle de vie du groupe d'objets".
+Pour y accéder, l'utilisateur clique sur le bouton "Journal du cycle de vie du groupe d'objets".
 
 .. image:: images/JCV_GO.jpg
 
-Par défaut, l'écran du journal de cycle de vie du groupe d'objet affiche les informations suivantes :
+Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les informations suivantes :
 
 - Intitulé de l'événement
 - Date de fin de l'événement
@@ -177,10 +186,10 @@ Une liste déroulante ("Informations supplémentaires") est proposée afin de s�
 - Code d'erreur technique
 - Informations complémentaires sur le résultat
 - Identifiant de l'agent réalisant l'opération
-- Identifiant interne
+- Identifiant interne de l'objet
 - Identifiant du tenant (technique)
 
-NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles du journal de cycle de vie du groupe d'objet en cliquant sur le bouton "Tout sélectionner".
+NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles du journal du cycle de vie du groupe d'objet en cliquant sur le bouton "Tout sélectionner".
 
 Registre des fonds
 ==================
@@ -193,11 +202,11 @@ Le registre des fonds a pour but de :
 Recherche dans le registre des fonds
 ------------------------------------
 
-La recherche dans le registre des fonds s'effectue depuis l'écran "Recherche registre des fonds". L'utilisateur clique sur "Recherche" dans le barre de menu puis sur "Registre des fonds" dans le sous-menu associé.
+La recherche dans le registre des fonds s'effectue depuis l'écran "Recherche registre des fonds". Pour y accéder, l'utilisateur clique sur "Recherche" dans le barre de menu puis sur "Registre des fonds" dans le sous-menu associé.
 
 .. image:: images/menu_registre.jpg
 
-La recherche dans le registre des fonds s'effectue en utilisant le champ principal. Le mot saisi va rechercher le service producteur associé.
+La recherche dans le registre des fonds s'effectue en utilisant le champ principal de façon stricte. Le mot saisi (service producteur) va rechercher le service producteur associé.
 
 Pour initier la recherche, l'utilisateur presse la touche "Entrée" de son clavier ou clique sur le pictogramme de loupe. Un pictogramme en forme de croix permet de supprimer le texte saisi dans le champ de recherche.
 
@@ -224,7 +233,7 @@ La consultation de ce détail s'affiche dans un nouvel onglet, afin de préserve
 
 .. image:: images/registre_detail.jpg
 
-Deux blocs d'informations sont disponible depuis le détail du registre des fonds :
+Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
 - Une vue regroupant toutes les unités archivistiques, groupes d'objets et d'objets pour un service producteur
 - Une vue listant toutes les opérations d'entrées effectuées pour ce service producteur
