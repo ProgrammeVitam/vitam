@@ -29,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
 import com.google.common.collect.Iterables;
 
@@ -100,6 +101,7 @@ public class LogbookAdministrationTest {
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
         WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        ArgumentCaptor<byte[]> hashCapture = ArgumentCaptor.forClass(byte[].class);
 
         Path archive = Paths.get(file.getAbsolutePath(), "archive.zip");
 
@@ -110,7 +112,7 @@ public class LogbookAdministrationTest {
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
 
 
-        given(timestampGenerator.generateToken(any(byte[].class),
+        given(timestampGenerator.generateToken(hashCapture.capture(),
             eq(DigestType.SHA512), eq(null))).willReturn(hash);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
 
@@ -125,6 +127,7 @@ public class LogbookAdministrationTest {
 
         // Then
         assertThat(archive).exists();
+        assertThat(hashCapture.getValue()).hasSize(512 / 8);
         validateFile(archive, 1, "null");
     }
 
@@ -204,7 +207,7 @@ public class LogbookAdministrationTest {
             assertThat(new String(bytes)).hasLineCount(numberOfElement);
 
             entry = archiveInputStream.getNextEntry();
-            assertThat(entry.getName()).isEqualTo("mekleTree.json");
+            assertThat(entry.getName()).isEqualTo("merkleTree.json");
 
             entry = archiveInputStream.getNextEntry();
             assertThat(entry.getName()).isEqualTo("token.tsp");

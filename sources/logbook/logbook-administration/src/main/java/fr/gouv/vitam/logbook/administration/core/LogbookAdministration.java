@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.TimeStampException;
@@ -237,20 +238,20 @@ public class LogbookAdministration {
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, STARTED, null);
-            workspaceClient.createContainer(eip.toString());
+            workspaceClient.createContainer(fileName);
 
-            workspaceClient.putObject(eip.toString(), uri, inputStream);
+            workspaceClient.putObject(fileName, uri, inputStream);
 
             StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final CreateObjectDescription description = new CreateObjectDescription();
-            description.setWorkspaceContainerGUID(eip.toString());
+            description.setWorkspaceContainerGUID(fileName);
             description.setWorkspaceObjectURI(uri);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(Integer.toString(TENANT_ID),
-                    STRATEGY_ID, StorageCollectionType.LOGBOOKS, eip.toString(), description);
+                    STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
                 workspaceClient.deleteObject(eip.toString(), uri);
 
                 createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, OK, null);
@@ -293,7 +294,7 @@ public class LogbookAdministration {
         final List<Document> events = (List<Document>) logbookOperation.get(EVENTS);
         Document lastEvent = Iterables.getLast(events);
 
-        String evDetData = (String) lastEvent.get(eventDetailData);
+        String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
 
         TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
         return traceabilityEvent.getHash();
@@ -308,7 +309,12 @@ public class LogbookAdministration {
             createLogbookOperationEvent(eip, TIMESTAMP, STARTED, null);
 
             DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-            byte[] timeStampToken = timestampGenerator.generateToken(hash.getBytes(), digestType, null);
+
+            Digest digest = new Digest(digestType);
+            digest.update(hash);
+            byte[] hashDigest = digest.digest();
+
+            byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
 
             createLogbookOperationEvent(eip, TIMESTAMP, OK, null);
             return timeStampToken;

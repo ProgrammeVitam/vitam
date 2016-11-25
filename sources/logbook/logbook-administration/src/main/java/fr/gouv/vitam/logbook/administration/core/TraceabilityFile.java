@@ -51,7 +51,7 @@ public class TraceabilityFile implements AutoCloseable {
     private static final String LOGBOOK_OPERATIONS_FILENAME = "operations.json";
     private static final String ADDITIONAL_INFORMATION_FILENAME = "additional_information.txt";
     private static final String COMPUTING_INFORMATION_FILENAME = "computing_information.txt";
-    private static final String MEKLE_TREE_FILENAME = "mekleTree.json";
+    private static final String MEKLE_TREE_FILENAME = "merkleTree.json";
     private static final String TIMESTAMP_FILENAME = "token.tsp";
 
     private static final String LINE_SEPARATOR = "\n";
