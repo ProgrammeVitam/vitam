@@ -196,9 +196,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
         } catch (final StorageClientException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
+            itemStatus.increment(StatusCode.FATAL);
             // update lifecycle of objectGroup with detail of object : KO
-            logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.KO,
+            logbookLifecycleObjectGroupParameters.setFinalStatus(STORING_OBJECT_FULL_TASK_ID, null, StatusCode.FATAL,
                 null);
             updateLifeCycle();
             throw e;

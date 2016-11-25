@@ -105,7 +105,7 @@ public class StoreObjectGroupActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceErrorWhenExecuteThenReturnResponseKO() throws Exception {
+    public void givenWorkspaceErrorWhenExecuteThenReturnResponseFATAL() throws Exception {
         final StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
 
         final WorkerParameters paramsObjectGroups =
@@ -129,7 +129,7 @@ public class StoreObjectGroupActionHandlerTest {
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
 
         final ItemStatus response = handler.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
 
