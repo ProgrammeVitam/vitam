@@ -29,8 +29,19 @@ package fr.gouv.vitam.common.i18n;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
@@ -102,4 +113,28 @@ public class VitamLogbookMessagesTest {
 
     }
 
+    @Test
+    public void validPropertyFile() throws IOException, URISyntaxException {
+        // For the moment valid only that all ' are doubles
+        URL url = VitamLogbookMessages.class.getResource("/vitam-logbook-messages_fr.properties");
+        File file = new File(url.toURI());
+        file = new File(file.getParentFile().getParentFile(), "classes/vitam-logbook-messages_fr.properties");
+        InputStream input = new FileInputStream(file);
+        boolean match = true;
+        try (final InputStreamReader reader = new InputStreamReader(input)) {
+            try (final BufferedReader buffered = new BufferedReader(reader)) {
+                String line;
+                while ((line = buffered.readLine()) != null) {
+                    if (line.contains("'")) {
+                        boolean submatch = line.matches(".*[^']''[^'].*");
+                        if (! submatch) {
+                            System.err.println("WRONG PROPERTY: " + line);
+                        }
+                        match &= submatch;
+                    }
+                }
+            }
+        }
+        assertTrue(match);
+    }
 }

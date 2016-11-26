@@ -18,12 +18,18 @@
         <DescriptiveMetadata></DescriptiveMetadata>
         <ManagementMetadata>
            <ReplyOutcome>
-            <OutcomeDetailMessage>#OUTCOME_DETAIL_MESSAGE#</OutcomeDetailMessage>
+             <Event>
+                <EventTypeCode>#EVENT_TYPE_CODE#</EventTypeCode>
+                <EventType>#EVENT_TYPE#</EventType>
+                <Outcome>#OUTCOME#</Outcome>
+                <OutcomeDetail>#OUTCOME_DETAIL#</OutcomeDetail>
+                <OutcomeDetailMessage>#OUTCOME_DETAIL_MESSAGE#</OutcomeDetailMessage>
+             </Event>
            </ReplyOutcome>         
         </ManagementMetadata>
     </DataObjectPackage>
     
-    <ReplyCode>SIP_NOT_ACCEPTABLE</ReplyCode>
+    <ReplyCode>#OUTCOME#</ReplyCode>
     <MessageRequestIdentifier>Unknown</MessageRequestIdentifier>
     <ArchivalAgency>
         <Identifier>#ARCHIVAL_AGENCY#</Identifier>

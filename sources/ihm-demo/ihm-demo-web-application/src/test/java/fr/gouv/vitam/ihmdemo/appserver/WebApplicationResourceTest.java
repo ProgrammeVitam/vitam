@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -34,7 +35,13 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -443,6 +450,67 @@ public class WebApplicationResourceTest {
 
         final JsonNode firstRequestId = JsonHandler.getFromString(s.asString());
         assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
+    }
+
+    @Test
+    public void testUploadSipMultipleChunkOK() throws Exception {
+        final Response mockResponse = Mockito.mock(Response.class);
+        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
+        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
+        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
+
+        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        final String xmlString = FileUtil.readInputStream(inputStreamATR);
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn(200).when(mockResponse).getStatus();
+        Mockito.doReturn(xmlString).when(mockResponse).readEntity(String.class);
+        Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject());
+
+        final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
+        // Need for test
+        byte[] content = IOUtils.toByteArray(stream);
+
+        InputStream stream1 = new ByteArrayInputStream(content, 0, 100000);
+        InputStream stream2 = new ByteArrayInputStream(content, 100000, 100000);
+        InputStream stream3 = new ByteArrayInputStream(content, 200000, 500000);
+        final ResponseBody s1 = given()
+            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "1")
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream1).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/ingest/upload").getBody();
+        final JsonNode firstRequestId = JsonHandler.getFromString(s1.asString());
+        assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
+        String reqId = firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText();
+        File temporarySipFile = PropertiesUtils.fileFromTmpFolder(reqId);
+        assertEquals(100000, temporarySipFile.length());
+        final ResponseBody s2 = given()
+            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "2", GlobalDataRest.X_REQUEST_ID, reqId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream2).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/ingest/upload").getBody();
+        assertEquals(200000, temporarySipFile.length());
+        final ResponseBody s3 = given()
+            .headers(FLOW_TOTAL_CHUNKS_HEADER, "3", FLOW_CHUNK_NUMBER_HEADER, "3", GlobalDataRest.X_REQUEST_ID, reqId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream3).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/ingest/upload").getBody();
+        // Cannot check uploaded file for certain since it might be already deleted
+        try {
+            byte[] finalContent = IOUtils.toByteArray(new FileInputStream(temporarySipFile));
+            assertTrue(Arrays.equals(content, finalContent));
+        } catch (IOException e) {
+            // Ignore since file wad deleted before test
+        }
     }
 
     @Test

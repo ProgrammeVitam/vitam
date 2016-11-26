@@ -34,6 +34,8 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 /**
@@ -47,6 +49,10 @@ public class AtrKoBuilder {
     private static final String ARCHIVAL_AGENCY = "#ARCHIVAL_AGENCY#";
     private static final String TRANSFERRING_AGENCY = "#TRANSFERRING_AGENCY#";
     private static final String COMMENT = "#COMMENT#";
+    private static final String EVENT_TYPE = "#EVENT_TYPE#";
+    private static final String EVENT_TYPE_CODE = "#EVENT_TYPE_CODE#";
+    private static final String OUTCOME = "#OUTCOME#";
+    private static final String OUTCOME_DETAIL = "#OUTCOME_DETAIL#";
     private static final String OUTCOME_DETAIL_MESSAGE = "#OUTCOME_DETAIL_MESSAGE#";
 
     /**
@@ -62,22 +68,32 @@ public class AtrKoBuilder {
      * @param messageIdentifier
      * @param archivalAgency
      * @param transferringAgency
-     * @param detail
+     * @param eventType
+     * @param addedMessage might be null
+     * @param code
      * @return the corresponding InputStream with the ATR KO in XML format
      * @throws IngestExternalException
      */
     public static InputStream buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
-        String detail) throws IngestExternalException {
+        String eventType, String addedMessage, StatusCode code) throws IngestExternalException {
         String xmlDefault;
         try {
             xmlDefault = FileUtil.readInputStream(PropertiesUtils.getResourceAsStream(ATR_KO_DEFAULT_XML));
         } catch (final IOException e) {
             throw new IngestExternalException(e);
         }
+        String detail = VitamLogbookMessages.getCodeOp(eventType, code);
+        if (addedMessage != null) {
+            detail += addedMessage;
+        }
+        String event = VitamLogbookMessages.getLabelOp(eventType);
         final String finalXml =
             xmlDefault.replace(DATE, LocalDateUtil.now().toString()).replace(MESSAGE_IDENTIFIER, messageIdentifier)
                 .replace(ARCHIVAL_AGENCY, archivalAgency).replace(TRANSFERRING_AGENCY, transferringAgency)
-                .replace(COMMENT, detail).replace(OUTCOME_DETAIL_MESSAGE, detail);
+                .replace(COMMENT, detail)
+                .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
+                .replaceAll(OUTCOME, code.name())
+                .replace(OUTCOME_DETAIL, eventType + code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
         return new ByteArrayInputStream(finalXml.getBytes(CharsetUtils.UTF8));
     }
 }
