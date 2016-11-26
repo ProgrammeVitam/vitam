@@ -358,49 +358,16 @@ public class IngestExternalImpl implements IngestExternal {
                         throw new IngestExternalException(e);
                     }
                 } else {
-                    // add the step in the logbook
-                    addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
-                    addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
-                    // FIXME P1 later on real ATR KO
-                    responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-                        AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
-                            "File upload " +
-                                (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
-                        MediaType.APPLICATION_XML_TYPE, null);
-                    addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
-                    addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
-                    // log final status PROCESS_SIP when check format KO or FATA
-                    // in this case PROCESS_SIP inherits FORMAT CHECK Status
-                    startedParameters.setStatus(formatParameters.getStatus());
-                    startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, formatParameters.getStatus()));
-                    // update PROCESS_SIP
-                    helper.updateDelegate(startedParameters);
-
+                    responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+                        isFileInfected, mimeType, endParameters);
                 }
             } else {
                 // finalize end step param
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
-                addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
-                addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
-                // FIXME P1 later on real ATR KO
-                responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-                    AtrKoBuilder.buildAtrKo(containerName.getId(), "ToBeDefined", "ToBeDefined",
-                        "File upload " + (isFileInfected ? "is infected" : "has a unsupported Format: " + mimeType)),
-                    MediaType.APPLICATION_XML_TYPE, null);
-                // add the step in the logbook
-                addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
-                addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
-                // log final status PROCESS_SIP when sanity check KO or FATAL
-                // in this case PROCESS_SIP inherits SANITY_CHECK Status
-                startedParameters.setStatus(endParameters.getStatus());
-                startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, endParameters.getStatus()));
-                // update PROCESS_SIP
-                helper.updateDelegate(startedParameters);
-
+                responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+                    isFileInfected, mimeType, endParameters);
             }
 
             try (IngestInternalClient ingestClient =
@@ -450,6 +417,51 @@ public class IngestExternalImpl implements IngestExternal {
             }
             StreamUtils.closeSilently(input);
         }
+    }
+
+    /**
+     * @param containerName
+     * @param ingestGuid
+     * @param helper
+     * @param startedParameters
+     * @param isFileInfected
+     * @param mimeType
+     * @param endParameters
+     * @return
+     * @throws LogbookClientNotFoundException
+     * @throws IngestExternalException
+     */
+    private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
+        final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
+        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters)
+        throws LogbookClientNotFoundException, IngestExternalException {
+        Response responseNoProcess;
+        // Add step started in the logbook
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+        // FIXME P1 later on real ATR KO
+        if (isFileInfected) {
+            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                    "SANITY_CHECK_SIP", null, StatusCode.KO),
+                MediaType.APPLICATION_XML_TYPE, null);
+        } else {
+            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                    "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO),
+                MediaType.APPLICATION_XML_TYPE, null);
+        }
+        // add the step in the logbook
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
+        // log final status PROCESS_SIP when sanity check KO or FATAL
+        // in this case PROCESS_SIP inherits SANITY_CHECK Status
+        startedParameters.setStatus(endParameters.getStatus());
+        startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, endParameters.getStatus()));
+        // update PROCESS_SIP
+        helper.updateDelegate(startedParameters);
+        return responseNoProcess;
     }
 
     private void addStpIngestFinalisationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,

@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -96,7 +97,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR)
                         .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
-                            "Unknown", "Unknown", exc.getMessage()))
+                            "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                            "PROCESS_SIP_UNITARY", exc.getMessage(), StatusCode.FATAL))
                         .type(MediaType.APPLICATION_XML_TYPE).build());
             } catch (final IngestExternalException e) {
                 // Really bad

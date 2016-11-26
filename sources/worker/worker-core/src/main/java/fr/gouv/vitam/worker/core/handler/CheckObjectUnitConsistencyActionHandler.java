@@ -152,6 +152,27 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                 ogList.add(objectGroup.getKey());
             } else {
                 itemStatus.increment(StatusCode.OK);
+                try {
+                    // Update logbook OG lifecycle
+                    final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+
+                    LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                        logbookLifecycleObjectGroupParameters,
+                        params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                        objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+
+                    logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
+                        null);
+                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                    final String objectID =
+                        logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
+                    handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                        handlerIO.getHelper().removeUpdateDelegate(objectID));
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException | ProcessingException e) {
+                    LOGGER.error("Can not update logbook lifcycle", e);
+                }
             }
         }
         return ogList;

@@ -379,21 +379,25 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         final String objectGroupGuid =
                             writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
-                            guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null);
-                            logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                            handlerIO.getHelper()
+                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                    .get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null));
 
                             // Add creation sub task event
-                            guidToLifeCycleParameters.get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
-                                null,
-                                StatusCode.OK,
-                                null);
-                            logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                            handlerIO.getHelper()
+                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                    .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
+                                        null,
+                                        StatusCode.OK,
+                                        null));
 
-
-                            guidToLifeCycleParameters.get(objectGroupGuid).setFinalStatus(HANDLER_ID, null,
-                                StatusCode.OK,
-                                null);
-                            logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                            handlerIO.getHelper()
+                                .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null,
+                                        StatusCode.OK,
+                                        null));
+                            logbookLifeCycleClient.bulkCreateObjectGroup(containerId,
+                                handlerIO.getHelper().removeCreateDelegate(objectGroupGuid));
                         }
                     }
                 }
@@ -445,6 +449,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (final LogbookClientAlreadyExistsException e) {
+            LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
         } catch (final LogbookClientServerException e) {
             LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
@@ -538,15 +545,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
                 final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
                 llcp.setBeginningLog(HANDLER_ID, null, null);
-                logbookLifeCycleClient.update(llcp);
+                handlerIO.getHelper().updateDelegate(llcp);
 
                 llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK,
                     null);
-                logbookLifeCycleClient.update(llcp);
+                handlerIO.getHelper().updateDelegate(llcp);
 
                 llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                     null);
-                logbookLifeCycleClient.update(llcp);
+                handlerIO.getHelper().updateDelegate(llcp);
+                logbookLifeCycleClient.bulkUpdateUnit(containerId,
+                    handlerIO.getHelper().removeUpdateDelegate(unitGuid));
             }
 
             // 2- Update temporary files
@@ -1033,7 +1042,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
 
-        logbookLifeCycleClient.create(logbookLifecycleObjectGroupParameters);
+        handlerIO.getHelper().createDelegate(logbookLifecycleObjectGroupParameters);
 
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(groupGuid, logbookLifecycleObjectGroupParameters);
@@ -1467,19 +1476,24 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId, logbookLifeCycleClient);
 
                     // Update Object Group lifeCycle creation event
-                    guidToLifeCycleParameters.get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null);
-                    logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                    handlerIO.getHelper()
+                        .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                            .get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null));
 
                     // Add creation sub task event
-                    guidToLifeCycleParameters.get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
-                        null,
-                        StatusCode.OK,
-                        null);
-                    logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                    handlerIO.getHelper()
+                        .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                            .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
+                                null,
+                                StatusCode.OK,
+                                null));
 
-                    guidToLifeCycleParameters.get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                        null);
-                    logbookLifeCycleClient.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                    handlerIO.getHelper()
+                        .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                            .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
+                                null));
+                    logbookLifeCycleClient.bulkCreateObjectGroup(containerId,
+                        handlerIO.getHelper().removeCreateDelegate(objectGroupGuid));
                 }
 
             } catch (final InvalidParseOperationException e) {

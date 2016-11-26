@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -61,7 +60,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -354,72 +352,69 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param stream data input stream for the current chunk
      * @param headers HTTP Headers containing chunk information
      * @return Response
-     * @throws InvalidParseOperationException
-     * @throws IOException
-     * @throws VitamException
-     * @throws XMLStreamException
-     * @throws IngestExternalException
      */
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response upload(@Context HttpServletRequest request, @Context HttpServletResponse response,
-        @Context HttpHeaders headers,
-        InputStream stream) throws InvalidParseOperationException {
-
-        // Received chunk index
-        final int currentChunkIndex = Integer.parseInt(headers.getHeaderString(FLOW_CHUNK_NUMBER_HEADER));
-
-        // Total number of chunks
-        final int totalChunks = Integer.parseInt(headers.getHeaderString(FLOW_TOTAL_CHUNKS_HEADER));
+        @Context HttpHeaders headers, InputStream stream) {
 
         String operationGuidFirstLevel = null;
         File temporarySipFile = null;
         try {
+            // Received chunk index
+            final int currentChunkIndex = Integer.parseInt(headers.getHeaderString(FLOW_CHUNK_NUMBER_HEADER));
+
+            // Total number of chunks
+            final int totalChunks = Integer.parseInt(headers.getHeaderString(FLOW_TOTAL_CHUNKS_HEADER));
+
             if (currentChunkIndex == 1) {
                 // GUID operation (Server Application level)
                 operationGuidFirstLevel = GUIDFactory.newGUID().getId();
                 temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
 
                 // Write the first chunk
-                IOUtils.copy(stream, new FileOutputStream(temporarySipFile));
+                try (FileOutputStream outputStream = new FileOutputStream(temporarySipFile)) {
+                    StreamUtils.copy(stream, outputStream);
+                }
 
                 // if it is the last chunk => start INGEST upload
                 if (currentChunkIndex == totalChunks) {
                     startUpload(operationGuidFirstLevel);
                 }
-
-                // Return the X-REQUEST-ID (JSON form)
-                return Response.status(Status.OK)
-                    .entity(JsonHandler.getFromString(
-                        "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
-                    .build();
 
             } else {
                 operationGuidFirstLevel = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
 
                 // Append the received chunk to the temporary file
-                final FileOutputStream bufferedOutputStream = new FileOutputStream(temporarySipFile, true);
-                IOUtils.copy(stream, new BufferedOutputStream(bufferedOutputStream));
+                try (final FileOutputStream outputStream = new FileOutputStream(temporarySipFile, true)) {
+                    StreamUtils.copy(stream, outputStream);
+                }
 
                 // if it is the last chunk => start INGEST upload
                 if (currentChunkIndex == totalChunks) {
                     startUpload(operationGuidFirstLevel);
                 }
             }
-        } catch (final VitamException e) {
-            LOGGER.error("Upload failed", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final IOException e) {
             LOGGER.error("Upload failed", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final RuntimeException e) {
+            LOGGER.error("Upload failed", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        return Response.status(Status.OK)
-            .entity(JsonHandler.getFromString(
-                "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
-            .build();
+        try {
+            return Response.status(Status.OK)
+                .entity(JsonHandler.getFromString(
+                    "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
+                .build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Upload failed", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     private void startUpload(String operationGUID) {
@@ -442,9 +437,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 try {
-                    finalResponse =
-                        client.upload(
-                            new FileInputStream(temporarSipFile));
+                    finalResponse = client.upload(new FileInputStream(temporarSipFile));
 
                     final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                     final InputStream inputStream = (InputStream) finalResponse.getEntity();
@@ -474,14 +467,77 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 if (file != null) {
                     file.delete();
                 }
-                if (temporarSipFile != null) {
-                    temporarSipFile.delete();
-                }
             } finally {
                 if (temporarSipFile != null) {
                     temporarSipFile.delete();
                 }
             }
+        }
+    }
+
+    /**
+     * Check if the upload operation is done
+     *
+     * @param operationId
+     * @return the Response
+     */
+    @Path("check/{id_op}")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response checkUploadOperation(@PathParam("id_op") String operationId) {
+        // 1- Check if the requested operation is done
+        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
+        if (responseDetails != null) {
+            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
+                    .entity(new VitamStreamingOutput(file, false))
+                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .header("Content-Disposition",
+                        "attachment; filename=ATR_" + responseDetails.get(GUID_INDEX) + ".xml")
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
+                    .build();
+            } else {
+                return Response.status((Status) responseDetails.get(RESPONSE_STATUS_INDEX))
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
+                    .build();
+            }
+        }
+
+        // 2- Return the created GUID
+        return Response.status(Status.NO_CONTENT)
+            .header(GlobalDataRest.X_REQUEST_ID, operationId)
+            .build();
+    }
+
+    /**
+     * Once done, clear the Upload operation history
+     *
+     * @param operationId
+     * @return the Response
+     */
+    @Path("clear/{id_op}")
+    @GET
+    public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
+
+        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
+        if (responseDetails != null) {
+            // Clean up uploadRequestsStatus
+            uploadRequestsStatus.remove(operationId);
+            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                file.delete();
+            }
+            // Cleaning process succeeded
+            return Response.status(Status.OK)
+                .header(GlobalDataRest.X_REQUEST_ID, operationId)
+                .build();
+        } else {
+            // Cleaning process failed
+            return Response.status(Status.BAD_REQUEST)
+                .header(GlobalDataRest.X_REQUEST_ID, operationId)
+                .build();
         }
     }
 
@@ -1070,71 +1126,4 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return Response.status(Status.OK).entity(result).build();
     }
 
-
-
-    /**
-     * Check if the upload operation is done
-     *
-     * @param operationId
-     * @return the Response
-     */
-    @Path("check/{id_op}")
-    @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkUploadOperation(@PathParam("id_op") String operationId) {
-        // 1- Check if the requested operation is done
-        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
-        if (responseDetails != null) {
-            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
-                final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
-                LOGGER.debug("DEBUG: " + file + ":" + file.length());
-                return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
-                    .entity(new VitamStreamingOutput(file, false))
-                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                    .header("Content-Disposition",
-                        "attachment; filename=ATR_" + responseDetails.get(GUID_INDEX) + ".xml")
-                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
-                    .build();
-            } else {
-                return Response.status((Status) responseDetails.get(RESPONSE_STATUS_INDEX))
-                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
-                    .build();
-            }
-        }
-
-        // 2- Return the created GUID
-        return Response.status(Status.NO_CONTENT)
-            .header(GlobalDataRest.X_REQUEST_ID, operationId)
-            .build();
-    }
-
-    /**
-     * Once done, clear the Upload operation history
-     *
-     * @param operationId
-     * @return the Response
-     */
-    @Path("clear/{id_op}")
-    @GET
-    public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
-
-        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
-        if (responseDetails != null) {
-            // Clean up uploadRequestsStatus
-            uploadRequestsStatus.remove(operationId);
-            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
-                final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
-                file.delete();
-            }
-            // Cleaning process succeeded
-            return Response.status(Status.OK)
-                .header(GlobalDataRest.X_REQUEST_ID, operationId)
-                .build();
-        } else {
-            // Cleaning process failed
-            return Response.status(Status.BAD_REQUEST)
-                .header(GlobalDataRest.X_REQUEST_ID, operationId)
-                .build();
-        }
-    }
 }
