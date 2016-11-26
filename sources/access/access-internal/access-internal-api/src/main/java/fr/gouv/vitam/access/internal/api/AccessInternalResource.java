@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.server2.application.resources.VitamResource;
+import fr.gouv.vitam.common.server.application.resources.VitamResource;
 
 /**
  * Access Resource REST API

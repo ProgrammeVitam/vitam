@@ -37,7 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 public class MetaDataClientFactoryTest {
 

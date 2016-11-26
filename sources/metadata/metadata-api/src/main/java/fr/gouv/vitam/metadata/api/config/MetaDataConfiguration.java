@@ -30,8 +30,8 @@ import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * MetaDataConfiguration contains database access informations

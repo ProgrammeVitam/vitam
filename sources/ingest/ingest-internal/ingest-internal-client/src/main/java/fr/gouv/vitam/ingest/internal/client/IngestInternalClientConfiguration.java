@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 /**
  * IngestInternalConfiguration contains access informations of ingest

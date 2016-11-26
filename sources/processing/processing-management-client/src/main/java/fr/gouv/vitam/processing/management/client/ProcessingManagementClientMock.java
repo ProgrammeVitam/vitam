@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;

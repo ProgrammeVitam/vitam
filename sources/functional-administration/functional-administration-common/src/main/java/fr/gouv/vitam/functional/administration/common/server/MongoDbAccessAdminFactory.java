@@ -34,7 +34,7 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 
 /**
  * Factory to get MongoDbAccess for Admin

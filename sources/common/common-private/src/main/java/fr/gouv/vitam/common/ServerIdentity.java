@@ -46,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.server2.application.configuration.ServerIdentityConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
 
 /**
  * Server Identity containing ServerName, ServerRole, Global PlatformId<br>

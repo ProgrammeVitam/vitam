@@ -29,8 +29,8 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import java.util.List;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * AdminManagementConfiguration inherated from DbConfigurationImpl

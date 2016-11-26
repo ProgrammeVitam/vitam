@@ -41,8 +41,8 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * MongoDbAccess interface

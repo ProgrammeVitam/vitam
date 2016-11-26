@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;

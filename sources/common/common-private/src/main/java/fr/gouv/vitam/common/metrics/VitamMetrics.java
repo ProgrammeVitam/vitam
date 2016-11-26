@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.VitamMetricsConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
 
 /**
  * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This

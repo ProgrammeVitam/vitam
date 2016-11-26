@@ -28,7 +28,7 @@
  */
 package fr.gouv.vitam.library.config;
 
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * LibraryConfiguration contains library app configuration

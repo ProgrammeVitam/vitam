@@ -34,7 +34,7 @@ import java.util.List;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 public class MetaDataConfigurationTest {
 

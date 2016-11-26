@@ -28,8 +28,8 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.BasicClient;
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -135,7 +135,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-
+    
         }
      * </code>
      * </pre>
@@ -162,7 +162,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-
+    
         }
      * </code>
      * </pre>

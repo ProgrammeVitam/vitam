@@ -44,11 +44,11 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.ConsumeAllAfterResponseFilter;
-import fr.gouv.vitam.common.server2.application.GenericExceptionMapper;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.ConsumeAllAfterResponseFilter;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.library.config.LibraryConfiguration;
 
 /**

@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.common.client2.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 public class AdminExternalClientMockTest {

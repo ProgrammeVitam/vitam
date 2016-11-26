@@ -30,7 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class IntegrationClient {

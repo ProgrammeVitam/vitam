@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.core;
 
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * workspace jetty configuration
