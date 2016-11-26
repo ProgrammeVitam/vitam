@@ -27,7 +27,7 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Ingest Internal Configuration

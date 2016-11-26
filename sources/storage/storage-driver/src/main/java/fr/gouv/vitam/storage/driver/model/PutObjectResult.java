@@ -42,7 +42,7 @@ public class PutObjectResult {
      * @param distantObjectId The distant object id
      * @param digestHashBase16 the object digest hash
      * @param tenantId the request tenantId
-     * @param objectSize 
+     * @param objectSize
      */
     public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId, long objectSize) {
         this.distantObjectId = distantObjectId;

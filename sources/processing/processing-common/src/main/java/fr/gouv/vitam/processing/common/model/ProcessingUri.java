@@ -42,7 +42,7 @@ public class ProcessingUri {
 
     /**
      * Empty Constructor
-     * 
+     *
      * @param uri
      */
     public ProcessingUri() {
@@ -51,7 +51,7 @@ public class ProcessingUri {
 
     /**
      * Constructor with prefix and path
-     * 
+     *
      * @param prefix
      * @param path
      */
@@ -61,7 +61,7 @@ public class ProcessingUri {
 
     /**
      * Constructor with prefix and path
-     * 
+     *
      * @param prefix
      * @param path
      */
@@ -72,7 +72,7 @@ public class ProcessingUri {
 
     /**
      * Constructor with String
-     * 
+     *
      * @param uri
      */
     public ProcessingUri(String uri) {
@@ -112,7 +112,7 @@ public class ProcessingUri {
         this.path = path;
         return this;
     }
-    
+
     @Override
     public String toString() {
         return prefix + ":" + path;

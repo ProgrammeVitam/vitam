@@ -26,15 +26,8 @@
  */
 package fr.gouv.vitam.common.timestamp;
 
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.tsp.TSPAlgorithms;
-import org.bouncycastle.tsp.TSPException;
-import org.bouncycastle.tsp.TimeStampRequest;
-import org.bouncycastle.tsp.TimeStampRequestGenerator;
-import org.bouncycastle.tsp.TimeStampResponse;
-import org.bouncycastle.tsp.TimeStampToken;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,8 +40,15 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.tsp.TSPAlgorithms;
+import org.bouncycastle.tsp.TSPException;
+import org.bouncycastle.tsp.TimeStampRequest;
+import org.bouncycastle.tsp.TimeStampRequestGenerator;
+import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.TimeStampToken;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TimeStampSignatureWithKeystoreTest {
 
@@ -58,7 +58,7 @@ public class TimeStampSignatureWithKeystoreTest {
     public void init()
         throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
         IOException, URISyntaxException {
-        URL url = this.getClass().getResource("/tsa.p12");
+        final URL url = this.getClass().getResource("/tsa.p12");
         timeStampSignatureWithKeystore =
             new TimeStampSignatureWithKeystore(new File(url.toURI()), "1234".toCharArray());
     }
@@ -68,26 +68,26 @@ public class TimeStampSignatureWithKeystoreTest {
         throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
         IOException {
         // Given
-        URL url = this.getClass().getResource("/keystore_with_multiple_key.p12");
+        final URL url = this.getClass().getResource("/keystore_with_multiple_key.p12");
 
         // When / Then
         assertThatThrownBy(
             () -> new TimeStampSignatureWithKeystore(new File(url.toURI()), "secret".toCharArray()))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("Keystore has many key");
+                .isInstanceOf(IllegalArgumentException.class).hasMessage("Keystore has many key");
     }
 
     @Test
     public void should_sign_a_time_stamp_request()
         throws TSPException, CertificateEncodingException, OperatorCreationException, IOException {
         // Given
-        TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
-        byte[] hash = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        BigInteger nonce = BigInteger.TEN;
-        TimeStampRequest request = reqGen.generate(TSPAlgorithms.SHA1, hash, nonce);
+        final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+        final byte[] hash = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        final BigInteger nonce = BigInteger.TEN;
+        final TimeStampRequest request = reqGen.generate(TSPAlgorithms.SHA1, hash, nonce);
 
         // When
-        TimeStampResponse timeStampResponse = timeStampSignatureWithKeystore.sign(request);
-        TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
+        final TimeStampResponse timeStampResponse = timeStampSignatureWithKeystore.sign(request);
+        final TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
 
         // Then
         assertThat(timeStampToken.getTimeStampInfo().getNonce()).isEqualTo(nonce);

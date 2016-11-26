@@ -69,8 +69,8 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -88,7 +88,7 @@ public class SelectParserMultipleTest {
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
-        exampleBothEsMd = 
+        exampleBothEsMd =
             JsonHandler.getFromString("{\"$roots\":[\"id0\"],\"$query\":[{\"$path\":[\"id1\",\"id2\"]}," +
                 "{\"$and\":[{\"$exists\":\"mavar1\"},{\"$missing\":\"mavar2\"},{\"$isNull\":\"mavar3\"}," +
                 "{\"$or\":[{\"$in\":{\"mavar4\":[1,2,\"maval1\"]}},{\"$nin\":{\"mavar5\":[\"maval2\",true]}}]}]}," +
@@ -133,7 +133,7 @@ public class SelectParserMultipleTest {
 
     @Test
     public void testSanityCheckRequest() {
-        int oldValue = GlobalDatasParser.limitRequest;
+        final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
             final String longfalsecode = createLongString(GlobalDatasParser.limitRequest + 100);
@@ -393,7 +393,7 @@ public class SelectParserMultipleTest {
     @Test
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
-        Select select = new Select();
+        final Select select = new Select();
         select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
         select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
         select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
@@ -403,7 +403,7 @@ public class SelectParserMultipleTest {
         request.addCondition(eq("var5", "value"));
         assertEquals(
             "{\"$roots\":[]," +
-            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+                "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
                 "{\"$eq\":{\"var5\":\"value\"}}]}," +
                 "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
                 "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
@@ -431,7 +431,7 @@ public class SelectParserMultipleTest {
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // OK
         }
         s = "{\"$roots\":[]," +
@@ -443,7 +443,7 @@ public class SelectParserMultipleTest {
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // OK
         }
         s = "{\"$roots\":[]," +
@@ -455,7 +455,7 @@ public class SelectParserMultipleTest {
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // OK
         }
     }

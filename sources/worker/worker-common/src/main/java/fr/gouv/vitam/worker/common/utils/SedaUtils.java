@@ -166,7 +166,8 @@ public class SedaUtils {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -196,7 +197,7 @@ public class SedaUtils {
                 if (reader != null) {
                     reader.close();
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             StreamUtils.closeSilently(xmlFile);
@@ -350,7 +351,7 @@ public class SedaUtils {
                 if (eventReader != null) {
                     eventReader.close();
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             StreamUtils.closeSilently(xmlFile);
@@ -408,7 +409,8 @@ public class SedaUtils {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -424,7 +426,7 @@ public class SedaUtils {
                 if (reader != null) {
                     reader.close();
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             StreamUtils.closeSilently(xmlFile);
@@ -496,7 +498,7 @@ public class SedaUtils {
                         }
                     }
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 LOGGER.error("Can not get BinaryObject info");
                 throw new ProcessingException(e);
             }
@@ -558,7 +560,7 @@ public class SedaUtils {
 
         for (final String version : manifestVersionList) {
             if (version != null) {
-                String versionParts[] = version.split("_");
+                final String versionParts[] = version.split("_");
                 if (versionParts.length > 2 || !fileVersionList.contains(versionParts[VERSION_POSITION])) {
                     invalidVersionList.add(version);
                 }
@@ -583,7 +585,8 @@ public class SedaUtils {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 IOUtils.closeQuietly(xmlFile);
                 throw new ProcessingException(e);
@@ -651,7 +654,7 @@ public class SedaUtils {
      *
      * @param params worker parameters
      * @return the size of the manifest
-     * @throws ProcessingException 
+     * @throws ProcessingException
      */
     public long getManifestSize(WorkerParameters params)
         throws ProcessingException {

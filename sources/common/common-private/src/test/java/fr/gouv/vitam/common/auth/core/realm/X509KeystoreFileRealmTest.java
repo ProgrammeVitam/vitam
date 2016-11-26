@@ -48,74 +48,75 @@ import org.junit.Test;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 
-public class X509KeystoreFileRealmTest{
-    
+public class X509KeystoreFileRealmTest {
+
     private X509KeystoreFileRealm realm;
     private X509Certificate cert;
-    
-    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
+
+    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
     BigInteger serial = new BigInteger("1000000000000000");
 
     @Before
     public void setUp() throws Exception {
-        
+
         realm = new X509KeystoreFileRealm();
-        
+
         realm.setGrantedKeyStoreName("src/test/resources/tls/server/granted_certs.jks");
         realm.setGrantedKeyStorePassphrase("gazerty");
         realm.setTrustedKeyStoreName("src/test/resources/tls/server/truststore.jks");
         realm.setTrustedKeyStorePassphrase("tazerty");
-        
+
         cert = mock(X509Certificate.class);
         when(cert.getEncoded()).thenReturn(certBytes);
         when(cert.getSerialNumber()).thenReturn(serial);
     }
-    
+
     @Test
-    public void testGettersAndSetters(){
-        
+    public void testGettersAndSetters() {
+
         realm.getAuthenticationTokenClass();
-        
+
         assertEquals("src/test/resources/tls/server/granted_certs.jks", realm.getGrantedKeyStoreName());
         assertEquals("gazerty", realm.getGrantedKeyStorePassphrase());
         assertEquals("src/test/resources/tls/server/truststore.jks", realm.getTrustedKeyStoreName());
         assertEquals("tazerty", realm.getTrustedKeyStorePassphrase());
     }
-    
+
     @Test
-    public void givenRealmWhenSendCertificateTokenThenGetCertificateInfo(){
-        
-        X509Certificate[] clientCertChain = new X509Certificate[]{cert};
-        X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
+    public void givenRealmWhenSendCertificateTokenThenGetCertificateInfo() {
+
+        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
         assertTrue(realm.supports(token));
-        
-        X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
-        
+
+        final X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
+
     }
-    
+
     @Test(expected = NullPointerException.class)
-    public void givenRealmWhenKeyStoreNotFoundThenReturnNull(){
+    public void givenRealmWhenKeyStoreNotFoundThenReturnNull() {
         realm.setGrantedKeyStoreName("XXX.jks");
         realm.setGrantedKeyStorePassphrase("gazerty");
-        
-        X509Certificate[] clientCertChain = new X509Certificate[]{cert};
-        X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
+
+        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
         realm.doGetAuthenticationInfo(token);
     }
 
     @Test
-    public void givenRealmWhenP12NotGrantedThenReturnNull() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException{
-        InputStream inStream = new FileInputStream("src/test/resources/tls/client/client_notgranted.p12");
+    public void givenRealmWhenP12NotGrantedThenReturnNull()
+        throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+        final InputStream inStream = new FileInputStream("src/test/resources/tls/client/client_notgranted.p12");
 
-        KeyStore ks = KeyStore.getInstance("PKCS12");
-        ks.load(inStream, "vitam2016".toCharArray());  
+        final KeyStore ks = KeyStore.getInstance("PKCS12");
+        ks.load(inStream, "vitam2016".toCharArray());
 
-        String alias = ks.aliases().nextElement();
-        X509Certificate certificate = (X509Certificate) ks.getCertificate(alias);
-        
-        X509Certificate[] clientCertChain = new X509Certificate[]{certificate};
-        X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
-        X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
+        final String alias = ks.aliases().nextElement();
+        final X509Certificate certificate = (X509Certificate) ks.getCertificate(alias);
+
+        final X509Certificate[] clientCertChain = new X509Certificate[] {certificate};
+        final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
+        final X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
         assertNull(info);
     }
 }

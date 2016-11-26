@@ -65,53 +65,57 @@ public class AccessInternalClientMockTest {
 
     @Test
     public void givenMockExists_whenSelectUnit_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
-        
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
     }
 
     @Test
     public void givenMockExists_whenSelectUnitById_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test
     public void givenMockExists_whenUpdateUnitById_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.updateUnitbyId(queryJson, ID)).isNotNull();
     }
 
     @Test
     public void givenMockExistsWhenSelectObjectByIdThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
 
@@ -122,7 +126,7 @@ public class AccessInternalClientMockTest {
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
-        JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         final InputStream stream = client.getObject(queryJson, ID, "usage", 1).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

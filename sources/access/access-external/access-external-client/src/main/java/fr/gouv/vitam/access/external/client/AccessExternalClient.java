@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -44,7 +44,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnits /units
-     * 
+     *
      * @param selectQuery
      * @return Json representation
      * @throws InvalidParseOperationException
@@ -57,7 +57,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
-     * 
+     *
      * @param selectQuery
      * @param unitId
      * @return Json representation
@@ -71,7 +71,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * updateUnitbyId UPDATE /units/{id}
-     * 
+     *
      * @param updateQuery
      * @param unitId
      * @return Json representation
@@ -85,7 +85,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * getObjectAsInputStream
-     * 
+     *
      * @param selectQuery
      * @param objectId
      * @param usage
@@ -101,7 +101,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectById
-     * 
+     *
      * @param selectQuery
      * @param unitId
      * @return Json representation
@@ -115,7 +115,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperation
-     * 
+     *
      * @param select
      * @return Json representation
      * @throws LogbookClientException
@@ -125,7 +125,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperationbyId
-     * 
+     *
      * @param processId
      * @return Json representation
      * @throws LogbookClientException
@@ -135,7 +135,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnitLifeCycleById
-     * 
+     *
      * @param idUnit
      * @return Json representation
      * @throws LogbookClientException
@@ -146,7 +146,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectGroupLifeCycleById
-     * 
+     *
      * @param idObject
      * @return Json representation
      * @throws LogbookClientException
@@ -159,7 +159,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Get the accession register summary matching the given query
-     * 
+     *
      * @param query The DSL Query as Json Node
      * @return The AccessionregisterSummary list as a response JsonNode
      * @throws InvalidParseOperationException
@@ -172,7 +172,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Get the accession register details matching the given query
-     * 
+     *
      * @param id
      * @param query The DSL Query as a JSON Node
      * @return The AccessionregisterDetails list as a response jsonNode

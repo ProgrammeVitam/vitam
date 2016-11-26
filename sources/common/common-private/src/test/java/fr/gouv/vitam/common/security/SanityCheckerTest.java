@@ -27,13 +27,8 @@
 
 package fr.gouv.vitam.common.security;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,20 +45,28 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 public class SanityCheckerTest {
 
-    private String pathXMLOK = "testOK.xml";
-    private String pathXMLKO = "testKO.xml";
-    private String[] pathsXMLowaspKO = {"testOwaspException1.xml", "testOwaspException2.xml", "testOwaspException3.xml"};
+    private final String pathXMLOK = "testOK.xml";
+    private final String pathXMLKO = "testKO.xml";
+    private final String[] pathsXMLowaspKO =
+        {"testOwaspException1.xml", "testOwaspException2.xml", "testOwaspException3.xml"};
     private File fileOK = null;
     private File fileKO = null;
-    private List<File> filesOwaspKO = new ArrayList<File>();
+    private final List<File> filesOwaspKO = new ArrayList<>();
 
-    private String JSON_TEST_FILE = "json";
-    private String JSON_TEST_FILE2 = "json_good_sanity";
+    private final String JSON_TEST_FILE = "json";
+    private final String JSON_TEST_FILE2 = "json_good_sanity";
     private final double limitFileSize = SanityChecker.getLimitFileSize();
 
 
@@ -71,14 +74,14 @@ public class SanityCheckerTest {
     public void setUp() throws FileNotFoundException {
         fileOK = PropertiesUtils.findFile(pathXMLOK);
         fileKO = PropertiesUtils.findFile(pathXMLKO);
-        for(String pathFile : pathsXMLowaspKO) {
-            filesOwaspKO.add( PropertiesUtils.findFile(pathFile) );
+        for (final String pathFile : pathsXMLowaspKO) {
+            filesOwaspKO.add(PropertiesUtils.findFile(pathFile));
         }
     }
-    
+
     @Test(expected = InvalidParseOperationException.class)
     public void checkXMLFileSize() throws IOException, InvalidParseOperationException {
-        long limit = SanityChecker.getLimitFileSize();
+        final long limit = SanityChecker.getLimitFileSize();
         try {
             SanityChecker.setLimitFileSize(100);
             SanityChecker.checkXmlSanityFileSize(fileOK);
@@ -89,7 +92,7 @@ public class SanityCheckerTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void checkXMLTagSize() throws IOException, InvalidParseOperationException {
-        int limit = SanityChecker.getLimitFieldSize();
+        final int limit = SanityChecker.getLimitFieldSize();
         try {
             SanityChecker.setLimitFieldSize(100);
             SanityChecker.checkXmlSanityTagValueSize(fileKO);
@@ -126,8 +129,8 @@ public class SanityCheckerTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenJsonWhenValueIsTooBigORContainXMLTag()
         throws InvalidParseOperationException, IOException {
-        File file = PropertiesUtils.findFile(JSON_TEST_FILE);
-        JsonNode json = JsonHandler.getFromFile(file);
+        final File file = PropertiesUtils.findFile(JSON_TEST_FILE);
+        final JsonNode json = JsonHandler.getFromFile(file);
         assertNotNull(json);
         SanityChecker.checkJsonSanity(json);
     }
@@ -135,8 +138,8 @@ public class SanityCheckerTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenJsonWhenValueIsTooBigORContainXMLTagUsingAll()
         throws InvalidParseOperationException, IOException {
-        File file = PropertiesUtils.findFile(JSON_TEST_FILE);
-        JsonNode json = JsonHandler.getFromFile(file);
+        final File file = PropertiesUtils.findFile(JSON_TEST_FILE);
+        final JsonNode json = JsonHandler.getFromFile(file);
         assertNotNull(json);
         SanityChecker.checkJsonAll(json);
     }
@@ -144,8 +147,8 @@ public class SanityCheckerTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenJsonStringWhenValueIsTooBigORContainXMLTagUsingAll()
         throws InvalidParseOperationException, IOException {
-        File file = PropertiesUtils.findFile(JSON_TEST_FILE);
-        JsonNode json = JsonHandler.getFromFile(file);
+        final File file = PropertiesUtils.findFile(JSON_TEST_FILE);
+        final JsonNode json = JsonHandler.getFromFile(file);
         assertNotNull(json);
         SanityChecker.checkJsonAll(json.toString());
     }
@@ -153,15 +156,15 @@ public class SanityCheckerTest {
     @Test
     public void givenJsonWhenGoodSanityThenReturnTrue()
         throws FileNotFoundException, InvalidParseOperationException {
-        long limit = SanityChecker.getLimitJsonSize();
+        final long limit = SanityChecker.getLimitJsonSize();
         try {
             SanityChecker.setLimitJsonSize(100);
-            File file = PropertiesUtils.findFile(JSON_TEST_FILE2);
-            JsonNode json = JsonHandler.getFromFile(file);
+            final File file = PropertiesUtils.findFile(JSON_TEST_FILE2);
+            final JsonNode json = JsonHandler.getFromFile(file);
             try {
                 SanityChecker.checkJsonAll(json);
                 fail("Should failed with an exception");
-            } catch (InvalidParseOperationException e) {}
+            } catch (final InvalidParseOperationException e) {}
             SanityChecker.setLimitJsonSize(10000);
             SanityChecker.checkJsonAll(json);
             SanityChecker.checkJsonAll(json.toString());
@@ -172,16 +175,16 @@ public class SanityCheckerTest {
 
     @Test
     public void givenStringGoodSanity() throws InvalidParseOperationException {
-        String good = "abcdef";
+        final String good = "abcdef";
         SanityChecker.checkParameter(good);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringBadSize() throws InvalidParseOperationException {
-        int limit = SanityChecker.getLimitParamSize();
+        final int limit = SanityChecker.getLimitParamSize();
         try {
-            String bad = new String(StringUtils.getRandom(40));
-            SanityChecker.setLimitParamSize(bad.length()-5);
+            final String bad = new String(StringUtils.getRandom(40));
+            SanityChecker.setLimitParamSize(bad.length() - 5);
             SanityChecker.checkParameter(bad);
         } finally {
             SanityChecker.setLimitParamSize(limit);
@@ -190,85 +193,85 @@ public class SanityCheckerTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringScript() throws InvalidParseOperationException {
-        String bad = "aa<script>bb";
+        final String bad = "aa<script>bb";
         SanityChecker.checkParameter(bad);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringCdata() throws InvalidParseOperationException {
-        String bad = "aa<![CDATA[bb";
+        final String bad = "aa<![CDATA[bb";
         SanityChecker.checkParameter(bad);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringEntity() throws InvalidParseOperationException {
-        String bad = "aa<!ENTITYbb";
+        final String bad = "aa<!ENTITYbb";
         SanityChecker.checkParameter(bad);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringXml() throws InvalidParseOperationException {
-        String bad = "aa<strong>bb</strong>bb";
+        final String bad = "aa<strong>bb</strong>bb";
         SanityChecker.checkParameter(bad);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenStringNotPrintable() throws InvalidParseOperationException {
-        String bad = "aa\u0003bb";
+        final String bad = "aa\u0003bb";
         SanityChecker.checkParameter(bad);
     }
-    
+
     @Test(expected = InvalidParseOperationException.class)
     public void testHeaders() throws InvalidParseOperationException {
         final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-        
-        HttpHeaders headers = new HttpHeaders() {
-            
+
+        final HttpHeaders headers = new HttpHeaders() {
+
             @Override
             public MultivaluedMap<String, String> getRequestHeaders() {
                 return map;
             }
-            
+
             @Override
             public List<String> getRequestHeader(String name) {
                 return map.get(name);
             }
-            
+
             @Override
             public MediaType getMediaType() {
                 return null;
             }
-            
+
             @Override
             public int getLength() {
                 return 0;
             }
-            
+
             @Override
             public Locale getLanguage() {
                 return null;
             }
-            
+
             @Override
             public String getHeaderString(String name) {
                 return map.get(name).get(0);
             }
-            
+
             @Override
             public Date getDate() {
                 return null;
             }
-            
+
             @Override
             public Map<String, Cookie> getCookies() {
                 return null;
             }
-            
+
             @Override
             public List<MediaType> getAcceptableMediaTypes() {
                 return null;
             }
-            
+
             @Override
             public List<Locale> getAcceptableLanguages() {
                 return null;
@@ -277,10 +280,10 @@ public class SanityCheckerTest {
         map.add("test", "ok");
         try {
             SanityChecker.checkHeaders(headers);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             fail("Should not raized an exception");
         }
-        String bad = "aa<![CDATA[bb";
+        final String bad = "aa<![CDATA[bb";
         map.add("test", bad);
         SanityChecker.checkHeaders(headers);
     }

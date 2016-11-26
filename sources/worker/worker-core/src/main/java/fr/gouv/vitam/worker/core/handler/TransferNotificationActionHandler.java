@@ -51,7 +51,7 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -120,12 +120,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private StatusCode workflowStatus = StatusCode.UNKNOWN;
-    
+
     /**
      * Constructor TransferNotificationActionHandler
-     * 
+     *
      * @throws IOException
-     * 
+     *
      */
     public TransferNotificationActionHandler() {
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
@@ -143,7 +143,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
+        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -161,7 +161,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 atrFile = createATROK(params, handlerIO);
             }
             // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
-            // 'xml:id' to  a(n) 'attribute declaration' component.
+            // 'xml:id' to a(n) 'attribute declaration' component.
             // Actually cannot reproduce but get another SAX exception on the seda-vitam-2.0-main.xsd file (and its
             // imports, it seems).
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
@@ -255,12 +255,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-        JsonNode infoATR =
+        final JsonNode infoATR =
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-        String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
-        
+        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+
         // creation of ATR report
-        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)){
+        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)) {
             final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
 
             final XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
@@ -382,10 +382,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        File atrTmpFile = handlerIO.getNewLocalFile(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
+        final File atrTmpFile = handlerIO.getNewLocalFile(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
 
         // Pre-actions
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         JsonNode infoATR = null;
         String messageIdentifier = null;
@@ -398,10 +398,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
         }
         // creation of ATR report
-        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);){
-            XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+        try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);) {
+            final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
 
-            XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
+            final XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
             xmlsw.writeStartDocument();
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_TRANSFER_REPLY);
@@ -485,7 +485,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     /**
      * Add the KO (which could be KO or FATAL) replyOutcome to the ATR xml
-     * 
+     *
      * @param xmlsw xml writer
      * @param containerName the operation identifier
      * @throws ProcessingException thrown if a logbook could not be retrieved
@@ -498,25 +498,25 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode node = client.selectOperationbyId(containerName);
+            final JsonNode node = client.selectOperationbyId(containerName);
             // FIXME P1 hack since Jackson cannot parse it correctly
-            //RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
-            //logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
-            JsonNode elmt = node.get("$results").get(0);
+            // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
+            // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
+            final JsonNode elmt = node.get("$results").get(0);
             if (elmt == null) {
                 LOGGER.error("Error while loading logbook operation: no result");
                 throw new ProcessingException("Error while loading logbook operation: no result");
             }
             logbookOperation = new LogbookOperation(elmt);
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error("Error while loading logbook operation", e);
             throw new ProcessingException(e);
         }
 
-        List<Document> logbookOperationEvents =
+        final List<Document> logbookOperationEvents =
             (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
         xmlsw.writeStartElement(SedaConstants.TAG_OPERATION);
-        for (Document event : logbookOperationEvents) {
+        for (final Document event : logbookOperationEvents) {
             writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null);
         }
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
@@ -525,7 +525,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
-                File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
+                final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
                 if (file != null) {
                     archiveUnitMapTmpFile = new FileInputStream(file);
                 }
@@ -535,7 +535,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
                     if (archiveUnitSystemGuid != null) {
                         systemGuidArchiveUnitId = new HashMap<>();
-                        for (Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                        for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
                             systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
                         }
                     }
@@ -543,9 +543,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
                 while (iterator.hasNext()) {
-                    LogbookLifeCycleUnit logbookLifeCycleUnit =
+                    final LogbookLifeCycleUnit logbookLifeCycleUnit =
                         new LogbookLifeCycleUnit(iterator.next());
-                    List<Document> logbookLifeCycleUnitEvents =
+                    final List<Document> logbookLifeCycleUnitEvents =
                         (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
                     xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
 
@@ -560,36 +560,36 @@ public class TransferNotificationActionHandler extends ActionHandler {
                             logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
                     }
 
-                    for (Document event : logbookLifeCycleUnitEvents) {
+                    for (final Document event : logbookLifeCycleUnitEvents) {
                         writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null);
                     }
                     xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
                 }
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT_LIST
-            } catch (LogbookClientException e) {
+            } catch (final LogbookClientException e) {
                 LOGGER.error("Error while loading logbook lifecycle units", e);
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
-                Map<String, String> objectGroupGuid = new HashMap<>();
-                Map<String, List<String>> dataObjectsForOG = new HashMap<>();
-                File file1 = (File) handlerIO.getInput(BINARY_DATAOBJECT_MAP_RANK);
-                File file2 = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
-                File file3 = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
+                final Map<String, String> objectGroupGuid = new HashMap<>();
+                final Map<String, List<String>> dataObjectsForOG = new HashMap<>();
+                final File file1 = (File) handlerIO.getInput(BINARY_DATAOBJECT_MAP_RANK);
+                final File file2 = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
+                final File file3 = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
                 if (file1 != null && file2 != null) {
-                    InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
-                    InputStream bdoObjectGroupStoredMapTmpFile =
+                    final InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
+                    final InputStream bdoObjectGroupStoredMapTmpFile =
                         new FileInputStream(file2);
                     binaryDataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
                     bdoObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
                 }
                 for (final Map.Entry<String, Object> entry : bdoObjectGroupSystemGuid.entrySet()) {
-                    String idOG = entry.getValue().toString();
-                    String idObj = entry.getKey();
+                    final String idOG = entry.getValue().toString();
+                    final String idObj = entry.getKey();
                     if (!dataObjectsForOG.containsKey(idOG)) {
-                        List<String> listObj = new ArrayList<>();
+                        final List<String> listObj = new ArrayList<>();
                         listObj.add(idObj);
                         dataObjectsForOG.put(idOG, listObj);
                     } else {
@@ -597,12 +597,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     }
                 }
                 if (file3 != null) {
-                    InputStream objectGroupGuidMapTmpFile = new FileInputStream(file3);
-                    Map<String, Object> objectGroupGuidBefore =
+                    final InputStream objectGroupGuidMapTmpFile = new FileInputStream(file3);
+                    final Map<String, Object> objectGroupGuidBefore =
                         JsonHandler.getMapFromInputStream(objectGroupGuidMapTmpFile);
                     if (objectGroupGuidBefore != null) {
-                        for (Map.Entry<String, Object> entry : objectGroupGuidBefore.entrySet()) {
-                            String guid = entry.getValue().toString();
+                        for (final Map.Entry<String, Object> entry : objectGroupGuidBefore.entrySet()) {
+                            final String guid = entry.getValue().toString();
                             objectGroupGuid.put(guid, entry.getKey());
                         }
                     }
@@ -611,13 +611,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
                 while (iterator.hasNext()) {
 
-                    LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
+                    final LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
                         new LogbookLifeCycleObjectGroup(iterator.next());
 
-                    String eventIdentifier = null;
+                    final String eventIdentifier = null;
                     xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
 
-                    String ogGUID =
+                    final String ogGUID =
                         logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
                             ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
                                 .toString()
@@ -628,7 +628,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, objectGroupGuid.get(ogGUID));
                     }
                     if (dataObjectsForOG.get(igId) != null) {
-                        for (String idObj : dataObjectsForOG.get(igId)) {
+                        for (final String idObj : dataObjectsForOG.get(igId)) {
                             xmlsw.writeStartElement(SedaConstants.TAG_BINARY_DATA_OBJECT);
                             xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, idObj);
                             if (binaryDataObjectSystemGuid.get(idObj) != null) {
@@ -639,15 +639,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         }
 
                     }
-                    List<Document> logbookLifeCycleObjectGroupEvents =
+                    final List<Document> logbookLifeCycleObjectGroupEvents =
                         (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS.toString());
-                    for (Document event : logbookLifeCycleObjectGroupEvents) {
+                    for (final Document event : logbookLifeCycleObjectGroupEvents) {
                         writeEvent(xmlsw, event, SedaConstants.TAG_DATA_OBJECT_GROUP, eventIdentifier);
                     }
                     xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
                 }
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_LIST
-            } catch (LogbookClientException e) {
+            } catch (final LogbookClientException e) {
                 LOGGER.error("Error while loading logbook lifecycle ObjectGroups", e);
                 throw new ProcessingException(e);
             }
@@ -678,7 +678,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     /**
      * Write the event part of the xml in the KO ATR case
-     * 
+     *
      * @param xmlsw
      * @param event
      * @throws XMLStreamException

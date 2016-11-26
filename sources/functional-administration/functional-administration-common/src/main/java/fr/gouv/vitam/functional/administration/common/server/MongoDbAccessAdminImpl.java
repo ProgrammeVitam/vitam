@@ -64,7 +64,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
  * MongoDbAccess Implement for Admin
  */
 public class MongoDbAccessAdminImpl extends MongoDbAccess
-implements MongoDbAccessReferential {
+    implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
 
@@ -103,12 +103,12 @@ implements MongoDbAccessReferential {
     // Not check, test feature !
     @Override
     public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException {
-        long count = collection.getCollection().count();
+        final long count = collection.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            DeleteResult result = collection.getCollection().deleteMany(new Document());
+            final DeleteResult result = collection.getCollection().deleteMany(new Document());
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
@@ -166,16 +166,17 @@ implements MongoDbAccessReferential {
     }
 
     @Override
-    public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode, 
+    public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode,
         FunctionalAdminCollections collection, UPDATEACTION operator)
         throws ReferentialException {
-        BasicDBObject incQuery = new BasicDBObject();
-        BasicDBObject updateFields = new BasicDBObject();
-        for (Entry<String, Object> entry : map.entrySet()) {
-            updateFields.append(entry.getKey(), (Number) entry.getValue());
+        final BasicDBObject incQuery = new BasicDBObject();
+        final BasicDBObject updateFields = new BasicDBObject();
+        for (final Entry<String, Object> entry : map.entrySet()) {
+            updateFields.append(entry.getKey(), entry.getValue());
         }
         incQuery.append(operator.exactToken(), updateFields);
-        UpdateResult result = collection.getCollection().updateOne(eq(AccessionRegisterSummary.ORIGINATING_AGENCY, objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
+        final UpdateResult result = collection.getCollection().updateOne(eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
+            objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
         if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
             throw new ReferentialException("Document is not updated");
         }
@@ -184,9 +185,9 @@ implements MongoDbAccessReferential {
     @Override
     public void insertDocument(JsonNode json, FunctionalAdminCollections collection) throws ReferentialException {
         try {
-            VitamDocument obj = (VitamDocument) JsonHandler.getFromJsonNode(json, collection.getClasz());
+            final VitamDocument obj = (VitamDocument) JsonHandler.getFromJsonNode(json, collection.getClasz());
             collection.getCollection().insertOne(obj);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("Documents not conformed Exception", e);
             throw new ReferentialException(e);
         }

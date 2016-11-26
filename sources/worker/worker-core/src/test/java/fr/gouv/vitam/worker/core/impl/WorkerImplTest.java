@@ -76,49 +76,52 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenWorkParamsIsNullThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create();
         workerImpl.run(null, new Step());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create();
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create();
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             new Step());
     }
 
     @Test(expected = HandlerNotFoundException.class)
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException, 
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create();
         final Step step = new Step();
-        final List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         action.setActionDefinition(new ActionDefinition());
         actions.add(action);
         step.setActions(actions);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }
@@ -127,7 +130,7 @@ public class WorkerImplTest {
     public void actionNoBlockTest() throws Exception {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
-        final List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
@@ -138,19 +141,20 @@ public class WorkerImplTest {
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
 
-        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        final ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
         itemStatus.setMessage("message");
         itemStatus.setItemId("ITEM_ID_1");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));      
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }
@@ -159,7 +163,7 @@ public class WorkerImplTest {
     public void actionBlockTest() throws Exception {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
-        final List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
@@ -169,15 +173,15 @@ public class WorkerImplTest {
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        final ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
         itemStatus.setMessage("message");
         itemStatus.setItemId("ITEM_ID_1");
-        StatusCode status = StatusCode.FATAL;
+        final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));       
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
@@ -191,7 +195,7 @@ public class WorkerImplTest {
     public void actionBlockTestWarning() throws Exception {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
-        final List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
@@ -201,19 +205,20 @@ public class WorkerImplTest {
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
+        final ItemStatus itemStatus = new ItemStatus("HANDLER_ID");
         itemStatus.setMessage("message");
         itemStatus.setItemId("ITEM_ID_1");
-        StatusCode status = StatusCode.FATAL;
+        final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
-        LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
+        final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL).setUrlMetadata("http://localhost:8083")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
             step);
     }

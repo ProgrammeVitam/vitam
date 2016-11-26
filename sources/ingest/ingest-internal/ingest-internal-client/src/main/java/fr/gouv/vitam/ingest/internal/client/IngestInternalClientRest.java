@@ -35,7 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -57,10 +57,11 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException {
+    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
 
-        Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
+        final Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
             logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
         if (response.getStatus() != Status.CREATED.getStatusCode()) {
@@ -72,7 +73,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public Response upload(InputStream inputStream, MediaType archiveMimeType) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
-        Response response = performRequest(HttpMethod.POST, INGEST_URL, null,
+        final Response response = performRequest(HttpMethod.POST, INGEST_URL, null,
             inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
@@ -88,7 +89,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
+        final Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
             logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
             MediaType.APPLICATION_JSON_TYPE, false);
         if (response.getStatus() != Status.OK.getStatusCode()) {

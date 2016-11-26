@@ -15,7 +15,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -55,7 +55,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             }
 
             return Status.fromStatusCode(response.getStatus());
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -65,7 +65,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientException {
+    public Status createDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         try {
@@ -79,7 +80,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
             }
             return Status.fromStatusCode(response.getStatus());
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -88,7 +89,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientException, InvalidParseOperationException {
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+        throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -103,7 +105,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
             }
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -112,12 +114,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException {
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+        throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         try {
-            response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
@@ -125,7 +129,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 throw new AccessExternalClientException(REQUEST_PRECONDITION_FAILED);
             }
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {

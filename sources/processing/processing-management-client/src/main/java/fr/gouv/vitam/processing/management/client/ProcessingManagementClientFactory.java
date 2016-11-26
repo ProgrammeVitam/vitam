@@ -31,8 +31,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -105,16 +105,16 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
 
     /**
      * For compatibility with old implementation
-     * 
+     *
      * @param urlString
      */
     // TODO P2 should be removed
     public static final void changeConfigurationUrl(String urlString) {
         try {
-            URI url = new URI(urlString);
+            final URI url = new URI(urlString);
             LOGGER.info("Change configuration using " + url.getHost() + ":" + url.getPort());
             changeMode(new ClientConfigurationImpl(url.getHost(), url.getPort()));
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IllegalStateException("Cannot parse the URI: " + urlString, e);
         }
     }

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -44,7 +44,7 @@ public class RegisterValueDetail {
 
     /**
      * set the Orginating Agency Value
-     * 
+     *
      * @param originatingAgency the originatingAgency to set
      * @return this
      */

@@ -63,7 +63,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -139,7 +139,7 @@ public class LogBookLifeCycleUnitTest {
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
             logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
@@ -326,7 +326,7 @@ public class LogBookLifeCycleUnitTest {
 
                 @Override
                 public boolean matches(Object item) {
-                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                    return item != null && item instanceof String && !((String) item).isEmpty();
                 }
 
                 @Override

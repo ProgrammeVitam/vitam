@@ -29,15 +29,16 @@ package fr.gouv.vitam.access.internal.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Access client factory <br><br>
- * 
+ * Access client factory <br>
+ * <br>
+ *
  * Used to create access client : if configuration file does not exist 'access-client.conf',<br>
  * mock access client will be returned
  *
@@ -52,14 +53,14 @@ public class AccessInternalClientFactory extends VitamClientFactory<AccessIntern
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
     }
 
-	/**
-	 * Get the AccessInternalClientFactory instance
-	 *
-	 * @return the instance
-	 */
-	public static final AccessInternalClientFactory getInstance() {
-		return ACCESS_CLIENT_FACTORY;
-	}
+    /**
+     * Get the AccessInternalClientFactory instance
+     *
+     * @return the instance
+     */
+    public static final AccessInternalClientFactory getInstance() {
+        return ACCESS_CLIENT_FACTORY;
+    }
 
     /**
      * Get the default type access client

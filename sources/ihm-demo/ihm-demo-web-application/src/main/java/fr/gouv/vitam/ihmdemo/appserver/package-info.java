@@ -27,6 +27,6 @@
 
 /**
  * App server package
- * 
+ *
  */
 package fr.gouv.vitam.ihmdemo.appserver;

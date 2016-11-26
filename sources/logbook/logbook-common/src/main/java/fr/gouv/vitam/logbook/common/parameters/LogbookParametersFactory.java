@@ -36,9 +36,9 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * 
+ *
  * Logbook parameters factory </br>
- * 
+ *
  * Factory to get LogbookParameters object </br>
  *
  * Example:

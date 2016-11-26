@@ -137,7 +137,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File csvFile = null;
         try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
-            this.client = client2;
+            client = client2;
             csvFile = convertInputStreamToFile(rulesFileStream);
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
@@ -185,8 +185,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Create a LogBook Entry related to object's update
-     * 
-     * 
+     *
+     *
      * @param logbookParametersEnd
      */
     private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
@@ -200,7 +200,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Create a LogBook Entry related to object's creation
-     * 
+     *
      * @param logbookParametersStart
      */
     private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
@@ -227,7 +227,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 final CSVParser parser = new CSVParser(
                     reader,
                     CSVFormat.DEFAULT.withHeader());
-                final HashSet<String> ruleIdSet = new HashSet<String>();
+                final HashSet<String> ruleIdSet = new HashSet<>();
                 for (final CSVRecord record : parser) {
                     try {
                         if (checkRecords(record)) {
@@ -297,8 +297,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Check if the rule duration is integer
-     * 
-     * 
+     *
+     *
      * @param ruleDuration
      */
     private void checkRuleDurationIsInteger(String ruleDuration) {
@@ -358,8 +358,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     /**
      * Convert a given input stream to a file
-     * 
-     * 
+     *
+     *
      * @param rulesStream
      * @return
      * @throws IOException

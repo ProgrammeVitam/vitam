@@ -47,7 +47,7 @@ public class IngestInternalApplicationTest {
     public static void tearDownAfterClass() throws Exception {
         if (application != null) {
             application.stop();
-    }
+        }
         junitHelper.releasePort(serverPort);
     }
 

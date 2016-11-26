@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.common.timestamp;
 
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.TimeStampException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.cert.CertificateEncodingException;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
@@ -38,20 +40,19 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.cert.CertificateEncodingException;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.TimeStampException;
 
 /**
  * Generate a time stamp token for a specific hash
  */
 public class TimestampGenerator {
 
-    private TimeStampSignature timeStampSignature;
+    private final TimeStampSignature timeStampSignature;
 
     /**
      * Constructor
-     * 
+     *
      * @param timeStampSignature
      */
     public TimestampGenerator(TimeStampSignature timeStampSignature) {
@@ -63,13 +64,13 @@ public class TimestampGenerator {
      * @param digestType algorithm use to generate the hash
      * @param nonce unique id to secure a timestamp request, can be null
      * @return timestamp token
-     * @throws TimeStampException 
+     * @throws TimeStampException
      */
     public byte[] generateToken(byte[] hash, DigestType digestType, BigInteger nonce)
         throws TimeStampException {
 
-        TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
-        TimeStampRequest request = reqGen.generate(digestToOid(digestType), hash, nonce);
+        final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+        final TimeStampRequest request = reqGen.generate(digestToOid(digestType), hash, nonce);
 
         TimeStampResponse timeStampResponse = null;
         try {

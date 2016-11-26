@@ -42,11 +42,11 @@ import org.junit.Test;
 
 public class X509AuthenticationInfoTest {
     private X509Certificate cert;
-    
-    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
+
+    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
     BigInteger serial = new BigInteger("1000000000000000");
     Principal value = null;
-    
+
     @Before
     public void setUp() throws Exception {
         cert = mock(X509Certificate.class);
@@ -57,15 +57,15 @@ public class X509AuthenticationInfoTest {
     }
 
     @Test
-    public void givenX509AuthenticationInfoConstructionAndGetters(){
+    public void givenX509AuthenticationInfoConstructionAndGetters() {
         X509AuthenticationInfo info = new X509AuthenticationInfo("username", null, "password", "testRealm");
-        
+
         info = new X509AuthenticationInfo("username", null, "testRealm");
-        
-        Set<X509Certificate> grantedIssuers = new HashSet<X509Certificate>();
+
+        final Set<X509Certificate> grantedIssuers = new HashSet<>();
         grantedIssuers.add(cert);
         info = new X509AuthenticationInfo("username", cert, grantedIssuers, "testRealm");
-        
+
         assertNotNull(info.getX509Certificate());
         assertNull(info.getSubjectDN());
         assertNull(info.getIssuerDN());

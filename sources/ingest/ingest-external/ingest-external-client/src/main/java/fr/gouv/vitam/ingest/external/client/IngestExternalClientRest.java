@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -73,7 +73,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest Extrenal Internal Server Error", e);
             throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
         } finally {

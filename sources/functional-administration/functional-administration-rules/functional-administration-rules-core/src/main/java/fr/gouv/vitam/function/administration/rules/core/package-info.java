@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * 	Function administration rules core package
+ * Function administration rules core package
  *
  */
 package fr.gouv.vitam.function.administration.rules.core;

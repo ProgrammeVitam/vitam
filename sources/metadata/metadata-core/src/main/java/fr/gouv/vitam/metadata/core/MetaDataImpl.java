@@ -73,7 +73,7 @@ public class MetaDataImpl implements MetaData {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
-    private MongoDbAccessMetadataImpl mongoDbAccess;
+    private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
      * MetaDataImpl constructor

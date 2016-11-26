@@ -65,8 +65,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -121,7 +121,7 @@ public class LogbookResourceTest {
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
@@ -267,14 +267,14 @@ public class LogbookResourceTest {
     public void testBulk() {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
-        LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
         queue.add(start);
         queue.add(append);
         append = LogbookParametersFactory.newLogbookOperationParameters(

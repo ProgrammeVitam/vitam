@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -100,9 +100,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
-        Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
-        AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-        ResponseBuilder responseBuilder =
+        final Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
+        final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+        final ResponseBuilder responseBuilder =
             Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
         helper.writeResponse(responseBuilder);
         return response;

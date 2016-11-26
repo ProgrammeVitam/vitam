@@ -1,8 +1,9 @@
 package fr.gouv.vitam.common.model;
 
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.junit.Assert;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 
 public class VitamSessionTest {

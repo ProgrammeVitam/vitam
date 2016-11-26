@@ -59,7 +59,7 @@ public class ProcessManagementResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ProcessManagementApplication application = null;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -81,8 +81,7 @@ public class ProcessManagementResourceTest {
             if (application != null) {
                 application.stop();
             }
-        } catch (final Exception e) {
-        }
+        } catch (final Exception e) {}
         junitHelper.releasePort(port);
     }
 

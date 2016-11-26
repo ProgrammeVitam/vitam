@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.timestamp;
 
+import java.security.cert.CertificateEncodingException;
+
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 
-import java.security.cert.CertificateEncodingException;
-
 /**
- * sign a timestramp request with the current date, two implementation are possible:
- *   - sign with a local keystore
- *   - call an external service
+ * sign a timestramp request with the current date, two implementation are possible: - sign with a local keystore - call
+ * an external service
  */
 public interface TimeStampSignature {
 
@@ -47,6 +46,7 @@ public interface TimeStampSignature {
      * @throws TSPException
      * @throws CertificateEncodingException
      */
-    TimeStampResponse sign(TimeStampRequest request) throws OperatorCreationException, TSPException, CertificateEncodingException;
+    TimeStampResponse sign(TimeStampRequest request)
+        throws OperatorCreationException, TSPException, CertificateEncodingException;
 
 }

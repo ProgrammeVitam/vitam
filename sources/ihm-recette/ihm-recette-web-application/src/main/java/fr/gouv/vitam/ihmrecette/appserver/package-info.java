@@ -27,6 +27,6 @@
 
 /**
  * App server package for ihm recette
- * 
+ *
  */
 package fr.gouv.vitam.ihmrecette.appserver;

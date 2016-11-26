@@ -180,7 +180,9 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void bulkTest() throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, LogbookClientNotFoundException {
+    public void bulkTest()
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException,
+        LogbookClientNotFoundException {
         LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
@@ -194,8 +196,8 @@ public class LogbookOperationsClientMockTest {
         client.updateDelegate(logbookParameters);
         client.updateDelegate(logbookParameters);
         client.commitUpdateDelegate(LogbookParameterName.eventIdentifierProcess.name());
-        
-        List<LogbookOperationParameters> list = new ArrayList<>();
+
+        final List<LogbookOperationParameters> list = new ArrayList<>();
         list.add(logbookParameters);
         list.add(logbookParameters);
         client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);

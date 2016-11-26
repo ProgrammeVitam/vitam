@@ -31,9 +31,9 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,10 +51,10 @@ public class DriverImpl implements Driver {
     private static final String RESOURCE_PATH = "/offer/v1";
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
-    
+
     static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> implements Driver {
         final Properties parameters;
-        
+
         protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
             this.parameters = parameters;
@@ -64,7 +64,7 @@ public class DriverImpl implements Driver {
         public ConnectionImpl getClient() {
             return new ConnectionImpl(this, parameters);
         }
-        
+
 
         @Override
         public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
@@ -90,8 +90,9 @@ public class DriverImpl implements Driver {
         public Connection connect(String url, Properties parameters) throws StorageDriverException {
             throw new UnsupportedOperationException("The internal factory does not support this method");
         }
-        
+
     }
+
     /**
      * Constructor
      */
@@ -110,7 +111,8 @@ public class DriverImpl implements Driver {
 
     @Override
     public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
-        final InternalDriverFactory factory = new InternalDriverFactory(changeConfigurationUrl(url), RESOURCE_PATH, parameters);
+        final InternalDriverFactory factory =
+            new InternalDriverFactory(changeConfigurationUrl(url), RESOURCE_PATH, parameters);
         try {
             final ConnectionImpl connection = factory.getClient();
             connection.checkStatus();
@@ -123,16 +125,16 @@ public class DriverImpl implements Driver {
 
     /**
      * For compatibility with old implementation
-     * 
+     *
      * @param urlString
      */
     private static final ClientConfigurationImpl changeConfigurationUrl(String urlString) {
         ParametersChecker.checkParameter("URI is mandatory", urlString);
         try {
-            URI url = new URI(urlString);
+            final URI url = new URI(urlString);
             LOGGER.info("Change configuration using " + url.getHost() + ":" + url.getPort());
             return new ClientConfigurationImpl(url.getHost(), url.getPort());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IllegalStateException("Cannot parse the URI: " + urlString, e);
         }
     }

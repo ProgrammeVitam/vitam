@@ -139,15 +139,15 @@ public class AccessInternalModuleImplTest {
 
     @Before
     public void setUp() {
-        MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         metaDataClient = mock(MetaDataClientRest.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metaDataClient);
         logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
         logbookOperationClient = mock(LogbookOperationsClient.class);
-        LogbookLifeCyclesClientFactory factorylc = mock(LogbookLifeCyclesClientFactory.class);
-        LogbookOperationsClientFactory factoryop = mock(LogbookOperationsClientFactory.class);
+        final LogbookLifeCyclesClientFactory factorylc = mock(LogbookLifeCyclesClientFactory.class);
+        final LogbookOperationsClientFactory factoryop = mock(LogbookOperationsClientFactory.class);
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factorylc);
         PowerMockito.when(factorylc.getClient()).thenReturn(logbookLifeCycleClient);
@@ -155,7 +155,7 @@ public class AccessInternalModuleImplTest {
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(factoryop);
         PowerMockito.when(factoryop.getClient()).thenReturn(logbookOperationClient);
         storageClient = mock(StorageClient.class);
-        StorageClientFactory factoryst = mock(StorageClientFactory.class);
+        final StorageClientFactory factoryst = mock(StorageClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);
         PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(factoryst);
         PowerMockito.when(factoryst.getClient()).thenReturn(storageClient);
@@ -276,7 +276,7 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_selectUnit_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
+        final JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectUnits(jsonQuery);
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
@@ -418,7 +418,7 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
-        Response responseMock = mock(Response.class);
+        final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
@@ -439,7 +439,7 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroupRealData_OK() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_PATH)));
-        Response responseMock = mock(Response.class);
+        final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
@@ -454,13 +454,13 @@ public class AccessInternalModuleImplTest {
         assertEquals("image/png", abd.getMimetype());
         assertEquals("Vitam-S\u00E9nsibilisation de l' API-V1.0.png", abd.getFilename());
     }
-    
+
 
     @Test
     public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_MULTI_PATH)));
-        Response responseMock = mock(Response.class);
+        final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),

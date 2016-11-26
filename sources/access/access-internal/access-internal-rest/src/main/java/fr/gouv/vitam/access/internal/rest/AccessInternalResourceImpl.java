@@ -56,10 +56,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -223,7 +223,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             result = accessModule.selectObjectGroupById(query, idObjectGroup);
-        } catch (final InvalidParseOperationException |IllegalArgumentException exc) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -289,19 +289,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 Integer.valueOf(xVersion), xTenantId);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
-            Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
                 .build();
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            Response errorResponse =
+            final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                     .toString()).build();
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
-            Response errorResponse =
+            final Response errorResponse =
                 Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
         }

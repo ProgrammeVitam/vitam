@@ -68,8 +68,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -137,7 +137,7 @@ public class AdminManagementResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, "vitam-test"));
@@ -175,8 +175,8 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() throws DatabaseException {
-		mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-    	mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
     }
 
     @Test
@@ -216,7 +216,7 @@ public class AdminManagementResourceTest {
     @Test
     public void createAccessionRegister() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
         given().contentType(ContentType.JSON).body(register)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -320,7 +320,7 @@ public class AdminManagementResourceTest {
 
     /**************************
      * rules Management
-     * 
+     *
      * @throws FileNotFoundException
      ***************************************************/
     @Test

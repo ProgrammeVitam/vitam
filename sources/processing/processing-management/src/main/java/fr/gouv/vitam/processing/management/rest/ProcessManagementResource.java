@@ -42,7 +42,8 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -74,7 +75,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         processManagementMock = null;
         config = configuration;
         LOGGER.info("init Process Management Resource server");
-        ProcessManagementApplication.getBusinessMetricsRegistry().register("Running workflows",
+        AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
             new Gauge<Long>() {
                 @Override
                 public Long getValue() {
@@ -161,9 +162,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext("ingest")
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase());
+            .setContext("ingest")
+            .setState("code_vitam")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(status.getReasonPhrase());
     }
 }

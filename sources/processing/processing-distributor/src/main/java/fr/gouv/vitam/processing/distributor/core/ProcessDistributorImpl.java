@@ -55,7 +55,6 @@ import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -211,7 +210,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
                                     actionsResponse =
                                         workerClient.submitStep(
-                                                new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                                            new DescriptionStep(step, workParams));
                                 }
                                 // FIXME P1 : This is inefficient. The aggregation of results must be placed here and
                                 // not in ProcessResponse
@@ -241,7 +240,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     workParams.setObjectName(step.getDistribution().getElement());
                     responses.setItemsStatus(
                         WorkerClientFactory.getInstance().getClient().submitStep(
-                                new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
+                            new DescriptionStep(step, workParams)));
                     // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }

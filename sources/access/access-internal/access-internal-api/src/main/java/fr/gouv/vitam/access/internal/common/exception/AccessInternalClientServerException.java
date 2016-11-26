@@ -38,6 +38,7 @@ public class AccessInternalClientServerException extends AccessInternalClientExc
 
     /**
      * constructor with message
+     *
      * @param message associated message
      */
     public AccessInternalClientServerException(String message) {
@@ -46,6 +47,7 @@ public class AccessInternalClientServerException extends AccessInternalClientExc
 
     /**
      * constructor with throwable
+     *
      * @param cause associated cause
      */
     public AccessInternalClientServerException(Throwable cause) {
@@ -54,6 +56,7 @@ public class AccessInternalClientServerException extends AccessInternalClientExc
 
     /**
      * constructor with message and throwable
+     *
      * @param messsage associated message
      * @param cause associated cause
      */
@@ -62,7 +65,8 @@ public class AccessInternalClientServerException extends AccessInternalClientExc
     }
 
     /**
-     * constructor with  message throwable anableSuppression and writableStackTrace
+     * constructor with message throwable anableSuppression and writableStackTrace
+     *
      * @param message associated message
      * @param cause associated cause
      * @param enableSuppression allow suppression or not

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -48,29 +48,29 @@ public class CompositeItemStatusTest {
     @Test
     public void testCompositeItemStatus() throws Exception {
 
-        ItemStatus parentItem1 = new ItemStatus(STEP_ID_1);
+        final ItemStatus parentItem1 = new ItemStatus(STEP_ID_1);
         assertEquals(StatusCode.UNKNOWN, parentItem1.getGlobalStatus());
 
-        ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
+        final ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
         itemStatus1.setMessage(MESSAGE);
         itemStatus1.setItemId(ITEM_ID_1);
-        StatusCode statusKO = StatusCode.KO;
+        final StatusCode statusKO = StatusCode.KO;
         itemStatus1.increment(statusKO);
 
         parentItem1.setItemsStatus(ITEM_ID_1, itemStatus1);
         assertEquals(StatusCode.KO, parentItem1.getGlobalStatus());
 
-        ItemStatus parentItem2 = new ItemStatus(STEP_ID_1);
-        StatusCode statusOK = StatusCode.OK;
-        ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_2);
+        final ItemStatus parentItem2 = new ItemStatus(STEP_ID_1);
+        final StatusCode statusOK = StatusCode.OK;
+        final ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_2);
         itemStatus2.increment(statusOK);
         parentItem2.setItemsStatus(ITEM_ID_2, itemStatus2);
         parentItem1.setItemsStatus(parentItem2);
 
         assertEquals(StatusCode.KO, parentItem1.getGlobalStatus());
 
-        ItemStatus parentItem3 = new ItemStatus(STEP_ID_1);
-        ItemStatus itemStatus3 = new ItemStatus(ITEM_ID_1);
+        final ItemStatus parentItem3 = new ItemStatus(STEP_ID_1);
+        final ItemStatus itemStatus3 = new ItemStatus(ITEM_ID_1);
         itemStatus3.increment(statusKO);
         parentItem3.setItemsStatus(ITEM_ID_1, itemStatus3);
         parentItem1.setItemsStatus(parentItem3);
@@ -93,8 +93,8 @@ public class CompositeItemStatusTest {
 
         }
 
-        List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
-        ItemStatus parentItem4 = new ItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
+        final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
+        final ItemStatus parentItem4 = new ItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
             new HashMap<>(), new LinkedHashMap<>());
         assertEquals(StatusCode.OK, parentItem4.getGlobalStatus());
 

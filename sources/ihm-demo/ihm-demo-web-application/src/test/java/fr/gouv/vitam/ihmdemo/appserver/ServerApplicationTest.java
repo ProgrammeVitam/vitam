@@ -49,7 +49,7 @@ public class ServerApplicationTest {
         config.setPort(port);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        ServerApplication application = new ServerApplication(newConf.getAbsolutePath());
+        final ServerApplication application = new ServerApplication(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

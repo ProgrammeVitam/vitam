@@ -81,11 +81,11 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
-    
+
     private final Map<String, WorkFlow> poolWorkflows;
 
     private final ProcessDistributor processDistributorMock;
-    private Map<String, String> messageIdentifierMap = new HashMap<>();
+    private final Map<String, String> messageIdentifierMap = new HashMap<>();
 
 
     /**
@@ -107,7 +107,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param processDistributor the wanted process distributor
      */
     ProcessEngineImpl(ProcessDistributor processDistributor) {
-        this.processDistributorMock = processDistributor;
+        processDistributorMock = processDistributor;
         poolWorkflows = new HashMap<>();
     }
 
@@ -130,7 +130,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         final long time = System.currentTimeMillis();
         LOGGER.info(START_MESSAGE);
         // TODO P1 replace with real tenant
-        int tenantId = 0;
+        final int tenantId = 0;
         /**
          * Check if workflow exist in the pool of workflows
          */
@@ -140,7 +140,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
         final ProcessResponse processResponse = new ProcessResponse();
         final GUID processId = GUIDFactory.newGUID();
-        ItemStatus workflowStatus = new ItemStatus(processId.toString());
+        final ItemStatus workflowStatus = new ItemStatus(processId.toString());
 
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
@@ -176,8 +176,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                 // Workflow was break, go last step
                 if (!finished) {
-                    String theLastKey = new ArrayList<>(processSteps.keySet()).get(processSteps.size() - 1);
-                    ProcessStep lastStep = processSteps.get(theLastKey);
+                    final String theLastKey = new ArrayList<>(processSteps.keySet()).get(processSteps.size() - 1);
+                    final ProcessStep lastStep = processSteps.get(theLastKey);
                     // check if it's a final step
                     if (ProcessBehavior.FINALLY.equals(lastStep.getBehavior())) {
                         processStep(processId.getId(), lastStep, theLastKey, workParams,
@@ -238,11 +238,11 @@ public class ProcessEngineImpl implements ProcessEngine {
 
             // update workflow Status
             workflowStatus.increment(stepResponse.getGlobalStatus());
-            LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-            for (Action action : step.getActions()) {
-                String hanlderId = action.getActionDefinition().getActionKey();
+            final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+            for (final Action action : step.getActions()) {
+                final String hanlderId = action.getActionDefinition().getActionKey();
                 // Each handler could have a list itself => ItemStatus
-                ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
+                final ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
                 if (itemStatus != null) {
                     final LogbookOperationParameters actionParameters =
                         LogbookParametersFactory.newLogbookOperationParameters(
@@ -255,8 +255,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                             GUIDReader.getGUID(workParams.getContainerName()));
                     helper.updateDelegate(actionParameters);
                     if (itemStatus instanceof ItemStatus) {
-                        ItemStatus actionStatus = (ItemStatus) itemStatus;
-                        for (ItemStatus sub : actionStatus.getItemsStatus().values()) {
+                        final ItemStatus actionStatus = itemStatus;
+                        for (final ItemStatus sub : actionStatus.getItemsStatus().values()) {
                             final LogbookOperationParameters sublogbook =
                                 LogbookParametersFactory.newLogbookOperationParameters(
                                     GUIDFactory.newEventGUID(tenantId),
@@ -282,8 +282,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                     helper.updateDelegate(sublogbook);
                 }
             }
-            
-            ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
+
+            final ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
             if (itemStatusObjectListEmpty != null) {
                 final LogbookOperationParameters actionParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
@@ -330,7 +330,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             if (processDistributorMock == null && processDistributor != null) {
                 try {
                     processDistributor.close();
-                } catch (Exception exc) {
+                } catch (final Exception exc) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
                 }
             }

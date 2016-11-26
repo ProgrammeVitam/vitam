@@ -200,13 +200,13 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             // Check valid variable names first
             if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
                 final JsonNode node = rootNode.get(SELECTFILTER.ORDERBY.exactToken());
-                Iterator<String> names = node.fieldNames();
+                final Iterator<String> names = node.fieldNames();
                 while (names.hasNext()) {
-                    String name = names.next();
+                    final String name = names.next();
                     adapter.getVariableName(name);
                 }
             }
-            
+
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
@@ -356,23 +356,26 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * Allow to add one condition to the current parsed Request on top Query</br>
      * </br>
      * Example:</br>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
      *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
      *   parser.parse(jsonQuery);
      *   parser.addCondition(eq(FieldName, value));
      *   JsonNode newJsonQuery = parser.getRootNode();
-     * </code></pre>
-     * 
+     * </code>
+     * </pre>
+     *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
-        RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
+        final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
         newOne.parse(rootNode);
-        RequestMultiple request = newOne.getRequest();
-        Query query = request.getNthQuery(0);
-        Query newQuery = QueryHelper.and().add(query, condition);
+        final RequestMultiple request = newOne.getRequest();
+        final Query query = request.getNthQuery(0);
+        final Query newQuery = QueryHelper.and().add(query, condition);
         getRequest().getQueries().set(0, newQuery);
         if (newOne instanceof SelectParserMultiple) {
             parse(((Select) getRequest()).getFinalSelect().deepCopy());

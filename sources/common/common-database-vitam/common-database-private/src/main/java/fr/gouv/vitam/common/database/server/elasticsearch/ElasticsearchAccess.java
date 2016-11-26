@@ -87,7 +87,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Additionnal on server side:</br>
      * in sysctl "vm.swappiness = 1", "vm.max_map_count=262144"</br>
      * in elasticsearch.yml "bootstrap.mlockall: true"
-     * 
+     *
      * @return Settings for Elasticsearch client
      */
     private Settings getSettings() {
@@ -97,13 +97,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("transport.tcp.connect_timeout", "1s")
             .put("transport.profiles.client.connect_timeout", "1s")
             .put("transport.profiles.tcp.connect_timeout", "1s")
-            .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / TOSECOND) + "s")
+            .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")
             .build();
     }
 
     private TransportClient getClient(Settings settings) throws VitamException {
         try {
-            TransportClient clientNew = TransportClient.builder().settings(settings).build();
+            final TransportClient clientNew = TransportClient.builder().settings(settings).build();
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
                     new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
@@ -148,7 +148,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public boolean checkConnection() {
         try (TransportClient clientCheck = getClient(getSettings())) {
             return !clientCheck.connectedNodes().isEmpty();
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return false;
         }

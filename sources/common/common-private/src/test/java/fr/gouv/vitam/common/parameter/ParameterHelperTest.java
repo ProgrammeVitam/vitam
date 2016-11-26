@@ -127,7 +127,7 @@ public class ParameterHelperTest {
         assertFalse(catchException);
         catchException = false;
         try {
-            TestParameter params = new TestParameter();
+            final TestParameter params = new TestParameter();
             ParameterHelper.checkNullOrEmptyParameters(params);
         } catch (final IllegalArgumentException iae) {
             catchException = true;
@@ -135,7 +135,7 @@ public class ParameterHelperTest {
         assertTrue(catchException);
         catchException = false;
         try {
-            TestParameter params = new TestParameter();
+            final TestParameter params = new TestParameter();
             params.setAllMandatoryParameter();
             ParameterHelper.checkNullOrEmptyParameters(params);
         } catch (final IllegalArgumentException iae) {

@@ -51,10 +51,10 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -220,31 +220,19 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(
-                    "{"
-                        +"    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
-                        +"    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
-                        +"    \"evType\" : \"PROCESS_SIP_UNITARY\","
-                        +"    \"evDateTime\" : \"2016-10-27T13:37:05.646\","
-                        +"    \"evDetData\" : null,"
-                        +"    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
-                        +"    \"evTypeProc\" : \"INGEST\","
-                        +"    \"outcome\" : \"STARTED\","
-                        +"    \"outDetail\" : null,"
-                        +"    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
-                        +"    \"agIdApp\" : null,"
-                        +"    \"agIdAppSession\" : null,"
-                        +"    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\","
-                        +"    \"agIdSubm\" : null,"
-                        +"    \"agIdOrig\" : null,"
-                        +"    \"obId\" : null,"
-                        +"    \"obIdReq\" : null,"
-                        +"    \"obIdIn\" : null,"
-                        +"    \"events\" : [ "
-                        +"        "
-                        +"    ],"
-                        +"    \"_tenant\" : 0"
-                        +"}"
-               ).build());
+                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
+                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
+                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
+                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"agIdApp\" : null," + "    \"agIdAppSession\" : null," +
+                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," + "    \"agIdSubm\" : null," +
+                        "    \"agIdOrig\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
+                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
+                        "    \"_tenant\" : 0" + "}")
+                    .build());
         client.traceability();
     }
 
@@ -310,7 +298,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.selectOperationbyId("id");
             fail("Should raized an exception");
-        } catch (LogbookClientNotFoundException e) {
+        } catch (final LogbookClientNotFoundException e) {
 
         }
         reset(mock);
@@ -318,7 +306,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");
-        } catch (LogbookClientNotFoundException e) {
+        } catch (final LogbookClientNotFoundException e) {
 
         }
         reset(mock);
@@ -326,7 +314,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.selectOperationbyId("id");
             fail("Should raized an exception");
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
 
         }
         reset(mock);
@@ -334,11 +322,11 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
 
         }
         final GUID eip = GUIDFactory.newEventGUID(0);
-        LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         client.createDelegate(logbookParameters);
@@ -353,7 +341,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         client.commitUpdateDelegate(eip.getId());
 
-        List<LogbookOperationParameters> list = new ArrayList<>();
+        final List<LogbookOperationParameters> list = new ArrayList<>();
         list.add(logbookParameters);
         list.add(logbookParameters);
         reset(mock);
@@ -361,33 +349,33 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (LogbookClientAlreadyExistsException e) {}
+        } catch (final LogbookClientAlreadyExistsException e) {}
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {}
         try {
             client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
             fail("Should raized an exception");
-        } catch (LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {}
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (LogbookClientNotFoundException e) {}
+        } catch (final LogbookClientNotFoundException e) {}
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
             fail("Should raized an exception");
-        } catch (LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {}
         try {
             client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
             fail("Should raized an exception");
-        } catch (LogbookClientBadRequestException e) {}
+        } catch (final LogbookClientBadRequestException e) {}
 
     }
 

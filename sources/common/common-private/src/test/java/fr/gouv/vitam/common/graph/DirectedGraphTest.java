@@ -44,18 +44,18 @@ public class DirectedGraphTest {
 
     @Test
     public void given_acyclycGraph_then_returnfalse() throws Exception {
-        File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
-        DirectedCycle cycle = new DirectedCycle(g);
+        final File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
+        final DirectedCycle cycle = new DirectedCycle(g);
         assertFalse(cycle.isCyclic());
     }
 
     // @Test
     public void given_CyclycGraph_when_revert_returnGraphReverted() throws Exception {
-        File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
+        final File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
         assertNotNull(g.reverse());
         assertNotNull(g.getVertices());
     }

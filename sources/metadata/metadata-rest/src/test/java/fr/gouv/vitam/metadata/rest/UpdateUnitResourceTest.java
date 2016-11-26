@@ -63,7 +63,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -112,11 +112,11 @@ public class UpdateUnitResourceTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
@@ -129,7 +129,7 @@ public class UpdateUnitResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
@@ -189,7 +189,8 @@ public class UpdateUnitResourceTest {
 
     // Unit by ID (request and uri)
 
-    // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl / MetadataJsonResponseUtils 
+    // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl /
+    // MetadataJsonResponseUtils
     @Test
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()

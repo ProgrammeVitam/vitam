@@ -143,10 +143,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<LogbookLifeCycleUnit> cursor;
         try {
-            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
             parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
-            Select selectRequest = parser.getRequest();
+            final Select selectRequest = parser.getRequest();
             cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -160,7 +160,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException {
         try {
             @SuppressWarnings("unchecked")
-            MongoCursor<LogbookLifeCycleUnit> cursor = (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
+            final MongoCursor<LogbookLifeCycleUnit> cursor =
+                (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
             if (cursor != null) {
                 if (cursor.hasNext()) {
                     return cursor.next();
@@ -169,7 +170,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 mapXCursor.remove(cursorId);
                 throw new LogbookNotFoundException("No more entries");
             }
-        } catch (ClassCastException e) {
+        } catch (final ClassCastException e) {
             throw new LogbookDatabaseException("Cursor not linked to Unit", e);
         }
         throw new LogbookDatabaseException("Cursor already closed");
@@ -183,10 +184,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<LogbookLifeCycleObjectGroup> cursor;
         try {
-            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
             parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
-            Select selectRequest = parser.getRequest();
+            final Select selectRequest = parser.getRequest();
             cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -200,7 +201,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException {
         try {
             @SuppressWarnings("unchecked")
-            MongoCursor<LogbookLifeCycleObjectGroup> cursor =
+            final MongoCursor<LogbookLifeCycleObjectGroup> cursor =
                 (MongoCursor<LogbookLifeCycleObjectGroup>) mapXCursor.get(cursorId);
             if (cursor != null) {
                 if (cursor.hasNext()) {
@@ -210,7 +211,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 mapXCursor.remove(cursorId);
                 throw new LogbookNotFoundException("No more entries");
             }
-        } catch (ClassCastException e) {
+        } catch (final ClassCastException e) {
             throw new LogbookDatabaseException("Cursor not linked to ObjectGroup", e);
         }
         throw new LogbookDatabaseException("Cursor already closed");
@@ -218,7 +219,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public void finalizeCursor(String cursorId) {
-        MongoCursor<?> cursor = mapXCursor.get(cursorId);
+        final MongoCursor<?> cursor = mapXCursor.get(cursorId);
         if (cursor != null) {
             cursor.close();
             mapXCursor.remove(cursorId);

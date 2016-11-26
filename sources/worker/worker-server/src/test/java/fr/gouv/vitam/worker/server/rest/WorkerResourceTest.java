@@ -48,7 +48,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -176,9 +176,9 @@ public class WorkerResourceTest {
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
 
-        ItemStatus itemStatus = new ItemStatus("ID");
+        final ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
         final ItemStatus responses = new ItemStatus("ID");
         Mockito.reset(worker);

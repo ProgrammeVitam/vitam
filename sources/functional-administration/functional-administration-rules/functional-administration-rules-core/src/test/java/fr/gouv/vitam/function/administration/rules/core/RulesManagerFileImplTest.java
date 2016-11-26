@@ -54,8 +54,8 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -86,7 +86,7 @@ public class RulesManagerFileImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         rulesFileManager = new RulesManagerFileImpl(
             MongoDbAccessAdminFactory.create(
@@ -103,22 +103,22 @@ public class RulesManagerFileImplTest {
 
     @Test
     public void testimportRulesFile() throws Exception {
-    	try {
-    		rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-    		// Nothing there
-    	} catch (Exception e) {
-    		fail("Check file with FILE_TO_TEST_OK should not throw exception");
-    	}
-    	
-    	try {
-    		rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
-    		fail("Check file with FILE_TO_TEST_KO should throw exception");
-    	} catch (ReferentialException e) {
-    		// Nothing there
-    	} catch (Exception e) {
-    		fail("Check file with FILE_TO_TEST_KO should not throw this exception");
-    	}
-    	
+        try {
+            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            // Nothing there
+        } catch (final Exception e) {
+            fail("Check file with FILE_TO_TEST_OK should not throw exception");
+        }
+
+        try {
+            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+            fail("Check file with FILE_TO_TEST_KO should throw exception");
+        } catch (final ReferentialException e) {
+            // Nothing there
+        } catch (final Exception e) {
+            fail("Check file with FILE_TO_TEST_KO should not throw this exception");
+        }
+
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);

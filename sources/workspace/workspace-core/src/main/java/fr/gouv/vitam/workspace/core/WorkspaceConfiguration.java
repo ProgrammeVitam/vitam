@@ -26,12 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.core;
 
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * workspace jetty configuration
  */
-public class WorkspaceConfiguration extends DefaultVitamApplicationConfiguration{
+public class WorkspaceConfiguration extends DefaultVitamApplicationConfiguration {
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     private String storagePath;
 

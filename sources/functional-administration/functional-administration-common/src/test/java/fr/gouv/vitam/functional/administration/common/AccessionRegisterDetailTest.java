@@ -14,10 +14,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class AccessionRegisterDetailTest {
 
     private static final String TEST = "test";
+
     @Test
     public void testConstructor() throws Exception {
-        RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
-        String id = GUIDFactory.newGUID().getId();
+        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+        final String id = GUIDFactory.newGUID().getId();
         AccessionRegisterDetail register = new AccessionRegisterDetail()
             .setOriginatingAgency(id)
             .setId(id)
@@ -39,8 +40,9 @@ public class AccessionRegisterDetailTest {
         assertEquals(initialValue, register.getTotalObjects());
         assertEquals(TEST, register.getEndDate());
 
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");
-        Map<String, Object> documentMap = JsonHandler.getMapFromInputStream(stream);
+        final InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");
+        final Map<String, Object> documentMap = JsonHandler.getMapFromInputStream(stream);
         documentMap.put("_id", id);
         register = new AccessionRegisterDetail(new Document(documentMap));
     }

@@ -75,9 +75,9 @@ public class WebApplicationResourceAuthTest {
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         application = new ServerApplication(
-            ((WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
+            (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
                 .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
-                .setSecure(true).setJettyConfig(JETTY_CONFIG)));
+                .setSecure(true).setJettyConfig(JETTY_CONFIG));
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

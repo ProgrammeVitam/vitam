@@ -55,7 +55,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -88,7 +89,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -121,7 +123,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -154,7 +157,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();

@@ -57,7 +57,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,9 +68,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
@@ -131,15 +131,16 @@ public class LogbookResource extends ApplicationStatusResource {
 
         TimeStampSignature timeStampSignature;
         try {
-            File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
+            final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
             timeStampSignature =
                 new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
-        } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
+        } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
+            NoSuchAlgorithmException e) {
             LOGGER.error("unable to instanciate TimeStampGenerator", e);
             throw new RuntimeException(e);
         }
-        TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
-        WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance();
+        final TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
+        final WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance();
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
@@ -200,8 +201,8 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Create or Select a new operation
      *
-     * @param operationId   path param, the operation id
-     * @param operation     the json serialized as a LogbookOperationParameters.
+     * @param operationId path param, the operation id
+     * @param operation the json serialized as a LogbookOperationParameters.
      * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
      */
@@ -253,7 +254,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Append a new item on the given operation
      *
      * @param operationId the operation id
-     * @param operation   the json serialized as a LogbookOperationParameters.
+     * @param operation the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -289,7 +290,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Run traceability secure operation for logbook
-     * 
+     *
      * @return the response with a specific HTTP status
      */
     @POST
@@ -297,7 +298,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceability() {
         try {
-            GUID guid = logbookAdministration.generateSecureLogbook();
+            final GUID guid = logbookAdministration.generateSecureLogbook();
             final ArrayNode resultAsJson = JsonHandler.createArrayNode();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -306,7 +307,8 @@ public class LogbookResource extends ApplicationStatusResource {
                     .addAllResults(resultAsJson))
                 .build();
 
-        } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException | InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException |
+            InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("unable to generate traceability log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK())
@@ -329,7 +331,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             final List<LogbookOperation> result = logbookOperation.select(query);
             final ArrayNode resultAsJson = JsonHandler.createArrayNode();
-            for (LogbookOperation logbook : result) {
+            for (final LogbookOperation logbook : result) {
                 resultAsJson.add(JsonHandler.toJsonNode(logbook));
             }
             return Response.status(Status.OK)
@@ -365,7 +367,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * select Operation With Post Override Or Bulk Create
      *
-     * @param query         as JsonNode or Operations Logbooks as ArrayNode
+     * @param query as JsonNode or Operations Logbooks as ArrayNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method or CREATED for not GET Overriden method
      */
@@ -386,18 +388,18 @@ public class LogbookResource extends ApplicationStatusResource {
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
             try {
-                LogbookOperationParameters[] arrayOperations =
+                final LogbookOperationParameters[] arrayOperations =
                     JsonHandler.getFromJsonNode(query, LogbookOperationParameters[].class);
                 logbookOperation.createBulkLogbookOperation(arrayOperations);
-            } catch (LogbookDatabaseException e) {
+            } catch (final LogbookDatabaseException e) {
                 LOGGER.error(e);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            } catch (LogbookAlreadyExistsException e) {
+            } catch (final LogbookAlreadyExistsException e) {
                 LOGGER.error(e);
                 return Response.status(Response.Status.CONFLICT).build();
             } catch (InvalidParseOperationException | IllegalArgumentException e) {
                 LOGGER.error(e);
-                Status status = Status.PRECONDITION_FAILED;
+                final Status status = Status.PRECONDITION_FAILED;
                 return Response.status(status)
                     .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                         .setContext("logbook")
@@ -424,7 +426,7 @@ public class LogbookResource extends ApplicationStatusResource {
     // Note: here let String since we need JsonHandler to parser the object
     public Response updateOperationBulk(String arrayNodeOperations) {
         try {
-            LogbookOperationParameters[] arrayOperations =
+            final LogbookOperationParameters[] arrayOperations =
                 JsonHandler.getFromString(arrayNodeOperations, LogbookOperationParameters[].class);
             logbookOperation.updateBulkLogbookOperation(arrayOperations);
         } catch (final LogbookNotFoundException exc) {
@@ -446,9 +448,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param xcursor     if True means new query, if False means end of query from client side
-     * @param xcursorId   if present, means continue on Cursor
-     * @param query       as JsonNode
+     * @param xcursor if True means new query, if False means end of query from client side
+     * @param xcursorId if present, means continue on Cursor
+     * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -464,36 +466,37 @@ public class LogbookResource extends ApplicationStatusResource {
             if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
                 // terminate the cursor
                 logbookLifeCycle.finalizeCursor(cursorId);
-                ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                final ResponseBuilder builder = Response.status(Status.NO_CONTENT);
                 return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             }
-            JsonNode nodeQuery = JsonHandler.createObjectNode();
+            final JsonNode nodeQuery = JsonHandler.createObjectNode();
             if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
                 cursorId = logbookLifeCycle.createCursorUnit(operationId, query);
             }
-            RequestResponseOK responseOK =
+            final RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
-                    LogbookLifeCycleUnit lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
+                    final LogbookLifeCycleUnit lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
                     responseOK.addResult(JsonHandler.toJsonNode(lcUnit));
                 }
-            } catch (LogbookNotFoundException e) {
+            } catch (final LogbookNotFoundException e) {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                .entity(responseOK
-                    .setHits(nb, 0, nb).setQuery(nodeQuery));
+            final ResponseBuilder builder =
+                Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+                    .entity(responseOK
+                        .setHits(nb, 0, nb).setQuery(nodeQuery));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
-            ResponseBuilder builder = Response.status(status)
+            final ResponseBuilder builder = Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
@@ -502,7 +505,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
-            ResponseBuilder builder = Response.status(status)
+            final ResponseBuilder builder = Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
@@ -515,8 +518,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -577,8 +580,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -638,7 +641,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
+     * @param unitLcId the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -682,7 +685,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
+     * @param unitLcId the life cycle id
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -696,7 +699,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Lifecycle Unit Bulk Create
-     * 
+     *
      * @param idOp
      * @param array Lifecycle Unit Logbooks as ArrayNode
      * @return Response of CREATED
@@ -714,18 +717,18 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            LogbookLifeCycleUnitParameters[] arrayLifecycles =
+            final LogbookLifeCycleUnitParameters[] arrayLifecycles =
                 JsonHandler.getFromString(array, LogbookLifeCycleUnitParameters[].class);
             logbookLifeCycle.createBulkLogbookLifecycle(idOp, arrayLifecycles);
-        } catch (LogbookDatabaseException e) {
+        } catch (final LogbookDatabaseException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (LogbookAlreadyExistsException e) {
+        } catch (final LogbookAlreadyExistsException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.CONFLICT).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook")
@@ -739,7 +742,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Update Lifecycle With Bulk Mode
-     * 
+     *
      * @param idOp
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated
@@ -751,7 +754,7 @@ public class LogbookResource extends ApplicationStatusResource {
     // Note: here let String since we need JsonHandler to parser the object
     public Response updateBulkUnit(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
         try {
-            LogbookLifeCycleUnitParameters[] arrayLifecycles =
+            final LogbookLifeCycleUnitParameters[] arrayLifecycles =
                 JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleUnitParameters[].class);
             logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
         } catch (final LogbookNotFoundException exc) {
@@ -812,9 +815,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param xcursor     if True means new query, if False means end of query from client side
-     * @param xcursorId   if present, means continue on Cursor
-     * @param query       as JsonNode
+     * @param xcursor if True means new query, if False means end of query from client side
+     * @param xcursorId if present, means continue on Cursor
+     * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -830,36 +833,38 @@ public class LogbookResource extends ApplicationStatusResource {
             if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
                 // terminate the cursor
                 logbookLifeCycle.finalizeCursor(cursorId);
-                ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                final ResponseBuilder builder = Response.status(Status.NO_CONTENT);
                 return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             }
-            JsonNode nodeQuery = JsonHandler.createObjectNode();
+            final JsonNode nodeQuery = JsonHandler.createObjectNode();
             if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
                 // create the cursor
                 cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query);
             }
-            RequestResponseOK responseOK =
+            final RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
-                    LogbookLifeCycleObjectGroup lcObjectGroup = logbookLifeCycle.getCursorObjectGroupNext(cursorId);
+                    final LogbookLifeCycleObjectGroup lcObjectGroup =
+                        logbookLifeCycle.getCursorObjectGroupNext(cursorId);
                     responseOK.addResult(JsonHandler.toJsonNode(lcObjectGroup));
                 }
-            } catch (LogbookNotFoundException e) {
+            } catch (final LogbookNotFoundException e) {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            ResponseBuilder builder = Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
-                .entity(responseOK
-                    .setHits(nb, 0, nb).setQuery(nodeQuery));
+            final ResponseBuilder builder =
+                Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+                    .entity(responseOK
+                        .setHits(nb, 0, nb).setQuery(nodeQuery));
             return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
-            ResponseBuilder builder = Response.status(status)
+            final ResponseBuilder builder = Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()));
@@ -867,7 +872,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
-            ResponseBuilder builder = Response.status(status)
+            final ResponseBuilder builder = Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()));
@@ -879,8 +884,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -941,8 +946,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -1001,7 +1006,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
+     * @param objGrpId the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -1045,7 +1050,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
+     * @param objGrpId the life cycle id
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -1060,7 +1065,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Lifecycle ObjectGroup Bulk Create
-     * 
+     *
      * @param idOp
      * @param array Lifecycle ObjectGroup Logbooks as ArrayNode
      * @return Response of CREATED
@@ -1078,18 +1083,18 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
+            final LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
                 JsonHandler.getFromString(array, LogbookLifeCycleObjectGroupParameters[].class);
             logbookLifeCycle.createBulkLogbookLifecycle(idOp, arrayLifecycles);
-        } catch (LogbookDatabaseException e) {
+        } catch (final LogbookDatabaseException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (LogbookAlreadyExistsException e) {
+        } catch (final LogbookAlreadyExistsException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.CONFLICT).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("logbook")
@@ -1103,7 +1108,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Update Lifecycle ObjectGroup With Bulk Mode
-     * 
+     *
      * @param idOp
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated
@@ -1115,7 +1120,7 @@ public class LogbookResource extends ApplicationStatusResource {
     // Note: here let String since we need JsonHandler to parser the object
     public Response updateBulkObjectGroup(@PathParam("id_op") String idOp, String arrayNodeLifecycle) {
         try {
-            LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
+            final LogbookLifeCycleObjectGroupParameters[] arrayLifecycles =
                 JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleObjectGroupParameters[].class);
             logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
         } catch (final LogbookNotFoundException exc) {

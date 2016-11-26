@@ -25,13 +25,13 @@ import org.junit.Test;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client2.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
@@ -484,9 +484,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook operations
-     * 
+     *
      ***/
 
     @Test
@@ -509,9 +509,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook operationById
-     * 
+     *
      ***/
     @Test
     public void selectLogbookOperationByID() throws Exception {
@@ -534,9 +534,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
 
     /***
-     * 
+     *
      * logbook lifecycle units
-     * 
+     *
      ***/
     @Test
     public void selectLogbookLifeCyclesUnit() throws Exception {
@@ -558,9 +558,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * logbook lifecycle object
-     * 
+     *
      ***/
     @Test
     public void selectLogbookLifeCyclesObject() throws Exception {
@@ -582,9 +582,9 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     /***
-     * 
+     *
      * Accession register test
-     * 
+     *
      ***/
 
     @Test

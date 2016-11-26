@@ -64,14 +64,14 @@ public class DatabaseCursor {
         this.total = total;
         this.offset = offset;
         this.limit = limit;
-        this.size = total;
+        size = total;
     }
-    
+
     /**
      * DatabaseCursor constructor
      *
      * @param total total of inserted/modified/selected items
-     * @param offset the offset of items in database 
+     * @param offset the offset of items in database
      * @param limit number limit of items per response
      * @param size size of the current response
      */
@@ -84,7 +84,7 @@ public class DatabaseCursor {
 
     /**
      * @return the total of units inserted/modified/selected as potential total response size (beyond current limit)
-     * 
+     *
      */
     public int getTotal() {
         return total;
@@ -131,7 +131,7 @@ public class DatabaseCursor {
         this.limit = limit;
         return this;
     }
-    
+
     /**
      * @return the size as current response size
      */

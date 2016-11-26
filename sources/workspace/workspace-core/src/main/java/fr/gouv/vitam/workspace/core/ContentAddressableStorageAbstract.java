@@ -55,7 +55,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -304,7 +304,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             context.close();
         }
     }
-    
+
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
@@ -639,7 +639,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         /**
          * Allow to "fakely" reopen this InputStream
-         * 
+         *
          * @param isclosed
          */
         public void setClosed(boolean isclosed) {

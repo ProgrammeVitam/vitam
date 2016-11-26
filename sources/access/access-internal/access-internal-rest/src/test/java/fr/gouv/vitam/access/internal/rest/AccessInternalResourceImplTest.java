@@ -264,7 +264,7 @@ public class AccessInternalResourceImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
-        int oldValue = GlobalDatasParser.limitRequest;
+        final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
             given()
@@ -279,7 +279,7 @@ public class AccessInternalResourceImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
-        int oldValue = GlobalDatasParser.limitRequest;
+        final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
             given()
@@ -488,7 +488,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectStreamOk() throws Exception {
         reset(mock);
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
         Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM, headers);
@@ -519,11 +519,12 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectStreamPostOK() throws Exception {
         reset(mock);
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM, headers);
-        AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
+        final Response response =
+            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                MediaType.APPLICATION_OCTET_STREAM, headers);
+        final AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
         when(
             mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
                 .thenReturn(abd);

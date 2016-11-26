@@ -57,11 +57,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
         final String newname = null;
-        // FIXME P1 INSERT should generate #id, #mgt, ... 
-        /* newname = super.getVariableName(name);
-        if (newname != null) {
-            return newname;
-        }*/
+        // FIXME P1 INSERT should generate #id, #mgt, ...
+        /*
+         * newname = super.getVariableName(name); if (newname != null) { return newname; }
+         */
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
             try {
                 final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
@@ -120,7 +119,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     default:
                         break;
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException(e);
             }
         }

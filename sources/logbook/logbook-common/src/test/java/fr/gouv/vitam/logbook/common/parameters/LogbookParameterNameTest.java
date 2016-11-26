@@ -32,8 +32,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-
 /**
  * Test class for LogbooParameterName Enum
  */

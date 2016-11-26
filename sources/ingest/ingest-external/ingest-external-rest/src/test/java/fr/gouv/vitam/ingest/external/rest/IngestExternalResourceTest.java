@@ -122,7 +122,7 @@ public class IngestExternalResourceTest {
     public void givenAnInputstreamWhenUploadThenReturnOK()
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
@@ -134,7 +134,7 @@ public class IngestExternalResourceTest {
     public void givenAnInputstreamWhenUploadAndFixVirusThenReturnOK()
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
@@ -144,7 +144,7 @@ public class IngestExternalResourceTest {
 
     @Test
     public void givenAnInputstreamWhenUploadThenReturnErrorCode() throws Exception {
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
@@ -158,12 +158,12 @@ public class IngestExternalResourceTest {
     @Test
     public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
-        IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
-        IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
+        final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
+        final IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
         PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject()))
             .thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
@@ -177,15 +177,15 @@ public class IngestExternalResourceTest {
     private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()
         throws FormatIdentifierNotFoundException, FormatIdentifierFactoryException, FormatIdentifierTechnicalException {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
-        FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
+        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
+        final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
         return siegfried;
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
-        List<FormatIdentifierResponse> list = new ArrayList<>();
+        final List<FormatIdentifierResponse> list = new ArrayList<>();
         list.add(new FormatIdentifierResponse("ZIP Format", "application/zip",
             "x-fmt/263", "pronom"));
         return list;

@@ -138,7 +138,7 @@ public class JunitHelper extends ExternalResource {
             }
             try {
                 Thread.sleep(WAIT_BETWEEN_TRY);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         } while (true);
@@ -311,7 +311,7 @@ public class JunitHelper extends ExternalResource {
         Node node;
 
         /**
-         * 
+         *
          * @return the associated TCP PORT
          */
         public int getTcpPort() {
@@ -319,7 +319,7 @@ public class JunitHelper extends ExternalResource {
         }
 
         /**
-         * 
+         *
          * @return the associated HTTP PORT
          */
         public int getHttpPort() {
@@ -327,7 +327,7 @@ public class JunitHelper extends ExternalResource {
         }
 
         /**
-         * 
+         *
          * @return the associated Home
          */
         public File getElasticsearchHome() {
@@ -335,7 +335,7 @@ public class JunitHelper extends ExternalResource {
         }
 
         /**
-         * 
+         *
          * @return the associated Node
          */
         public Node getNode() {
@@ -355,7 +355,7 @@ public class JunitHelper extends ExternalResource {
                 .put("path.home", config.elasticsearchHome.getCanonicalPath())
                 .put("transport.tcp.connect_timeout", "1s")
                 .put("transport.profiles.tcp.connect_timeout", "1s")
-                .put("watcher.http.default_read_timeout", (VitamConfiguration.getReadTimeout() / 1000) + "s")
+                .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
                 .build();
 
             config.node = nodeBuilder()
@@ -370,7 +370,7 @@ public class JunitHelper extends ExternalResource {
             config.node = null;
             try {
                 Thread.sleep(WAIT_BETWEEN_TRY);
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
             }
         }
@@ -380,9 +380,9 @@ public class JunitHelper extends ExternalResource {
     }
 
     /**
-     * 
+     *
      * Helper to start an Elasticsearch server
-     * 
+     *
      * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
      * @param clusterName the cluster name
      * @param tcpPort the given TcpPort
@@ -392,7 +392,7 @@ public class JunitHelper extends ExternalResource {
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
         String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
-        ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
+        final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         config.httpPort = httpPort;
         config.tcpPort = tcpPort;
         for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
@@ -406,7 +406,7 @@ public class JunitHelper extends ExternalResource {
 
     /**
      * Helper to start an Elasticsearch server
-     * 
+     *
      * @param tempFolder the TemporaryFolder declared as ClassRule within the Junit class
      * @param clusterName the cluster name
      * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
@@ -414,8 +414,8 @@ public class JunitHelper extends ExternalResource {
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
         String clusterName) throws VitamApplicationServerException {
-        JunitHelper junitHelper = getInstance();
-        ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
+        final JunitHelper junitHelper = getInstance();
+        final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
             config.tcpPort = junitHelper.findAvailablePort();
             config.httpPort = junitHelper.findAvailablePort();
@@ -433,12 +433,12 @@ public class JunitHelper extends ExternalResource {
 
     /**
      * Stop the Elasticsearch server started through start ElasticsearchForTest
-     * 
+     *
      * @param config the ElasticsearchTestConfiguration
      */
     public static final void stopElasticsearchForTest(ElasticsearchTestConfiguration config) {
         if (config != null) {
-            JunitHelper junitHelper = getInstance();
+            final JunitHelper junitHelper = getInstance();
             if (config.node != null) {
                 config.node.close();
             }

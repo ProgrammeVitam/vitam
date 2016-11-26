@@ -85,13 +85,13 @@ public class LogbookInternalResourceImpl {
     public Response getOperationById(@PathParam("id_op") String operationId) {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode result = client.selectOperationbyId(operationId);
+            final JsonNode result = client.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -134,18 +134,18 @@ public class LogbookInternalResourceImpl {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             // Check correctness of request
-            SelectParserSingle parser = new SelectParserSingle();
+            final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(query);
             parser.getRequest().reset();
-            JsonNode result = client.selectOperation(query);
+            final JsonNode result = client.selectOperation(query);
             return Response.status(Status.OK).entity(result).build();
-        }catch(LogbookClientNotFoundException e){
+        } catch (final LogbookClientNotFoundException e) {
             return Response.status(Status.OK).entity(new RequestResponseOK().toJsonNode()).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -164,7 +164,7 @@ public class LogbookInternalResourceImpl {
     public Response selectOperationWithPostOverride(JsonNode query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
         Status status;
-        if (xhttpOverride != null && ("GET").equals(xhttpOverride)) {
+        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             return selectOperation(query);
         } else {
             status = Status.PRECONDITION_FAILED;
@@ -175,14 +175,14 @@ public class LogbookInternalResourceImpl {
 
     /*****
      * OPERATION - END *****
-     * 
-     * 
+     *
+     *
      * /***** LOGBOOK LIFE CYCLES
      *****/
 
     /**
      * gets the unit life cycle based on its id
-     * 
+     *
      * @param unitLifeCycleId the unit life cycle id
      * @return the unit life cycle
      */
@@ -192,13 +192,13 @@ public class LogbookInternalResourceImpl {
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
+            final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
             return Response.status(Status.OK).entity(result).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -208,7 +208,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the object group life cycle based on its id
-     * 
+     *
      * @param objectGroupLifeCycleId the object group life cycle id
      * @return the object group life cycle
      */
@@ -220,11 +220,11 @@ public class LogbookInternalResourceImpl {
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
             return Response.status(Status.OK).entity(result).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -232,7 +232,7 @@ public class LogbookInternalResourceImpl {
     }
 
     /***** LIFE CYCLES - END *****/
-    
+
 
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setContext(LOGBOOK_MODULE)

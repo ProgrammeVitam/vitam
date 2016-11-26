@@ -28,8 +28,8 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -50,8 +50,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -442,32 +442,32 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         try {
             client.selectObjectGroupLifeCycleById("id");
             fail("Should raized an exception");
-        } catch (LogbookClientNotFoundException e) {
-            
+        } catch (final LogbookClientNotFoundException e) {
+
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.selectUnitLifeCycleById("id");
             fail("Should raized an exception");
-        } catch (LogbookClientNotFoundException e) {
-            
+        } catch (final LogbookClientNotFoundException e) {
+
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectObjectGroupLifeCycleById("id");
             fail("Should raized an exception");
-        } catch (LogbookClientException e) {
-            
+        } catch (final LogbookClientException e) {
+
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectUnitLifeCycleById("id");
             fail("Should raized an exception");
-        } catch (LogbookClientException e) {
-            
+        } catch (final LogbookClientException e) {
+
         }
         assertNotNull(client.unitLifeCyclesByOperationIterator("id"));
         assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id"));

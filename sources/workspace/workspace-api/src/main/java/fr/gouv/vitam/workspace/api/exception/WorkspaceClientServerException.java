@@ -47,7 +47,7 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
     }
 
     /**
-     * 
+     *
      * @param message
      * @param cause
      */

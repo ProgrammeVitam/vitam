@@ -48,7 +48,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -84,7 +84,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Insert unit with json request
-     * 
+     *
      * @param insertRequest
      * @param xhttpOverride
      * @return Response
@@ -104,50 +104,50 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         }
         return Response.status(Status.CREATED)
@@ -159,7 +159,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Select unit with json request
-     * 
+     *
      * @param request
      * @return Response
      */
@@ -188,10 +188,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
 
         } catch (final MetaDataExecutionException e) {
@@ -201,18 +201,18 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
 
         }
 
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
-                .setHits(arrayNodeResults.size(), 0, 1)
-                .setQuery(selectRequest)
-                .addAllResults(arrayNodeResults)).build();
+            .setHits(arrayNodeResults.size(), 0, 1)
+            .setQuery(selectRequest)
+            .addAllResults(arrayNodeResults)).build();
     }
 
     /**
@@ -255,10 +255,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -267,16 +267,16 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         }
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
-                .setHits(arrayNodeResults.size(), 0, 1)
-                .setQuery(updateRequest)
-                .addAllResults(arrayNodeResults)).build();
+            .setHits(arrayNodeResults.size(), 0, 1)
+            .setQuery(updateRequest)
+            .addAllResults(arrayNodeResults)).build();
     }
 
     /**
@@ -294,10 +294,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -306,16 +306,16 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         }
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
-                .setHits(arrayNodeResults.size(), 0, 1)
-                .setQuery(selectRequest)
-                .addAllResults(arrayNodeResults)).build();
+            .setHits(arrayNodeResults.size(), 0, 1)
+            .setQuery(selectRequest)
+            .addAllResults(arrayNodeResults)).build();
     }
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
@@ -324,10 +324,10 @@ public class MetaDataResource extends ApplicationStatusResource {
         status = Status.INTERNAL_SERVER_ERROR;
         return Response.status(status)
             .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("ACCESS")
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(status.getReasonPhrase()))
+                .setContext("ACCESS")
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(status.getReasonPhrase()))
             .build();
     }
 
@@ -335,7 +335,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
-     * 
+     *
      * @param insertRequest
      * @return the Response
      *
@@ -357,50 +357,50 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("ingest")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         }
 
@@ -423,14 +423,14 @@ public class MetaDataResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupById(JsonNode selectRequest, @PathParam("id_og") String objectGroupId) {
-    	Status status;
+        Status status;
         try {
             ParametersChecker.checkParameter("Request select required", selectRequest);
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(Status.PRECONDITION_FAILED).entity(
-            		new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("METADATA")
                     .setState("code_vitam")
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
@@ -455,10 +455,10 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("METADATA")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("METADATA")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
@@ -467,16 +467,16 @@ public class MetaDataResource extends ApplicationStatusResource {
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("METADATA")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase()))
+                    .setContext("METADATA")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
                 .build();
         }
         return Response.status(Status.OK).entity(new RequestResponseOK()
-                .setHits(arrayNodeResults.size(), 0, 1)
-                .setQuery(selectRequest)
-                .addAllResults(arrayNodeResults)).build();
+            .setHits(arrayNodeResults.size(), 0, 1)
+            .setQuery(selectRequest)
+            .addAllResults(arrayNodeResults)).build();
     }
 
 }

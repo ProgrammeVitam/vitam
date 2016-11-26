@@ -31,10 +31,10 @@ import org.glassfish.jersey.server.ResourceConfig;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -55,7 +55,8 @@ public class IngestInternalApplication
 
     /**
      * Ingest Internal constructor
-     * @param configuration 
+     *
+     * @param configuration
      */
     public IngestInternalApplication(String configuration) {
         super(IngestInternalConfiguration.class, configuration);
@@ -96,7 +97,7 @@ public class IngestInternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        IngestInternalResource resource = new IngestInternalResource(getConfiguration());
+        final IngestInternalResource resource = new IngestInternalResource(getConfiguration());
         // Register Workspace
         serviceRegistry.register(WorkspaceClientFactory.getInstance())
             // Register Logbook for Operation

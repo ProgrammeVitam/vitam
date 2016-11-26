@@ -130,8 +130,8 @@ public class SelectToMongoDb {
         if (orderby == null) {
             return null;
         }
-        final List<String> asc = new ArrayList<String>();
-        final List<String> desc = new ArrayList<String>();
+        final List<String> asc = new ArrayList<>();
+        final List<String> desc = new ArrayList<>();
         final Iterator<Entry<String, JsonNode>> iterator = orderby.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();

@@ -106,12 +106,13 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         handlerIO = handler;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
             }
-            AccessionRegisterDetail register = generateAccessionRegister(params);
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
+            final AccessionRegisterDetail register = generateAccessionRegister(params);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
+                    "register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
             }
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
@@ -131,7 +132,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (! handler.checkHandlerIO(0, handlerInitialIOList)) {
+        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
@@ -140,7 +141,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         AccessionRegisterDetail register = new AccessionRegisterDetail();
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         try (final InputStream archiveUnitMapStream =
-                new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
+            new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
                 new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
@@ -154,15 +155,15 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
             if (sedaParameters != null) {
-                JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                final JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (node != null) {
-                    JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    final JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
                     } else {
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
-                    JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                    final JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
                     } else {
@@ -177,7 +178,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             register = new AccessionRegisterDetail()
                 .setId(params.getContainerName())

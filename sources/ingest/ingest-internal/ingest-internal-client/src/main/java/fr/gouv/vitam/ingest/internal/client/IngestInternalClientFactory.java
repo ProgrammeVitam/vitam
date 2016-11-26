@@ -29,13 +29,13 @@ package fr.gouv.vitam.ingest.internal.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * IngestInternal client factory<br>
- * 
+ *
  * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
  * <br>
  * mock IngestInternal client will be returned

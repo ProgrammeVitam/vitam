@@ -125,7 +125,7 @@ public final class JsonTransformer {
 
     /**
      * This method builds an ObjectNode based on a list of JsonNode object
-     * 
+     *
      * @param unitId
      * @param allParents list of JsonNode Objects used to build the referential
      * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)

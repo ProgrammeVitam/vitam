@@ -432,7 +432,7 @@ public class SelectParserSingleTest {
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserSingle request = new SelectParserSingle();
         final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(and().add(term("var01", "value1"), gte("var02", 3)));
         select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
             .addUnusedProjection("var4");

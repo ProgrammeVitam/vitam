@@ -27,7 +27,12 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +41,9 @@ import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import com.mongodb.client.MongoCursor;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -52,16 +59,16 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
@@ -107,7 +114,7 @@ public class LogbookOperationsImplWithMongoTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
@@ -161,7 +168,7 @@ public class LogbookOperationsImplWithMongoTest {
         event.putParameterValue(LogbookParameterName.eventDateTime, datestring5);
 
         securityEvent = LogbookParametersFactory.newLogbookOperationParameters(
-            eip5,"STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
+            eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.OK, null, null, eip4);
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
 
@@ -211,18 +218,18 @@ public class LogbookOperationsImplWithMongoTest {
 
         final Select select = new Select();
         select.setQuery(new CompareQuery(QUERY.EQ, "evId", eip1.toString()));
-        List<LogbookOperation> res1 = new ArrayList<LogbookOperation>();
+        List<LogbookOperation> res1 = new ArrayList<>();
         res1 = logbookOperationsImpl.select(select.getFinalSelect());
         assertNotNull(res1);
         assertTrue(res1.get(0).containsValue(eip1.getId()));
-        List<LogbookOperation> res2 = new ArrayList<LogbookOperation>();
+        List<LogbookOperation> res2 = new ArrayList<>();
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "eventType"));
         res2 = logbookOperationsImpl.select(select.getFinalSelect());
         assertNotNull(res2);
         assertTrue(res2.get(0).containsValue(eip1.getId()));
         assertTrue(res2.get(1).containsValue(eip2.getId()));
         assertTrue(res2.get(2).containsValue(eip3.getId()));
-        List<LogbookOperation> res3 = new ArrayList<LogbookOperation>();
+        List<LogbookOperation> res3 = new ArrayList<>();
         select.addOrderByDescFilter("evDateTime");
         res3 = logbookOperationsImpl.select(select.getFinalSelect());
         assertTrue(res3.get(0).containsValue("2016-12-12"));
@@ -236,15 +243,15 @@ public class LogbookOperationsImplWithMongoTest {
         MongoCursor<LogbookOperation> curseur;
         curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
 
-        LogbookOperation op = curseur.next();
+        final LogbookOperation op = curseur.next();
 
         assertEquals(op.get("evDateTime"), "2017-09-01");
-        List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
+        final List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
         assertEquals(list.get(0).get("evDateTime"), "2017-09-02");
         assertFalse(curseur.hasNext());
 
         logbookOperationsImpl.update(securityEvent);
-        LogbookOperation secureOperation =
+        final LogbookOperation secureOperation =
             logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.parse("2017-08-02T12:01:00"));
 
         assertEquals(secureOperation.get("evTypeProc"), LogbookTypeProcess.TRACEABILITY.toString());

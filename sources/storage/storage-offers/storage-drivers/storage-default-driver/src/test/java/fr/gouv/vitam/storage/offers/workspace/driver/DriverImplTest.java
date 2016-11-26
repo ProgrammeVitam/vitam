@@ -28,8 +28,8 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -43,12 +43,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client2.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 public class DriverImplTest extends VitamJerseyTest {
@@ -60,6 +60,7 @@ public class DriverImplTest extends VitamJerseyTest {
     public DriverImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
     }
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -97,7 +98,7 @@ public class DriverImplTest extends VitamJerseyTest {
         protected void platformSecretConfiguration() {
             // None
         }
-        
+
     }
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
@@ -134,7 +135,8 @@ public class DriverImplTest extends VitamJerseyTest {
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        final ConnectionImpl connection = DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
+        final ConnectionImpl connection =
+            DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
         assertNotNull(connection);
     }
 

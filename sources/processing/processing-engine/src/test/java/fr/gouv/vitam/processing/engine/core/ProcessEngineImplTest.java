@@ -32,6 +32,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -57,7 +58,8 @@ public class ProcessEngineImplTest {
     @Before
     public void init() throws WorkflowNotFoundException {
         workParams = WorkerParametersFactory.newWorkerParameters();
-        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("http://localhost:8083").setUrlWorkspace("http://localhost:8083")
+        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
             .setContainerName(GUIDFactory.newGUID().getId());
 
         processDistributor = Mockito.mock(ProcessDistributor.class);
@@ -71,8 +73,8 @@ public class ProcessEngineImplTest {
     public void processEngineTest() throws Exception {
         response = processEngine.startWorkflow(workParams, "workflowJSONv1");
         assertNotNull(response);
-        String processId = workParams.getProcessId();
-        Map<String, ProcessStep> list = processMonitoring.getWorkflowStatus(processId);
+        final String processId = workParams.getProcessId();
+        final Map<String, ProcessStep> list = processMonitoring.getWorkflowStatus(processId);
         assertNotNull(list);
     }
 
@@ -80,13 +82,13 @@ public class ProcessEngineImplTest {
     public void processEngineTestWithFinallyStep() throws Exception {
         final ItemStatus responses = new ItemStatus("stepName");
         responses.increment(StatusCode.KO);
-        Mockito.when(processDistributor.distribute(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.eq("workflowJSONFinallyStep"))).thenReturn(responses);
+        Mockito.when(processDistributor.distribute(Matchers.anyObject(), Matchers.anyObject(),
+            Matchers.eq("workflowJSONFinallyStep"))).thenReturn(responses);
 
         response = processEngine.startWorkflow(workParams, "workflowJSONFinallyStep");
         assertNotNull(response);
         final String processId = workParams.getProcessId();
-        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
+        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
         assertNotNull(map);
     }
 

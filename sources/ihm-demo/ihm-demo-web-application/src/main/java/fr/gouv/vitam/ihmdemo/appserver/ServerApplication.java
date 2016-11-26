@@ -57,9 +57,9 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 
 /**
  * Server application for ihm-demo
@@ -73,7 +73,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     /**
      * ServerApplication constructor
-     * 
+     *
      * @param configuration
      */
     public ServerApplication(String configuration) {
@@ -82,7 +82,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     /**
      * ServerApplication constructor
-     * 
+     *
      * @param configuration
      */
     ServerApplication(WebApplicationConfig configuration) {
@@ -177,7 +177,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .getResource(getConfiguration().getStaticContent());
         try {
             staticContentHandler.setResourceBase(webAppDir.toURI().toString());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new VitamApplicationServerException("Web App Dir incorrect", e);
         }
 

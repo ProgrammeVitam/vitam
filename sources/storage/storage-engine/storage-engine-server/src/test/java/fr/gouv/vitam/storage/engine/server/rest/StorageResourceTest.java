@@ -55,16 +55,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.BasicVitamServer;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server2.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -99,7 +99,7 @@ public class StorageResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String MANIFESTS_URI = "/manifests";
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
-    
+
     private static final String ID_O1 = "idO1";
 
     private static JunitHelper junitHelper;
@@ -146,26 +146,26 @@ public class StorageResourceTest {
     @Test
     public final void testContainers() {
         // TODO: review api endpoint
-        //given().contentType(ContentType.JSON).body("").when().get("").then()
-        //    .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+        // given().contentType(ContentType.JSON).body("").when().get("").then()
+        // .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        //given().contentType(ContentType.JSON)
-        //    .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-        //    TENANT_ID)
-        //    .body("").when().get().then()
-        //    .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+        // given().contentType(ContentType.JSON)
+        // .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+        // TENANT_ID)
+        // .body("").when().get().then()
+        // .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.OK.getStatusCode());
-        //given().contentType(ContentType.JSON)
-        //    .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-        //        TENANT_ID_E)
-        //    .body("").when().get().then()
-        //    .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+        // given().contentType(ContentType.JSON)
+        // .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+        // TENANT_ID_E)
+        // .body("").when().get().then()
+        // .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.NOT_FOUND.getStatusCode());
 
 
-        //given().contentType(ContentType.JSON)
-        //    .body("").when().post().then()
-        //    .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+        // given().contentType(ContentType.JSON)
+        // .body("").when().post().then()
+        // .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 
 
         given().contentType(ContentType.JSON).body("").when().delete().then()
@@ -374,7 +374,7 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
-    
+
     @Test
     public final void testObjectNotFound() {
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
@@ -950,12 +950,13 @@ public class StorageResourceTest {
             if (TENANT_ID_A_E.equals(tenantId)) {
                 throw new StorageTechnicalException("Technical exception");
             }
-            
-            Response response = new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-            
-            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+
+            final Response response =
+                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
             return response;
         }

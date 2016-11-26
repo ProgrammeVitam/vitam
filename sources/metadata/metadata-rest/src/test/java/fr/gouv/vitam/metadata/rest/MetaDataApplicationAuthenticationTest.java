@@ -32,7 +32,7 @@ public class MetaDataApplicationAuthenticationTest {
     private static final String METADATA_CONF = "metadata-auth.conf";
     private static File metadata;
     private static MetaDataConfiguration metadataConfig;
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -44,7 +44,7 @@ public class MetaDataApplicationAuthenticationTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
@@ -59,7 +59,7 @@ public class MetaDataApplicationAuthenticationTest {
         metadataConfig = PropertiesUtils.readYaml(metadata, MetaDataConfiguration.class);
         metadataConfig.getMongoDbNodes().get(0).setDbPort(port);
         metadataConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
-        
+
         final int metadataPort = junitHelper.findAvailablePort();
         SystemPropertyUtil.set("jetty.port", metadataPort);
 
@@ -80,7 +80,7 @@ public class MetaDataApplicationAuthenticationTest {
     public void testLauchApplication() throws Exception {
         final File newConf = File.createTempFile("test", METADATA_CONF, metadata.getParentFile());
         PropertiesUtils.writeYaml(newConf, metadataConfig);
-        MetaDataApplication application = new MetaDataApplication(newConf.getAbsolutePath());
+        final MetaDataApplication application = new MetaDataApplication(newConf.getAbsolutePath());
         newConf.delete();
         application.stop();
     }

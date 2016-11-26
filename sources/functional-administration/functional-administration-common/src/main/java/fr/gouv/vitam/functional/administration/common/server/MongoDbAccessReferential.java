@@ -59,7 +59,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     public void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
-    
+
     /**
      * Delete FileFormat collections
      *
@@ -76,7 +76,7 @@ public interface MongoDbAccessReferential {
      */
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException;
-    
+
     /**
      * @param map Map of key-value
      * @param object
@@ -84,7 +84,8 @@ public interface MongoDbAccessReferential {
      * @param action
      * @throws ReferentialException when error occurs
      */
-    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection, UPDATEACTION action)
+    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
+        UPDATEACTION action)
         throws ReferentialException;
 
     /**

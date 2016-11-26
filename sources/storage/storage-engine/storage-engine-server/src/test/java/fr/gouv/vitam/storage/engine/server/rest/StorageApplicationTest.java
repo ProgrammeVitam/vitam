@@ -40,7 +40,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
  *

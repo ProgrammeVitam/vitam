@@ -26,14 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 /**
  * IngestInternalConfiguration contains access informations of ingest
  */
 
 public class IngestInternalClientConfiguration extends ClientConfigurationImpl {
-    
+
     /**
      * Empty constructor used by YAMLFactory to instanciate the object
      */

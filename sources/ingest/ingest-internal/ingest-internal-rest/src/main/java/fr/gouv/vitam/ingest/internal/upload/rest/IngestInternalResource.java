@@ -52,8 +52,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -124,7 +124,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * IngestInternalResource constructor for tests
-     * 
+     *
      * @param workspaceClient workspace client instance
      * @param processingManagementClient processing management client instance
      *
@@ -136,7 +136,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Allow to create a logbook by delegation
-     * 
+     *
      * @param queue list of LogbookOperationParameters, first being the created master
      * @return the status of the request (CREATED meaning OK)
      */
@@ -154,10 +154,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (LogbookClientAlreadyExistsException e) {
+        } catch (final LogbookClientAlreadyExistsException e) {
             LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
-        } catch (LogbookClientServerException e) {
+        } catch (final LogbookClientServerException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -165,7 +165,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * Allow to update a logbook by delegation
-     * 
+     *
      * @param queue list of LogbookOperationParameters in append mode (created already done before)
      * @return the status of the request (OK)
      */
@@ -183,10 +183,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (LogbookClientNotFoundException e) {
+        } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
-        } catch (LogbookClientServerException e) {
+        } catch (final LogbookClientServerException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
@@ -197,11 +197,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * </br>
      * Will return {@link Response} containing an InputStream for the ArchiveTransferReply (OK or KO) except in
      * INTERNAL_ERROR (no body)
-     * 
+     *
      * @param contentType the header Content-Type (zip, tar, ...)
      * @param uploadedInputStream the stream to upload
      * @param asyncResponse
-     * 
+     *
      */
     @POST
     @Path("/ingests")
@@ -234,8 +234,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     throw new IngestInternalException("mimeType null");
                 }
 
-                MediaType mediaType = CommonMediaType.valueOf(contentType);
-                String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
+                final MediaType mediaType = CommonMediaType.valueOf(contentType);
+                final String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
 
                 // Save sip file
                 LOGGER.debug("Starting up the save file sip");
@@ -260,7 +260,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
                                 containerGUID.getId() + XML,
                                 StorageCollectionType.REPORTS);
-                        AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+                        final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
                         Status finalStatus = Status.OK;
                         if (!StatusCode.OK.equals(processingOk.getGlobalStatus())) {
                             if (StatusCode.WARNING.equals(processingOk.getGlobalStatus())) {
@@ -282,7 +282,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, errorMsg);
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
-                        		VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
+                            VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
                     }
@@ -311,9 +311,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 if (parameters != null) {
                     try {
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                        
-                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,  
-                        		VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.KO) );
+
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
+                            VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.KO));
 
                     } catch (final LogbookClientException e1) {
                         LOGGER.error(e1);
@@ -323,7 +323,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final IngestInternalException e) {
-                // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal State)
+                // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal
+                // State)
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -426,17 +427,17 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
-            ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
-   
+            final ItemStatus itemStatus = processingClient.executeVitamProcess(containerName, workflowId);
+
             callLogbookUpdate(client, parameters, itemStatus.getGlobalStatus(),
-                		 VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, itemStatus.getGlobalStatus()));
-          
+                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, itemStatus.getGlobalStatus()));
+
             return itemStatus;
         } catch (WorkflowNotFoundException | ProcessingInternalServerException | IllegalArgumentException |
             ProcessingBadRequestException | ProcessingUnauthorizeException exc) {
             LOGGER.error(exc);
-            callLogbookUpdate(client, parameters, StatusCode.FATAL, 
-            		VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.FATAL));
+            callLogbookUpdate(client, parameters, StatusCode.FATAL,
+                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.FATAL));
             throw new IngestInternalException(exc);
         } finally {
             if (processingManagementClientMock == null && processingClient != null) {

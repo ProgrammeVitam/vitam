@@ -333,7 +333,7 @@ public class QueryToElasticsearch {
         if (nodes != null && !nodes.isEmpty()) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
-        final Set<Object> set = new HashSet<Object>();
+        final Set<Object> set = new HashSet<>();
         for (final JsonNode value : nodes) {
             set.add(getAsObject(value));
         }

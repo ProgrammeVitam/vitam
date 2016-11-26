@@ -472,7 +472,7 @@ public class WorkspaceResourceTest {
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
 
-            RequestResponseError response = new RequestResponseError().setError(
+            final RequestResponseError response = new RequestResponseError().setError(
                 new VitamError(Status.BAD_REQUEST.getStatusCode())
                     .setContext("WORKSPACE")
                     .setState("vitam_code")

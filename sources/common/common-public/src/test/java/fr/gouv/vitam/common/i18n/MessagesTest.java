@@ -7,8 +7,6 @@ import java.util.Locale;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.i18n.Messages;
-
 public class MessagesTest {
 
     @Test

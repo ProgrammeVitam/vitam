@@ -65,7 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -148,14 +148,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
-     * 
+     *
      * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
     AccessInternalModuleImpl(StorageClient storageClient, LogbookOperationsClient pLogbookOperationClient,
         LogbookLifeCyclesClient pLogbookLifeCycleClient) {
-        this.storageClientMock = storageClient;
+        storageClientMock = storageClient;
         logbookOperationClientMock = pLogbookOperationClient;
         logbookLifeCycleClientMock = pLogbookLifeCycleClient;
     }
@@ -176,7 +176,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(jsonQuery);
             // Check correctness of request
-            RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+            final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
             parser.getRequest().reset();
             if (!(parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException("Not a Select operation");
@@ -210,7 +210,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public JsonNode selectUnitbyId(JsonNode jsonQuery, String idUnit)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
         // Check correctness of request
-        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (!(parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
@@ -248,7 +248,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public JsonNode selectObjectGroupById(JsonNode jsonQuery, String idObjectGroup)
         throws InvalidParseOperationException, AccessInternalExecutionException {
         // Check correctness of request
-        RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (!(parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
@@ -314,16 +314,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (Strings.isNullOrEmpty(filename)) {
             filename = objectId;
         }
-        StorageClient storageClient =
+        final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
-            Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
+            final Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
-            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            ResponseBuilder responseBuilder = Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, qualifier)
-                .header(GlobalDataRest.X_VERSION, version)
-                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                .type(mimetype);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, qualifier)
+                    .header(GlobalDataRest.X_VERSION, version)
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .type(mimetype);
             helper.writeResponse(responseBuilder);
             return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
@@ -355,11 +356,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             idGUID = GUIDReader.getGUID(idUnit);
             tenant = idGUID.getTenantId();
-        } catch (InvalidGuidOperationException e) {
+        } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("idUnit is not a valid GUID", e);
         }
         // Check Request is really an Update
-        RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
+        final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
         if (!(parser instanceof UpdateParserMultiple)) {
             parser.getRequest().reset();
             throw new IllegalArgumentException("Request is not an update operation");
@@ -371,7 +372,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             newQuery = ((UpdateParserMultiple) parser).getRequest()
                 .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                 .getFinalUpdate();
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
@@ -443,7 +444,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (final LogbookClientAlreadyExistsException e) {
             LOGGER.error(LOGBOOK_OPERATION_ALREADY_EXISTS, e);
             throw new AccessInternalExecutionException(e);
-        } catch (MetaDataClientServerException e) {
+        } catch (final MetaDataClientServerException e) {
             LOGGER.error(METADATA_INTERNAL_SERVER_ERROR, e);
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);

@@ -246,23 +246,27 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
+    public void givenNullParamWhenCheckObjectExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingObject(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
+    public void givenEmptyParamWhenCheckObjectExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingObject(CONTAINER_NAME, "");
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue() throws ContentAddressableStorageServerException {
+    public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnTrue()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     @Test
-    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() throws ContentAddressableStorageServerException {
+    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
@@ -271,7 +275,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, null);
     }
 
@@ -284,7 +288,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotFoundWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException{
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
@@ -373,5 +377,5 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     private InputStream getInputStream(String file) throws FileNotFoundException {
         return PropertiesUtils.getResourceAsStream("file1.pdf");
-    }    
+    }
 }

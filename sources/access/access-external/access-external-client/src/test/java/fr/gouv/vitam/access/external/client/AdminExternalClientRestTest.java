@@ -25,21 +25,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.client2.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
-public class AdminExternalClientRestTest extends VitamJerseyTest  {
+public class AdminExternalClientRestTest extends VitamJerseyTest {
 
     private static final String ID = "id";
     protected static final String HOSTNAME = "localhost";
     protected AdminExternalClientRest client;
 
     final String queryDsql =
-        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";  
+        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
 
     public AdminExternalClientRestTest() {
         super(AdminExternalClientFactory.getInstance());
@@ -111,7 +111,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
         public Response deleteDocuments(@PathParam("collection") String collection) {
             return expectedResponse.delete();
         }
-        
+
 
         @POST
         @Path("{collections}")
@@ -125,12 +125,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
         @POST
         @Path("/{collections}/{id_document}")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId) {
+        public Response findDocumentByID(@PathParam("collection") String collection,
+            @PathParam("id_document") String documentId) {
             return expectedResponse.get();
         }
 
     }
-    
+
     @Test
     public void testCheckDocument()
         throws Exception {
@@ -139,21 +140,21 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
             client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())),
             Status.OK);
     }
-    
-    @Test(expected=AccessExternalClientNotFoundException.class)
+
+    @Test(expected = AccessExternalClientNotFoundException.class)
     public void testCheckDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
     }
-    
-    @Test(expected=AccessExternalClientException.class)
+
+    @Test(expected = AccessExternalClientException.class)
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
     }
-    
+
     @Test
     public void testImportDocument()
         throws Exception {
@@ -162,15 +163,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
             client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())),
             Status.OK);
     }
-    
-    @Test(expected=AccessExternalClientNotFoundException.class)
+
+    @Test(expected = AccessExternalClientNotFoundException.class)
     public void testImportDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
     }
-    
-    @Test(expected=AccessExternalClientException.class)
+
+    @Test(expected = AccessExternalClientException.class)
     public void testImportDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
@@ -181,23 +182,24 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
     public void testFindDocuments()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
-        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString()
-            , ClientMockResultHelper.getFormatList().toString());
+        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
+            ClientMockResultHelper.getFormatList().toString());
     }
-    
-    @Test(expected=AccessExternalClientNotFoundException.class)
+
+    @Test(expected = AccessExternalClientNotFoundException.class)
     public void testFindDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
     }
-    
-    @Test(expected=AccessExternalClientException.class)
+
+    @Test(expected = AccessExternalClientException.class)
     public void testFindDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
     }
+
     @Test
     public void testFindDocumentById()
         throws Exception {
@@ -206,20 +208,20 @@ public class AdminExternalClientRestTest extends VitamJerseyTest  {
             client.findDocumentById(AdminCollections.FORMATS, ID).toString(),
             ClientMockResultHelper.getFormat().toString());
     }
-    
-    @Test(expected=AccessExternalClientNotFoundException.class)
+
+    @Test(expected = AccessExternalClientNotFoundException.class)
     public void testFindDocumentByIdAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.findDocumentById(AdminCollections.FORMATS, ID);
     }
-    
-    @Test(expected=AccessExternalClientException.class)
+
+    @Test(expected = AccessExternalClientException.class)
     public void testFindDocumentByIdAccessExternalClientException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.findDocumentById(AdminCollections.FORMATS, ID);
     }
-    
+
 
 }

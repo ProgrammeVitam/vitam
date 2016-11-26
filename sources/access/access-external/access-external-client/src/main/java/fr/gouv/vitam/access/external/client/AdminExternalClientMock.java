@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
-import fr.gouv.vitam.common.client2.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -23,7 +23,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
 
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException {
+    public Status checkDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
             return Status.OK;
@@ -32,7 +33,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException {        
+    public Status createDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         return Status.OK;
     }

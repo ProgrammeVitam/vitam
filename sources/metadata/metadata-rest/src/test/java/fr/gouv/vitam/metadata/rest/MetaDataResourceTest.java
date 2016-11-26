@@ -71,7 +71,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -119,12 +119,12 @@ public class MetaDataResourceTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         dataBasePort = junitHelper.findAvailablePort();
@@ -136,7 +136,7 @@ public class MetaDataResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
@@ -168,7 +168,7 @@ public class MetaDataResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
-    
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -193,8 +193,9 @@ public class MetaDataResourceTest {
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("ingest").setState("code_vitam")
-                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
+        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext("ingest").setState("code_vitam")
+            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 
 
@@ -320,7 +321,7 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(
-                new RequestResponseOK().setHits(1,0,1).setQuery(buildDSLWithOptions("", DATA)).toString()))
+                new RequestResponseOK().setHits(1, 0, 1).setQuery(buildDSLWithOptions("", DATA)).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 

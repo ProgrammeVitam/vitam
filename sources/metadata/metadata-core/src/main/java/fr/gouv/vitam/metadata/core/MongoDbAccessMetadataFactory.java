@@ -68,8 +68,8 @@ public class MongoDbAccessMetadataFactory {
             classList.add(e.getClasz());
         }
         MetadataCollections.class.getEnumConstants();
-        
-        MongoClient mongoClient =
+
+        final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
         return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient);
     }

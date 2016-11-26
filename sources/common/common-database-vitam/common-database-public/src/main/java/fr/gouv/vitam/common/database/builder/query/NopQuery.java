@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 public class NopQuery extends Query {
     /**
      * Constructs a NopQuery and declare it ready
-     * 
+     *
      * @throws InvalidCreateOperationException
      */
     public NopQuery() throws InvalidCreateOperationException {

@@ -56,7 +56,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -266,7 +266,7 @@ public class ProcessingIT {
             // Import Rules
             client.importRulesFile(
                 PropertiesUtils.getResourceAsStream("integration-processing/MGT_RULES_REF.csv"));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
         }
 
@@ -318,7 +318,7 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_LOGBOOK;
             RestAssured.basePath = LOGBOOK_PATH;
             get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -329,18 +329,18 @@ public class ProcessingIT {
      * sf -server localhost:8999<br/>
      * <br/>
      * If not started, this test will be ignored.
-     * 
+     *
      * @throws Exception
      */
     @Test
     public void testTryWithSiegfried() throws Exception {
-        String CONFIG_SIEGFRIED_PATH_REAL =
+        final String CONFIG_SIEGFRIED_PATH_REAL =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers-real.conf").toString();
         try {
             FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH_REAL);
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor("siegfried-local").status();
             testWorkflow();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Ignore
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             Assume.assumeTrue("Real Siegfried not running", false);
@@ -353,10 +353,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflow() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -372,15 +372,15 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
             assertNotNull(ret);
             // check conformity in warning state
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -390,16 +390,16 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithTarSIP() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
 
-            InputStream zipInputStreamSipObject =
+            final InputStream zipInputStreamSipObject =
                 Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_TAR_OK_NAME);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
@@ -416,9 +416,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -428,10 +428,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -454,9 +454,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -466,10 +466,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflow_with_accession_register() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -492,9 +492,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -503,10 +503,10 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        String containerName = objectGuid.getId();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
@@ -533,10 +533,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSipNoFormat() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -559,9 +559,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -570,10 +570,10 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowSipDoubleVersionBM() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        String containerName = objectGuid.getId();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
@@ -599,10 +599,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -624,9 +624,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.KO, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -636,10 +636,10 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        String containerName = objectGuid.getId();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
@@ -666,10 +666,10 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithOrphelins() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        String containerName = objectGuid.getId();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
@@ -697,10 +697,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithoutObjectGroups() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -723,9 +723,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -735,10 +735,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithSipWithoutObject() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -761,9 +761,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -773,10 +773,10 @@ public class ProcessingIT {
     @Test
     public void testWorkflowKOwithATRKOFilled() throws Exception {
         try {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            GUID objectGuid = GUIDFactory.newManifestGUID(0);
-            String containerName = objectGuid.getId();
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
             // workspace client dezip SIP in workspace
@@ -799,9 +799,9 @@ public class ProcessingIT {
             assertEquals(StatusCode.KO, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
-            Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
             assertNotNull(map);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
@@ -810,10 +810,10 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test(expected = ProcessingInternalServerException.class)
     public void testWorkflowSipCausesFatalThenProcessingInternalServerException() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        GUID objectGuid = GUIDFactory.newManifestGUID(0);
-        String containerName = objectGuid.getId();
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
@@ -838,9 +838,9 @@ public class ProcessingIT {
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException {
 
-        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
-        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
             operationId, "Process_SIP_unitary", objectId,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",

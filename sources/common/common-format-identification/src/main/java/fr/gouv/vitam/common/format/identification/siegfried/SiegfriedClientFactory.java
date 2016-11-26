@@ -28,9 +28,9 @@
 package fr.gouv.vitam.common.format.identification.siegfried;
 
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 /**
  * Siegfield Client factory
@@ -58,6 +58,7 @@ public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedCl
      *
      * @return the default Siegfried client
      */
+    @Override
     public SiegfriedClient getClient() {
         SiegfriedClient client;
         switch (getVitamClientType()) {

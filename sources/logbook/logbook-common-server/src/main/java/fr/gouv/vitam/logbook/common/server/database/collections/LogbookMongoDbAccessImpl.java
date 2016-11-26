@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
 
 import java.util.ArrayList;
@@ -171,8 +173,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
         }
         LogbookOperation.addIndexes();
-        LogbookLifeCycleUnit.addIndexes();
-        LogbookLifeCycleObjectGroup.addIndexes();
+        LogbookLifeCycle.addIndexes();
+        LogbookLifeCycle.addIndexes();
     }
 
     /**
@@ -180,8 +182,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     static final void removeIndexBeforeImport() {
         LogbookOperation.dropIndexes();
-        LogbookLifeCycleUnit.dropIndexes();
-        LogbookLifeCycleObjectGroup.dropIndexes();
+        LogbookLifeCycle.dropIndexes();
+        LogbookLifeCycle.dropIndexes();
     }
 
     /**
@@ -254,7 +256,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
-        // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
+        // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to
+        // last
         // Logbook operation event . Must be removed when the processing will be reworked
         if (sliced) {
             final ObjectNode operationSlice = JsonHandler.createObjectNode();
@@ -280,7 +283,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return selectExecute(LogbookCollections.LIFECYCLE_UNIT, select);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -300,7 +303,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return selectExecute(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -457,7 +460,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Select with slice possibility
-     * 
+     *
      * @param collection
      * @param select
      * @param slice may be null
@@ -807,12 +810,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     // Not check, test feature !
     @Override
     public void deleteCollection(LogbookCollections collection) throws DatabaseException {
-        long count = collection.getCollection().count();
+        final long count = collection.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            DeleteResult result = collection.getCollection().deleteMany(new Document());
+            final DeleteResult result = collection.getCollection().deleteMany(new Document());
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }

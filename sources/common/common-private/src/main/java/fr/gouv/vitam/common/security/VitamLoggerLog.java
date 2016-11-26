@@ -37,7 +37,7 @@ public class VitamLoggerLog implements Logger {
 
     /**
      * Empty constructor
-     * 
+     *
      * @param name
      */
     public VitamLoggerLog(String name) {

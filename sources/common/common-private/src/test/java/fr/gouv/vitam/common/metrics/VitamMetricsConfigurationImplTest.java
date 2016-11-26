@@ -69,11 +69,11 @@ import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationRe
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.metrics.LogbackReporter.Builder;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.TestApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.TestApplication;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 
 
 // TODO This class should test the reporting in ElasticSearch, by starting an ES database, pushing metrics and verifying

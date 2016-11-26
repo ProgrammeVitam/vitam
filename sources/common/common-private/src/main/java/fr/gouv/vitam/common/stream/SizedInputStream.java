@@ -35,7 +35,7 @@ import java.io.InputStream;
  */
 public class SizedInputStream extends InputStream {
 
-    private InputStream is;
+    private final InputStream is;
     private long size = 0;
 
     /**
@@ -49,7 +49,7 @@ public class SizedInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        int res = is.read();
+        final int res = is.read();
         if (res != -1) {
             size++;
         }
@@ -58,7 +58,7 @@ public class SizedInputStream extends InputStream {
 
     @Override
     public int read(byte[] b) throws IOException {
-        int res = is.read(b);
+        final int res = is.read(b);
         if (res != -1) {
             size += res;
         }
@@ -67,7 +67,7 @@ public class SizedInputStream extends InputStream {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        int res = is.read(b, off, len);
+        final int res = is.read(b, off, len);
         if (res != -1) {
             size += res;
         }

@@ -42,20 +42,20 @@ import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory.SoapUiClientType;
  */
 public class SoapUiClientFactoryTest {
     private static final String SOAP_UI_CONF = "soapui.conf";
-	
+
     @Before
     public void initFileConfiguration() {
-    	SoapUiClientFactory.getInstance().changeConfiguration(SOAP_UI_CONF);
+        SoapUiClientFactory.getInstance().changeConfiguration(SOAP_UI_CONF);
     }
 
     @Test
     public void getClientInstanceTest() {
         final SoapUiClient client =
-        		SoapUiClientFactory.getInstance().getClient();
+            SoapUiClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final SoapUiClient client2 =
-        		SoapUiClientFactory.getInstance().getClient();
+            SoapUiClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);

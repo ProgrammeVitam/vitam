@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
@@ -79,11 +79,11 @@ public class MetaDataApplicationTest {
         // ES
         try {
             configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -95,7 +95,7 @@ public class MetaDataApplicationTest {
             .build());
         mongod = mongodExecutable.start();
 
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", port));
         // TODO: using configuration file ? Why not ?
         config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
@@ -112,6 +112,7 @@ public class MetaDataApplicationTest {
         junitHelper.releasePort(port);
         JunitHelper.stopElasticsearchForTest(configEs);
     }
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", configEs != null);

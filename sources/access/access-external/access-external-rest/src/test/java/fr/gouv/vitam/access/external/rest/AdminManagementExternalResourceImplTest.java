@@ -40,7 +40,8 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @PrepareForTest({AdminManagementClientFactory.class})
 public class AdminManagementExternalResourceImplTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImplTest.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(AdminManagementExternalResourceImplTest.class);
 
     private static final String RESOURCE_URI = "/admin-external/v1";
 
@@ -69,7 +70,7 @@ public class AdminManagementExternalResourceImplTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            application =  new AccessExternalApplication("access-external-test.conf");
+            application = new AccessExternalApplication("access-external-test.conf");
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -93,33 +94,33 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().put(FORMAT_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().put(FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().put(RULES_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().put(RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().put(WRONG_URI)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().put(WRONG_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testCheckDocumentError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().put(FORMAT_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().put(FORMAT_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -127,17 +128,17 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.CREATED.getStatusCode());
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(RULES_URI)
-        .then().statusCode(Status.CREATED.getStatusCode());
+            .when().post(RULES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.BINARY)
-        .when().post(WRONG_URI)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().post(WRONG_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
 
@@ -145,23 +146,23 @@ public class AdminManagementExternalResourceImplTest {
     public void insertDocumentError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         PowerMockito.doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.CONFLICT.getStatusCode());
-        
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.CONFLICT.getStatusCode());
+
     }
 
     @Test
@@ -171,48 +172,48 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(RULES_URI + DOCUMENT_ID)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(RULES_URI + DOCUMENT_ID)
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(RULES_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI + DOCUMENT_ID)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(WRONG_URI + DOCUMENT_ID)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(WRONG_URI + DOCUMENT_ID)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(WRONG_URI)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(WRONG_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
-    
+
     @Test
     public void testGetDocumentsError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getFormats(anyObject());
@@ -221,32 +222,32 @@ public class AdminManagementExternalResourceImplTest {
         select.setQuery(eq("Id", "APP-00001"));
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI + DOCUMENT_ID)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
 
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormats(anyObject());
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormatByID(anyObject());
-        
-        given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI + DOCUMENT_ID)
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(select.getFinalSelect())
-        .when().post(FORMAT_URI)
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
 

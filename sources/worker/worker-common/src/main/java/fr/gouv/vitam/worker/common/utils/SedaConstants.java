@@ -260,12 +260,12 @@ public class SedaConstants {
     }
 
     /**
-     * 
+     *
      * @return supported Rules type
      */
     public static List<String> getSupportedRules() {
         if (RULES_TYPE == null) {
-            RULES_TYPE = new ArrayList<String>();
+            RULES_TYPE = new ArrayList<>();
             RULES_TYPE.add(SedaConstants.TAG_RULE_ACCESS);
             RULES_TYPE.add(SedaConstants.TAG_RULE_REUSE);
             RULES_TYPE.add(SedaConstants.TAG_RULE_STORAGE);

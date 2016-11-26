@@ -49,7 +49,8 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  * CheckStorageAvailability Handler.<br>
  */
 public class CheckStorageAvailabilityActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
@@ -82,16 +83,16 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(handlerIO);
             // TODO P0 extract this information from first parsing
-            SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
             final JsonNode storageCapacityNode;
-            
+
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
             }
-                        
+
             final StorageInformation information =
                 JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
             final long storageCapacity = information.getUsableSpace();

@@ -30,15 +30,15 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class IntegrationClient {
 
     public static void main(String[] args) throws FileNotFoundException {
         AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", 8082));
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-        
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
 

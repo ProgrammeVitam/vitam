@@ -18,10 +18,10 @@ public class IOParameterTest {
         param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST);
 
         param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST).setOptional(true);
-        assertEquals(param.getUri().getPath(),"file");
-        assertEquals(param.getUri().getPrefix(),UriPrefix.WORKSPACE);
-        assertEquals(param.getName(),IN);
-        assertEquals(param.getValue(),TEST);
+        assertEquals(param.getUri().getPath(), "file");
+        assertEquals(param.getUri().getPrefix(), UriPrefix.WORKSPACE);
+        assertEquals(param.getName(), IN);
+        assertEquals(param.getValue(), TEST);
     }
 
 }

@@ -32,8 +32,8 @@ import java.io.Serializable;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
- * This class implements all methods that have a {@link VitamLogLevel}
- * parameter by default to call specific logger methods such as {@link #info(String)} or {@link #isInfoEnabled()}. <br>
+ * This class implements all methods that have a {@link VitamLogLevel} parameter by default to call specific logger
+ * methods such as {@link #info(String)} or {@link #isInfoEnabled()}. <br>
  * Inspired from Netty </br>
  * A skeletal implementation of {@link VitamLogger}
  */

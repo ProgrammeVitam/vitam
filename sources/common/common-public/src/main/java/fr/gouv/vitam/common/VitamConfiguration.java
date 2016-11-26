@@ -129,7 +129,7 @@ public class VitamConfiguration {
      */
     private static final DigestType DEFAULT_DIGEST_TYPE = DigestType.SHA512;
     /**
-     *  Default Digest Type for time stamp generation
+     * Default Digest Type for time stamp generation
      */
     private static final DigestType DEFAULT_TIMESTAMP_DIGEST_TYPE = DigestType.SHA512;
     /**
@@ -164,6 +164,7 @@ public class VitamConfiguration {
     static {
         getConfiguration().setDefault();
     }
+
     /**
      * Empty constructor
      */

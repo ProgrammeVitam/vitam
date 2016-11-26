@@ -27,7 +27,7 @@
 package fr.gouv.vitam.processing.common.config;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * ServerConfiguration class contains the different parameter {hostName ,ipAddress, port }to connect a remote server

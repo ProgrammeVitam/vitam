@@ -72,9 +72,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
@@ -113,18 +113,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     protected static boolean isSoapUiRunning() {
         return soapUiRunning;
     }
-    
+
     private static void setSoapUiRunning(boolean soapUiRunning) {
         WebApplicationResource.soapUiRunning = soapUiRunning;
     }
-    
+
 
     // TODO FIX_TENANT_ID
     private static final Integer TENANT_ID = 0;
 
     /**
      * Constructor
-     * 
+     *
      * @param webApplicationConfig
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
@@ -135,7 +135,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Retrieve all the messages for logbook
-     * 
+     *
      *
      * @return Response
      */
@@ -302,10 +302,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
                 .build();
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             LOGGER.error("The selected file is not found", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Error occured when trying to close the stream", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -333,14 +333,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * FIXME : use a better way to launch SOAP UI in another thread to manager responses
      */
     private void soapUiAsync() {
-        SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
+        final SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
         try {
             soapUi.launchTests();
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             LOGGER.error("Soap ui script description file not found", e);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Can not read SOAP-UI script input file or write report", e);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             LOGGER.error("Error while SOAP UI script execution", e);
         }
         WebApplicationResource.setSoapUiRunning(false);
@@ -356,7 +356,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/soapui/running")
     @Produces(MediaType.APPLICATION_JSON)
     public Response soapUiTestsRunning() {
-        return Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("result", WebApplicationResource.soapUiRunning)).build();
+        return Response.status(Status.OK)
+            .entity(JsonHandler.createObjectNode().put("result", WebApplicationResource.soapUiRunning)).build();
     }
 
     /**
@@ -368,12 +369,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/soapui/result")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSoapUiTestsResults() {
-        SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
+        final SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
         JsonNode result = null;
 
         try {
             result = soapUi.getLastTestReport();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be create", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
@@ -390,11 +391,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceability() throws LogbookClientServerException {
-        LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient();
         RequestResponseOK result;
         try {
             result = logbookOperationsClient.traceability();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be created", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
@@ -449,7 +451,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
                 result = UserInterfaceTransactionManager.selectOperation(query);
@@ -493,7 +495,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);

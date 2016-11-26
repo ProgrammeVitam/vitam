@@ -212,7 +212,7 @@ public class VitamError extends RequestResponse {
     }
 
     /**
-     * 
+     *
      * @param node
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -41,7 +41,7 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
- * 
+ *
  */
 public class ProcessingManagementClientMock extends AbstractMockClient implements ProcessingManagementClient {
 
@@ -53,7 +53,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     public ItemStatus executeVitamProcess(String container, String workflow)
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
         ProcessingException {
-        List<Integer> status = new ArrayList<>();
+        final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
         status.add(1);

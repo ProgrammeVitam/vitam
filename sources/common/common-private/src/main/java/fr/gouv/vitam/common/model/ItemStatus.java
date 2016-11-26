@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -86,17 +86,17 @@ public class ItemStatus {
 
     /**
      * Constructor
-     * 
+     *
      * @param itemId
      */
     public ItemStatus(String itemId) {
-        statusMeter = new ArrayList<Integer>();
+        statusMeter = new ArrayList<>();
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
             statusMeter.add(0);
         }
 
-        this.globalStatus = StatusCode.UNKNOWN;
-        this.data = new HashMap<>();
+        globalStatus = StatusCode.UNKNOWN;
+        data = new HashMap<>();
         this.itemId = itemId;
     }
 
@@ -229,7 +229,7 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setData(String key, Object value) {
-        this.data.put(key, value);
+        data.put(key, value);
         return this;
     }
 
@@ -237,8 +237,8 @@ public class ItemStatus {
      * @return String message
      */
     public String computeStatusMeterMessage() {
-        StringBuilder computeMessage = new StringBuilder();
-        StatusCode[] statusCodes = StatusCode.values();
+        final StringBuilder computeMessage = new StringBuilder();
+        final StatusCode[] statusCodes = StatusCode.values();
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
             if (statusMeter.get(i) > 0) {
                 computeMessage.append(" ").append(statusCodes[i]).append(":").append(statusMeter.get(i));
@@ -281,7 +281,7 @@ public class ItemStatus {
         }
 
         if (statusDetails.getData() != null) {
-            this.data.putAll(statusDetails.getData());
+            data.putAll(statusDetails.getData());
         }
 
         return this;
@@ -295,7 +295,7 @@ public class ItemStatus {
     public ItemStatus setItemsStatus(ItemStatus compositeItemStatus) {
 
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, compositeItemStatus);
-        if ((compositeItemStatus.getItemsStatus() != null) && (!compositeItemStatus.getItemsStatus().isEmpty())) {
+        if (compositeItemStatus.getItemsStatus() != null && !compositeItemStatus.getItemsStatus().isEmpty()) {
             // update statusMeter, globalStatus
             increment(compositeItemStatus.getGlobalStatus());
 
@@ -311,21 +311,21 @@ public class ItemStatus {
             }
             // update data Map
             if (compositeItemStatus.getData() != null) {
-                this.data.putAll(compositeItemStatus.getData());
+                data.putAll(compositeItemStatus.getData());
             }
         }
         return this;
     }
 
     /**
-     * 
+     *
      * @param blocking True if the step or handler is blocking
      * @return True if this item shall stop the Step or Handler
      */
     @JsonIgnore
     public boolean shallStop(boolean blocking) {
         return getGlobalStatus().isGreaterOrEqualToFatal() ||
-            (blocking && getGlobalStatus().isGreaterOrEqualToKo());
+            blocking && getGlobalStatus().isGreaterOrEqualToKo();
     }
 
 }

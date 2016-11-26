@@ -1,10 +1,10 @@
 /**
  * Copyright (c) 2015 JSON.org
- * 
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -53,7 +53,7 @@ import org.json.XMLTokener;
 
 /**
  * This provides static methods to convert an XML text into a JSONObject, and to covert a JSONObject into an XML text.
- * 
+ *
  * @author JSON.org
  * @version 2016-01-30
  */
@@ -95,21 +95,21 @@ public class XML {
 
     /**
      * Replace special characters with XML escapes:
-     * 
+     *
      * <pre>
      * &amp; <small>(ampersand)</small> is replaced by &amp;amp;
      * &lt; <small>(less than)</small> is replaced by &amp;lt;
      * &gt; <small>(greater than)</small> is replaced by &amp;gt;
      * &quot; <small>(double quote)</small> is replaced by &amp;quot;
      * </pre>
-     * 
+     *
      * @param string The string to be escaped.
      * @return The escaped string.
      */
     public static String escape(String string) {
-        StringBuilder sb = new StringBuilder(string.length());
+        final StringBuilder sb = new StringBuilder(string.length());
         for (int i = 0, length = string.length(); i < length; i++) {
-            char c = string.charAt(i);
+            final char c = string.charAt(i);
             switch (c) {
                 case '&':
                     sb.append("&amp;");
@@ -135,12 +135,13 @@ public class XML {
 
     /**
      * Throw an exception if the string contains whitespace. Whitespace is not allowed in tagNames and attributes.
-     * 
+     *
      * @param string A string.
      * @throws JSONException Thrown if the string contains whitespace or is empty.
      */
     public static void noSpace(String string) throws JSONException {
-        int i, length = string.length();
+        int i;
+        final int length = string.length();
         if (length == 0) {
             throw new JSONException("Empty string.");
         }
@@ -152,7 +153,7 @@ public class XML {
     }
 
     private static void addArray(JSONObject json, String key, Object value) {
-        Object object = json.opt(key);
+        final Object object = json.opt(key);
         if (object == null) {
             json.put(key, new JSONArray().put(value));
         } else if (object instanceof JSONArray) {
@@ -164,7 +165,7 @@ public class XML {
 
     /**
      * Scan the content following the named tag, attaching it to the context.
-     * 
+     *
      * @param x The XMLTokener containing the source string.
      * @param context The JSONObject that will include the new material.
      * @param name The tag name.
@@ -350,7 +351,7 @@ public class XML {
 
     /**
      * This method has been deprecated in favor of the {@link JSONObject.stringToValue(String)} method. Use it instead.
-     * 
+     *
      * @deprecated Use {@link JSONObject#stringToValue(String)} instead.
      * @param string String to convert
      * @return JSON value of this string or the string
@@ -367,7 +368,7 @@ public class XML {
      * does not like to distinguish between elements and attributes. Sequences of similar elements are represented as
      * JSONArrays. Content text may be placed in a "content" member. Comments, prologs, DTDs, and
      * <code>&lt;[ [ ]]></code> are ignored.
-     * 
+     *
      * @param string The source string.
      * @return A JSONObject containing the structured data from the XML string.
      * @throws JSONException Thrown if there is an errors while parsing the string
@@ -384,10 +385,10 @@ public class XML {
      * does not like to distinguish between elements and attributes. Sequences of similar elements are represented as
      * JSONArrays. Content text may be placed in a "content" member. Comments, prologs, DTDs, and
      * <code>&lt;[ [ ]]></code> are ignored.
-     * 
+     *
      * All values are converted as strings, for 1, 01, 29.0 will not be coerced to numbers but will instead be the exact
      * value as seen in the XML document.
-     * 
+     *
      * @param string The source string.
      * @param keepStrings If true, then values will not be coerced into boolean or numeric values and will instead be
      *        left as strings
@@ -395,8 +396,8 @@ public class XML {
      * @throws JSONException Thrown if there is an errors while parsing the string
      */
     public static JSONObject toJSONObject(String string, boolean keepStrings) throws JSONException {
-        JSONObject jo = new JSONObject();
-        XMLTokener x = new XMLTokener(string);
+        final JSONObject jo = new JSONObject();
+        final XMLTokener x = new XMLTokener(string);
         while (x.more() && x.skipPast("<")) {
             parse(x, jo, null, keepStrings);
         }
@@ -405,7 +406,7 @@ public class XML {
 
     /**
      * Convert a JSONObject into a well-formed, element-normal XML string.
-     * 
+     *
      * @param object A JSONObject.
      * @return A string.
      * @throws JSONException Thrown if there is an error parsing the string
@@ -416,7 +417,7 @@ public class XML {
 
     /**
      * Convert a JSONObject into a well-formed, element-normal XML string.
-     * 
+     *
      * @param object A JSONObject.
      * @param tagName The optional name of the enclosing tag.
      * @return A string.
@@ -424,7 +425,7 @@ public class XML {
      */
     public static String toString(Object object, String tagName)
         throws JSONException {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         JSONArray ja;
         JSONObject jo;
         String key;
@@ -446,7 +447,7 @@ public class XML {
             keys = jo.keys();
             while (keys.hasNext()) {
                 key = keys.next();
-                boolean isAttribute = key.charAt(0) == '@';
+                final boolean isAttribute = key.charAt(0) == '@';
                 value = jo.opt(key);
                 if (value == null) {
                     value = "";
@@ -460,7 +461,7 @@ public class XML {
                     if (value instanceof JSONArray) {
                         ja = (JSONArray) value;
                         int i = 0;
-                        for (Object val : ja) {
+                        for (final Object val : ja) {
                             if (i > 0) {
                                 sb.append('\n');
                             }
@@ -475,7 +476,7 @@ public class XML {
 
                 } else if (value instanceof JSONArray) {
                     ja = (JSONArray) value;
-                    for (Object val : ja) {
+                    for (final Object val : ja) {
                         if (val instanceof JSONArray) {
                             sb.append('<');
                             sb.append(key);
@@ -517,7 +518,7 @@ public class XML {
 
             if (object instanceof JSONArray) {
                 ja = (JSONArray) object;
-                for (Object val : ja) {
+                for (final Object val : ja) {
                     // XML does not have good support for arrays. If an array
                     // appears in a place where XML is lacking, synthesize an
                     // <array> element.
@@ -527,9 +528,9 @@ public class XML {
             }
         }
 
-        string = (object == null) ? "null" : escape(object.toString());
-        return (tagName == null) ? "\"" + string + "\""
-            : (string.length() == 0) ? "<" + tagName + "/>\n" : "<" + tagName + ">" + string + "</" + tagName + ">\n";
+        string = object == null ? "null" : escape(object.toString());
+        return tagName == null ? "\"" + string + "\""
+            : string.length() == 0 ? "<" + tagName + "/>\n" : "<" + tagName + ">" + string + "</" + tagName + ">\n";
 
     }
 }

@@ -51,7 +51,7 @@ public class TraceabilityException extends VitamException {
 
     /**
      * @param message associated message
-     * @param cause   associated cause
+     * @param cause associated cause
      */
     public TraceabilityException(String message, Throwable cause) {
         super(message, cause);

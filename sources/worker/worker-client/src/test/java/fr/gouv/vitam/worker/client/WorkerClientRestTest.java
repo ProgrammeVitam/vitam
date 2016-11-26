@@ -41,9 +41,9 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -61,7 +61,8 @@ public class WorkerClientRestTest extends VitamJerseyTest {
     protected WorkerClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -132,13 +133,13 @@ public class WorkerClientRestTest extends VitamJerseyTest {
 
         final ItemStatus result = new ItemStatus("StepId");
 
-        ItemStatus itemStatus1 = new ItemStatus("checkSeda");
+        final ItemStatus itemStatus1 = new ItemStatus("checkSeda");
         itemStatus1.setMessage("CHECK_MANIFEST_OK");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus1.increment(status);
         result.setItemsStatus("checkSeda", itemStatus1);
 
-        ItemStatus itemStatus2 = new ItemStatus("CheckVersion");
+        final ItemStatus itemStatus2 = new ItemStatus("CheckVersion");
         itemStatus2.setMessage("CHECK_VERSION_OK");
         itemStatus2.increment(status);
         result.setItemsStatus("CheckVersion", itemStatus2);

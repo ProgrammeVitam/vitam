@@ -34,22 +34,22 @@ import org.glassfish.jersey.server.ResourceConfig;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 
 /**
  * Workspace offer web application
  */
 public final class DefaultOfferApplication
-extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfiguration> {
+    extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    
+
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     protected DefaultOfferApplication(String configuration) {
@@ -58,7 +58,7 @@ extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfigurat
 
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     public DefaultOfferApplication(DefaultOfferConfiguration configuration) {
@@ -78,10 +78,10 @@ extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfigurat
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     WORKSPACE_CONF_FILE_NAME));
             }
-            
+
             final DefaultOfferApplication application = new DefaultOfferApplication(args[0]);
             application.run();
-            
+
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);

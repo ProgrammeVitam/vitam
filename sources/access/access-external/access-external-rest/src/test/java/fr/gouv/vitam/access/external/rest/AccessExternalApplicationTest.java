@@ -67,7 +67,7 @@ public class AccessExternalApplicationTest {
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
         application = new AccessExternalApplication("src/test/resources/access-external-test.conf");
         application.start();
-        
+
         given()
             .contentType(ContentType.JSON)
             .header("test", "<script>(.*?)</script>")

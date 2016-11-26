@@ -46,18 +46,18 @@ import org.junit.Test;
 
 
 public class WafFilterTest {
-    
+
     private static HttpServletRequest httpServletRequest;
     private static HttpServletResponse httpServletResponse;
     private static FilterChain filterChain;
     private static WafFilter filter;
-    
+
     @Before
     public void before() throws ServletException {
 
         filter = new WafFilter();
         filter.init(new FilterConfigImpl(null));
-        
+
         httpServletRequest = mock(HttpServletRequest.class);
         httpServletResponse = mock(HttpServletResponse.class);
         filterChain = mock(FilterChain.class);
@@ -66,22 +66,22 @@ public class WafFilterTest {
     @Test
     public void testDoFilterNotAcceptable() throws Exception {
         Enumeration<String> headers;
-        Vector<String> header = new Vector<String>();
+        final Vector<String> header = new Vector<>();
         header.add("Sunday");
         headers = header.elements();
-        
+
         when(httpServletRequest.getHeaderNames()).thenReturn(headers);
         when(httpServletRequest.getHeader("Sunday")).thenReturn("<?php echo\" Hello \" ?>");
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        
+
         verify(httpServletResponse).setStatus(Status.NOT_ACCEPTABLE.getStatusCode());
     }
-    
+
     @Test
     public void testDoFilterOK() throws Exception {
         when(httpServletRequest.getHeaderNames()).thenReturn(null);
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        
+
         verify(filterChain).doFilter(httpServletRequest, httpServletResponse);;
     }
 

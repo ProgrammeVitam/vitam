@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -43,7 +43,7 @@ public class ItemStatusTest {
     @Test
     public void testItemStatus() throws Exception {
 
-        ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
+        final ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
         assertEquals(StatusCode.UNKNOWN, itemStatus1.getGlobalStatus());
 
         assertEquals(StatusCode.FATAL.getStatusLevel() + 1, itemStatus1.getStatusMeter().size());
@@ -54,7 +54,7 @@ public class ItemStatusTest {
         itemStatus1.setItemId(ITEM_ID_1);
         assertEquals(ITEM_ID_1, itemStatus1.getItemId());
 
-        StatusCode statusKO = StatusCode.KO;
+        final StatusCode statusKO = StatusCode.KO;
         itemStatus1.increment(statusKO);
         assertEquals(StatusCode.KO, itemStatus1.getGlobalStatus());
 
@@ -63,18 +63,18 @@ public class ItemStatusTest {
         itemStatus1.setData("key", "value");
         assertEquals("value", itemStatus1.getData().get("key"));
 
-        ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_1);
-        StatusCode statusOK = StatusCode.OK;
+        final ItemStatus itemStatus2 = new ItemStatus(ITEM_ID_1);
+        final StatusCode statusOK = StatusCode.OK;
         itemStatus1.increment(statusOK);
 
-        ItemStatus itemStatus3 = itemStatus2.increment(itemStatus1, itemStatus2);
+        final ItemStatus itemStatus3 = itemStatus2.increment(itemStatus1, itemStatus2);
         assertEquals(Integer.valueOf(1), itemStatus3.getStatusMeter().get(StatusCode.OK.getStatusLevel()));
         assertEquals(Integer.valueOf(1), itemStatus3.getStatusMeter().get(StatusCode.KO.getStatusLevel()));
         assertEquals(StatusCode.KO, itemStatus3.getGlobalStatus());
 
-        List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
+        final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
 
-        ItemStatus itemStatus4 = new ItemStatus(ITEM_ID_1, "message", StatusCode.OK,
+        final ItemStatus itemStatus4 = new ItemStatus(ITEM_ID_1, "message", StatusCode.OK,
             statusMeter, new HashMap<>(), null);
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
 

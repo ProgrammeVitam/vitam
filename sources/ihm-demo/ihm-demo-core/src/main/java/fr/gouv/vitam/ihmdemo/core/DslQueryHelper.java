@@ -402,7 +402,7 @@ public final class DslQueryHelper {
 
         // Initialize immediateParents if it is null
         if (immediateParents == null) {
-            immediateParents = new ArrayList<String>();
+            immediateParents = new ArrayList<>();
         }
 
         immediateParents.add(unitId);

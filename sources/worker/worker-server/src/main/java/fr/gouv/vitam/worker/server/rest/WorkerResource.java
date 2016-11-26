@@ -49,8 +49,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -68,7 +68,7 @@ public class WorkerResource extends ApplicationStatusResource {
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
 
-    private int tenantId = 0;
+    private final int tenantId = 0;
     private final Worker workerMocked;
 
     /**
@@ -89,7 +89,7 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     WorkerResource(Worker worker) {
         LOGGER.info("init Worker Resource server");
-        this.workerMocked = worker;
+        workerMocked = worker;
     }
 
     /**
@@ -103,7 +103,7 @@ public class WorkerResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getStepsList() {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status = Status.NOT_IMPLEMENTED;
+        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -158,7 +158,7 @@ public class WorkerResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStepStatus(@PathParam("id_async") String idAsync) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status = Status.NOT_IMPLEMENTED;
+        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -174,7 +174,7 @@ public class WorkerResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyStep(@PathParam("id_async") String idAsync) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status = Status.NOT_IMPLEMENTED;
+        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 

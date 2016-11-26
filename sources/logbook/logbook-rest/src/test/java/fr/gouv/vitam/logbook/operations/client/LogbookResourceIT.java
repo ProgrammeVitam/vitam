@@ -45,7 +45,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -113,7 +113,7 @@ public class LogbookResourceIT {
         try {
             JunitHelper.setJettyPortSystemProperty(serverPort);
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+            final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
             logbookConf.setMongoDbNodes(nodes).setDbName("vitam-test");
             logbookConf.setJettyConfig(JETTY_CONFIG);
@@ -247,29 +247,29 @@ public class LogbookResourceIT {
             client.create(logbookParametersStart);
 
             // Update multiple OK
-            long start = System.nanoTime();
+            final long start = System.nanoTime();
             int i = 0;
             try {
                 for (i = 0; i < NB_TEST; i++) {
                     client.update(logbookParametersAppend);
                 }
-            } catch (LogbookClientServerException e) {
+            } catch (final LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
                 fail(e.getMessage());
             }
-            long stop = System.nanoTime();
-            long start2 = System.nanoTime();
+            final long stop = System.nanoTime();
+            final long start2 = System.nanoTime();
             i = 0;
             try {
                 for (i = 0; i < NB_TEST; i++) {
                     client.updateDelegate(logbookParametersAppend);
                 }
                 client.commitUpdateDelegate(eip.getId());
-            } catch (LogbookClientServerException e) {
+            } catch (final LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
                 fail(e.getMessage());
             }
-            long stop2 = System.nanoTime();
+            final long stop2 = System.nanoTime();
             LOGGER.warn("Multiple updates vs bulk updates: {} ms vs {} ms", (stop - start) / 1000000,
                 (stop2 - start2) / 1000000);
             client.checkStatus();
@@ -373,7 +373,7 @@ public class LogbookResourceIT {
                 for (i = 0; i < NB_TEST; i++) {
                     client.update(logbookLcParametersAppend);
                 }
-            } catch (LogbookClientServerException e) {
+            } catch (final LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
                 fail(e.getMessage());
             }

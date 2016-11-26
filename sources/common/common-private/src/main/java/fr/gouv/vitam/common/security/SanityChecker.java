@@ -166,7 +166,7 @@ public class SanityChecker {
             if (!wellFormedJson.equals(jsonish)) {
                 throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK, e);
         }
         checkJsonFileSize(jsonish);
@@ -185,7 +185,7 @@ public class SanityChecker {
             if (!wellFormedJson.equals(json)) {
                 throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK, e);
         }
         checkJsonFileSize(json);
@@ -229,7 +229,7 @@ public class SanityChecker {
         try {
             checkParam(param);
             return false;
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return true;
         }

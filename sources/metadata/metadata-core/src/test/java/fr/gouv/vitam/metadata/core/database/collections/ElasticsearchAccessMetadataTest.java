@@ -77,11 +77,11 @@ public class ElasticsearchAccessMetadataTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
@@ -131,7 +131,7 @@ public class ElasticsearchAccessMetadataTest {
         // add index
         assertEquals(true, esClient.addIndex(MetadataCollections.C_UNIT));
         // add unit
-        String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
         assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, id, S1));
 
         // update index

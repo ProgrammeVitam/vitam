@@ -75,8 +75,8 @@ public class SelectToMongodb extends RequestToMongodb {
         if (orderby == null) {
             return null;
         }
-        final List<String> asc = new ArrayList<String>();
-        final List<String> desc = new ArrayList<String>();
+        final List<String> asc = new ArrayList<>();
+        final List<String> desc = new ArrayList<>();
         final Iterator<Entry<String, JsonNode>> iterator = orderby.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
@@ -109,7 +109,7 @@ public class SelectToMongodb extends RequestToMongodb {
      * FindIterable.projection(projection)
      *
      * @return the projection
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     public Bson getFinalProjection() throws InvalidParseOperationException {
         if (requestParser.getRequest().getAllProjection()) {
@@ -117,8 +117,8 @@ public class SelectToMongodb extends RequestToMongodb {
         }
         final JsonNode node = requestParser.getRequest().getProjection()
             .get(PROJECTION.FIELDS.exactToken());
-        final List<String> incl = new ArrayList<String>();
-        final List<String> excl = new ArrayList<String>();
+        final List<String> incl = new ArrayList<>();
+        final List<String> excl = new ArrayList<>();
         final Map<String, ObjectNode> sliceProjections = new HashMap<>();
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {

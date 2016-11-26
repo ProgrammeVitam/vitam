@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -40,7 +40,7 @@ public class MongoDbMetadataResponseFilter {
     }
 
     private static final void replace(MetadataDocument<?> document, String originalFieldName, String targetFieldName) {
-        Object value = document.remove(originalFieldName);
+        final Object value = document.remove(originalFieldName);
         if (value != null) {
             document.append(targetFieldName, value);
         }
@@ -49,12 +49,12 @@ public class MongoDbMetadataResponseFilter {
     /**
      * This method will modify the document argument in order to filter as output all _varname to corresponding #varname
      * according to ParserTokens
-     * 
+     *
      * @param document
      */
     public static final void filterFinalResponse(MetadataDocument<?> document) {
-        boolean isUnit = document instanceof Unit; 
-        for (PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
+        final boolean isUnit = document instanceof Unit;
+        for (final PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
                     replace(document, MetadataDocument.ID, VitamFieldsHelper.id());

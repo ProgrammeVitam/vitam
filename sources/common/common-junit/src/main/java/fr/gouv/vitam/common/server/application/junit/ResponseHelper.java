@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -35,6 +35,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.google.common.base.Strings;
@@ -50,7 +51,7 @@ public class ResponseHelper {
 
     /**
      * Helper to build an outbound Response (mocking remote client response object)
-     * 
+     *
      * @param status
      * @param entity could be null
      * @param contentType could be null
@@ -66,9 +67,9 @@ public class ResponseHelper {
         final Response response = Mockito.mock(Response.class);
         when(response.getStatus()).thenReturn(status.getStatusCode());
         if (entity == null) {
-            when(response.readEntity(Mockito.any(Class.class))).thenReturn("");
+            when(response.readEntity(Matchers.any(Class.class))).thenReturn("");
         } else {
-            when(response.readEntity(Mockito.any(Class.class))).thenReturn(entity);
+            when(response.readEntity(Matchers.any(Class.class))).thenReturn(entity);
         }
         boolean contentTypeFound = false;
         if (!Strings.isNullOrEmpty(contentType)) {
@@ -76,7 +77,7 @@ public class ResponseHelper {
             contentTypeFound = true;
         }
         if (headers != null) {
-            for (Entry<String, String> entry : headers.entrySet()) {
+            for (final Entry<String, String> entry : headers.entrySet()) {
                 when(response.getHeaderString(entry.getKey())).thenReturn(entry.getValue());
             }
         }

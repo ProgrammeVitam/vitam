@@ -40,11 +40,11 @@ public class MerkleTreeAlgoTest {
 
     @Test
     public void shoud_compute_merkle_tree() throws IOException, NoSuchAlgorithmException {
-        MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
+        final MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
         mta.addSheet("a");
         mta.addSheet("b");
         mta.addSheet("c");
-        MerkleTree mt = mta.generateMerkle();
+        final MerkleTree mt = mta.generateMerkle();
         assertThat(mt.getRoot()).isEqualTo(
             Base64.decodeBase64(
                 "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
@@ -52,9 +52,9 @@ public class MerkleTreeAlgoTest {
 
     @Test
     public void shoud_compute_merkle_tree_for_one_element() throws IOException, NoSuchAlgorithmException {
-        MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
+        final MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
         mta.addSheet("a");
-        MerkleTree mt = mta.generateMerkle();
+        final MerkleTree mt = mta.generateMerkle();
         assertThat(mt.getRoot()).isEqualTo(
             Base64.decodeBase64(
                 "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));

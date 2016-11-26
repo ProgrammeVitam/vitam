@@ -31,21 +31,21 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class VitamConfigurationParametersTest {
-    
-    private static final String SECRET="vitamsecret";
-    
+
+    private static final String SECRET = "vitamsecret";
+
     @Test
     public void testPojo() {
-        
+
         final VitamConfigurationParameters vitamConfiguration = new VitamConfigurationParameters();
         assertEquals(true, vitamConfiguration.isFilterActivation());
-        
+
         vitamConfiguration.setFilterActivation(false);
         assertEquals(false, vitamConfiguration.isFilterActivation());
-        
+
         vitamConfiguration.setSecret(SECRET);
-        assertEquals(SECRET,vitamConfiguration.getSecret());
-        
+        assertEquals(SECRET, vitamConfiguration.getSecret());
+
     }
 
 }

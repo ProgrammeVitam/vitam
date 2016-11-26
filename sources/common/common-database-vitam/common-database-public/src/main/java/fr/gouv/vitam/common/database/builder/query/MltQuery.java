@@ -88,7 +88,7 @@ public class MltQuery extends Query {
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
                 final ArrayNode array = sub.putArray(QUERYARGS.FIELDS.exactToken());
-                stringVals = new HashSet<String>();
+                stringVals = new HashSet<>();
                 for (final String varName : variableNames) {
                     if (varName == null || varName.trim().isEmpty()) {
                         continue;
@@ -130,7 +130,7 @@ public class MltQuery extends Query {
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
-            stringVals = new HashSet<String>();
+            stringVals = new HashSet<>();
         }
         for (String val : variableName) {
             if (val == null || val.trim().isEmpty()) {

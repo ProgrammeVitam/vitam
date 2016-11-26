@@ -36,7 +36,7 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 
@@ -47,49 +47,53 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * checkDocuments
-     * 
+     *
      * @param documentType
      * @param stream
      * @return the status
-     * @throws AccessExternalClientNotFoundException 
+     * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
-     * @throws AccessExternalClientServerException 
+     * @throws AccessExternalClientServerException
      */
-    Status checkDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, 
-    AccessExternalClientException, AccessExternalClientServerException; 
-    
+    Status checkDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException,
+        AccessExternalClientException, AccessExternalClientServerException;
+
 
     /**
      * importDocuments
-     * 
+     *
      * @param documentType
      * @param stream
      * @return the status
-     * @throws AccessExternalClientNotFoundException 
+     * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Status createDocuments(AdminCollections documentType, InputStream stream) throws AccessExternalClientNotFoundException, AccessExternalClientException; 
-    
+    Status createDocuments(AdminCollections documentType, InputStream stream)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException;
+
     /**
      * findDocuments
-     * 
+     *
      * @param documentType
      * @param select
      * @return the JsonNode results
-     * @throws AccessExternalClientNotFoundException 
-     * @throws AccessExternalClientException 
-     * @throws InvalidParseOperationException 
+     * @throws AccessExternalClientNotFoundException
+     * @throws AccessExternalClientException
+     * @throws InvalidParseOperationException
      */
-    RequestResponse findDocuments(AdminCollections documentType, JsonNode select) throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
-    
+    RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
+
     /**
      * findDocumentById
-     * 
+     *
      * @param documentType
      * @param documentId
      * @return the JsonNode results
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findDocumentById(AdminCollections documentType, String documentId) throws AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+        throws AccessExternalClientException, InvalidParseOperationException;
 }

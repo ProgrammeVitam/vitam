@@ -85,7 +85,8 @@ public class VitamGarbageCollectorGauge implements Gauge<Double> {
         final long currentTick = clock.getTick();
         final long currentGcElapsedTime = getElapsedGCTime();
         Double value =
-            (double) (currentGcElapsedTime - lastGcElapsedTime) / (double) TimeUnit.NANOSECONDS.toMillis(currentTick - lastTick);
+            (double) (currentGcElapsedTime - lastGcElapsedTime) /
+                (double) TimeUnit.NANOSECONDS.toMillis(currentTick - lastTick);
 
         if (value.isNaN()) {
             value = (double) 0;

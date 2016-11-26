@@ -117,10 +117,10 @@ public class LogbookAdministration {
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private DateTimeFormatter formatter;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final DateTimeFormatter formatter;
 
-    private File tmpFolder;
+    private final File tmpFolder;
 
     private final Joiner joiner;
 
@@ -131,9 +131,9 @@ public class LogbookAdministration {
         this.timestampGenerator = timestampGenerator;
         this.workspaceClientFactory = workspaceClientFactory;
         this.tmpFolder = tmpFolder;
-        this.formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+        formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-        this.joiner = Joiner.on("").skipNulls();
+        joiner = Joiner.on("").skipNulls();
 
         tmpFolder.mkdir();
     }
@@ -164,70 +164,71 @@ public class LogbookAdministration {
         throws TraceabilityException, LogbookNotFoundException, InvalidParseOperationException,
         LogbookDatabaseException, InvalidCreateOperationException {
 
-        LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
+        final LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
 
-        List<String> expectedLogbookId = newArrayList(eip.getId());
+        final List<String> expectedLogbookId = newArrayList(eip.getId());
         LocalDateTime startDate;
 
         if (lastTraceabilityOperation == null) {
             startDate = LocalDateTime.MIN;
         } else {
-            Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
+            final Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
             startDate = LocalDateUtil.fromDate(date);
             expectedLogbookId.add(lastTraceabilityOperation.getString(eventIdentifier));
         }
 
-        LocalDateTime currentDate = now();
+        final LocalDateTime currentDate = now();
 
-        String fileName = String.format("%d_LogbookOperation_%s.zip", TENANT_ID, currentDate.format(formatter));
+        final String fileName = String.format("%d_LogbookOperation_%s.zip", TENANT_ID, currentDate.format(formatter));
         createLogbookOperationStructure(eip);
 
-        File zipFile = new File(tmpFolder, fileName);
-        String uri = String.format("%s/%s", "logbook", fileName);
+        final File zipFile = new File(tmpFolder, fileName);
+        final String uri = String.format("%s/%s", "logbook", fileName);
         TraceabilityEvent traceabilityEvent;
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
-            MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
-            TraceabilityIterator traceabilityIterator = new TraceabilityIterator(mongoCursor);
+            final MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
+            final TraceabilityIterator traceabilityIterator = new TraceabilityIterator(mongoCursor);
 
-            MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
+            final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
             traceabilityFile.initStoreOperationLog();
 
             while (traceabilityIterator.hasNext()) {
 
-                LogbookOperation logbookOperation = traceabilityIterator.next();
-                String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
+                final LogbookOperation logbookOperation = traceabilityIterator.next();
+                final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addSheet(logbookOperationStr);
             }
 
             traceabilityFile.closeStoreOperationLog();
 
-            MerkleTree merkleTree = merkleTreeAlgo.generateMerkle();
+            final MerkleTree merkleTree = merkleTreeAlgo.generateMerkle();
             traceabilityFile.storeMerkleTree(merkleTree);
 
-            String rootHash = BaseXx.getBase64(merkleTree.getRoot());
+            final String rootHash = BaseXx.getBase64(merkleTree.getRoot());
 
-            String hash1 = extractHash(lastTraceabilityOperation);
-            String hash2 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
-            String hash3 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
+            final String hash1 = extractHash(lastTraceabilityOperation);
+            final String hash2 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
+            final String hash3 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
 
-            byte[] timeStampToken = generateTimeStampToken(eip, rootHash, hash1, hash2, hash3);
+            final byte[] timeStampToken = generateTimeStampToken(eip, rootHash, hash1, hash2, hash3);
             traceabilityFile.storeTimeStampToken(timeStampToken);
 
-            long numberOfLine = traceabilityIterator.getNumberOfLine();
-            String endDate = traceabilityIterator.endDate();
+            final long numberOfLine = traceabilityIterator.getNumberOfLine();
+            final String endDate = traceabilityIterator.endDate();
 
             traceabilityFile.storeAdditionalInformation(numberOfLine, getString(startDate), endDate);
             traceabilityFile.storeHashCalculationInformation(rootHash, hash1, hash2, hash3);
 
             traceabilityEvent = new TraceabilityEvent(getString(startDate), endDate, rootHash, numberOfLine, uri);
 
-        } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException | ArchiveException | InvalidParseOperationException e) {
+        } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
+            ArchiveException | InvalidParseOperationException e) {
             createLogbookOperationEvent(eip, STP_OP_SECURISATION, FATAL, null);
 
             zipFile.delete();
@@ -242,7 +243,7 @@ public class LogbookAdministration {
 
             workspaceClient.putObject(fileName, uri, inputStream);
 
-            StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
+            final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(fileName);
@@ -256,12 +257,14 @@ public class LogbookAdministration {
 
                 createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, OK, null);
 
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+                StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, StatusCode.FATAL, null);
                 LOGGER.error("unable to store zip file", e);
                 throw new TraceabilityException(e);
             }
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException | IOException e) {
+        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
+            IOException e) {
             LOGGER.error("unable to create container", e);
             createLogbookOperationEvent(eip, OP_SECURISATION_STORAGE, StatusCode.FATAL, null);
             throw new TraceabilityException(e);
@@ -277,7 +280,7 @@ public class LogbookAdministration {
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException {
 
-        LogbookOperation logbookOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
+        final LogbookOperation logbookOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
 
         if (logbookOperation == null || expectIds.contains(logbookOperation.getString(eventIdentifier))) {
             return null;
@@ -292,11 +295,11 @@ public class LogbookAdministration {
         }
 
         final List<Document> events = (List<Document>) logbookOperation.get(EVENTS);
-        Document lastEvent = Iterables.getLast(events);
+        final Document lastEvent = Iterables.getLast(events);
 
-        String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
+        final String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
 
-        TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+        final TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
         return traceabilityEvent.getHash();
     }
 
@@ -305,20 +308,20 @@ public class LogbookAdministration {
         throws IOException, TraceabilityException {
 
         try {
-            String hash = joiner.join(rootHash, hash1, hash2, hash3);
+            final String hash = joiner.join(rootHash, hash1, hash2, hash3);
             createLogbookOperationEvent(eip, TIMESTAMP, STARTED, null);
 
-            DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+            final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
 
-            Digest digest = new Digest(digestType);
+            final Digest digest = new Digest(digestType);
             digest.update(hash);
-            byte[] hashDigest = digest.digest();
+            final byte[] hashDigest = digest.digest();
 
-            byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
+            final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
 
             createLogbookOperationEvent(eip, TIMESTAMP, OK, null);
             return timeStampToken;
-        } catch (TimeStampException e) {
+        } catch (final TimeStampException e) {
             LOGGER.error("unable to generate timestamp", e);
             createLogbookOperationEvent(eip, TIMESTAMP, StatusCode.FATAL, null);
             throw new TraceabilityException(e);
@@ -327,7 +330,7 @@ public class LogbookAdministration {
 
     private void createLogbookOperationStructure(GUID eip) throws TraceabilityException {
         try {
-            LogbookOperationParameters logbookParameters =
+            final LogbookOperationParameters logbookParameters =
                 newLogbookOperationParameters(eip, STP_SECURISATION, eip, TRACEABILITY, STARTED, null, null, eip);
 
             LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);

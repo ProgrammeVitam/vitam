@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -85,7 +85,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     /**
      * Constructor
-     * 
+     *
      * @param factory
      * @param parameters
      */
@@ -107,7 +107,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             }
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 response.getStatusInfo().getReasonPhrase());
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(e);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e.getMessage());
@@ -146,7 +146,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         INTERNAL_SERVER_ERROR);
             }
-        } catch (VitamClientInternalException e1) {
+        } catch (final VitamClientInternalException e1) {
             LOGGER.error(e1);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e1.getMessage());
@@ -184,7 +184,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
                 .getMessage());
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(e);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e.getMessage());
@@ -224,7 +224,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         INTERNAL_SERVER_ERROR);
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(e);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e.getMessage());
@@ -311,7 +311,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "Error to perfom put object");
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(e);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 e.getMessage());

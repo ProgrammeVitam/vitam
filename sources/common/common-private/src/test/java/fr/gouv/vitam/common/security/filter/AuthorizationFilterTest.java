@@ -50,12 +50,12 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
 
 public class AuthorizationFilterTest {
-   
+
     private static HttpServletRequest httpServletRequest;
     private static HttpServletResponse httpServletResponse;
     private static FilterChain filterChain;
     private static AuthorizationFilter filter;
-    private static Map<String,String> headersMap;
+    private static Map<String, String> headersMap;
     private static Enumeration<String> httpServletRequestHeaders;
 
     @Before
@@ -67,12 +67,12 @@ public class AuthorizationFilterTest {
         httpServletRequest = mock(HttpServletRequest.class);
         httpServletResponse = mock(HttpServletResponse.class);
         filterChain = mock(FilterChain.class);
-        
-        VitamConfiguration vitamConfiguration=VitamConfiguration.getConfiguration();
-        vitamConfiguration.setSecret("vitamsecret");
-        
+
+        final VitamConfiguration vitamConfiguration = VitamConfiguration.getConfiguration();
+        VitamConfiguration.setSecret("vitamsecret");
+
         headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, "/containers/continerid");
-        final Vector<String> authorizationHeaders = new Vector<String>();
+        final Vector<String> authorizationHeaders = new Vector<>();
         authorizationHeaders.add(GlobalDataRest.X_TIMESTAMP);
         authorizationHeaders.add(GlobalDataRest.X_PLATFORM_ID);
         httpServletRequestHeaders = authorizationHeaders.elements();
@@ -80,10 +80,12 @@ public class AuthorizationFilterTest {
 
     @Test
     public void testDoFilterOK() throws Exception {
-   
+
         when(httpServletRequest.getHeaderNames()).thenReturn(httpServletRequestHeaders);
-        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP)).thenReturn(headersMap.get(GlobalDataRest.X_TIMESTAMP));
-        when(httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID)).thenReturn(headersMap.get(GlobalDataRest.X_PLATFORM_ID));
+        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP))
+            .thenReturn(headersMap.get(GlobalDataRest.X_TIMESTAMP));
+        when(httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID))
+            .thenReturn(headersMap.get(GlobalDataRest.X_PLATFORM_ID));
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
 
@@ -92,10 +94,10 @@ public class AuthorizationFilterTest {
         verify(filterChain).doFilter(httpServletRequest, httpServletResponse);
     }
 
-    
+
     @Test
     public void testDoFilterStatusOK() throws Exception {
-   
+
         when(httpServletRequest.getHeaderNames()).thenReturn(httpServletRequestHeaders);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.STATUS_URL);
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
@@ -107,7 +109,7 @@ public class AuthorizationFilterTest {
 
     @Test
     public void testDoFilterAdminStatusOK() throws Exception {
-   
+
         when(httpServletRequest.getHeaderNames()).thenReturn(httpServletRequestHeaders);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.ADMIN_PATH);
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
@@ -116,13 +118,13 @@ public class AuthorizationFilterTest {
 
         verify(filterChain).doFilter(httpServletRequest, httpServletResponse);
     }
-    
+
     @Test
     public void testDoFilterNotAcceptableNoHeaders() throws Exception {
         when(httpServletRequest.getHeaderNames()).thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-        
+
         verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
     }
 

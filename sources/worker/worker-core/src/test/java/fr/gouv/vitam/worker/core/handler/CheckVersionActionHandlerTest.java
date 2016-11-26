@@ -62,8 +62,10 @@ public class CheckVersionActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("CheckVersionActionHandlerTest");
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName("CheckVersionActionHandlerTest");
     private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId");
 
     @Before
@@ -81,7 +83,7 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
         throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<String>();
+        final List<String> invalidVersionList = new ArrayList<>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
@@ -91,7 +93,7 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
         throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<String>();
+        final List<String> invalidVersionList = new ArrayList<>();
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);

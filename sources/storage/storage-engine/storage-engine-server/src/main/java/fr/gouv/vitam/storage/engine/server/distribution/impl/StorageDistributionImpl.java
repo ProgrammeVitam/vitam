@@ -59,7 +59,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -177,7 +177,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 // to
                 // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
-                Map<String, Object> result =
+                final Map<String, Object> result =
                     tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
                         offerReference, parameters, requester);
                 parameters = (StorageLogbookParameters) result.get("Parameters");
@@ -278,8 +278,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters);
                 WorkspaceClient workspaceClient =
-                    (mockedWorkspaceClient == null) ? WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is
-                                                                                                         // closed
+                    mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is
+                                                                                                       // closed
                         mockedWorkspaceClient) {
                 final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, category.getFolder());
                 if (connection.objectExistsInOffer(request)) {
@@ -338,7 +338,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         } else {
             updateStorageLogbookParameters(logbookParameters, offer, objectStored);
         }
-        Map<String, Object> ret = new HashMap<>();
+        final Map<String, Object> ret = new HashMap<>();
         ret.put("Parameters", logbookParameters);
         ret.put("Status", objectStored);
         return ret;
@@ -356,10 +356,10 @@ public class StorageDistributionImpl implements StorageDistribution {
      */
     private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult putObjectResult,
         Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
-        String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
-        String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
-        String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
-        StorageLogbookOutcome outcome =
+        final String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
+        final String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
+        final String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
+        final StorageLogbookOutcome outcome =
             objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
         return getStorageLogbookParameters(
@@ -549,8 +549,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, type.getFolder());
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
-                    AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
-                    ResponseBuilder responseBuilder =
+                    final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
+                    final ResponseBuilder responseBuilder =
                         Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
                     helper.writeResponse(responseBuilder);
                     return result;

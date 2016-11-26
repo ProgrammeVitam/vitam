@@ -39,7 +39,6 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -98,9 +97,9 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
     private static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private static LogbookLifeCyclesClient logbookLifeCycleClient;
-    private ItemStatus itemStatus = new ItemStatus("TEST");
+    private final ItemStatus itemStatus = new ItemStatus("TEST");
     private LogbookLifeCyclesClientHelper helper;
-    
+
     public SedaUtilsLifeCycleExceptionsTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
         seda_2 = PropertiesUtils.getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
@@ -127,13 +126,13 @@ public class SedaUtilsLifeCycleExceptionsTest {
         PowerMockito.doNothing().when(logbookLifeCycleClient).create(anyObject());
         PowerMockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.when(handlerIO.getLifecyclesClient()).thenReturn(logbookLifeCycleClient);
-        
+
         helper = mock(LogbookLifeCyclesClientHelper.class);
         Mockito.when(handlerIO.getHelper()).thenReturn(helper);
         Mockito.when(handlerIO.getHelper()).thenReturn(helper);
 
-        final Map<String, String> binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
-        final Map<String, String> objectGroupIdToGuid = new HashMap<String, String>();
+        final Map<String, String> binaryDataObjectIdToObjectGroupId = new HashMap<>();
+        final Map<String, String> objectGroupIdToGuid = new HashMap<>();
         binaryDataObjectIdToObjectGroupId.put("ID011", "ID006");
         objectGroupIdToGuid.put("ID006", OBJ);
 

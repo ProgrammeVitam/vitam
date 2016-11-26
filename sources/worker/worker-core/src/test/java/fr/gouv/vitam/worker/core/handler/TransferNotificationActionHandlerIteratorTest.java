@@ -50,14 +50,14 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -163,13 +163,13 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenXMLCreationWhenValidThenResponseOK()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
@@ -189,13 +189,13 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenXMLCreationWhenProcessKOThenResponseATROK()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
@@ -216,12 +216,12 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenXMLCreationWhenProcessKOBeforeLifecycleThenResponseATRKO()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcGot.hasNext()).thenReturn(false);
 
-        VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(false);
 
         Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
@@ -241,7 +241,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenExceptionLogbookWhenProcessKOBeforeLifecycleThenResponseKO()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
         Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationbyId(anyObject());
 
@@ -257,13 +257,13 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenExceptionLogbookLCUnitWhenProcessOKThenResponseKO()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
@@ -284,13 +284,13 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenExceptionLogbookLCObjectWhenProcessOKThenResponseKO()
         throws Exception {
-        TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
@@ -311,7 +311,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static JsonNode getLogbookOperation()
         throws FileNotFoundException, IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
-        LogbookOperation lop =
+        final LogbookOperation lop =
             new LogbookOperation(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
         response.addResult(JsonHandler.getFromString(lop.toJson()));
         return JsonHandler.toJsonNode(response);

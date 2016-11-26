@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -64,7 +64,7 @@ public class CommonMediaType extends MediaType {
 
     /**
      * A {@code String} constant representing {@value #BZIP2} media type.
-     * 
+     *
      */
     public static final String BZIP2 = "application/x-bzip2";
 
@@ -108,7 +108,7 @@ public class CommonMediaType extends MediaType {
 
     /**
      * Creates mime type code {@code String} of Media type.
-     * 
+     *
      * @param mediaType {@link MediaType}
      * @return A {@code String} constant representing media type
      */
@@ -123,9 +123,9 @@ public class CommonMediaType extends MediaType {
 
     /**
      * Checks archive type if is supported by Vitam.
-     * 
+     *
      * @since 0.10.0
-     * 
+     *
      * @param mimeType
      * @return boolean : true if archive type supported by Vitam.
      */

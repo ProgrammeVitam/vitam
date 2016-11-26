@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  *
  */
 public class BooleanQuery extends Query {
-    protected List<Query> queries = new ArrayList<Query>();
+    protected List<Query> queries = new ArrayList<>();
 
     protected BooleanQuery() {
         super();

@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -94,7 +94,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return status;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -123,7 +123,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -150,7 +150,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -178,7 +178,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     throw new ReferentialException("Unknown error");
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -188,7 +188,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     /**************************
      * rules Management
-     * 
+     *
      * @throws AdminManagementClientServerException
      ****************************************/
 
@@ -212,7 +212,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return status;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -244,7 +244,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -274,7 +274,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -303,7 +303,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -330,7 +330,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -358,7 +358,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -387,7 +387,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

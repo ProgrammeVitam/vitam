@@ -38,7 +38,7 @@ public class AccessExternalClientException extends VitamException {
 
     /**
      * constructor with message
-     * 
+     *
      * @param message associated message
      */
     public AccessExternalClientException(String message) {
@@ -47,7 +47,7 @@ public class AccessExternalClientException extends VitamException {
 
     /**
      * constructor with throwable
-     * 
+     *
      * @param cause associated cause
      */
     public AccessExternalClientException(Throwable cause) {
@@ -56,7 +56,7 @@ public class AccessExternalClientException extends VitamException {
 
     /**
      * constructor with message and throwable
-     * 
+     *
      * @param messsage associated message
      * @param cause associated cause
      */

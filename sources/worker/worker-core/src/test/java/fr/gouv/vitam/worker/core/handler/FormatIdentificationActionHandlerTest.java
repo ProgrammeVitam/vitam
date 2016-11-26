@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client2.AbstractMockClient.FakeInboundResponse;
+import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
@@ -65,8 +65,8 @@ public class FormatIdentificationActionHandlerTest {
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private InputStream objectGroup;
-    private InputStream objectGroup2;
+    private final InputStream objectGroup;
+    private final InputStream objectGroup2;
     private WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
     private HandlerIOImpl handlerIO;

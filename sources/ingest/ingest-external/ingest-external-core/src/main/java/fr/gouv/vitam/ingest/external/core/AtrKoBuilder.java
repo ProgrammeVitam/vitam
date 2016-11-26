@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -58,23 +58,23 @@ public class AtrKoBuilder {
 
     /**
      * To generate a default ATR KO from Ingest External on AV or MimeType checks.
-     * 
+     *
      * @param messageIdentifier
      * @param archivalAgency
      * @param transferringAgency
      * @param detail
      * @return the corresponding InputStream with the ATR KO in XML format
-     * @throws IngestExternalException 
+     * @throws IngestExternalException
      */
     public static InputStream buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
         String detail) throws IngestExternalException {
         String xmlDefault;
         try {
             xmlDefault = FileUtil.readInputStream(PropertiesUtils.getResourceAsStream(ATR_KO_DEFAULT_XML));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IngestExternalException(e);
         }
-        String finalXml =
+        final String finalXml =
             xmlDefault.replace(DATE, LocalDateUtil.now().toString()).replace(MESSAGE_IDENTIFIER, messageIdentifier)
                 .replace(ARCHIVAL_AGENCY, archivalAgency).replace(TRANSFERRING_AGENCY, transferringAgency)
                 .replace(COMMENT, detail).replace(OUTCOME_DETAIL_MESSAGE, detail);

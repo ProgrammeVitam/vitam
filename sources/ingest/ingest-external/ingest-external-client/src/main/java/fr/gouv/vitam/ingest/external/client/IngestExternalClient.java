@@ -39,11 +39,12 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 public interface IngestExternalClient extends MockOrRestClient {
     /**
      * ingest upload file in local
-     * @param stream 
+     *
+     * @param stream
      * @return response
-     * 
+     *
      * @throws IngestExternalException
      */
-	//TODO P0 : add file name
+    // TODO P0 : add file name
     Response upload(InputStream stream) throws IngestExternalException;
 }

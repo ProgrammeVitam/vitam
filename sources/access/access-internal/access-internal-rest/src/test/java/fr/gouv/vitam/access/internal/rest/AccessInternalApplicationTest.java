@@ -38,10 +38,10 @@ import fr.gouv.vitam.common.junit.JunitHelper;
  */
 public class AccessInternalApplicationTest {
 
-    private AccessInternalApplication application;   
+    private AccessInternalApplication application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
-    
+
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();

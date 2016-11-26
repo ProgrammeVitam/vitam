@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -37,24 +37,25 @@ public class URLCodec {
 
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
     private static final String DELEMITER_SEPARATED_VALUES = ";";
-    
+
     private URLCodec() {
         // Empty
     }
+
     /**
      * encode URL using secret
-     * 
+     *
      * @param httpMethod
      * @param url
      * @param timestamp
      * @param secret
-     * @param digestType 
+     * @param digestType
      * @return Platform-Id
      */
     public static String encodeURL(String httpMethod, String url, String timestamp, String secret,
         DigestType digestType) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url, timestamp, secret, digestType);
-        Digest digest = new Digest(digestType);
+        final Digest digest = new Digest(digestType);
         return digest.update(httpMethod + DELEMITER_SEPARATED_VALUES + url + DELEMITER_SEPARATED_VALUES + timestamp +
             DELEMITER_SEPARATED_VALUES + secret).toString();
     }

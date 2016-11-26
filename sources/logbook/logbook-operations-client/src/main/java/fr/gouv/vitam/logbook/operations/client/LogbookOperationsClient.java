@@ -28,7 +28,7 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -175,7 +175,7 @@ public interface LogbookOperationsClient extends BasicClient {
     /**
      * Call traceability logbook operation <br>
      * <br>
-     * 
+     *
      * @return logbook operation as String
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException

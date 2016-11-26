@@ -180,7 +180,7 @@ public class Select extends RequestSingle {
         selectAddUnusedProjection(variableNames);
         return this;
     }
-    
+
     /**
      *
      * @param projectionContent json projection

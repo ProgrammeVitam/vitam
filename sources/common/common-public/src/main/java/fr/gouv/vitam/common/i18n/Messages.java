@@ -87,7 +87,7 @@ public class Messages {
     private static final class UTF8Control extends Control {
         /**
          * Specific constructor of RessourceBundler
-         * 
+         *
          * @param baseName
          * @param locale
          * @param format
@@ -99,14 +99,14 @@ public class Messages {
             boolean reload)
             throws IllegalAccessException, InstantiationException, IOException {
             // The below is a copy of the default implementation.
-            String bundleName = toBundleName(baseName, locale);
-            String resourceName = toResourceName(bundleName, "properties");
+            final String bundleName = toBundleName(baseName, locale);
+            final String resourceName = toResourceName(bundleName, "properties");
             ResourceBundle bundle = null;
             InputStream stream = null;
             if (reload) {
-                URL url = loader.getResource(resourceName);
+                final URL url = loader.getResource(resourceName);
                 if (url != null) {
-                    URLConnection connection = url.openConnection();
+                    final URLConnection connection = url.openConnection();
                     if (connection != null) {
                         connection.setUseCaches(false);
                         stream = connection.getInputStream();
@@ -137,12 +137,12 @@ public class Messages {
             locale = Locale.FRENCH;
         }
         // First check if this file is in config directory
-        File bundleFile =
+        final File bundleFile =
             PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
         if (bundleFile.canRead()) {
             try (FileInputStream inputStream = new FileInputStream(bundleFile)) {
                 return new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
@@ -153,12 +153,12 @@ public class Messages {
 
     /**
      * Retrieve all the messages
-     * 
+     *
      * @return map of messages
      */
     public Map<String, String> getAllMessages() {
         final Map<String, String> bundleMap = new HashMap<>();
-        for (String key : resourceBundle.keySet()) {
+        for (final String key : resourceBundle.keySet()) {
             final String value = resourceBundle.getString(key);
             bundleMap.put(key, value);
         }
@@ -197,15 +197,15 @@ public class Messages {
 
     /**
      * return a fake message when the message is unknown in the property file
-     * 
+     *
      * @param key
      * @param args
      * @return the default fake message using the key
      */
     private String getFakeMessage(String key, Object... args) {
-        StringBuilder builder = new StringBuilder("!").append(key).append('!');
+        final StringBuilder builder = new StringBuilder("!").append(key).append('!');
         if (args != null) {
-            for (Object object : args) {
+            for (final Object object : args) {
                 builder.append(" ").append(object);
             }
         }

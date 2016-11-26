@@ -326,7 +326,8 @@ public class StorageDistributionImplTest {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, null, null, new AsyncResponseJunitTest());
+            simpleDistribution.getContainerByCategory(TENANT_ID + this, STRATEGY_ID, null, null,
+                new AsyncResponseJunitTest());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed

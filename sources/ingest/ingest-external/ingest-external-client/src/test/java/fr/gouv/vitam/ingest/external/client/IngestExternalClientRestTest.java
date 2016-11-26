@@ -49,12 +49,12 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 @SuppressWarnings("rawtypes")
@@ -136,24 +136,24 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenInputstreamWhenUploadThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
 
-        InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
+        final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.OK,
+        final Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.OK,
             mockResponseInputStream,
             MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
         when(mock.post()).thenReturn(fakeResponse);
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }
@@ -161,24 +161,24 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
     @Test
     public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
-        InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
+        final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+        final Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             mockResponseInputStream,
             MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
         when(mock.post()).thenReturn(fakeResponse);
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }

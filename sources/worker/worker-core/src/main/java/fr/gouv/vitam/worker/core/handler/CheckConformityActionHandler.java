@@ -117,7 +117,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-                Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
+                final Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
                 objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).asText();
 
@@ -130,13 +130,13 @@ public class CheckConformityActionHandler extends ActionHandler {
                     logbookLifecycleObjectGroupParameters, params);
 
                 // checkMessageDigest
-                JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+                final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
                 if (qualifiers != null) {
-                    List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                    final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
                     if (versions != null && !versions.isEmpty()) {
-                        for (JsonNode versionsArray : versions) {
-                            for (JsonNode version : versionsArray) {
-                                String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                        for (final JsonNode versionsArray : versions) {
+                            for (final JsonNode version : versionsArray) {
+                                final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                 checkMessageDigest(handlerIO.getHelper(), params, binaryObjects.get(objectId),
                                     version,
                                     itemStatus);
@@ -176,7 +176,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, null);
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters, itemStatus);
-            } catch (ProcessingException e) {
+            } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
@@ -209,11 +209,11 @@ public class CheckConformityActionHandler extends ActionHandler {
         Response response = null;
 
         try {
-            DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
+            final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
             response = handlerIO.getInputStreamNoCachedFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
             InputStream inputStream = (InputStream) response.getEntity();
-            Digest vitamDigest = new Digest(digestTypeInput);
+            final Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
             boolean isVitamDigest = false;
             if (!binaryObject.getAlgo().equals(digestTypeInput)) {
@@ -229,8 +229,9 @@ public class CheckConformityActionHandler extends ActionHandler {
 
             final String manifestDigestString = manifestDigest.digestHex();
             final String vitamDigestString = vitamDigest.digestHex();
-            LOGGER.debug("DEBUG: \n\t" + binaryObject.getAlgo().getName()+" " +binaryObject.getMessageDigest()+"\n\t"+
-               manifestDigestString+"\n\t"+vitamDigestString);
+            LOGGER.debug(
+                "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObject.getMessageDigest() + "\n\t" +
+                    manifestDigestString + "\n\t" + vitamDigestString);
             // define eventDetailData
             eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
                 "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
@@ -287,23 +288,23 @@ public class CheckConformityActionHandler extends ActionHandler {
     }
 
     private Map<String, BinaryObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
-        Map<String, BinaryObjectInfo> binaryObjects = new HashMap<>();
+        final Map<String, BinaryObjectInfo> binaryObjects = new HashMap<>();
 
-        JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
-        JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
+        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             // KO
             return binaryObjects;
         }
 
-        List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
             // KO
             return binaryObjects;
         }
-        for (JsonNode version : versions) {
+        for (final JsonNode version : versions) {
             LOGGER.debug(version.toString());
-            for (JsonNode jsonBinaryObject : version) {
+            for (final JsonNode jsonBinaryObject : version) {
                 binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
                     new BinaryObjectInfo()
                         .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())

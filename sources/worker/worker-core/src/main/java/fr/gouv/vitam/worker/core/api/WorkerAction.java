@@ -45,13 +45,14 @@ public interface WorkerAction {
 
     /**
      *
-     * @param param  {@link WorkerParameters}
-     * @param handler 
+     * @param param {@link WorkerParameters}
+     * @param handler
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
-    ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException;
+    ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException;
 
     /**
      * @param handler input output list

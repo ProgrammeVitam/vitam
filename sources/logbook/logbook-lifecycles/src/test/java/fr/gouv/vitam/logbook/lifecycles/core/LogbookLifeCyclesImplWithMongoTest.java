@@ -53,8 +53,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -99,7 +99,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
@@ -396,15 +396,14 @@ public class LogbookLifeCyclesImplWithMongoTest {
         while (true) {
             try {
                 logbookLifeCyclesImpl.getCursorUnitNext(result);
-            } catch (LogbookNotFoundException e) {
+            } catch (final LogbookNotFoundException e) {
                 break;
             }
         }
         try {
             logbookLifeCyclesImpl.getCursorUnitNext(result);
             fail("Should raized an exception");
-        } catch (LogbookDatabaseException e) {
-        }
+        } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
             JsonHandler.getFromString(new Select().getFinalSelect().toString()));
@@ -412,15 +411,14 @@ public class LogbookLifeCyclesImplWithMongoTest {
         while (true) {
             try {
                 logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
-            } catch (LogbookNotFoundException e) {
+            } catch (final LogbookNotFoundException e) {
                 break;
             }
         }
         try {
             logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
             fail("Should raized an exception");
-        } catch (LogbookDatabaseException e) {
-        }
+        } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
-}
+    }
 }

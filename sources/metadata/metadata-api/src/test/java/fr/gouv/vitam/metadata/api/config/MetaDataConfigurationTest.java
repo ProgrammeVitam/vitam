@@ -34,7 +34,7 @@ import java.util.List;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server2.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 public class MetaDataConfigurationTest {
 
@@ -51,7 +51,7 @@ public class MetaDataConfigurationTest {
 
     @Test
     public void testSetterGetter() {
-        List<MongoDbNode> mongo_nodes = new ArrayList<MongoDbNode>();
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST, PORT));
         final MetaDataConfiguration config1 = new MetaDataConfiguration();
         config1.setMongoDbNodes(mongo_nodes);
@@ -61,7 +61,7 @@ public class MetaDataConfigurationTest {
         assertEquals(JETTY_CONF, config1.setJettyConfig(JETTY_CONF).getJettyConfig());
         assertEquals(CLUSTER_NAME, config1.setClusterName(CLUSTER_NAME).getClusterName());
 
-        final List<ElasticsearchNode> es_nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> es_nodes = new ArrayList<>();
         es_nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
         assertEquals(1, config1.setElasticsearchNodes(es_nodes).getElasticsearchNodes().size());
 
@@ -72,6 +72,6 @@ public class MetaDataConfigurationTest {
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
-        //assertEquals(config2.getJettyConfig(), JETTY_CONF_FILE);
+        // assertEquals(config2.getJettyConfig(), JETTY_CONF_FILE);
     }
 }

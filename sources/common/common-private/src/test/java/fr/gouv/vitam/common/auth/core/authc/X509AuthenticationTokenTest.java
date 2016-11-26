@@ -41,10 +41,10 @@ import org.junit.Test;
 
 public class X509AuthenticationTokenTest {
     private X509Certificate cert;
-    
-    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
+
+    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
     BigInteger serial = new BigInteger("1000000000000000");
-    
+
     @Before
     public void setUp() throws Exception {
         cert = mock(X509Certificate.class);
@@ -53,16 +53,16 @@ public class X509AuthenticationTokenTest {
     }
 
     @Test
-    public void testGetters(){
-        X509Certificate[] clientCertChain = new X509Certificate[]{cert};
+    public void testGetters() {
+        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
         X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
-        
+
         assertNull(token.getCredentials());
         assertEquals(token.getPrincipal(), token.getSubjectDN());
         assertTrue(token.getX509CertSelector() instanceof CertSelector);
         assertNull(token.getX509CertChainStore());
-        
-        token = new X509AuthenticationToken(token.getSubjectDN(), 
+
+        token = new X509AuthenticationToken(token.getSubjectDN(),
             token.getIssuerDN(), token.getHexSerialNumber(), token.getHost());
     }
 }

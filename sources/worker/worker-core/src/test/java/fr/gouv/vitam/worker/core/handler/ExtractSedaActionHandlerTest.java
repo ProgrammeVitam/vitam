@@ -286,9 +286,10 @@ public class ExtractSedaActionHandlerTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
-        
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-		action.addOutIOParameters(out);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -305,8 +306,9 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
 
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-		action.addOutIOParameters(out);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());

@@ -231,7 +231,7 @@ public class Select extends RequestMultiple {
 
     /**
      * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
-     * 
+     *
      * @param qualifier might be either Xxx or Xxx_n
      * @param version
      * @params additionalFields additional fields
@@ -243,7 +243,7 @@ public class Select extends RequestMultiple {
         String projection =
             "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
                 ",1]},\"#id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
-        for (String field : additionalFields) {
+        for (final String field : additionalFields) {
             projection += ",\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
         }
         projection += "}}";

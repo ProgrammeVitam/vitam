@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
  * Logbook configuration class mapping

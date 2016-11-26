@@ -84,7 +84,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
-        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
@@ -156,7 +156,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         } catch (final MetaDataException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new ProcessingException("Json wrong format", e);
         }
 

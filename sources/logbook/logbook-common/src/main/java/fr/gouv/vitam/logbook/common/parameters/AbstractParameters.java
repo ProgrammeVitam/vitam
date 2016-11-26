@@ -120,16 +120,16 @@ abstract class AbstractParameters implements LogbookParameters {
         return this;
     }
 
-	@Override
-	public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
-			String additionnalMessage, String... params) {
-		if (this instanceof LogbookOperationParameters) {
-			setFinalStatusOp(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
-		} else {
-			setFinalStatusLfc(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
-		}
-		return this;
-	}
+    @Override
+    public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
+        String additionnalMessage, String... params) {
+        if (this instanceof LogbookOperationParameters) {
+            setFinalStatusOp(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+        } else {
+            setFinalStatusLfc(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+        }
+        return this;
+    }
 
     private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {

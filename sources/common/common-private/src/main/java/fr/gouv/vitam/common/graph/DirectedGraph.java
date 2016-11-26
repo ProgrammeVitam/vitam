@@ -75,7 +75,7 @@ public class DirectedGraph {
         indegree = new int[vertices];
         adj = new NodeIterable[vertices];
         for (int v = 0; v < vertices; v++) {
-            adj[v] = new NodeIterable<Integer>();
+            adj[v] = new NodeIterable<>();
         }
     }
 
@@ -89,12 +89,12 @@ public class DirectedGraph {
 
     @SuppressWarnings("unchecked")
     public DirectedGraph(JsonNode jsonGraph) {
-        indexMapping = new DualHashBidiMap<Integer, String>();
+        indexMapping = new DualHashBidiMap<>();
         vertices = jsonGraph.size() + 1;
         adj = new NodeIterable[vertices];
 
         for (int v = 0; v < vertices; v++) {
-            adj[v] = new NodeIterable<Integer>();
+            adj[v] = new NodeIterable<>();
         }
         indegree = new int[vertices];
         // parse json to create graph
