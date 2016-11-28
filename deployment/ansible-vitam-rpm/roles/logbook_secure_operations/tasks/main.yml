@@ -9,4 +9,4 @@
     user: "{{ vitam_user }}"
     job: "/vitam/script/logbook/launchTraceability.sh"
   run_once: yes
-  delegate_to: "groups['hosts-logbook'] | last"
+  delegate_to: "{{ groups['hosts-logbook'] | last }}"
