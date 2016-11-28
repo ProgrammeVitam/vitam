@@ -58,8 +58,11 @@ angular.module('ihm.demo')
       // item_715
       var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
       a.href = url;
-      a.download = response.headers('content-disposition').split('filename=')[1];
-      a.click();
+
+      if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+        a.download = response.headers('content-disposition').split('filename=')[1];
+        a.click();
+      }
     }
 
 
@@ -173,25 +176,8 @@ angular.module('ihm.demo')
       return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     };
 
-    // $scope.checkExtension = function($event,filename) {
-    //   var validFormats = ['zip', 'tar'];
-    //   var ext = filename.substr(filename.lastIndexOf('.')+1);
-    //   var index=validFormats.indexOf(ext);
-    //   if( index== -1){
-    //     var formats = ['tar.gz','tar.bz2'];
-    //     var spName=filename.split(".");
-    //     var ext1 = spName.pop();
-    //     var ext2 = spName.pop();
-    //     var extn = ext2+'.'+ext1;
-    //     if(formats.indexOf(extn)== -1){
-    //       $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2')
-    //       console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2');
-    //       $route.reload();
-    //     }
-    //   }
-    // };
-
     $scope.disableUpload = true;
     $scope.disableSelect = false;
     $scope.ctrl = $scope;
+
   });
