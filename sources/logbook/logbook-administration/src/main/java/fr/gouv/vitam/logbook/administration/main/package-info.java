@@ -24,41 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.function.administration.rules.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
-
-public class RulesManagerParserTest {
-    String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_Parametes.csv";
-    ArrayNode jsonFileRules = null;
-
-    @Test
-    public void testFileRules() throws FileFormatException, InvalidParseOperationException, IOException {
-        jsonFileRules =
-            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_OK));
-        assertTrue(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleId").toString().contains("CLASS-00001"));
-        assertEquals(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleMeasurement").textValue(), "Année");
-        assertTrue(
-            jsonFileRules.get(jsonFileRules.size() - 1).get("RuleDuration").toString().contains("10"));
-    }
-
-    @Test(expected = FileNotFoundException.class)
-    public void testRulesFileKO() throws FileFormatException, InvalidParseOperationException, IOException {
-        jsonFileRules =
-            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_KO));
-    }
-}
+/**
+ * Logbook Administration for command line (main) to control Traceability process on Logbooks
+ */
+package fr.gouv.vitam.logbook.administration.main;

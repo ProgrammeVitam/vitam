@@ -1,4 +1,3 @@
-package fr.gouv.vitam.ihmrecette.soapui;
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -30,4 +29,4 @@ package fr.gouv.vitam.ihmrecette.soapui;
  * SoapUI tools for launch tests and get results
  *
  */
-
+package fr.gouv.vitam.ihmrecette.soapui;
