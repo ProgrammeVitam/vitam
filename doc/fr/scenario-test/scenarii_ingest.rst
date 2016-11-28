@@ -1,7 +1,7 @@
 Scenarii pour l'ingest
 ######################
 
-Cette partie décrit les scenarii de test pour l'ingest.
+Cette partie décrit les scenarii de test correspondant au processus d'ingest.
 
 Liste des scenarii
 ==================
