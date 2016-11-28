@@ -108,6 +108,7 @@
 - hosts: hosts-logbook
   roles:
     - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", secret_platform: "true" }
+    - logbook_secure_operations
 
 - hosts: hosts-functional-administration
   roles:
