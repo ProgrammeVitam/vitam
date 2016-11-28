@@ -12,20 +12,22 @@
       * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
  
 
-####################################################
+########
 Sommaire
-####################################################
+########
 
 .. toctree::
    :maxdepth: 2
 
    introduction.rst
+   scenarii_ingest.rst
+   scenarii_hors_ingest.rst
    include/_toc.rst
 
 
-####################################################
+##############
 Index & Tables
-####################################################
+##############
 
 * :ref:`genindex`
 * :ref:`search`
