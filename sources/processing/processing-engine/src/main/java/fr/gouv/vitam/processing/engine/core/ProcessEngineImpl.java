@@ -213,7 +213,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         workParams.setStepUniqId(uniqueId);
         LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newGUID(),
+            GUIDFactory.newEventGUID(tenantId),
             step.getStepName(),
             GUIDReader.getGUID(workParams.getContainerName()),
             LogbookTypeProcess.INGEST,
@@ -309,6 +309,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
             }
 
+            parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(tenantId).getId());
             parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
