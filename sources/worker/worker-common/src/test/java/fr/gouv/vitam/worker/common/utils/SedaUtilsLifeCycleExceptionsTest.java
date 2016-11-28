@@ -194,7 +194,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.objectIdentifier, OBJ);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, OBJ);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newGUID().toString());
+            GUIDFactory.newEventGUID(0).getId());
         // TODO P2 to be passed within the parameters since multiple workflow types could exist
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());

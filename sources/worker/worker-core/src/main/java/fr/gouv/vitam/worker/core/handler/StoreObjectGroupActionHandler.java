@@ -30,11 +30,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -141,7 +141,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             try {
                 logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
                     null);
-
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(0).getId());
                 LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
                     logbookLifecycleObjectGroupParameters, itemStatus);
             } catch (final ProcessingException e) {
@@ -267,10 +268,14 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param bdoId binary data object id
      */
     private void updateLifeCycleParametersLogbookForBdo(WorkerParameters params, String bdoId) {
-        final String extension = FilenameUtils.getExtension(params.getObjectName());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            params.getObjectName().replace("." + extension, ""));
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, bdoId);
+            params.getContainerName());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
+            "{\"ObjectId\": \"" + bdoId + "\"}");
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifier,
+            LogbookLifecycleWorkerHelper.getObjectID(params));
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+            GUIDFactory.newEventGUID(0).getId());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
             HANDLER_ID);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,

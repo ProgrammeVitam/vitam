@@ -43,6 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -122,7 +123,10 @@ public class CheckConformityActionHandler extends ActionHandler {
                 objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).asText();
 
                 // Add Start CHECK_DIGEST TASK in ObjectGroup LifeCycle
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                    "{\"ObjectId\": \"" + objectID + "\"}");
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(0).getId());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
                     INCOME);
                 logbookLifecycleObjectGroupParameters.setBeginningLog(HANDLER_ID, null, null);
@@ -202,8 +206,10 @@ public class CheckConformityActionHandler extends ActionHandler {
         StatusCode statusCode = StatusCode.OK;
 
         // started for binary Object
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
+            "{\"ObjectId\": \"" + binaryObject.getId() + "\"}");
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            binaryObject.getId());
+            GUIDFactory.newEventGUID(0).getId());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             INCOME);
         Response response = null;
