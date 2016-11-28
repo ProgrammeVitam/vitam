@@ -34,8 +34,8 @@ Les événements associés sont du type :
 - gel
 - ...
 
-**Important** : L'identifiant d'un Unit lifecycle est également l'identifiant du Unit correspondant dans le service Access.
-Ainsi il est possible une fois une opération terminée de demander la liste des Units qui sont concernés par cette opération en demandant la liste des UnitLifeCycles de cette opération. Les identifiants remontées sont alors les mêmes pour accéder au journal du cycle de vie d'une Unit (*/unitlifecycles/id*) ou à sa description et ses métadonnées de gestion (*/units/id*).  
+**Important** : l'identifiant d'un Unit lifecycle est également l'identifiant du Unit correspondant dans le service Access.
+Ainsi il est possible une fois une opération terminée de demander la liste des Units qui sont concernés par cette opération en demandant la liste des UnitLifeCycles de cette opération. Les identifiants remontés sont alors les mêmes pour accéder au journal du cycle de vie d'une Unit (*/unitlifecycles/id*) ou à sa description et ses métadonnées de gestion (*/units/id*).   
 
 # ObjectLifeCycles
 
@@ -51,5 +51,5 @@ Les événements associés sont du type :
 - ...
 
 
-**Important** : L'identifiant d'un Objet lifecycle est également l'identifiant de l'Objet correspondant dans le service Access.
-Ainsi il est possible une fois une opération terminée de demander la liste des Objects qui sont concernés par cette opération en demandant la liste des ObjectLifeCycles de cette opération. Les identifiants remontées sont alors les mêmes pour accéder au journal du cycle de vie d'un Object (*/objectlifecycles/id*) ou à sa description technique (*/objects/id*).  
+**Important** : l'identifiant d'un Object lifecycle est également l'identifiant de l'Objet correspondant dans le service Access.
+Ainsi il est possible une fois une opération terminée de demander la liste des Objects qui sont concernés par cette opération en demandant la liste des ObjectLifeCycles de cette opération. Les identifiants remontés sont alors les mêmes pour accéder au journal du cycle de vie d'un Object (*/objectlifecycles/id*) ou à sa description technique (*/objects/id*).   
