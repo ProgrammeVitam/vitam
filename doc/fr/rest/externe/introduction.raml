@@ -1,0 +1,32 @@
+#%RAML 1.0
+title: API-Vitam Version Beta - Introduction
+version: v1
+baseUri: https://api.vitam.gouv.fr/{version}
+protocols: [ HTTPS ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+  AccessTypes: libraries/AccessTypes.raml
+  AccessTraits: libraries/AccessTraits.raml
+
+mediaType: application/json
+
+types:
+  _reserved:
+    type: string
+
+documentation:
+  - title: Avertissements
+    content: !include docs-fr/avertissement.md
+
+  - title: Conventions REST Générales
+    content: !include docs-fr/standard.md
+
+  - title: DSL Vitam
+    content: !include docs-fr/dsl.md
+
+/status:
+  get:
+    is: [ StandardTraits.StandardHeader204,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]

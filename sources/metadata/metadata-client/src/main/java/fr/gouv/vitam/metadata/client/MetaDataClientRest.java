@@ -29,17 +29,17 @@ package fr.gouv.vitam.metadata.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -66,13 +66,12 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    // FIXME P0 changer String en JsonNode pour toutes les Query
-    public String insertUnit(String insertQuery)
+    public JsonNode insertUnit(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), insertQuery);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
@@ -90,30 +89,28 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
-            return response.readEntity(String.class);
-        } catch (VitamClientInternalException e) {
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        }finally {
+        } finally {
             consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public JsonNode selectUnits(String selectQuery)
+    public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_UNITS_QUERY_NULL.getMessage(), selectQuery);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/units", headers, selectQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -122,36 +119,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
-            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override public JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
-        try {
-            ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidParseOperationException(e);
-        }
-        Response response = null;
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/units/" + unitId, headers, selectQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
-            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
-            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
-            }
-            return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -160,20 +128,52 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId) throws
-        MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+    public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
+        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
+        try {
+            ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(unitId)) {
+            throw new InvalidParseOperationException("unitId may not be empty");
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/units/" + unitId, null, selectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            }
+            return response.readEntity(JsonNode.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetadataInvalidSelectException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL.getMessage(), selectQuery);
             ParametersChecker.checkParameter(ErrorMessage.BLANK_PARAM.getMessage(), objectGroupId);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(objectGroupId)) {
+            throw new InvalidParseOperationException("objectGroupId may not be empty");
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, "/objectgroups/" + objectGroupId, headers, selectQuery,
+            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId, null, selectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
@@ -185,7 +185,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetadataInvalidSelectException(ErrorMessage.MISSING_SELECT_QUERY.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -194,19 +194,20 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId) throws MetaDataExecutionException,
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), updateQuery, unitId);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+        if (Strings.isNullOrEmpty(unitId)) {
+            throw new InvalidParseOperationException("unitId may not be empty");
         }
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.PUT, "/units/" + unitId, headers, updateQuery, MediaType
-                .APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -215,7 +216,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
             return response.readEntity(JsonNode.class);
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -224,15 +225,15 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public String insertObjectGroup(String insertQuery)
+    public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/objectgroups", null, insertQuery, MediaType
-                .APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.POST, "/objectgroups", null, insertQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -244,8 +245,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             }
-            return response.readEntity(String.class);
-        } catch (VitamClientInternalException e) {
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {

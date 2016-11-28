@@ -36,51 +36,81 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * Mock client implementation for access
  */
-public class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
+class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
 
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
-    public JsonNode selectUnits(String selectQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+    public JsonNode selectUnits(JsonNode selectQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode selectUnitbyId(String sqlQuery, String id)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+    public JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
-    public JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-                "[{'_id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
+                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
 
     }
 
     @Override
-    public Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException {
+    public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+
+    @Override
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookResults();
+    }
+
+    @Override
+    public JsonNode selectOperationbyId(String processId) throws InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCycleById(String idUnit)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String idObject)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
     }
 }

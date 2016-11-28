@@ -34,14 +34,14 @@ public class LibraryApplicationTest {
     @Test
     public void shouldStopServerWhenStopApplicationWithFileExistAndRunOnDefaultPort() throws Exception {
         // Given
-        final LibraryApplication application = new LibraryApplication();
+        final LibraryApplication application = new LibraryApplication("src/test/resources/library.conf");
         // When
-        application.start(new String[] {"src/test/resources/library.conf"});
+        application.start();
         // Then
-        Assert.assertTrue(application.isStarted());
+        Assert.assertTrue(application.getVitamServer().isStarted());
         // When
         application.stop();
         // Then
-        Assert.assertFalse(application.isStarted());
+        Assert.assertTrue(application.getVitamServer().isStopped());
     }
 }

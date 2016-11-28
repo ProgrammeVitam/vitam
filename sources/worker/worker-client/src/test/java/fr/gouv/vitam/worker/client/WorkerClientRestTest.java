@@ -35,15 +35,19 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -52,8 +56,13 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 
 public class WorkerClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
+    private static final String DUMMY_REQUEST_ID = "reqId";
     protected static int serverPort;
     protected WorkerClientRest client;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -117,43 +126,47 @@ public class WorkerClientRestTest extends VitamJerseyTest {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void submitOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
 
+        final ItemStatus result = new ItemStatus("StepId");
 
-        final CompositeItemStatus result = new CompositeItemStatus("StepId");
-
-        ItemStatus itemStatus1 = new ItemStatus("checkSeda");
+        final ItemStatus itemStatus1 = new ItemStatus("checkSeda");
         itemStatus1.setMessage("CHECK_MANIFEST_OK");
-        StatusCode status = StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus1.increment(status);
         result.setItemsStatus("checkSeda", itemStatus1);
 
-        ItemStatus itemStatus2 = new ItemStatus("CheckVersion");
+        final ItemStatus itemStatus2 = new ItemStatus("CheckVersion");
         itemStatus2.setMessage("CHECK_VERSION_OK");
         itemStatus2.increment(status);
         result.setItemsStatus("CheckVersion", itemStatus2);
 
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(result).build());
-        final CompositeItemStatus responses =
-            client.submitStep("requestId",
-                new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
+        final ItemStatus responses =
+            client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
         assertNotNull(responses);
         assertEquals(StatusCode.OK, responses.getItemsStatus().get("checkSeda").getGlobalStatus());
         assertEquals(StatusCode.OK, responses.getItemsStatus().get("CheckVersion").getGlobalStatus());
         assertEquals(StatusCode.OK, responses.getGlobalStatus());
     }
 
+    @RunWithCustomExecutor
     @Test(expected = WorkerNotFoundClientException.class)
     public void submitNotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        client.submitStep("requestId", new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
+        client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
     }
 
+    @RunWithCustomExecutor
     @Test(expected = WorkerServerClientException.class)
     public void submitException() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        client.submitStep("requestId", new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
+        client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
     }
 
 }

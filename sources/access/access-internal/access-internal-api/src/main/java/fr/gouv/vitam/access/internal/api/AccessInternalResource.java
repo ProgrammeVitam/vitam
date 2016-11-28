@@ -34,7 +34,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.server2.application.resources.VitamResource;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.server.application.resources.VitamResource;
 
 /**
  * Access Resource REST API
@@ -48,7 +50,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
-    public Response getUnits(String dslQuery, String headerParam);
+    public Response getUnits(JsonNode dslQuery, String headerParam);
 
     /**
      * gets archive units by Id with Json query
@@ -58,7 +60,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param unitId units identifier
      * @return a archive unit result list
      */
-    public Response getUnitById(String dslQuery, String headerParam, String unitId);
+    public Response getUnitById(JsonNode dslQuery, String headerParam, String unitId);
 
     /**
      * update archive units by Id with Json query
@@ -67,7 +69,7 @@ public interface AccessInternalResource extends VitamResource {
      * @param unitId units identifier
      * @return a archive unit result list
      */
-    public Response updateUnitById(String dslQuery, String unitId);
+    public Response updateUnitById(JsonNode dslQuery, String unitId);
 
     /**
      * Retrieve an ObjectGroup by its id
@@ -76,41 +78,41 @@ public interface AccessInternalResource extends VitamResource {
      * @param query the json query
      * @return an http response containing the objectGroup as json or a json serialized error
      */
-    Response getObjectGroup(String idObjectGroup, String query);
+    Response getObjectGroup(String idObjectGroup, JsonNode query);
 
     /**
-     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET" value
-     * is found in method override http header. Return an error otherwise.
+     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, JsonNode query) if the "GET"
+     * value is found in method override http header. Return an error otherwise.
      *
      * @param xHttpOverride value of the associated header
      * @param idObjectGroup the ObjectGroup id
      * @param query the json query
      * @return an http response containing the objectGroup as json or a json serialized error
      */
-    Response getObjectGroup(String xHttpOverride, String idObjectGroup, String query);
+    Response getObjectGroup(String xHttpOverride, String idObjectGroup, JsonNode query);
 
     /**
      * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
      * (Async version)
-     * 
+     *
      * @param headers
      * @param idObjectGroup
      * @param query
      * @param asyncResponse
      */
     void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        String query, @Suspended final AsyncResponse asyncResponse);
+        JsonNode query, @Suspended final AsyncResponse asyncResponse);
 
     /**
-     * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
-     * String query) if the "GET" value is found in method override http header. Return an error otherwise.
-     * (Async version)
+     * POST version of getObjectStream. Implicitly call getObjectStreamAsync(HttpHeaders headers, String idObjectGroup,
+     * JsonNode query) if the "GET" value is found in method override http header. Return an error otherwise. (Async
+     * version)
      *
      * @param headers http request headers
      * @param idObjectGroup the ObjectGroup id
      * @param query the DSL query as json
-     * @param asyncResponse 
+     * @param asyncResponse
      */
-    void getObjectStreamPostAsync(HttpHeaders headers, String idObjectGroup, String query,
+    void getObjectStreamPostAsync(HttpHeaders headers, String idObjectGroup, JsonNode query,
         @Suspended final AsyncResponse asyncResponse);
 }

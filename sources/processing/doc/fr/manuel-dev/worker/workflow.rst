@@ -4,270 +4,342 @@ Workflow
 DefaultIngestWorkflow
 *********************
 
+
+Un Workflow est défini en JSON avec la structure suivante :
+
+
+- un identifiant (id)
+- une liste de Steps :
+
+   - un identifiant de famille de Workers (workerGroupId)
+   - un identifiant de Step (stepName)
+
+   - un modèle d'exécution (behavior) pouvant être :
+     BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow
+     NOBLOCKING : le traitement peut continuer malgrée les erreurs
+
+   - un modèle de distribution :
+
+      - un type (kind) pouvant être REF ou LIST
+      - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin sur le Workspace (LIST)
+
+   - une liste d'Actions :
+
+
+      - un nom d'action (actionKey)
+      - un modèle d'exécution (behavior) pouvant être BLOCKING ou NOBLOCKING
+      - des paramètres d'entrées (in) :
+
+         - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
+         - une cible (uri) comportant un schema (WORKSPACE, MEMORY, VALUE) et un path :
+
+
+            - WORKSPACE:path indique le chemin relatif sur le workspace
+            - MEMORY:path indique le nom de la clef de valeur
+            - VALUE:path indique la valeur statique en entrée
+
+         - chaque handler peut accéder à ces valeurs, définies dans l'ordre stricte, via le handlerIO
+
+            - WORKSPACE : implicitement un File
+            - MEMORY : implicitement un objet mémoire déjà alloué par un Handler précédent
+            - VALUE : implicitement une valeur String
+
+      - des paramètres de sortie (out) :
+
+         - un nom (name) utilisé pour référencer cet élément entre différents handlers d'une même étape
+         - une cible (uri) comportant un schema (WORKSPACE, MEMORY) et un path :
+
+            - WORKSPACE:path indique le chemin relatif sur le workspace
+            - MEMORY:path indique le nom de la clef de valeur
+
+         - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
+
+
+            - WORKSPACE : implicitement un File local
+            - MEMORY : implicitement un objet mémoire
+
+
 .. code-block:: json
 
-  {
-    "id": "DefaultIngestWorkflow",
-    "comment": "Default Ingest Workflow V6",
-    "steps": [
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_INGEST_CONTROL_SIP",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "CHECK_SEDA",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-              "behavior": "NOBLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_CONSISTENCY",
-              "behavior": "BLOCKING",
-              "out": [
-                {
-                  "name": "unitsLevel.file",
-                  "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
-                },
-                {
-                  "name": "mapsBDOtoOG.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
-                },
-                {
-                  "name": "mapsBDO.file",
-                  "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "mapsObjectGroup.file",
-                  "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "mapsObjectGroup.file",
-                  "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
-                },
-                {
-                  "name": "mapsBDOtoVersionBDO.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
-                },
-                {
-                  "name": "mapsUnits.file",
-                  "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-                },
-                {
-                  "name": "globalSEDAParameters.file",
-                  "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                }
-              ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "CHECK_CONSISTENCY_POST",
-              "behavior": "NOBLOCKING",
-              "in": [
-                {
-                  "name": "mapsBDOtoOG.file",
-                  "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
-                },
-                {
-                  "name": "mapsBDOtoOG.file",
-                  "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_OG_CHECK_AND_TRANSFORME",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "ObjectGroup"
-        },
-        "actions": [
-        	{
-            "action": {
-              "actionKey": "CHECK_DIGEST",
-              "behavior": "BLOCKING",
-              "in": [
-                {
-                  "name": "algo",
-                  "uri": "VALUE:SHA-512"
-                }
-              ],
-              "out": [
-                {
-                  "name": "seda.file",
-                  "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
-                }
-              ]
-            }
-          },
-          {
-            "action": {
-              "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-              "behavior": "BLOCKING"
-            }
-          }
-        ]
-      },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "REF",
-          "element": "SIP/manifest.xml"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "STORAGE_AVAILABILITY_CHECK",
-              "behavior": "BLOCKING"
-            }
-          }
-        ]
-      },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_OG_STORING",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "ObjectGroup"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "OG_STORAGE",
-              "behavior": "BLOCKING"
-            }
-          },
-          {
-            "action": {
-              "actionKey": "OG_METADATA_INDEXATION",
-              "behavior": "BLOCKING"
-            }
-          }
-        ]
-      },
-      {
-        "workerGroupId": "DefaultWorker",
-        "stepName": "STP_UNIT_STORING",
-        "behavior": "BLOCKING",
-        "distribution": {
-          "kind": "LIST",
-          "element": "Units"
-        },
-        "actions": [
-          {
-            "action": {
-              "actionKey": "UNIT_METADATA_INDEXATION",
-              "behavior": "BLOCKING"
-            }
-          }
-        ]
-      },
-      {
-           "workerGroupId": "DefaultWorker",
-           "stepName": "STP_ACCESSION_REGISTRATION",
-           "behavior": "BLOCKING",
-           "distribution": {
-             "kind": "REF",
-             "element": "SIP/manifest.xml"
-           },
-           "actions": [
-             {
-               "action": {
-                 "actionKey": "ACCESSION_REGISTRATION",
-                 "behavior": "BLOCKING",
-                 "in": [
-                   {
-                     "name": "mapsUnits.file",
-                     "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-                   },
-                   {
-                     "name": "mapsBDO.file",
-                     "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-                   },
-                   {
-                     "name": "mapsBDO.file",
-                     "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
-                   },
-                   {
-                     "name": "globalSEDAParameters.file",
-                     "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-                   }
-                 ]
-               }
-             }
-           ]
+   {
+     "id": "DefaultIngestWorkflow",
+     "comment": "Default Ingest Workflow V6",
+     "steps": [
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_INGEST_CONTROL_SIP",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "REF",
+           "element": "SIP/manifest.xml"
          },
-         {
-           "workerGroupId": "DefaultWorker",
-           "stepName": "STP_INGEST_FINALISATION",
-           "behavior": "FINALLY",
-           "distribution": {
-             "kind": "REF",
-             "element": "SIP/manifest.xml"
-           },
-           "actions": [
-             {
-               "action": {
-                 "actionKey": "ATR_NOTIFICATION",
-                 "behavior": "BLOCKING",
-                 "in": [
-                   {
-                     "name": "mapsUnits.file",
-                     "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
-                     "optional": "true"
-                   },
-                   {
-                     "name": "mapsBDO.file",
-                     "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
-                     "optional": "true"
-                   },
-                   {
-                     "name": "mapsBDOtoOG.file",
-                     "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
-                     "optional": "true"
-                   },
-                   {
-                     "name": "mapsBDOtoVersionBDO.file",
-                     "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
-                     "optional": "true"
-                   },
-                   {
-                     "name": "globalSEDAParameters.file",
-                     "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
-                     "optional": "true"
-                   }
-                 ]
-               }
+         "actions": [
+           {
+             "action": {
+               "actionKey": "CHECK_SEDA",
+               "behavior": "BLOCKING"
              }
-           ]
-         }
-       ]
-      }
+           },
+           {
+             "action": {
+               "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
+               "behavior": "BLOCKING"
+             }
+           },
+           {
+             "action": {
+               "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
+               "behavior": "NOBLOCKING"
+             }
+           },
+           {
+             "action": {
+               "actionKey": "CHECK_MANIFEST",
+               "behavior": "BLOCKING",
+               "out": [
+                 {
+                   "name": "unitsLevel.file",
+                   "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+                 },
+                 {
+                   "name": "mapsBDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+                 },
+                 {
+                   "name": "mapsBDO.file",
+                   "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+                 },
+                 {
+                   "name": "mapsObjectGroup.file",
+                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+                 },
+                 {
+                   "name": "mapsObjectGroup.file",
+                   "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+                 },
+                 {
+                   "name": "mapsBDOtoVersionBDO.file",
+                   "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+                 },
+                 {
+                   "name": "mapsUnits.file",
+                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+                 },
+                 {
+                   "name": "globalSEDAParameters.file",
+                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+                 }
+               ]
+             }
+           },
+           {
+             "action": {
+               "actionKey": "CHECK_CONSISTENCY",
+               "behavior": "NOBLOCKING",
+               "in": [
+                 {
+                   "name": "mapsBDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+                 },
+                 {
+                   "name": "mapsBDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+                 }
+               ]
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "LIST",
+           "element": "ObjectGroup"
+         },
+         "actions": [
+            {
+             "action": {
+               "actionKey": "CHECK_DIGEST",
+               "behavior": "BLOCKING",
+               "in": [
+                 {
+                   "name": "algo",
+                   "uri": "VALUE:SHA-512"
+                 }
+               ]
+             }
+           },
+           {
+             "action": {
+               "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+               "behavior": "BLOCKING"
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "LIST",
+           "element": "Units"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "UNITS_RULES_COMPUTE",
+               "behavior": "BLOCKING"
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "REF",
+           "element": "SIP/manifest.xml"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "STORAGE_AVAILABILITY_CHECK",
+               "behavior": "BLOCKING"
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_OG_STORING",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "LIST",
+           "element": "ObjectGroup"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "OG_STORAGE",
+               "behavior": "BLOCKING"
+             }
+           },
+           {
+             "action": {
+               "actionKey": "OG_METADATA_INDEXATION",
+               "behavior": "BLOCKING"
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_UNIT_STORING",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "LIST",
+           "element": "Units"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "UNIT_METADATA_INDEXATION",
+               "behavior": "BLOCKING"
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_ACCESSION_REGISTRATION",
+         "behavior": "BLOCKING",
+         "distribution": {
+           "kind": "REF",
+           "element": "SIP/manifest.xml"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "ACCESSION_REGISTRATION",
+               "behavior": "BLOCKING",
+               "in": [
+                 {
+                   "name": "mapsUnits.file",
+                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+                 },
+                 {
+                   "name": "mapsBDO.file",
+                   "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+                 },
+                 {
+                   "name": "mapsBDO.file",
+                   "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
+                 },
+                 {
+                   "name": "globalSEDAParameters.file",
+                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+                 }
+               ]
+             }
+           }
+         ]
+       },
+       {
+         "workerGroupId": "DefaultWorker",
+         "stepName": "STP_INGEST_FINALISATION",
+         "behavior": "FINALLY",
+         "distribution": {
+           "kind": "REF",
+           "element": "SIP/manifest.xml"
+         },
+         "actions": [
+           {
+             "action": {
+               "actionKey": "ATR_NOTIFICATION",
+               "behavior": "BLOCKING",
+               "in": [
+                 {
+                   "name": "mapsUnits.file",
+                   "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
+                   "optional": "true"
+                 },
+                 {
+                   "name": "mapsBDO.file",
+                   "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
+                   "optional": "true"
+                 },
+                 {
+                   "name": "mapsBDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
+                   "optional": "true"
+                 },
+                 {
+                   "name": "mapsBDOtoVersionBDO.file",
+                   "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
+                   "optional": "true"
+                 },
+                 {
+                   "name": "globalSEDAParameters.file",
+                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
+                   "optional": "true"
+                 }
+               ],
+               "out": [
+                 {
+                   "name": "atr.file",
+                   "uri": "WORKSPACE:ATR/responseReply.xml"
+                 }
+               ]
+             }
+           }
+         ]
+       }
+     ]
+   }
 
 
 
@@ -325,4 +397,8 @@ DefaultIngestWorkflow
   - ATR_NOTIFICATION :
     - génération de l'ArchiveTransferReply xml (OK ou KO)
     - enregistrement de l'ArchiveTransferReply xml dans les offres de stockage
-    
+
+
+Création d'un nouveau step
+--------------------------
+Un step est une étape de workflow. Il regroupe un ensemble d'actions (handler). Ces steps sont définis dans le workflowJSONvX.json (X=1,2).

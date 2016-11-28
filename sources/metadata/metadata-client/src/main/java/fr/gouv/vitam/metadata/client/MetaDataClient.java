@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -44,9 +44,9 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 public interface MetaDataClient extends BasicClient {
 
     /**
-     * @param insertQuery as String <br>
+     * @param insertQuery as JsonNode <br>
      *        null is not allowed
-     * @return
+     * @return the result as JsonNode
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
@@ -54,7 +54,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    String insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertUnit(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
@@ -70,13 +70,13 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnits(String selectQuery) throws MetaDataExecutionException, MetaDataDocumentSizeException,
+    JsonNode selectUnits(JsonNode selectQuery) throws MetaDataExecutionException, MetaDataDocumentSizeException,
         InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * Search units by query (DSL) and path unit id
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
      * @param unitId : unit id <br>
@@ -87,13 +87,13 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnitbyId(String selectQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * Search Object Group by query (DSL) and path objectGroup id
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
      * @param objectGroupId : objectGroup id <br>
@@ -105,16 +105,17 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
      * @throws MetaDataClientServerException
      */
-    JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId) throws MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException, MetaDataClientServerException;
+    JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId) throws MetaDataExecutionException,
+        MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException,
+        MetaDataClientServerException;
 
     /**
      * Update units by query (DSL) and path unit id
      *
-     * @param updateQuery  update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as String
+     * @param updateQuery update query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      *        <br>
      *        Null is not allowed
-     * @param unitId  unit id <br>
+     * @param unitId unit id <br>
      *        null and blank is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
@@ -122,12 +123,12 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode updateUnitbyId(String updateQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
      * @param insertQuery as String
-     * @return response as String contains the request result
+     * @return response as JsonNode contains the request result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
@@ -135,6 +136,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    String insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
+    JsonNode insertObjectGroup(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
+        MetaDataClientServerException;
 }

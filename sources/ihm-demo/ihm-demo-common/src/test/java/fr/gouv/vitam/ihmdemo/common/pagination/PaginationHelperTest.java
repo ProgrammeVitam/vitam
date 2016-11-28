@@ -23,9 +23,9 @@ public class PaginationHelperTest {
     static String sessionId;
 
     private static final String RESULT =
-        "{\"query\":{}," +
-            "\"hits\":{\"total\":100,\"offset\":0,\"limit\":25}," +
-            "\"result\":";
+        "{\"$query\":{}," +
+            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":25}," +
+            "\"$results\":";
 
     private static final String OPERATION =
 
@@ -71,9 +71,9 @@ public class PaginationHelperTest {
 
         PaginationHelper.setResult(sessionId, createResult());
         JsonNode result = PaginationHelper.getResult(sessionId, new OffsetBasedPagination());
-        assertEquals(result.get("result").size(), 100);
+        assertEquals(result.get("$results").size(), 100);
         result = PaginationHelper.getResult(createResult(), new OffsetBasedPagination());
-        assertEquals(result.get("result").size(), 100);
+        assertEquals(result.get("$results").size(), 100);
     }
 
 
@@ -86,7 +86,7 @@ public class PaginationHelperTest {
     private JsonNode createResult() throws InvalidParseOperationException {
         String result = RESULT + "[";
         for (int i = 0; i < 100; i++) {
-            String s_i = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
+            String s_i = "{\"#id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa" + i + "\",";
             s_i += OPERATION;
             result += s_i;
             if (i < 99) {

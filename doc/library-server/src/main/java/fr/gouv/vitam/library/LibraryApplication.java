@@ -28,40 +28,44 @@
  */
 package fr.gouv.vitam.library;
 
+import static java.lang.String.format;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ConsumeAllAfterResponseFilter;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.library.config.LibraryConfiguration;
 
 /**
  * Library static web server application
  */
-// FIXME P0 Should be Server V2
 public class LibraryApplication extends AbstractVitamApplication<LibraryApplication, LibraryConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LibraryApplication.class);
     private static final String LIBRARY_CONF_FILE_NAME = "library.conf";
 
-    private VitamServer vitamServer;
-
     /**
      * LibraryApplication constructor
+     *
+     * @param configuration
      */
-    protected LibraryApplication() {
-        super(LibraryApplication.class, LibraryConfiguration.class);
+    protected LibraryApplication(String configuration) {
+        super(LibraryConfiguration.class, configuration);
     }
 
     /**
@@ -71,73 +75,27 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
      */
     public static void main(String[] args) {
         try {
-            final LibraryApplication application = new LibraryApplication();
-            application.start(args);
-            application.join();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
-
-    /**
-     * Prepare the application to be run or started.
-     *
-     * @param args
-     * @throws VitamApplicationServerException 
-     * @throws IllegalStateException
-     */
-    public void start(String[] args) throws VitamApplicationServerException {
-        if (vitamServer == null || vitamServer.getServer() == null) {
-            LOGGER.info("Configuring server...");
-            configure(computeConfigurationPathFromInputArguments(args));
-            vitamServer = VitamServerFactory.newVitamServerByJettyConf(getConfiguration().getJettyConfig());
-            vitamServer.configure(getApplicationHandler());
-        }
-        try {
-            vitamServer.getServer().start();
-        } catch (final Exception e) {
-            throw new VitamApplicationServerException(e);
-        }
-    }
-
-    /**
-     * Join on a server (i.e. blocks until the server closes itself). Note : an interrupt (Kill signal, for example)
-     * while joining is considered as a normal "stop" behaviour here.
-     */
-    private void join() {
-        if (isStarted()) {
-            try {
-                vitamServer.getServer().join();
-            } catch (final InterruptedException e) {
-                LOGGER.info("Interrupted while waiting for server to stop (join).");
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, LIBRARY_CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, LIBRARY_CONF_FILE_NAME));
             }
-            vitamServer = null;
-        } else {
-            LOGGER.info("Server already stopped (or not even created) : nothing to join.");
+            final LibraryApplication application = new LibraryApplication(args[0]);
+            application.run();
+        } catch (final Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, "LibraryApplication") + e.getMessage(), e);
+            System.exit(1);
         }
     }
 
-    /**
-     * @return true if started
-     */
-    public boolean isStarted() {
-        return vitamServer != null && vitamServer.getServer() != null && vitamServer.getServer().isStarted();
+    @Override
+    protected int getSession() {
+        return ServletContextHandler.SESSIONS;
     }
 
-    /**
-     * Stops the server
-     *
-     * @throws Exception
-     */
-
-    public void stop() throws Exception {
-        if (isStarted()) {
-            vitamServer.getServer().stop();
-        } else {
-            LOGGER.info("Server already stopped (or not even created) : nothing to stop.");
-        }
+    @Override
+    protected void platformSecretConfiguration() {
+        // No PlatformSecretConfiguration for IHM
     }
 
     /**
@@ -155,29 +113,33 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
 
         // Jersey resources servlet : add admin resources
         final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        final ServletHolder jerseyServlet = new ServletHolder(new ServletContainer(resourceConfig));
+        resourceConfig.register(JacksonJsonProvider.class)
+            .register(JacksonFeature.class)
+            // Register a Generic Exception Mapper
+            .register(new GenericExceptionMapper())
+            .register(new AdminStatusResource());
+        // Use chunk size also in response
+        resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
+        // Cleaner filter
+        resourceConfig.register(ConsumeAllAfterResponseFilter.class);
 
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
         // Context handler for /
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        contextHandler.setResourceBase(getConfiguration().getDirectoryPath());
-        contextHandler.setContextPath("/");
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        context.setResourceBase(getConfiguration().getDirectoryPath());
+        context.setContextPath("/");
+
         // Mixing everything
-        contextHandler.addServlet(staticServlet, "/doc/*"); // TODO P1: externalise constant in config
-        contextHandler.addServlet(jerseyServlet, "/*");
-        return contextHandler;
+        context.addServlet(staticServlet, "/doc/*"); // TODO P1: externalise constant in config
+        context.addServlet(sh, "/*");
+
+        return context;
     }
 
-    /**
-     * Name of the configuration file
-     *
-     * @return the name of the application configuration file
-     */
     @Override
-    protected String getConfigFilename() {
-        return LIBRARY_CONF_FILE_NAME;
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        // Nothing
     }
-
 
 }

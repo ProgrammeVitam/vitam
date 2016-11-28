@@ -51,7 +51,8 @@ module('ihm.demo').
         controller: "uploadController"
       }).
       when('/uploadSIP2', {
-        templateUrl: "views/upload-sip-2.html"
+        templateUrl: "views/upload-sip-2.html",
+        controller: "uploadController"
       }).
       when('/archiveunit/:archiveId', {
         template: '<archive-unit></archive-unit>'
@@ -76,9 +77,6 @@ module('ihm.demo').
       }).
       when('/admin/importFileRules', {
         templateUrl: "views/import-FileRules.html"
-      }).
-      when('/admin/recette', {
-        templateUrl: "views/recette-features.html"
       }).
       when('/admin/journalOperations', {
         template: '<all-logbook-operation></all-logbook-operation>'

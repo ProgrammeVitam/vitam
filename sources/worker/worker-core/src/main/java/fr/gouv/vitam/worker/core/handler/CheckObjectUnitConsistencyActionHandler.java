@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -38,55 +35,44 @@ import java.util.Map.Entry;
 
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
  * Check SIP - Object and Archiveunit Consistency handler
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
-
-    // TODO P0 WORKFLOW will be in vitam-logbook file
-    private static final String ERROR_MESSAGE =
-        "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
-    private static final String EVENT_TYPE =
-        "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
-    // FIXME P0 ne devrait pas être static
-    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getClient();
-    private static final String HANDLER_ID = "CHECK_CONSISTENCY_POST";
-    private static final int TENANT = 0;
+
+    private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
+    private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
 
     private HandlerIO handlerIO;
-    private final HandlerIO handlerInitialIOList;
+    private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
+    final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     /**
      * Empty constructor
      */
     public CheckObjectUnitConsistencyActionHandler() {
-        handlerInitialIOList = new HandlerIO("");
-        handlerInitialIOList.addInput(File.class);
-        handlerInitialIOList.addInput(File.class);
+        handlerInitialIOList.add(Map.class);
+        handlerInitialIOList.add(Map.class);
     }
 
     /**
@@ -99,18 +85,14 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
         handlerIO = handler;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(params);
-            if (notConformOGs.isEmpty()) {
-                itemStatus.increment(StatusCode.OK);
-            } else {
-                itemStatus.increment(StatusCode.KO);
+            if (!notConformOGs.isEmpty()) {
                 itemStatus.setData("errorNumber", notConformOGs.size());
             }
         } catch (InvalidParseOperationException | InvalidGuidOperationException | IOException e) {
@@ -118,7 +100,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
 
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**
@@ -134,53 +116,78 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
         final List<String> ogList = new ArrayList<>();
 
-        // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
+        @SuppressWarnings("unchecked")
         final Map<String, Object> objectGroupToUnitStoredMap =
-            JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
-
-        // TODO P0: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));
+            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
+        @SuppressWarnings("unchecked")
         final Map<String, Object> objectGroupToGuidStoredMap =
-            JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);
+            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
 
-        final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
+        if (objectGroupToGuidStoredMap.size() == 0) {
+            itemStatus.increment(StatusCode.OK);
+        } else {
+            final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
+            while (it.hasNext()) {
+                final Map.Entry<String, Object> objectGroup = it.next();
+                if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                    itemStatus.increment(StatusCode.KO);
+                    try {
+                        // Update logbook OG lifecycle
+                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
-        while (it.hasNext()) {
-            final Map.Entry<String, Object> objectGroup = it.next();
-            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
-                // Update logbook OG lifecycle
-                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
-                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                        GUIDReader.getGUID(params.getContainerName()),
-                        HANDLER_ID,
-                        GUIDFactory.newEventGUID(TENANT),
-                        LogbookTypeProcess.CHECK,
-                        StatusCode.WARNING,
-                        StatusCode.WARNING.toString(),
-                        // TODO P0 WORKFLOW
-                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
-                        GUIDReader.getGUID(objectGroup.getValue().toString()));
-                try {
-                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e) {
-                    LOGGER.error("Can not update logbook lifcycle", e);
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
+                            null);
+                        handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                        final String objectID =
+                            logbookLifecycleObjectGroupParameters
+                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                            handlerIO.getHelper().removeUpdateDelegate(objectID));
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException | ProcessingException e) {
+                        LOGGER.error("Can not update logbook lifcycle", e);
+                    }
+                    ogList.add(objectGroup.getKey());
+                } else {
+                    itemStatus.increment(StatusCode.OK);
+                    try {
+                        // Update logbook OG lifecycle
+                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
+                            null);
+                        handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                        final String objectID =
+                            logbookLifecycleObjectGroupParameters
+                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                            handlerIO.getHelper().removeUpdateDelegate(objectID));
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException | ProcessingException e) {
+                        LOGGER.error("Can not update logbook lifcycle", e);
+                    }
                 }
-                ogList.add(objectGroup.getKey());
             }
-
         }
         return ogList;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handler, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 

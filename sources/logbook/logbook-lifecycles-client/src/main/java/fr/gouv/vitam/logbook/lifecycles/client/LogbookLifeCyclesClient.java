@@ -28,15 +28,15 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.BasicClient;
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 
 /**
  * Logbook client interface
@@ -55,7 +55,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      * @throws LogbookClientException if client received an error from server
      */
-    void create(LogbookParameters parameters)
+    void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
@@ -69,7 +69,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void update(LogbookParameters parameters)
+    void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
 
@@ -84,7 +84,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commit(LogbookParameters parameters)
+    void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     /**
@@ -98,7 +98,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void rollback(LogbookParameters parameters)
+    void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     /**
@@ -125,7 +125,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
      * </br>
      * Example of code using it:</br>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(operationId)) {
                 while (iterator.hasNext()) {
@@ -133,22 +135,26 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-            
+    
         }
-     * </code></pre>
+     * </code>
+     * </pre>
      *
      * @param operationId the operation id from which this ObjectGroup Lifecycles will be retrieved
      * @return the VitamRequestIterator on ObjectGroupLifecycles as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId) throws LogbookClientException, InvalidParseOperationException;
+    VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns VitamRequestIterator on UnitLifeCycles for this operation.</br>
      * </br>
      * Example of code using it:</br>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(operationId)) {
                 while (iterator.hasNext()) {
@@ -156,15 +162,79 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-            
+    
         }
-     * </code></pre>
+     * </code>
+     * </pre>
      *
      * @param operationId the operation id from which this UnitLife Lifecycles will be retrieved
      * @return the VitamRequestIterator on UnitLifeCycles as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId) throws LogbookClientException, InvalidParseOperationException;
+    VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * Bulk Create for Unit<br>
+     * <br>
+     * To be used ONLY once at top level of process startup (where objectIdentifier is set for the first time).
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to create
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientAlreadyExistsException if the element already exists
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkCreateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException;
+
+    /**
+     * Bulk Update for Unit<br>
+     * <br>
+     * To be used everywhere except very first time (when objectIdentifier already used once)
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to update
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkUpdateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
+     * Bulk Create for ObjectGroup<br>
+     * <br>
+     * To be used ONLY once at top level of process startup (where objectIdentifier is set for the first time).
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to create
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientAlreadyExistsException if the element already exists
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkCreateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException;
+
+    /**
+     * Bulk Update for ObjectGroup<br>
+     * <br>
+     * To be used everywhere except very first time (when objectIdentifier already used once)
+     *
+     * @param objectIdentifier object Identifier
+     * @param queue queue of LogbookLifeCycleParameters to update
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void bulkUpdateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
 
 }

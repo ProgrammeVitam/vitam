@@ -32,9 +32,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -101,7 +105,10 @@ public class FakeDriverImpl implements Driver {
 
         @Override
         public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
-            return new GetObjectResult("0", new ByteArrayInputStream("fakefile".getBytes()));
+
+            return new GetObjectResult("0",
+                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override

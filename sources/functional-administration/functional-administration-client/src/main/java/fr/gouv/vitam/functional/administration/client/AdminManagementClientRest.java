@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -52,17 +52,15 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * AdminManagement client
  */
-public class AdminManagementClientRest extends DefaultClient implements AdminManagementClient {
+class AdminManagementClientRest extends DefaultClient implements AdminManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientRest.class);
     private static final String FORMAT_CHECK_URL = "/format/check";
     private static final String FORMAT_IMPORT_URL = "/format/import";
-    private static final String FORMAT_DELETE_URL = "/format/delete";
     private static final String FORMAT_GET_DOCUMENT_URL = "/format/document";
     private static final String FORMAT_URL = "/format";
 
     private static final String RULESMANAGER_CHECK_URL = "/rules/check";
     private static final String RULESMANAGER_IMPORT_URL = "/rules/import";
-    private static final String RULESMANAGER_DELETE_URL = "/rules/delete";
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";
     private static final String RULESMANAGER_URL = "/rules";
 
@@ -74,7 +72,8 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         super(factory);
     }
 
-    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats, régles
+    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats,
+    // régles
     // de gestions, contrat , etc)
     @Override
     public Status checkFormat(InputStream stream) throws ReferentialException {
@@ -95,7 +94,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return status;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -124,32 +123,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                 default:
                     break;
             }
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public void deleteFormat() throws ReferentialException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE, FORMAT_DELETE_URL, null,
-                MediaType.APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new ReferentialException("File format error");
-                default:
-                    break;
-            }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -176,7 +150,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -201,10 +175,10 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
                     throw new ReferentialException("File format error");
                 default:
-                    break;
+                    throw new ReferentialException("Unknown error");
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -214,7 +188,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
 
     /**************************
      * rules Management
-     * 
+     *
      * @throws AdminManagementClientServerException
      ****************************************/
 
@@ -238,7 +212,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return status;
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -270,35 +244,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                 default:
                     break;
             }
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-
-    }
-
-    @Override
-    public void deleteRulesFile() throws FileRulesException, AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.DELETE, RULESMANAGER_DELETE_URL, null, MediaType.APPLICATION_JSON_TYPE,
-                    false);
-
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new FileRulesException("File rules error");
-                default:
-                    break;
-            }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -328,7 +274,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -338,7 +284,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
     }
 
     @Override
-    public JsonNode getRule(JsonNode query)
+    public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
@@ -357,7 +303,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -384,7 +330,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -412,7 +358,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     break;
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
@@ -441,7 +387,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

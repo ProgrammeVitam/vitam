@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -57,7 +57,7 @@ public class AuthorizationFilterHelper {
     public static Map<String, String> getAuthorizationHeaders(String httpMethod, String url) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url);
         if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-            long currentTime = System.currentTimeMillis() / 1000;
+            final long currentTime = System.currentTimeMillis() / 1000;
             return getAuthorizationHeaders(httpMethod, url, Long.toString(currentTime), VitamConfiguration.getSecret(),
                 VitamConfiguration.getSecurityDigestType());
         }
@@ -73,11 +73,12 @@ public class AuthorizationFilterHelper {
      * @param digestType
      * @return X-Platform-Id and X-Timestamp Headers
      */
-    public static Map<String, String> getAuthorizationHeaders(String httpMethod, String url, String timestamp, String secret,
+    public static Map<String, String> getAuthorizationHeaders(String httpMethod, String url, String timestamp,
+        String secret,
         DigestType digestType) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url, timestamp, secret, digestType);
 
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put(GlobalDataRest.X_TIMESTAMP, timestamp);
         headers.put(GlobalDataRest.X_PLATFORM_ID, URLCodec.encodeURL(httpMethod, url, timestamp, secret, digestType));
 

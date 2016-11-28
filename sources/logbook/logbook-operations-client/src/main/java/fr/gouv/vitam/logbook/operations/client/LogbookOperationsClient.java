@@ -28,8 +28,9 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -73,11 +74,11 @@ public interface LogbookOperationsClient extends BasicClient {
 
     /**
      * @param select
-     * @return logbook operation as String
+     * @return logbook operation as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * @param id
@@ -153,7 +154,7 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commitCreateDelegate(String eventIdProc) 
+    void commitCreateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
@@ -167,7 +168,18 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException if the Server got an internal error
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    void commitUpdateDelegate(String eventIdProc) 
+    void commitUpdateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
+
+
+    /**
+     * Call traceability logbook operation <br>
+     * <br>
+     *
+     * @return logbook operation as String
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException;
 
 }

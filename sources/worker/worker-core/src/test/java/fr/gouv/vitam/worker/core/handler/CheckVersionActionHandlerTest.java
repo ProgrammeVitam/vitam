@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,14 +45,14 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -61,35 +62,42 @@ public class CheckVersionActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-    private final HandlerIO handlerIO = new HandlerIO("");
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName("CheckVersionActionHandlerTest");
+    private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId");
 
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
+        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
+    }
+
+    @After
+    public void clean() {
+        handlerIO.partialClose();
     }
 
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
         throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<String>();
+        final List<String> invalidVersionList = new ArrayList<>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
         throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<String>();
+        final List<String> invalidVersionList = new ArrayList<>();
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -98,7 +106,7 @@ public class CheckVersionActionHandlerTest {
         throws ProcessingException, IOException, URISyntaxException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final CompositeItemStatus response = handlerVersion.execute(params, handlerIO);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 }

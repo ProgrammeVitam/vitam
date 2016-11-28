@@ -48,8 +48,10 @@ public class StreamUtils {
     }
 
     /**
-     * Copy InputStream to OutputStream efficiently
-     * 
+     * Copy InputStream to OutputStream efficiently<br/>
+     * <br/>
+     * InputStream will be closed, but not the OutputStream in order to be compatible with StreamingOutput
+     *
      * @param inputStream
      * @param outputStream
      * @return the copied length
@@ -59,27 +61,46 @@ public class StreamUtils {
         try (final ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
             final WritableByteChannel outputChannel = Channels.newChannel(outputStream)) {
             final ByteBuffer buffer = ByteBuffer.allocateDirect(VitamConfiguration.getChunkSize());
-            long length = 0;
-            int len;
-            while ((len = inputChannel.read(buffer)) != -1) {
-                // prepare the buffer to be drained
+            try {
+                long length = 0;
+                int len;
+                while ((len = inputChannel.read(buffer)) != -1) {
+                    // prepare the buffer to be drained
+                    buffer.flip();
+                    // write to the channel, may block
+                    outputChannel.write(buffer);
+                    // If partial transfer, shift remainder down
+                    // If buffer is empty, same as doing clear()
+                    buffer.compact();
+                    if (len > 0) {
+                        length += len;
+                    }
+                }
+                // EOF will leave buffer in fill state
                 buffer.flip();
-                // write to the channel, may block
-                outputChannel.write(buffer);
-                // If partial transfer, shift remainder down
-                // If buffer is empty, same as doing clear()
-                buffer.compact();
-                if (len > 0) {
-                    length += len;
+                // make sure the buffer is fully drained.
+                while (buffer.hasRemaining()) {
+                    outputChannel.write(buffer);
+                }
+                return length;
+            } finally {
+                // Ensure everything is written and Input are closed (not Output)
+                try {
+                    outputStream.flush();
+                } catch (final IOException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+                try {
+                    inputChannel.close();
+                } catch (final IOException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+                try {
+                    inputStream.close();
+                } catch (final IOException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
-            // EOF will leave buffer in fill state
-            buffer.flip();
-            // make sure the buffer is fully drained.
-            while (buffer.hasRemaining()) {
-                outputChannel.write(buffer);
-            }
-            return length;
         }
     }
 
@@ -87,9 +108,10 @@ public class StreamUtils {
      * Close silently the InputStream, first consuming any bytes available, ignoring IOException or null object.
      *
      * @param inputStream
+     * @return the length in bytes that were read before closing
      */
-    public static final void closeSilently(InputStream inputStream) {
-        consumeInputStream(inputStream);
+    public static final long closeSilently(InputStream inputStream) {
+        return consumeInputStream(inputStream);
     }
 
     private static class RemainingReadOnCloseInputStream extends InputStream {

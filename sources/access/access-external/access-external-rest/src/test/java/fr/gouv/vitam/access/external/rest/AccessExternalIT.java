@@ -38,12 +38,10 @@ import org.junit.Test;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 
 public class AccessExternalIT {
 
@@ -58,22 +56,23 @@ public class AccessExternalIT {
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(ACCESS_EXTERNAL_CONF);
 
         try {
-            AccessExternalApplication application = new AccessExternalApplication(conf.getAbsolutePath());
+            final AccessExternalApplication application = new AccessExternalApplication(conf.getAbsolutePath());
             application.start();
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException(
                 "Cannot start the Access External Application Server", e);
         }
     }
+
     @Test
     public void givenCertifValidThenReturnOK() throws FileNotFoundException, IOException {
         final AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
-        SecureClientConfigurationImpl secureConfig = PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF),
-            SecureClientConfigurationImpl.class);
+        final SecureClientConfigurationImpl secureConfig =
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF),
+                SecureClientConfigurationImpl.class);
         secureConfig.setServerPort(serverPort);
         AccessExternalClientFactory.changeMode(secureConfig);
         try (final AccessExternalClient client = factory.getClient()) {
@@ -83,18 +82,18 @@ public class AccessExternalIT {
             fail();
         }
     }
-    
+
     @Test
     public void givenCertifExpiredThenReturnKO() throws FileNotFoundException, IOException {
         final AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
-        SecureClientConfigurationImpl secureConfig = PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF_EXPIRED),
-            SecureClientConfigurationImpl.class);
+        final SecureClientConfigurationImpl secureConfig =
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(ACCESS_EXTERNAL_CLIENT_CONF_EXPIRED),
+                SecureClientConfigurationImpl.class);
         secureConfig.setServerPort(serverPort);
         AccessExternalClientFactory.changeMode(secureConfig);
         try (final AccessExternalClient client = factory.getClient()) {
             client.checkStatus();
             fail();
-        } catch (final VitamException e) {
-        }
+        } catch (final VitamException e) {}
     }
 }

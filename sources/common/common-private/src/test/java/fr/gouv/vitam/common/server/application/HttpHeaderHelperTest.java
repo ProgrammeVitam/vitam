@@ -59,7 +59,7 @@ public class HttpHeaderHelperTest {
 
     @Test
     public void checkAllVitamHeadersRegexValidTest() {
-        MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
         // correct if at least one of the value matches a the regex (same rule for all vitam header)
         map.put(VitamHttpHeader.METHOD_OVERRIDE.getName(), Collections.singletonList("get"));
         map.put(VitamHttpHeader.STRATEGY_ID.getName(), Collections.singletonList("an id"));
@@ -70,9 +70,9 @@ public class HttpHeaderHelperTest {
 
     @Test
     public void checkAllVitamHeadersRegexInValidTest() {
-        MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
         Mockito.when(httpHeadersMock.getRequestHeaders()).thenReturn(map);
-        List<String> emptyStringList = Collections.singletonList("");
+        final List<String> emptyStringList = Collections.singletonList("");
         testInvalidHeader(map, VitamHttpHeader.METHOD_OVERRIDE.getName(), Collections.singletonList("bla"));
         testInvalidHeader(map, VitamHttpHeader.STRATEGY_ID.getName(), emptyStringList);
         testInvalidHeader(map, VitamHttpHeader.TENANT_ID.getName(), emptyStringList);
@@ -84,14 +84,14 @@ public class HttpHeaderHelperTest {
         try {
             HttpHeaderHelper.checkVitamHeaders(httpHeadersMock);
             fail("Should raise an exception because header is invalid");
-        } catch (IllegalStateException exc) {
+        } catch (final IllegalStateException exc) {
             // Expected exception
         }
     }
 
     @Test
     public void checkVitamHeadersTest() {
-        MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
         map.put(VitamHttpHeader.METHOD_OVERRIDE.getName(), Collections.singletonList("get"));
         map.put(VitamHttpHeader.STRATEGY_ID.getName(), Collections.singletonList("get"));
         map.put(VitamHttpHeader.TENANT_ID.getName(), Collections.singletonList("get"));
@@ -103,7 +103,7 @@ public class HttpHeaderHelperTest {
     public void getHeaderValuesTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
             .singletonList("get"));
-        List<String> values = HttpHeaderHelper.getHeaderValues(httpHeadersMock, VitamHttpHeader.METHOD_OVERRIDE);
+        final List<String> values = HttpHeaderHelper.getHeaderValues(httpHeadersMock, VitamHttpHeader.METHOD_OVERRIDE);
         assertNotNull(values);
         assertEquals(1, values.size());
         assertEquals("get", values.get(0));
@@ -132,7 +132,7 @@ public class HttpHeaderHelperTest {
     @Test(expected = IllegalArgumentException.class)
     public void validateHeaderValueNullTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(null);
-        MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
     }
@@ -141,7 +141,7 @@ public class HttpHeaderHelperTest {
     public void validateHeaderValueTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
             .singletonList("get"));
-        MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
 
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
@@ -151,7 +151,7 @@ public class HttpHeaderHelperTest {
     public void validateHeaderValueWantedMatchErrorTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
             .singletonList("get"));
-        MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), "got");
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
     }
@@ -160,7 +160,7 @@ public class HttpHeaderHelperTest {
     public void validateHeaderValueMatchErrorTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
             .singletonList("got"));
-        MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
     }

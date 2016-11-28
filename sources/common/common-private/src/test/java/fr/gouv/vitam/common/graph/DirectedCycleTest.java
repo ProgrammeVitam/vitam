@@ -43,29 +43,29 @@ public class DirectedCycleTest {
 
     @Test
     public void given_CyclycGraph() throws Exception {
-        File file = PropertiesUtils.getResourceFile("ingest_cyc.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
+        final File file = PropertiesUtils.getResourceFile("ingest_cyc.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
 
-        DirectedCycle dc = new DirectedCycle(g);
+        final DirectedCycle dc = new DirectedCycle(g);
         assertTrue(dc.isCyclic());
     }
 
 
     @Test
     public void given_aCyclycGraph() throws Exception {
-        File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
-        DirectedCycle dc = new DirectedCycle(g);
+        final File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
+        final DirectedCycle dc = new DirectedCycle(g);
         assertFalse(dc.isCyclic());
     }
 
     @Test
     public void given_acyclicGraph_when_create_DirectedCycle_then_not_thrown_cycleFoundException() throws Exception {
-        File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
+        final File file = PropertiesUtils.getResourceFile("ingest_acyc.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final DirectedGraph g = new DirectedGraph(json);
         assertNotNull(new DirectedCycle(g));
     }
 }

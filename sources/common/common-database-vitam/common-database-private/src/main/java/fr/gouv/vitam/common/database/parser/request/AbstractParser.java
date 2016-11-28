@@ -72,7 +72,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Abstract class implementing Parser for a Request
  *
  * Common abstract for both Multiple and Single Request
- * 
+ *
  * @param <E> is one of RequestMultiple or RequestSingle
  */
 public abstract class AbstractParser<E extends AbstractRequest> {
@@ -138,7 +138,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      */
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         rootNode = jsonRequest;
-        sourceRequest = jsonRequest.toString();
+        sourceRequest = JsonHandler.unprettyPrint(jsonRequest);
     }
 
     /**
@@ -173,7 +173,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 queries[nb++] = subquery;
             }
             if (nb != queries.length) {
-                Query[] newQueries = new Query[nb];
+                final Query[] newQueries = new Query[nb];
                 for (int i = 0; i < nb; i++) {
                     newQueries[i] = queries[i];
                 }

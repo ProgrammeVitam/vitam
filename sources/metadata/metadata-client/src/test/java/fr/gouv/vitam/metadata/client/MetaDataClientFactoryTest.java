@@ -37,7 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 public class MetaDataClientFactoryTest {
 
@@ -83,10 +83,11 @@ public class MetaDataClientFactoryTest {
         final MetaDataClient client2 = MetaDataClientFactory.getInstance().getClient();
         // assertTrue(client instanceof MetaDataClientMock); actually only on implementation exists
         assertTrue(client2 instanceof MetaDataClientRest);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK, MetaDataClientFactory.getInstance().getVitamClientType());
+        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK,
+            MetaDataClientFactory.getInstance().getVitamClientType());
 
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final MetaDataClient client3 =  MetaDataClientFactory.getInstance().getClient();
+        final MetaDataClient client3 = MetaDataClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof MetaDataClientRest);
         assertEquals(VitamClientFactoryInterface.VitamClientType.PRODUCTION, MetaDataClientFactory.getInstance()
             .getVitamClientType());
@@ -99,7 +100,8 @@ public class MetaDataClientFactoryTest {
         final MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
         // assertTrue(client instanceof MetaDataClientMock); actually only one implementation exists
         assertTrue(client instanceof MetaDataClientRest);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK, MetaDataClientFactory.getInstance().getVitamClientType());
+        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK,
+            MetaDataClientFactory.getInstance().getVitamClientType());
     }
 
     @Test

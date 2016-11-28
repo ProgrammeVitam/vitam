@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -142,10 +143,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<LogbookLifeCycleUnit> cursor;
         try {
-            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
             parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
-            Select selectRequest = parser.getRequest();
+            final Select selectRequest = parser.getRequest();
             cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -159,7 +160,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException {
         try {
             @SuppressWarnings("unchecked")
-            MongoCursor<LogbookLifeCycleUnit> cursor = (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
+            final MongoCursor<LogbookLifeCycleUnit> cursor =
+                (MongoCursor<LogbookLifeCycleUnit>) mapXCursor.get(cursorId);
             if (cursor != null) {
                 if (cursor.hasNext()) {
                     return cursor.next();
@@ -168,7 +170,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 mapXCursor.remove(cursorId);
                 throw new LogbookNotFoundException("No more entries");
             }
-        } catch (ClassCastException e) {
+        } catch (final ClassCastException e) {
             throw new LogbookDatabaseException("Cursor not linked to Unit", e);
         }
         throw new LogbookDatabaseException("Cursor already closed");
@@ -182,10 +184,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<LogbookLifeCycleObjectGroup> cursor;
         try {
-            SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
             parser.addCondition(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId));
-            Select selectRequest = parser.getRequest();
+            final Select selectRequest = parser.getRequest();
             cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -199,7 +201,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException {
         try {
             @SuppressWarnings("unchecked")
-            MongoCursor<LogbookLifeCycleObjectGroup> cursor =
+            final MongoCursor<LogbookLifeCycleObjectGroup> cursor =
                 (MongoCursor<LogbookLifeCycleObjectGroup>) mapXCursor.get(cursorId);
             if (cursor != null) {
                 if (cursor.hasNext()) {
@@ -209,20 +211,20 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 mapXCursor.remove(cursorId);
                 throw new LogbookNotFoundException("No more entries");
             }
-        } catch (ClassCastException e) {
+        } catch (final ClassCastException e) {
             throw new LogbookDatabaseException("Cursor not linked to ObjectGroup", e);
         }
         throw new LogbookDatabaseException("Cursor already closed");
     }
 
     @Override
-    public void finalizeCursor(String cursorId) throws LogbookDatabaseException {
-        MongoCursor<?> cursor = mapXCursor.get(cursorId);
+    public void finalizeCursor(String cursorId) {
+        final MongoCursor<?> cursor = mapXCursor.get(cursorId);
         if (cursor != null) {
             cursor.close();
             mapXCursor.remove(cursorId);
+            return;
         }
-        throw new LogbookDatabaseException("Cursor already closed");
     }
 
     @Override
@@ -294,6 +296,44 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         if (!parameters.getParameterValue(LogbookParameterName.objectIdentifier).equals(idLcObjectGroup)) {
             LOGGER.error("incoherence entry for idLifeCyclesObjectGroup");
             throw new IllegalArgumentException("incoherence entry for idLifeCyclesObjectGroup");
+        }
+    }
+
+    @Override
+    public void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        if (lifecycleArray == null || lifecycleArray.length == 0) {
+            throw new IllegalArgumentException("No LifeCycle Logbook");
+        }
+        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
+            LOGGER.error("incoherence entry for idOperation");
+            throw new IllegalArgumentException("incoherence entry for idOperation");
+        }
+        if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
+            mongoDbAccess.createBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+        } else {
+            mongoDbAccess
+                .createBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
+        }
+    }
+
+    @Override
+    public void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        if (lifecycleArray == null || lifecycleArray.length == 0) {
+            throw new IllegalArgumentException("No LifeCycle Logbook");
+        }
+        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
+            LOGGER.error("incoherence entry for idOperation");
+            throw new IllegalArgumentException("incoherence entry for idOperation");
+        }
+        if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
+            mongoDbAccess.updateBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+        } else {
+            mongoDbAccess
+                .updateBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
         }
     }
 }

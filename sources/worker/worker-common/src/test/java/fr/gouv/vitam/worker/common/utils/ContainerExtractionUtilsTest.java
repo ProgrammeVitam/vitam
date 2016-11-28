@@ -38,7 +38,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -60,7 +59,7 @@ public class ContainerExtractionUtilsTest {
     private WorkspaceClient workspaceClient;
     private ContainerExtractionUtils containerExtractionUtils;
     private WorkspaceClientFactory workspaceClientFactory;
-    
+
     private final String folder = new StringBuilder().append(IngestWorkflowConstants.SEDA_FOLDER).append("/")
         .append(IngestWorkflowConstants.CONTENT_FOLDER).toString();
 
@@ -79,13 +78,14 @@ public class ContainerExtractionUtilsTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        
+
         uriListWorkspace.add(new URI("content/file1.pdf"));
         uriListWorkspace.add(new URI("content/file2.pdf"));
     }
 
     @Test
-    public void givenWorkspaceExistWhenGetUriListThenReturnOK() throws ProcessingException, ContentAddressableStorageServerException {
+    public void givenWorkspaceExistWhenGetUriListThenReturnOK()
+        throws ProcessingException, ContentAddressableStorageServerException {
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn(uriListWorkspace);
         containerExtractionUtils = new ContainerExtractionUtils();
         final WorkerParameters workParams =

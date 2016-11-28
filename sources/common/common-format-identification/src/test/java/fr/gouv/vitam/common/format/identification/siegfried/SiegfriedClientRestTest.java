@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
@@ -37,32 +36,27 @@ import java.nio.file.Paths;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 
-public class SiegfriedClientRestTest extends JerseyTest {
+public class SiegfriedClientRestTest extends VitamJerseyTest {
 
     private static final String HOSTNAME = "localhost";
-    private static int port;
-    private static JunitHelper junitHelper;
-    private final SiegfriedClientRest client;
+    private SiegfriedClientRest client;
 
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";
     private static final String SAMPLE_OK_RESPONSE = "ok-response.json";
@@ -70,43 +64,63 @@ public class SiegfriedClientRestTest extends JerseyTest {
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
 
+
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    public SiegfriedClientRestTest() {
+        super(SiegfriedClientFactory.getInstance());
+    }
+
+    // Override the beforeTest if necessary
+    @Override
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (SiegfriedClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        SiegfriedClientFactory.changeMode(HOSTNAME, reservedPort);
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void platformSecretConfiguration() {}
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
+    }
+
     private static JsonNode getJsonNode(String file) {
         try {
             return JsonHandler.getFromFile(PropertiesUtils.findFile(file));
         } catch (final Exception e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response get();
-    }
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        junitHelper.releasePort(port);
-    }
-
-    public SiegfriedClientRestTest() {
-        client = new SiegfriedClientRest(HOSTNAME, port);
-    }
-
-    @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
     }
 
     @Path("/identify")

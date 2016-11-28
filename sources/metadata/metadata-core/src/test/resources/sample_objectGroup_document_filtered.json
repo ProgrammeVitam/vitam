@@ -1,0 +1,52 @@
+{
+  "#id": "aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba",
+  "#tenant": 0,
+  "#type": "Text",
+  "FileInfo": {
+    "Filename": "Filename0",
+    "CreatingApplicationName": "CreatingApplicationName0",
+    "CreatingApplicationVersion": "CreatingApplicationVersion0",
+    "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+    "CreatingOs": "CreatingOs0",
+    "CreatingOsVersion": "CreatingOsVersion0",
+    "LastModified": "2006-05-04T18:13:51.0"
+  },
+  "#qualifiers": {
+    "BinaryMaster": {
+      "nb": 1,
+      "versions": [
+        {
+          "_id": "ID009",
+          "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba",
+          "DataObjectVersion": "BinaryMaster",
+          "MessageDigest": "e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a",
+          "Size": "226224",
+          "FormatIdentification": {
+            "FormatLitteral": "FormatLitteral0",
+            "MimeType": "MimeType0",
+            "FormatId": "FormatId0",
+            "Encoding": "Encoding0"
+          },
+          "FileInfo": {
+            "Filename": "Filename0",
+            "CreatingApplicationName": "CreatingApplicationName0",
+            "CreatingApplicationVersion": "CreatingApplicationVersion0",
+            "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+            "CreatingOs": "CreatingOs0",
+            "CreatingOsVersion": "CreatingOsVersion0",
+            "LastModified": "2006-05-04T18:13:51.0"
+          },
+          "Metadata": {
+            "Text": "\n                "
+          },
+          "OtherMetadata": "\n            "
+        }
+      ]
+    }
+  },
+  "#unitups": [
+    "aeaaaaaaaaaam7mxaaaamakwkuhqtgaaaabq",
+    "aeaaaaaaaaaam7mxaaaamakwkuhqt5iaaacq"
+  ],
+  "#nbobjects": 1
+}

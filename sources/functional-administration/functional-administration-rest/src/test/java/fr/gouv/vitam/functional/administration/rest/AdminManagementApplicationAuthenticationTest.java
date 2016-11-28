@@ -57,7 +57,7 @@ public class AdminManagementApplicationAuthenticationTest {
 
         admin = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         config = PropertiesUtils.readYaml(admin, AdminManagementConfiguration.class);
-        config.setDbPort(databasePort);
+        config.getMongoDbNodes().get(0).setDbPort(databasePort);
     }
 
     @AfterClass

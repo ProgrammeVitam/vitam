@@ -1,3 +1,5 @@
+
+
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -55,7 +57,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -264,9 +266,15 @@ public class ProcessDistributorResourceTest {
         }
 
         @Override
-        public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
-            return new CompositeItemStatus("itemId");
+        public ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
+            return new ItemStatus("itemId");
+        }
+
+        @Override
+        public void close() {
+            // Nothing
         }
     }
 
 }
+

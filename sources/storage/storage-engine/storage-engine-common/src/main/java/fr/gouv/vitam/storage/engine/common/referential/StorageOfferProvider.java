@@ -37,7 +37,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 public interface StorageOfferProvider {
     /**
      * Retrieve an offer full configuration by its id
-     * 
+     *
      * @param idOffer the id of the storage offer to retrieve
      * @return an object representation of a storage offer
      * @throws StorageTechnicalException if any unwanted technical issue happens

@@ -26,44 +26,117 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 /**
  * Workspace Driver Implementation
  */
-// FIXME P0 should be clientV2/serverV2
 public class DriverImpl implements Driver {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
     private static final String DRIVER_NAME = "WorkspaceDriver";
-    private static final String URL_IS_A_MANDATORY_PARAMETER = "Url is a mandatory parameter";
+    private static final String RESOURCE_PATH = "/offer/v1";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
+    private static final DriverImpl DRIVER_IMPL = new DriverImpl();
+
+    static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> implements Driver {
+        final Properties parameters;
+
+        protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
+            super(configuration, resourcePath, true, false, true, true);
+            this.parameters = parameters;
+        }
+
+        @Override
+        public ConnectionImpl getClient() {
+            return new ConnectionImpl(this, parameters);
+        }
+
+
+        @Override
+        public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
+            return true;
+        }
+
+        @Override
+        public String getName() {
+            return DRIVER_NAME;
+        }
+
+        @Override
+        public int getMajorVersion() {
+            return 0;
+        }
+
+        @Override
+        public int getMinorVersion() {
+            return 0;
+        }
+
+        @Override
+        public Connection connect(String url, Properties parameters) throws StorageDriverException {
+            throw new UnsupportedOperationException("The internal factory does not support this method");
+        }
+
+    }
+
+    /**
+     * Constructor
+     */
+    public DriverImpl() {
+        // Empty
+    }
+
+    /**
+     * Get the ProcessingManagementClientFactory instance
+     *
+     * @return the instance
+     */
+    public static final DriverImpl getInstance() {
+        return DRIVER_IMPL;
+    }
 
     @Override
     public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
+        final InternalDriverFactory factory =
+            new InternalDriverFactory(changeConfigurationUrl(url), RESOURCE_PATH, parameters);
         try {
-            ParametersChecker.checkParameter(URL_IS_A_MANDATORY_PARAMETER, url);
-        } catch (final IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                URL_IS_A_MANDATORY_PARAMETER);
-        }
-        try {
-            final ConnectionImpl connection = new ConnectionImpl(url, DRIVER_NAME);
-            connection.getStatus();
+            final ConnectionImpl connection = factory.getClient();
+            connection.checkStatus();
             return connection;
-        } catch (final StorageDriverException exception) {
-            LOGGER.error("Internal Server Error", exception);
+        } catch (final VitamApplicationServerException exception) {
             throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                exception.getMessage());
+                exception.getMessage(), exception);
         }
+    }
 
+    /**
+     * For compatibility with old implementation
+     *
+     * @param urlString
+     */
+    private static final ClientConfigurationImpl changeConfigurationUrl(String urlString) {
+        ParametersChecker.checkParameter("URI is mandatory", urlString);
+        try {
+            final URI url = new URI(urlString);
+            LOGGER.info("Change configuration using " + url.getHost() + ":" + url.getPort());
+            return new ClientConfigurationImpl(url.getHost(), url.getPort());
+        } catch (final URISyntaxException e) {
+            throw new IllegalStateException("Cannot parse the URI: " + urlString, e);
+        }
     }
 
     @Override

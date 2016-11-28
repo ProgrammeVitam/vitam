@@ -419,7 +419,7 @@ public class MongoDbMetadataHelper {
                 return new BasicDBObject(ADD_TO_SET,
                     new BasicDBObject(obj1ToObj2, oid2));
             }
-            relation12 = new ArrayList<String>();
+            relation12 = new ArrayList<>();
         }
         if (relation12.contains(oid2)) {
             return null;

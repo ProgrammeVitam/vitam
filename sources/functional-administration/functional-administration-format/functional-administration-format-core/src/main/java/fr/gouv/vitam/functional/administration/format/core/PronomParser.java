@@ -87,7 +87,7 @@ public class PronomParser {
     }
 
     /**
-     * getPronom
+     * Parse the file Pronom and transform it to an ArrayNode
      *
      * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
@@ -104,8 +104,8 @@ public class PronomParser {
         JsonNode jsonPronom = null;
         final ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
 
-        final List<String> extensions = new ArrayList<String>();
-        final List<String> priorityOverIdList = new ArrayList<String>();
+        final List<String> extensions = new ArrayList<>();
+        final List<String> priorityOverIdList = new ArrayList<>();
         final Map<String, String> idToPUID = new HashMap<>();
 
         try {
@@ -211,6 +211,15 @@ public class PronomParser {
         return jsonFileFormatList;
     }
 
+    /**
+     * Construct a FileFormat from a given Map
+     *
+     *
+     * @param fileFormat
+     * @param attributes
+     * @return
+     */
+
     private static FileFormat getNewFileFormatFromAttributes(FileFormat fileFormat, Map<String, Object> attributes) {
         final FileFormat newFileFormat = new FileFormat();
         if (attributes.get(ATTR_PUID).toString().startsWith(FMT)) {
@@ -226,6 +235,13 @@ public class PronomParser {
         return newFileFormat;
     }
 
+    /**
+     * Copy attributes from a FileFormat Destination to FilaFormat Source
+     *
+     *
+     * @param fileFormatSource
+     * @param fileFormatDest
+     */
     private static void copyAttributesFromFileFormat(FileFormat fileFormatSource, FileFormat fileFormatDest) {
         if (fileFormatSource.getString(ATTR_PUID).startsWith(FMT)) {
             for (final String i : fileFormatSource.keySet()) {

@@ -30,7 +30,7 @@ angular.module('core')
   .factory('accessionRegisterResource', function($http, IHM_URLS) {
 
     var ACCESSION_REGISTER_ROOT = '/admin/accession-register/';
-    var ACCESSION_REGISTER_DETAIL = 'detail/';
+    var ACCESSION_REGISTER_DETAIL = '/accession-register-detail/';
     var accessionRegisterResource = {};
 
     /** Get details of an accession register (POST method)
@@ -39,9 +39,9 @@ angular.module('core')
      * @param {String} criteria.OriginatingAgency - The requested originating agency id
      * @returns {HttpPromise} The promise returned by the http call containing accession register details
      */
-    accessionRegisterResource.getDetails = function (criteria) {
+    accessionRegisterResource.getDetails = function (id, criteria) {
       console.log('Options: ', criteria);
-      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + ACCESSION_REGISTER_DETAIL, criteria);
+      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + id + ACCESSION_REGISTER_DETAIL, criteria);
     };
 
     /** Get summary of an accession register (POST method)

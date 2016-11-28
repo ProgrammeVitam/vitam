@@ -38,7 +38,7 @@ public class AccessExternalClientNotFoundException extends AccessExternalClientE
 
     /**
      * constructor with message
-     * 
+     *
      * @param message associated message
      */
     public AccessExternalClientNotFoundException(String message) {
@@ -47,7 +47,7 @@ public class AccessExternalClientNotFoundException extends AccessExternalClientE
 
     /**
      * constructor with throwable
-     * 
+     *
      * @param cause associated cause
      */
     public AccessExternalClientNotFoundException(Throwable cause) {
@@ -56,7 +56,7 @@ public class AccessExternalClientNotFoundException extends AccessExternalClientE
 
     /**
      * constructor with message and throwable
-     * 
+     *
      * @param messsage associated message
      * @param cause associated cause
      */

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -52,38 +53,34 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * IndexUnit Handler
@@ -97,17 +94,15 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final String TAG_MANAGEMENT = "Management";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
-    private LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getClient();
-    private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
-        .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
      */
-    public IndexUnitActionHandler() {}
+    public IndexUnitActionHandler() {
+        // Empty
+    }
 
     /**
      * @return HANDLER_ID
@@ -117,34 +112,52 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO param) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO param) {
         checkMandatoryParameters(params);
         handlerIO = param;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
         try {
-            checkMandatoryIOParameter(handlerIO);
-            SedaUtils.updateLifeCycleByStep(logbookClient,logbookLifecycleUnitParameters, params);
-            indexArchiveUnit(params, itemStatus);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-        // Update lifeCycle
-        try {
-            logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeLfc(itemStatus.getItemId(), itemStatus.getGlobalStatus()));
-            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookClient,logbookLifecycleUnitParameters,
-                itemStatus.getGlobalStatus());
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            try {
+                checkMandatoryIOParameter(handlerIO);
+
+                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                    logbookLifecycleUnitParameters,
+                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
+                indexArchiveUnit(params, itemStatus);
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+
+            // Update lifeCycle
+            try {
+                logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
+                    null);
+                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
+                    logbookLifecycleUnitParameters,
+                    itemStatus);
+
+            } catch (final ProcessingException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+        } finally {
+            try {
+                handlerIO.getLifecyclesClient().bulkUpdateUnit(params.getContainerName(),
+                    handlerIO.getHelper().removeUpdateDelegate(objectID));
+            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
+                LogbookClientServerException e) {
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
         }
 
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.WARNING);
-        }
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+
     }
 
     /**
@@ -159,13 +172,13 @@ public class IndexUnitActionHandler extends ActionHandler {
         final String objectName = params.getObjectName();
 
         InputStream input;
-        try ( // TODO : whould use worker configuration instead of the processing configuration
-            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            input =
-                workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
+        Response response = null;
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            response = handlerIO
+                .getInputStreamNoCachedFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
-            if (input != null) {
+            if (response != null) {
+                input = (InputStream) response.getEntity();
                 final Insert insertQuery = new Insert();
 
                 final List<Object> archiveDetailsRequiredTForIndex =
@@ -178,8 +191,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     insertQuery.addRoots(parents);
                 }
 
-                final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
-                metadataClient.insertUnit(insertRequest);
+                metadataClient.insertUnit(insertQuery.addData((ObjectNode) json).getFinalInsert());
                 itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Archive unit not found");
@@ -192,6 +204,8 @@ public class IndexUnitActionHandler extends ActionHandler {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
+        } finally {
+            handlerIO.consumeAnyEntityAndClose(response);
         }
     }
 
@@ -200,14 +214,15 @@ public class IndexUnitActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
+        final File tmpFile = handlerIO.getNewLocalFile(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+        final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
+            .namespaceDeclarations(false).build();
 
         JsonNode data = null;
         String parentsList = null;
-        final List<Object> archiveUnitDetails = new ArrayList<Object>();
+        final List<Object> archiveUnitDetails = new ArrayList<>();
         XMLEventReader reader = null;
 
         try {
@@ -223,7 +238,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
                     final String tag = startElement.getName().getLocalPart();
-                    if (it.hasNext() && tag != TAG_CONTENT && contentWritable) {
+                    if (it.hasNext() && !TAG_CONTENT.equals(tag) && contentWritable) {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
                         if (ARCHIVE_UNIT.equals(tag)) {
@@ -233,33 +248,34 @@ public class IndexUnitActionHandler extends ActionHandler {
                         }
                         eventWritable = false;
                     }
-
-                    if (TAG_CONTENT.equals(tag)) {
-                        eventWritable = false;
-                    }
-
-                    if (TAG_MANAGEMENT.equals(tag)) {
-                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
-                        eventWritable = false;
-                    }
-
-                    if (SedaConstants.PREFIX_OG.equals(tag)) {
-                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
-                        writer.add(eventFactory.createCharacters(reader.getElementText()));
-                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
-                        eventWritable = false;
-                    }
-
-                    if (IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        final XMLEvent upsEvent = reader.nextEvent();
-                        if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
-                            parentsList = upsEvent.asCharacters().getData();
-                        }
-                    }
-
-                    if (IngestWorkflowConstants.ROOT_TAG.equals(tag) || IngestWorkflowConstants.WORK_TAG.equals(tag) ||
-                        IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        eventWritable = false;
+                    switch (tag) {
+                        case TAG_MANAGEMENT:
+                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
+                            eventWritable = false;
+                            contentWritable = true;
+                            break;
+                        case SedaConstants.PREFIX_OG:
+                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
+                            writer.add(eventFactory.createCharacters(reader.getElementText()));
+                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
+                            eventWritable = false;
+                            break;
+                        case IngestWorkflowConstants.UP_FIELD:
+                            final XMLEvent upsEvent = reader.nextEvent();
+                            if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
+                                parentsList = upsEvent.asCharacters().getData();
+                            }
+                            eventWritable = false;
+                            break;
+                        case TAG_CONTENT:
+                        case IngestWorkflowConstants.ROOT_TAG:
+                        case IngestWorkflowConstants.WORK_TAG:
+                            eventWritable = false;
+                            break;
+                        case IngestWorkflowConstants.RULES:
+                            reader.nextEvent();
+                            eventWritable = false;
+                            break;
                     }
                 }
 
@@ -267,20 +283,23 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final EndElement endElement = event.asEndElement();
                     final String tag = endElement.getName().getLocalPart();
 
+                    switch (tag) {
+                        case ARCHIVE_UNIT:
+                        case IngestWorkflowConstants.ROOT_TAG:
+                        case IngestWorkflowConstants.WORK_TAG:
+                        case IngestWorkflowConstants.UP_FIELD:
+                        case IngestWorkflowConstants.RULES:
+                            eventWritable = false;
+                            break;
+                        case TAG_CONTENT:
+                            eventWritable = false;
+                            contentWritable = false;
+                            break;
+                        case TAG_MANAGEMENT:
+                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
+                            eventWritable = false;
+                            break;
 
-                    if (ARCHIVE_UNIT.equals(tag) || IngestWorkflowConstants.ROOT_TAG.equals(tag) ||
-                        IngestWorkflowConstants.WORK_TAG.equals(tag) || IngestWorkflowConstants.UP_FIELD.equals(tag)) {
-                        eventWritable = false;
-                    }
-
-                    if (TAG_CONTENT.equals(tag)) {
-                        eventWritable = false;
-                        contentWritable = false;
-                    }
-
-                    if (TAG_MANAGEMENT.equals(tag)) {
-                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
-                        eventWritable = false;
                     }
                 }
 
@@ -296,7 +315,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             // Add operation to OPS
-            ((ObjectNode)data.get("ArchiveUnit")).putArray(SedaConstants.PREFIX_OPS).add(containerId);
+            ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(SedaConstants.PREFIX_OPS).add(containerId);
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
@@ -325,7 +344,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             if (reader != null) {
                 try {
                     reader.close();
-                } catch (XMLStreamException e) {
+                } catch (final XMLStreamException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
@@ -337,5 +356,4 @@ public class IndexUnitActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Handler without parameters input
     }
-
 }

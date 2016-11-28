@@ -26,152 +26,99 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import static java.lang.String.format;
-
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
  * The process management application is to launch process engine vitamServer
  */
-// FIXME P0 should be clientV2/ServerV2
 public class ProcessManagementApplication
     extends AbstractVitamApplication<ProcessManagementApplication, ServerConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementApplication.class);
     private static final String CONF_FILE_NAME = "processing.conf";
-    private static final String MODULE_NAME = "processing";
+    private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.processing.port";
 
-    private static final ProcessManagementApplication APPLICATION = new ProcessManagementApplication();
-    private static VitamServer vitamServer;
+    static VitamServiceRegistry serviceRegistry = null;
 
     /**
      * ProcessManagementApplication constructor
+     *
+     * @param configuration
      */
-    public ProcessManagementApplication() {
-        super(ProcessManagementApplication.class, ServerConfiguration.class);
+    public ProcessManagementApplication(String configuration) {
+        super(ServerConfiguration.class, configuration);
     }
 
     /**
-     * Start a service of ProcessManagement with the args as config
+     * ProcessManagementApplication constructor
      *
-     * @param args as String
+     * @param configuration
+     */
+    ProcessManagementApplication(ServerConfiguration configuration) {
+        super(ServerConfiguration.class, configuration);
+    }
+
+    /**
+     * Main method to run the application (doing start and join)
+     *
+     * @param args command line parameters
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
-            ProcessManagementApplication.startApplication(args);
-
-            if (vitamServer != null && vitamServer.isStarted()) {
-                vitamServer.join();
+            if (args == null || args.length == 0) {
+                LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    CONF_FILE_NAME));
             }
-
+            final ProcessManagementApplication application = new ProcessManagementApplication(args[0]);
+            // Test if dependencies are OK
+            if (serviceRegistry == null) {
+                LOGGER.error("ServiceRegistry is not allocated");
+                System.exit(1);
+            }
+            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
+            application.run();
         } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
 
-    /**
-     * Parses command-line arguments and runs the APPLICATION.
-     *
-     * @param arguments the command-line arguments
-     * @throws RuntimeException Thrown if something goes wrong
-     * @throws VitamApplicationServerException 
-     */
-
-    public static void startApplication(String... arguments) throws RuntimeException, VitamApplicationServerException {
-
-        if (arguments == null || arguments.length == 0) {
-            LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-            throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                CONF_FILE_NAME));
-        }
-
-        APPLICATION.configure(APPLICATION.computeConfigurationPathFromInputArguments(arguments));
-        run(APPLICATION.getConfiguration());
+    private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
+        serviceRegistry = newServiceRegistry;
     }
 
-
-    /**
-     * run a vitamServer instance with the configuration and port
-     *
-     * @param configuration as ServerConfiguration
-     * @throws VitamApplicationServerException 
-     * @throws Exception Thrown if something goes wrong
-     */
-    public static void run(ServerConfiguration configuration) throws VitamApplicationServerException {
-        APPLICATION.setConfiguration(configuration);
-        final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
-        vitamServer = VitamServerFactory.newVitamServerByJettyConf(configuration.getJettyConfig());
-        vitamServer.configure(context);
-
-        try {
-            vitamServer.start();
-        } catch (final Exception e) {
-            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-            throw new VitamApplicationServerException(
-                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-        }
-    }
-
-
-    /**
-     * stop the lauched vitamServer
-     *
-     * @throws Exception if the application can not be stopped
-     */
-    public static void stop() throws Exception {
-        if (vitamServer != null && vitamServer.isStarted()) {
-            vitamServer.stop();
-        }
-    }
-
-    /**
-     * Implement this method to construct your application specific handler
-     *
-     * @return the generated Handler
-     */
     @Override
-    protected Handler buildApplicationHandler() {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        resourceConfig.register(new ProcessManagementResource(getConfiguration()));
-        resourceConfig.register(new ProcessDistributorResource(getConfiguration()));
-        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        return context;
-    }
-
-    /**
-     * Must return the name as a string of your configuration file. Example : "logbook.conf"
-     *
-     * @return the name of the application configuration file
-     */
-    @Override
-    protected String getConfigFilename() {
-        return CONF_FILE_NAME;
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
+        WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
+        // Logbook dependency
+        serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
+            // Workspace dependency
+            .register(WorkspaceClientFactory.getInstance())
+            // Metadata dependency: optional ???
+            .registerOptional(MetaDataClientFactory.getInstance());
+        // FIXME P1 worker optional register: How to do it ?
+        resourceConfig
+            .register(new ProcessManagementResource(getConfiguration()))
+            .register(new ProcessDistributorResource(getConfiguration()))
+            .register(new AdminStatusResource(serviceRegistry));
     }
 }

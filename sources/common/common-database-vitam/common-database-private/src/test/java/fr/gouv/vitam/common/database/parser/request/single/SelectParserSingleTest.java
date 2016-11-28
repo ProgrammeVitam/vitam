@@ -70,7 +70,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
@@ -399,7 +398,7 @@ public class SelectParserSingleTest {
             } catch (final InvalidParseOperationException e) {
                 fail("Should not raized an exception");
             }
-            request.projectionParse(JsonHandler.getFromString("{}"));
+            request.projectionParse(JsonHandler.createObjectNode());
             new SelectToMongoDb(request).getFinalProjection();
             try {
                 request.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
@@ -433,7 +432,7 @@ public class SelectParserSingleTest {
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserSingle request = new SelectParserSingle();
         final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(and().add(term("var01", "value1"), gte("var02", 3)));
         select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
             .addUnusedProjection("var4");

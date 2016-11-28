@@ -6,21 +6,26 @@ reverse
 library
 hosts-mongo-express
 
-
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+localhost
 
 ########### Extra VITAM applications ###########
 
 [library] # EXTRA : Library server
-localhost
 
 [hosts-mongo-express]
+localhost
+
+[elasticsearch:children] # EXTRA : elasticsearch
+hosts-elasticsearch-data
+hosts-elasticsearch-log
 
 ########### VITAM services ###########
 
 [vitam:children]
+hosts-ihm-recette
 zone-external
 zone-access
 zone-applicative
@@ -29,6 +34,9 @@ zone-data
 zone-admin
 
 ##### Zone externe
+
+[hosts-ihm-recette]
+localhost
 
 [zone-external:children]
 hosts-ihm-demo
@@ -127,6 +135,7 @@ localhost rs_member_id=0 shard_id=0
 hosts-consul-server
 hosts-log-server
 hosts-elasticsearch-log
+hosts-mongoclient
 
 [hosts-consul-server]
 localhost
@@ -137,20 +146,19 @@ localhost
 [hosts-elasticsearch-log]
 localhost
 
+[hosts-mongoclient]
+localhost
+
 ########### Global vars ###########
 
 [hosts:vars]
 ansible_become=true
 ansible_connection=local
 
-vitam_folder_permission=0775
-vitam_conf_permission=0775
-local_user={{ansible_user_id}}
 environnement=fulllocal
-vitam_logstash_portvitam_reverse_domain=
 
 consul_domain=consul
-vitam_ihm_demo_external_dns=localhost
+vitam_reverse_external_dns=localhost
 rpm_version=*
 days_to_delete=365
 days_to_close=20
@@ -158,7 +166,20 @@ days_to_delete_topbeat=20
 days_to_delete_local=30
 dns_servers=["10.100.211.222","8.8.8.8"]
 
-memory_opts="-Xms32m -Xmx256m" 
+memory_opts="-Xms32m -Xmx256m"
 
+web_dir_soapui_tests=
 
+# Overrides
+vitam_folder_permission=0775
+vitam_conf_permission=0775
+log_level=WARN
 
+reverse_proxy_port=80
+
+days_to_close_metrics=7
+days_to_delete_metrics=30
+
+installation_clamav=true
+
+http_proxy_environnement=

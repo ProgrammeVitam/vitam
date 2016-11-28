@@ -28,21 +28,18 @@ package fr.gouv.vitam.access.internal.client;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.io.FileNotFoundException;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalApplication;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -94,12 +91,13 @@ public class AccessResourceTest {
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         final String selectQuery =
-            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
-                " $filter : { $orderby : { '#id' } }," +
-                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+            "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+                " \"$filter\": { \"$orderby\": \"#id\" }, " +
+                " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
                 " }";
-        assertNotNull(client.selectUnits(selectQuery));
-        assertNotNull(client.selectUnitbyId(selectQuery, ID));
+        final JsonNode queryJson = JsonHandler.getFromString(selectQuery);
+        assertNotNull(client.selectUnits(queryJson));
+        assertNotNull(client.selectUnitbyId(queryJson, ID));
     }
 
 }

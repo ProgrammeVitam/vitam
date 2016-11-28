@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -34,13 +36,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.codahale.metrics.Gauge;
+
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.metadata.api.model.RequestResponseError;
-import fr.gouv.vitam.metadata.api.model.VitamError;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -59,20 +62,26 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
-    private final ProcessManagement processManagement;
     private final ServerConfiguration config;
+    private final ProcessManagement processManagementMock;
+    private final AtomicLong runningWorkflows = new AtomicLong(0L);
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
      *
      * @param configuration the server configuration to be applied
      */
-    // FIXME P0 create a newProcessManagementImpl for each request
     public ProcessManagementResource(ServerConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
-        processManagement = new ProcessManagementImpl(configuration);
+        processManagementMock = null;
         config = configuration;
         LOGGER.info("init Process Management Resource server");
+        AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
+            new Gauge<Long>() {
+                @Override
+                public Long getValue() {
+                    return runningWorkflows.get();
+                }
+            });
     }
 
     /**
@@ -82,8 +91,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param configuration the configuration
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
-        processManagement = pManagement;
+        processManagementMock = pManagement;
         config = configuration;
     }
 
@@ -102,9 +110,13 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         final WorkerParameters workParam = WorkerParametersFactory.newWorkerParameters().setContainerName(process
             .getContainer()).setUrlMetadata(config.getUrlMetadata()).setUrlWorkspace(config.getUrlWorkspace());
         ItemStatus resp;
-
+        ProcessManagement processManagement = processManagementMock;
         try {
-            resp = (ItemStatus) processManagement.submitWorkflow(workParam, process.getWorkflow());
+            runningWorkflows.incrementAndGet();
+            if (processManagement == null) {
+                processManagement = new ProcessManagementImpl(config); // NOSONAR mock management
+            }
+            resp = processManagement.submitWorkflow(workParam, process.getWorkflow());
         } catch (WorkflowNotFoundException | HandlerNotFoundException e) {
             // if workflow or handler not found
             LOGGER.error(e);
@@ -126,6 +138,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
+        } finally {
+            runningWorkflows.decrementAndGet();
+            if (processManagementMock == null && processManagement != null) {
+                processManagement.close();
+            }
         }
 
         status = getStatusFrom(resp);
@@ -143,12 +160,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private RequestResponseError getErrorEntity(Status status) {
-        return new RequestResponseError().setError(
-            new VitamError(status.getStatusCode())
-                .setContext("ingest")
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase()));
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext("ingest")
+            .setState("code_vitam")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(status.getReasonPhrase());
     }
 }

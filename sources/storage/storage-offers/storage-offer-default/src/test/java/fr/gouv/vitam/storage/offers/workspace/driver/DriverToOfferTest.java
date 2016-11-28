@@ -47,13 +47,12 @@ import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -75,9 +74,6 @@ public class DriverToOfferTest {
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
 
-    private static File newWorkspaceOfferConf;
-
-    private static VitamServer vitamServer;
     private static DriverImpl driver;
 
     private static final String REST_URI = "/offer/v1";
@@ -95,7 +91,7 @@ public class DriverToOfferTest {
         new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
-        serverPort = 8784;
+        serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -103,7 +99,7 @@ public class DriverToOfferTest {
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final DefaultOfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
-        newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
@@ -114,7 +110,7 @@ public class DriverToOfferTest {
             throw new IllegalStateException(
                 "Cannot start the Wokspace Offer Application Server", e);
         }
-        
+
         driver = new DriverImpl();
     }
 
@@ -126,7 +122,7 @@ public class DriverToOfferTest {
         junitHelper.releasePort(serverPort);
 
         application.stop();
-        
+
         // delete files
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
@@ -146,9 +142,11 @@ public class DriverToOfferTest {
         PutObjectRequest request = null;
         guid = GUIDFactory.newObjectGUID(1).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            final MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
+            final MessageDigest messageDigest =
+                MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request = new PutObjectRequest("1", DigestType.SHA256.getName(), guid, digestInputStream,
+                request = new PutObjectRequest("1", VitamConfiguration.getDefaultDigestType().getName(), guid,
+                    digestInputStream,
                     DataCategory.UNIT.name());
                 final PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
@@ -169,7 +167,8 @@ public class DriverToOfferTest {
         }
 
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            request = new PutObjectRequest(null, DigestType.SHA256.getName(), guid, fin, DataCategory.UNIT.name());
+            request = new PutObjectRequest(null, VitamConfiguration.getDefaultDigestType().getName(), guid, fin,
+                DataCategory.UNIT.name());
             connection.putObject(request);
             fail("Should have an exception !");
         } catch (final StorageDriverException exc) {

@@ -17,7 +17,7 @@
             </thead>
             <tbody>
             <tr class="logbookProcess">
-                <td>{{entryCtrl.detail.evType | translate}}</td>
+                <td>{{entryCtrl.detail.evType | translate| replaceDoubleQuote}}</td>
                 <td>{{entryCtrl.detail.evDateTime}}</td>
                 <td>{{entryCtrl.detail.outcome}}</td>
                 <td>{{entryCtrl.detail.outMessg}}</td>
@@ -34,6 +34,6 @@
         </table>
     </md-dialog-content>
     <md-dialog-actions>
-        <md-button aria-label="Close" ng-click="entryCtrl.close()">Close</md-button>
+        <md-button aria-label="Close" ng-click="entryCtrl.close()">Fermer</md-button>
     </md-dialog-actions>
 </md-dialog>

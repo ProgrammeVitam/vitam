@@ -71,13 +71,14 @@ public class FormatIdentifierFactory {
      */
     public final void changeConfigurationFile(String configurationPath) {
         try {
-            File configurationFile = PropertiesUtils.findFile(configurationPath);
+            final File configurationFile = PropertiesUtils.findFile(configurationPath);
             if (configurationFile != null) {
-                Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
+                final Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
                     new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
-                for (FormatIdentifierConfiguration configuration : configMap.values()) {
+                for (final FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
+                configurationsFormatIdentifiers.clear();
                 configurationsFormatIdentifiers.putAll(configMap);
             }
         } catch (final IOException e) {
@@ -97,7 +98,7 @@ public class FormatIdentifierFactory {
     }
 
     /**
-     * Instanciate the format identifier identified
+     * Instantiate the format identifier identified
      *
      * @param formatIdentifierId format identifier id
      * @return the Format Identifier implementation

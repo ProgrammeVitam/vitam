@@ -31,14 +31,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class VitamServerFactoryTest {
 
@@ -47,9 +47,9 @@ public class VitamServerFactoryTest {
 
     @Test
     public final void testNewVitamServerOnDefaultPort() {
-        JunitHelper junitHelper = JunitHelper.getInstance();
-        int serverPort = junitHelper.findAvailablePort();
-        int oldPort = VitamServerFactory.getDefaultPort();
+        final JunitHelper junitHelper = JunitHelper.getInstance();
+        final int serverPort = junitHelper.findAvailablePort();
+        final int oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
 
         final VitamServer server = VitamServerFactory.newVitamServerOnDefaultPort();
@@ -63,7 +63,7 @@ public class VitamServerFactoryTest {
             // ignore
         }
         try {
-            server.run();
+            server.startAndJoin();
             fail("Should raized an axception");
         } catch (final VitamApplicationServerException e) {
             // ignore
@@ -74,8 +74,8 @@ public class VitamServerFactoryTest {
 
     @Test
     public final void testNewVitamServer() {
-        JunitHelper junitHelper = JunitHelper.getInstance();
-        int port = junitHelper.findAvailablePort();
+        final JunitHelper junitHelper = JunitHelper.getInstance();
+        final int port = junitHelper.findAvailablePort();
         final VitamServer server = VitamServerFactory.newVitamServer(port);
         assertEquals(port, server.getPort());
         assertNull(server.getHandler());
@@ -87,7 +87,7 @@ public class VitamServerFactoryTest {
             // ignore
         }
         try {
-            server.run();
+            server.startAndJoin();
             fail("Should raized an axception");
         } catch (final VitamApplicationServerException e) {
             // ignore
@@ -100,17 +100,17 @@ public class VitamServerFactoryTest {
     public final void testNewVitamServerFromJettyConfig() {
         try {
             final VitamServer server = VitamServerFactory.newVitamServerByJettyConf(JETTY_CONFIG_TEST);
-            Server jettyServer = server.getServer();
+            final Server jettyServer = server.getServer();
 
             jettyServer.start();
             Assert.assertTrue(jettyServer.isStarted());
 
-            if(jettyServer!=null && jettyServer.isStarted()) {
+            if (jettyServer != null && jettyServer.isStarted()) {
                 jettyServer.stop();
             }
             Assert.assertTrue(jettyServer.isStopped());
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
@@ -120,9 +120,9 @@ public class VitamServerFactoryTest {
         VitamServer server = null;
         try {
             server = VitamServerFactory.newVitamServerByJettyConf(null);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
-            Assert.assertTrue(server==null);
+            Assert.assertTrue(server == null);
 
         }
     }
@@ -130,9 +130,9 @@ public class VitamServerFactoryTest {
 
     @Test
     public final void testSetterGetter() {
-        JunitHelper junitHelper = JunitHelper.getInstance();
-        int port = junitHelper.findAvailablePort();
-        int oldPort = VitamServerFactory.getDefaultPort();
+        final JunitHelper junitHelper = JunitHelper.getInstance();
+        final int port = junitHelper.findAvailablePort();
+        final int oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(port);
         assertEquals(port, VitamServerFactory.getDefaultPort());
         VitamServerFactory.setDefaultPort(oldPort);

@@ -62,27 +62,23 @@ public final class MetadataJsonResponseUtils {
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
      * @param selectRequest
+     * @param query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
      */
-    public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
+    public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
         throws InvalidParseOperationException {
-
-        final ObjectNode jsonListResponse = populateJsonHintAndContext(result);
-
+        ArrayNode jsonListResponse = JsonHandler.createArrayNode();
         // TODO P1 : review if statement because if result.getFinal().get("Result") == null and selectRequest
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
         if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
-            result.getFinal().get("Result") != null)) {
+            result.getFinal().get(Result.RESULT_FIELD) != null)) {
             LOGGER.debug("Result document: " + result.getFinal().toJson());
-            jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
-        } else {
-            jsonListResponse.set("$result", JsonHandler.createObjectNode());
+            jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getMetadataDocumentListFiltered());
         }
-
         LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
         return jsonListResponse;
     }
@@ -91,20 +87,6 @@ public final class MetadataJsonResponseUtils {
         return JsonHandler.toJsonNode(unitOrObjectGroup);
     }
 
-    private static ObjectNode populateJsonHintAndContext(Result result) {
-        final ObjectNode jsonListResponse = JsonHandler.createObjectNode();
-        if (result != null && result.getFinal() != null) {
-            final ObjectNode hitsNode = JsonHandler.createObjectNode();
-            hitsNode.put("total", result.getNbResult());
-            hitsNode.put("size", result.getNbResult());
-            hitsNode.put("limit", result.getNbResult());
-            hitsNode.put("time_out", false);
-            jsonListResponse.set("$hint", hitsNode);
-            final ObjectNode contextNode = JsonHandler.createObjectNode();
-            jsonListResponse.set("$context", contextNode);
-        }
-        return jsonListResponse;
-    }
 
     /**
      * create Json response with diff information
@@ -113,32 +95,29 @@ public final class MetadataJsonResponseUtils {
      *        can be empty
      * @param request
      * @param diff the diff map list with the unit id as key and the diff list as value
+     * @param query
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
      */
-    public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple request,
+    public static ArrayNode populateJSONObjectResponse(Result result, RequestParserMultiple request,
         Map<String, List<String>> diff) throws InvalidParseOperationException {
-        final ObjectNode jsonListResponse = populateJsonHintAndContext(result);
-
-        if (result != null && result.getNbResult() > 0 && result.getFinal().get("Result") != null) {
-            LOGGER.debug("Result document: " + result.getFinal().toJson());
-            jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
-            jsonListResponse.set("$diff", getJsonDiff(diff));
-        } else {
-            jsonListResponse.set("$result", getJsonDiff(diff));
+        ArrayNode arrayJsonListResponse = JsonHandler.createArrayNode();
+        if (result != null && result.getNbResult() > 0) {
+            arrayJsonListResponse = getJsonDiff(diff);
         }
-
-        return jsonListResponse;
+        LOGGER.debug("populateJSONObjectResponse: " + arrayJsonListResponse.toString());
+        return arrayJsonListResponse;
     }
 
-    private static JsonNode getJsonDiff(Map<String, List<String>> diff) {
+
+    private static ArrayNode getJsonDiff(Map<String, List<String>> diff) {
         final ArrayNode diffArrayNode = JsonHandler.createArrayNode();
         for (final String id : diff.keySet()) {
             final ObjectNode diffNode = JsonHandler.createObjectNode();
-            diffNode.put("_id", id);
-            diffNode.put("_diff", String.join("\n", diff.get(id)));
+            diffNode.put("#id", id);
+            diffNode.put("#diff", String.join("\n", diff.get(id)));
             diffArrayNode.add(diffNode);
         }
         return diffArrayNode;

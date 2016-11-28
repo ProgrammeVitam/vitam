@@ -44,6 +44,10 @@ public class ParserTokens extends BuilderToken {
      * Default prefix for internal variable
      */
     public static final char DEFAULT_HASH_PREFIX_CHAR = '#';
+    /**
+     * Default underscore prefix for command
+     */
+    public static final char DEFAULT_UNDERSCORE_PREFIX_CHAR = '_';
 
     private ParserTokens() {
         // Empty
@@ -62,9 +66,13 @@ public class ParserTokens extends BuilderToken {
          */
         ID("id"),
         /**
-         * Number of units from each result (Unit = subUnit, ObjectGroup = objects)
+         * Number of units immediate children from this Unit
          */
         NBUNITS("nbunits"),
+        /**
+         * Number of objects within ObjectGroup
+         */
+        NBOBJECTS("nbobjects"),
         /**
          * All Dua for the result
          */
@@ -80,15 +88,21 @@ public class ParserTokens extends BuilderToken {
         /**
          * Object size
          */
+        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
+        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
          */
         TYPE("type"),
+        /**
+         * Unit/ObjectGroup Tenant
+         */
+        TENANT("tenant"),
         /**
          * Unit's ObjectGroup
          */
@@ -97,6 +111,22 @@ public class ParserTokens extends BuilderToken {
          * Unit's immediate parents
          */
         UNITUPS("unitups"),
+        /**
+         * Unit's MIN distance from root
+         */
+        MIN("min"),
+        /**
+         * Unit's MAX distance from root
+         */
+        MAX("max"),
+        /**
+         * All Unit's parents
+         */
+        ALLUNITUPS("allunitups"),
+        /**
+         * Management bloc
+         */
+        MANAGEMENT("management"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -117,6 +147,17 @@ public class ParserTokens extends BuilderToken {
          */
         public final String exactToken() {
             return exactToken;
+        }
+
+        /**
+         * Used in projection for getObject
+         *
+         * @param token
+         * @return True if this token is valid, even starting with a "_"
+         */
+        public static final boolean isValid(String token) {
+            // Exception for getObject sliced projection
+            return token.startsWith("_qualifiers.");
         }
 
         /**
@@ -156,10 +197,15 @@ public class ParserTokens extends BuilderToken {
                         case FORMAT:
                         case ID:
                         case NBUNITS:
+                        case NBOBJECTS:
                         case QUALIFIERS:
                         case SIZE:
                         case OBJECT:
                         case UNITUPS:
+                        case ALLUNITUPS:
+                        case TENANT:
+                        case MIN:
+                        case MAX:
                             return true;
                         default:
                     }

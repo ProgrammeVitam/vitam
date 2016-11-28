@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Storage RequestResponseError class contains error list
  *
  */
-//TODO P1 : refactor to the common vitam
+// TODO P1 : refactor to the common vitam
 public class RequestResponseError extends RequestResponse {
 
     private VitamError error;

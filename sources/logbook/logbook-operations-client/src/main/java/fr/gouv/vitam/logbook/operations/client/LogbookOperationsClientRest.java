@@ -38,12 +38,14 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -57,9 +59,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 /**
  * Logbook operation REST client
  */
-public class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
+class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
+    private static final String TRACEABILITY_URI = "/operations/traceability";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -91,7 +94,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -124,7 +127,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -133,7 +136,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
     }
 
     @Override
-    public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -150,7 +153,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -178,7 +181,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
@@ -221,7 +224,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
                         LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                         throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
-            } catch (VitamClientInternalException e) {
+            } catch (final VitamClientInternalException e) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             } finally {
@@ -238,7 +241,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
     public void commitCreateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException {
-        Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
         bulkCreate(eventIdProc, queue);
     }
 
@@ -266,7 +269,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
                         LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                         throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
-            } catch (VitamClientInternalException e) {
+            } catch (final VitamClientInternalException e) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             } finally {
@@ -282,7 +285,7 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
     @Override
     public void commitUpdateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
         bulkUpdate(eventIdProc, queue);
     }
 
@@ -291,5 +294,30 @@ public class LogbookOperationsClientRest extends DefaultClient implements Logboo
         super.close();
         helper.clear();
     }
+
+    @Override
+    public RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, TRACEABILITY_URI, null, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+            return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+    }
+
 
 }

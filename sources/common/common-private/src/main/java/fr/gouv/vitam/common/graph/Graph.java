@@ -73,12 +73,12 @@ public class Graph {
      */
     public Graph(JsonNode jsonGraph) {
         roots = new HashSet<>();
-        indexMapping = new DualHashBidiMap<Integer, String>();
+        indexMapping = new DualHashBidiMap<>();
         maxSize = jsonGraph.size();
         // number of vertice
         LOGGER.debug("maxSize:" + maxSize);
         vertices = new Vertex[maxSize];
-        stack = new ArrayDeque<Vertex>(maxSize);
+        stack = new ArrayDeque<>(maxSize);
         for (int i = 0; i < maxSize; i++) {
             addVertex(i + 1);
         }
@@ -187,7 +187,7 @@ public class Graph {
      */
     private Map<Integer, Integer> findLongestsPath(int source) {
         applyTopologicalSort();
-        final Map<Integer, Integer> longestsPathMap = new WeakHashMap<Integer, Integer>();
+        final Map<Integer, Integer> longestsPathMap = new WeakHashMap<>();
         vertices[source - 1].cost = 0;
         while (!stack.isEmpty()) {
             final Vertex u = stack.pop();
@@ -217,7 +217,7 @@ public class Graph {
      * @return Map<Integer, Integer> :longest path for different roots
      */
     private Map<Integer, Integer> findAllLongestsPath(Set<String> roots) {
-        final Map<Integer, Integer> allLongestsPath = new WeakHashMap<Integer, Integer>();
+        final Map<Integer, Integer> allLongestsPath = new WeakHashMap<>();
         for (final String rootXmlId : roots) {
             // find longest path for different roots
             final Map<Integer, Integer> longestsPathMap = findLongestsPath(getIndex(rootXmlId));
@@ -248,7 +248,7 @@ public class Graph {
      */
     public Map<Integer, Set<String>> getGraphWithLongestPaths() {
 
-        longestsPath = new HashMap<Integer, Set<String>>();
+        longestsPath = new HashMap<>();
         Map<Integer, Integer> paths = findAllLongestsPath(roots);
         if (paths != null) {
             for (final Map.Entry<Integer, Integer> e : paths.entrySet()) {
@@ -259,7 +259,7 @@ public class Graph {
                     longestsPath.get(level).add(indexMapping.get(unitId));
 
                 } else {
-                    final Set<String> units = new HashSet<String>();
+                    final Set<String> units = new HashSet<>();
                     units.add(indexMapping.get(unitId));
                     longestsPath.put(level, units);
                 }

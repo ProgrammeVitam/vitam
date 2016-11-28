@@ -85,15 +85,15 @@ public final class JsonTransformer {
         ParametersChecker.checkParameter("Result cannot be empty", searchResult);
         final ObjectNode resultNode = JsonHandler.createObjectNode();
         long nbObjects = 0;
-        final JsonNode result = searchResult.get("$result").get(0);
-        final JsonNode qualifiers = result.get("_qualifiers");
+        final JsonNode result = searchResult.get("$results").get(0);
+        final JsonNode qualifiers = result.get("#qualifiers");
         final List<JsonNode> versions = qualifiers.findValues("versions");
         final Map<String, Integer> usages = new HashMap<>();
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         for (final JsonNode version : versions) {
             for (final JsonNode object : version) {
                 final ObjectNode objectNode = JsonHandler.createObjectNode();
-                objectNode.put("_id", object.get("_id").asText());
+                objectNode.put("#id", object.get("_id").asText());
                 final String usage = object.get("DataObjectVersion").asText();
                 if (usages.containsKey(usage)) {
                     final Integer rank = usages.get(usage) + 1;
@@ -125,7 +125,7 @@ public final class JsonTransformer {
 
     /**
      * This method builds an ObjectNode based on a list of JsonNode object
-     * 
+     *
      * @param unitId
      * @param allParents list of JsonNode Objects used to build the referential
      * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)
@@ -138,19 +138,19 @@ public final class JsonTransformer {
 
         final ObjectNode allParentsRef = JsonHandler.createObjectNode();
         for (final JsonNode currentParentNode : allParents) {
-            if (!currentParentNode.has(UiConstants.ID.getResultConstantValue())) {
+            if (!currentParentNode.has(UiConstants.ID.getResultCriteria())) {
                 throw new VitamException(MISSING_ID_ERROR_MSG);
             }
 
-            if (!currentParentNode.has(UiConstants.UNITUPS.getResultConstantValue())) {
+            if (!currentParentNode.has(UiConstants.UNITUPS.getResultCriteria())) {
                 throw new VitamException(MISSING_UP_ERROR_MSG);
             }
 
-            if (!currentParentNode.get(UiConstants.UNITUPS.getResultConstantValue()).isArray()) {
+            if (!currentParentNode.get(UiConstants.UNITUPS.getResultCriteria()).isArray()) {
                 throw new VitamException(INVALID_UP_FIELD_ERROR_MSG);
             }
 
-            final String currentParentId = currentParentNode.get(UiConstants.ID.getResultConstantValue()).asText();
+            final String currentParentId = currentParentNode.get(UiConstants.ID.getResultCriteria()).asText();
             allParentsRef.set(currentParentId, currentParentNode);
 
             if (unitId.equalsIgnoreCase(currentParentId)) {

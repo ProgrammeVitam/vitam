@@ -1,6 +1,11 @@
-dbHost: {{vitam_mongodb_host}}
-dbPort: {{vitam_mongodb_port}}
-dbName: Vitam
+
+# Configuration MongoDB
+mongoDbNodes:
+{% for server in groups['mongos'] %}
+- dbHost: {{server}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
+dbName: masterdata
 dbAuthentication: {{mongo_authentication}}
 dbUserName: {{mongoFunctionalAdminUser}}
 dbPassword: {{mongoFunctionalAdminPassword}}

@@ -26,23 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
@@ -54,34 +39,7 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
 /**
  * Processing Management Client
  */
-//FIXME P0 should be clientV2 / Server V2
-public class ProcessingManagementClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClient.class);
-
-    private final Client client;
-    private final String url;
-    private static final String RESOURCE_PATH = "/processing/v1";
-
-    // FIXME P0 REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
-    /**
-     * @param url of metadata server
-     */
-    public ProcessingManagementClient(String url) {
-        final ClientConfig clientConfig = new ClientConfig();
-        clientConfig.register(JacksonJsonProvider.class);
-        clientConfig.register(JacksonFeature.class);
-
-        client = ClientBuilder.newClient(clientConfig);
-        this.url = url + RESOURCE_PATH;
-    }
-
-    /**
-     * @return : status of metadata server 200 : server is alive
-     */
-    public Response status() {
-        return client.target(url).path("status").request().get();
-    }
-
+public interface ProcessingManagementClient extends MockOrRestClient {
 
     /**
      * executeVitamProcess : processing operation of a workflow
@@ -93,41 +51,13 @@ public class ProcessingManagementClient {
      * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
      * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
      * @throws ProcessingBadRequestException thrown in case of bad request server error
-     * @throws ProcessingException 
+     * @throws ProcessingException
      * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
      *         client and server
      */
-    public ItemStatus executeVitamProcess(String container, String workflow)
+    ItemStatus executeVitamProcess(String container, String workflow)
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
-        ProcessingException {
-        ParametersChecker.checkParameter("container is a mandatory parameter", container);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
-
-        try {
-
-            final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON),
-                    Response.class);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException("Workflow Not Found");
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException("Illegal Argument");
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new ProcessingUnauthorizeException("Unauthorized Operation");
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new ProcessingInternalServerException("Internal Server Error");
-            }
-
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response.readEntity(ItemStatus.class);
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
-            throw new ProcessingInternalServerException("Internal Server Error", e);
-        }
-    }
+        ProcessingException;
 
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
@@ -139,21 +69,8 @@ public class ProcessingManagementClient {
      * @throws ProcessingBadRequestException if a bad request has been sent
      * @throws WorkerAlreadyExistsException if the worker family does not exist
      */
-    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
-        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
-        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
-        ParametersChecker.checkParameter("workerDescription is a mandatory parameter", workerDescription);
-        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
-            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(workerDescription, MediaType.APPLICATION_JSON), Response.class);
-
-        if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new ProcessingBadRequestException("Bad Request");
-        } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
-            throw new WorkerAlreadyExistsException("Worker already exist");
-        }
-    }
+    void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
+        throws ProcessingBadRequestException, WorkerAlreadyExistsException;
 
     /**
      * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception
@@ -163,16 +80,6 @@ public class ProcessingManagementClient {
      * @param workerId the id of the worker to be registered
      * @throws ProcessingBadRequestException if the worker or the family does not exist
      */
-    public void unregisterWorker(String familyId, String workerId)
-        throws ProcessingBadRequestException {
-        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
-        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
-        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
-            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-            .delete();
-
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
-        }
-    }
+    void unregisterWorker(String familyId, String workerId)
+        throws ProcessingBadRequestException;
 }

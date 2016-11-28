@@ -40,7 +40,6 @@ import org.junit.Test;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -69,10 +68,10 @@ public class ProcessDistributorImplTest {
     private static final String WORKFLOW_ID = "workflowJSONv1";
     private ProcessMonitoringImpl processMonitoring;
     private WorkFlow worfklow;
-    private static JunitHelper junitHelper;    
+    private static JunitHelper junitHelper;
     private String urlWorkspace;
     private static int port;
-    
+
     private static final String WORKER_DESCRIPTION =
         "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
@@ -106,20 +105,20 @@ public class ProcessDistributorImplTest {
             params.setStepUniqId(entry.getKey());
         }
     }
-    
+
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);
     }
-    
+
 
     @Test
     public void givenProcessDistributorWhendistributeThenCatchTheOtherException() {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
         step.setBehavior(ProcessBehavior.BLOCKING);
-        final List<Action> actions = new ArrayList<Action>();
+        final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey("ExtractSeda");
@@ -128,7 +127,7 @@ public class ProcessDistributorImplTest {
         actions.add(action);
         step.setActions(actions);
 
-        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
@@ -159,7 +158,7 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
@@ -176,7 +175,7 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
@@ -185,12 +184,12 @@ public class ProcessDistributorImplTest {
     public void givenProcessDistributorWhenDistributeThenProcessStepsNotEmpty()
         throws IllegalArgumentException, ProcessingException {
         // final WorkerImpl worker = mock(WorkerImpl.class);
-        final List<EngineResponse> response = new ArrayList<EngineResponse>();
+        final List<EngineResponse> response = new ArrayList<>();
         response.add(new ProcessResponse().setStatus(StatusCode.OK));
         // when(worker.run(anyObject(), anyObject())).thenReturn(response);
 
-        Step step = worfklow.getSteps().get(0);
-        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final Step step = worfklow.getSteps().get(0);
+        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
 

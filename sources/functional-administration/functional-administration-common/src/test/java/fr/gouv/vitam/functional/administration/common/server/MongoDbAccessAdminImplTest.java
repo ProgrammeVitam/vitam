@@ -57,7 +57,8 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -93,8 +94,10 @@ public class MongoDbAccessAdminImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoAccess = MongoDbAccessAdminFactory.create(
-            new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
+            new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -116,7 +119,7 @@ public class MongoDbAccessAdminImplTest {
             .setRuleDuration("10")
             .setRuleMeasurement("Annee");
 
-        RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(1).setDeleted(0).setRemained(1);
+        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(1).setDeleted(0).setRemained(1);
         register = new AccessionRegisterDetail()
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)
@@ -184,18 +187,21 @@ public class MongoDbAccessAdminImplTest {
         fileList.close();
         client.close();
     }
-    
+
     @Test
     public void testAccessionRegister() throws Exception {
         final JsonNode jsonNode = JsonHandler.toJsonNode(register);
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-        assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION,
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(ACCESSION_REGISTER_DETAIL_COLLECTION);
+        final MongoCollection<Document> collection =
+            client.getDatabase(DATABASE_NAME).getCollection(ACCESSION_REGISTER_DETAIL_COLLECTION);
         assertEquals(1, collection.count());
-        Map<String, Object> updateMap = new HashMap<>();
+        final Map<String, Object> updateMap = new HashMap<>();
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS, 1);
-        mongoAccess.updateDocumentByMap(updateMap, jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, UPDATEACTION.SET);
+        mongoAccess.updateDocumentByMap(updateMap, jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            UPDATEACTION.SET);
         mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
         assertEquals(0, collection.count());
         client.close();

@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * Access client interface
@@ -49,8 +50,9 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnits(String selectQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    JsonNode selectUnits(JsonNode selectQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * select Unit By Id
@@ -62,8 +64,9 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnitbyId(String sqlQuery, String id)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * update Unit By Id
@@ -75,8 +78,9 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode updateUnitbyId(String updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
@@ -88,8 +92,9 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
-    JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
     /**
      * Retrieve an Object data as an input stream
@@ -103,8 +108,49 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
-    Response getObject(String selectObjectQuery, String objectGroupId, String usage, int version)
-        throws InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException;
+    Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException;
 
 
+    /**
+     * selectOperation
+     *
+     * @param select
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectOperationbyId
+     *
+     * @param processId
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectUnitLifeCycleById
+     *
+     * @param idUnit
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectObjectGroupLifeCycleById
+     *
+     * @param idObject
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectObjectGroupLifeCycleById(String idObject)
+        throws LogbookClientException, InvalidParseOperationException;
 }

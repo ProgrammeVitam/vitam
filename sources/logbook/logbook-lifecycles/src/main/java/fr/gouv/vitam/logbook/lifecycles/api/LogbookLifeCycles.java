@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  * Core API for LifeCycles
  */
 public interface LogbookLifeCycles {
-
 
     /**
      * Create and insert logbook LifeCycle entries
@@ -170,7 +170,7 @@ public interface LogbookLifeCycles {
 
     /**
      * Select logbook life cycle by the lifecycle's ID
-     * 
+     *
      * @param idUnit
      * @return the logbook LifeCycle found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
@@ -191,7 +191,7 @@ public interface LogbookLifeCycles {
 
     /**
      * Create a cursor for all Unit Lifecycles from one operation
-     * 
+     *
      * @param operationId
      * @param select
      * @return the X-Cursor-Id
@@ -202,7 +202,7 @@ public interface LogbookLifeCycles {
 
     /**
      * Get the next available Unit Lifecycle
-     * 
+     *
      * @param cursorId
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
@@ -213,7 +213,7 @@ public interface LogbookLifeCycles {
 
     /**
      * Create a cursor for all ObjectGroup Lifecycles from one operation
-     * 
+     *
      * @param operationId
      * @param select
      * @return the X-Cursor-Id
@@ -224,7 +224,7 @@ public interface LogbookLifeCycles {
 
     /**
      * Get the next available ObjectGroup Lifecycle
-     * 
+     *
      * @param cursorId
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
@@ -235,9 +235,38 @@ public interface LogbookLifeCycles {
 
     /**
      * Finalize the cursor
-     * 
+     *
      * @param cursorId
-     * @throws LogbookDatabaseException
      */
-    public void finalizeCursor(String cursorId) throws LogbookDatabaseException;
+    public void finalizeCursor(String cursorId);
+
+
+    /**
+     * Create one Logbook Lifecycle with already multiple sub-events
+     *
+     * @param idOp Operation Id
+     * @param lifecycleArray with first and next events to add/update
+     *
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws LogbookDatabaseException
+     * @throws LogbookAlreadyExistsException
+     */
+    void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
+    /**
+     * Update one Logbook Lifecycle with multiple sub-events <br>
+     * <br>
+     * It adds this new entry within the very same Logbook Lifecycle entry in "events" array.
+     *
+     * @param idOp Operation Id
+     * @param lifecycleArray containing all Lifecycle Logbook in order
+     *
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
+    void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
 }

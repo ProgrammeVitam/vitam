@@ -33,13 +33,13 @@ angular.module('lifecycle')
       var result = [];
       for (var i = 0, len = fields.length; i<len; i++) {
         var fieldId = fields[i];
-        result.push({id: fieldId, label: $filter('translate')('lifeCycle.logbook.displaySteps.' + fieldId)});
+        result.push({id: fieldId, label: 'lifeCycle.logbook.displaySteps.' + fieldId});
       }
       return result;
     }
 
     // ************************************Pagination  **************************** //
-    self.viewby = 10;
+    self.viewby = 30;
     self.currentPage = 1;
     self.itemsPerPage = self.viewby;
     self.maxSize = 5;
@@ -89,7 +89,7 @@ angular.module('lifecycle')
     var buildLifeCycle = function() {
       ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, self.lifeCycleId).then(function(response) {
         self.receivedResponse = response;
-        if (response.data.hits === undefined || response.data.hits === null || response.data.hits.total !== 1) {
+        if (response.data.$hits === undefined || response.data.$hits === null || response.data.$hits.total !== 1) {
           // Invalid response
           // Display error message
           self.showResult = false;
@@ -99,22 +99,38 @@ angular.module('lifecycle')
 
           // Build unit LifeCycle details
           // Add just result events
-          angular.forEach(response.data.result.events, function(value) {
-            var isEndEvent = value.outcome !== 'STARTED';
-            if(isEndEvent){
-              var newEvent = {};
-              angular.forEach(value, function(value, key) {
-                var uppercaseKey = key.toUpperCase();
-                if (uppercaseKey === 'EVTYPE') {
-                  newEvent[uppercaseKey] = $filter('translate')(value);
-                } else {
-                  newEvent[uppercaseKey] = value;
-                }
-              });
+          var lastStartedEvent = '';
+          for(var i=0; i < response.data.$results[0].events.length; i++){
+            var currentEvent = response.data.$results[0].events[i];
+            var isCurrentAStartEvent = currentEvent.outcome == 'STARTED';
+            var currentEventType = currentEvent.evType;
+            var isStepLevelEvent = false;
 
-              self.lifeCycleDetails.push(newEvent);
+            if(isCurrentAStartEvent){
+              lastStartedEvent = currentEventType;
+
+              // Set step level class
+              isStepLevelEvent = true;
+            } else if(currentEventType == lastStartedEvent){
+              // Set step level class
+              isStepLevelEvent = true;
             }
-          });
+
+            var newEvent = {};
+            angular.forEach(currentEvent, function(value, key) {
+              var uppercaseKey = key.toUpperCase();
+              if (uppercaseKey === 'EVTYPE') {
+                newEvent[uppercaseKey] = $filter('replaceDoubleQuote')($filter('translate')(value));
+              } else {
+                newEvent[uppercaseKey] = value;
+              }
+            });
+
+            // Add class type
+            newEvent.isStepLevelEvent = isStepLevelEvent;
+
+            self.lifeCycleDetails.push(newEvent);
+          }
 
           self.totalItems = self.lifeCycleDetails.length;
         }

@@ -1,0 +1,70 @@
+#%RAML 1.0 Library
+usage: |
+  Use to define global headers for Registers
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  DslTypes: DslTypes.raml
+
+traits:
+
+  RegisterListingResponse:
+    description: Response model for the listing of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook operations
+        schema: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns the list of matching <<resourcePathName | !uppercamelcase>>
+        body:
+          application/json:
+            description: Matching <<resourcePathName | !uppercamelcase>>
+            schema: DslTypes.DslResponse
+            #example: !include examples/logbookResponse.json
+      206:
+        description: |
+          **UNSUPPORTED** Returns the list of matching <<resourcePathName | !uppercamelcase>> using Cursor
+        body:
+          application/json:
+            description: Matching Logbook operations
+            schema: DslTypes.DslResponse
+            #example: !include examples/logbookResponse.json
+
+  RegisterItemResponse:
+    description: Response model for one <<resourcePathName | !uppercamelcase>> item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the <<resourcePathName | !uppercamelcase>> item
+        schema: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns one <<resourcePathName | !uppercamelcase>> item
+        body:
+          application/json:
+            description: one <<resourcePathName | !uppercamelcase>> item
+            schema: DslTypes.DslResponse
+            #example: !include examples/logbookResponse.json
+
+  RegisterUpload:
+    description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/xml:
+        description: Body contains the <<resourcePathName | !uppercamelcase>> source file in XML (Formats from PRONOM registry)
+      application/csv:
+        description: Body contains the <<resourcePathName | !uppercamelcase>> source file in CSV (Rules)
+    responses:
+      200:
+        description: Returns if upload or check of <<resourcePathName | !uppercamelcase>> is OK

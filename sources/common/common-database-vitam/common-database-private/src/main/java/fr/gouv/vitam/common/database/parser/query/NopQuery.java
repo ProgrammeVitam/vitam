@@ -36,7 +36,7 @@ public class NopQuery extends fr.gouv.vitam.common.database.builder.query.NopQue
 
     /**
      * Constructs a NopQuery and declare it ready
-     * 
+     *
      * @throws InvalidCreateOperationException
      */
     public NopQuery() throws InvalidCreateOperationException {

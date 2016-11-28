@@ -28,13 +28,17 @@ package fr.gouv.vitam.ingest.external.core;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.List;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -50,6 +54,9 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -75,21 +82,42 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
+
+
+    private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
+    private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
+    private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
+    private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
+    private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
+    private static final String STP_INGEST_FINALISATION = "STP_INGEST_FINALISATION";
+
+    private static final String CAN_NOT_SCAN_VIRUS = "Can not scan virus";
+
+    private static final String CAN_NOT_STORE_FILE = "Can not store file";
+
+    private static final String IS_NOT_SUPPORTED = " is not supported";
+
+    private static final String SIP_FORMAT = "SIP format :";
+
+    private static final String SIP_WRONG_FORMAT = "SIP Wrong format : ";
+
+    private static final String BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION = "Begin siegFried format identification";
+
+    private static final String CAN_NOT_READ_FILE = "Can not read file";
     private static final int STATUS_ANTIVIRUS_KO = 2;
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
-    private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
-    private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
-    private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
+
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
     private static final String PRONOM_NAMESPACE = "pronom";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
-    private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
-    // FIXME P0 n'a pas besoin d'être une variable globale
-    private FormatIdentifier formatIdentifier;
+
+
+    private final IngestExternalConfiguration config;
+
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
@@ -102,53 +130,72 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     @Override
-    public Response upload(InputStream input) throws IngestExternalException {
+    public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
-        GUID containerName = guid;
+        final GUID containerName = guid;
         final GUID objectName = guid;
         final GUID ingestGuid = guid;
-        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
+        Response responseNoProcess = null;
 
         try {
+
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                INGEST_EXT,
-                containerName,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
-                containerName);
+                ingestGuid, INGEST_WORKFLOW, containerName,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " + ingestGuid.toString(),
+                ingestGuid);
+
             // TODO P1 should be the file name from a header
-            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
+            if (objectName != null) {
+                startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
+                    objectName.getId());
+            }
             helper.createDelegate(startedParameters);
+
+            final LogbookOperationParameters sipSanityParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    ingestGuid,
+                    INGEST_EXT,
+                    containerName,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
+                    containerName);
+            helper.updateDelegate(sipSanityParameters);
 
             workspaceFileSystem =
                 new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
-            Response responseResult = null;
 
             try {
-                workspaceFileSystem.createContainer(containerName.toString());
+                if (containerName != null) {
+                    workspaceFileSystem.createContainer(containerName.toString());
+                }
             } catch (final ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.error("Can not store file", e);
+                LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
             try {
-                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+                if (containerName != null) {
+                    workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+                }
             } catch (final ContentAddressableStorageException e) {
-                LOGGER.error("Can not store file", e);
+                LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
-
-            final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
-            File file = new File(filePath);
+            final String containerNamePath = containerName != null ? containerName.getId() : "containerName";
+            final String objectNamePath = objectName != null ? objectName.getId() : "objectName";
+            final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
+            final File file = new File(filePath);
             if (!file.canRead()) {
-                LOGGER.error("Can not read file");
-                throw new IngestExternalException("Can not read file");
+                LOGGER.error(CAN_NOT_READ_FILE);
+                throw new IngestExternalException(CAN_NOT_READ_FILE);
             }
             int antiVirusResult;
 
@@ -161,6 +208,9 @@ public class IngestExternalImpl implements IngestExternal {
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.STARTED),
                     containerName);
+            // SANITY_CHECK_SIP.STARTED
+            helper.updateDelegate(antivirusParameters);
+
             try {
                 /*
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
@@ -168,13 +218,13 @@ public class IngestExternalImpl implements IngestExternal {
                  */
                 antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
             } catch (final Exception e) {
-                LOGGER.error("Can not scan virus", e);
+                LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
             }
 
             InputStream inputStream = null;
             boolean isFileInfected = false;
-            String mimeType = CommonMediaType.ZIP;
+            String mimeType = "";
             boolean isSupportedMedia = false;
 
             // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
@@ -227,29 +277,32 @@ public class IngestExternalImpl implements IngestExternal {
                         StatusCode.STARTED,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.STARTED),
                         containerName);
+                // CHECK_CONTAINER.STARTED
+                helper.updateDelegate(formatParameters);
+
                 formatParameters.setStatus(StatusCode.OK)
                     .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));
                 try {
-                    LOGGER.debug("Begin siegFried format identification");
+                    LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
                     // instantiate SiegFried
-                    formatIdentifier =
+                    final FormatIdentifier formatIdentifier =
                         FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
                     // call siegFried
-                    List<FormatIdentifierResponse> formats =
-                        formatIdentifier.analysePath(Paths.get(containerName.getId() + "/" + objectName.getId()));
-                    FormatIdentifierResponse format = getFirstPronomFormat(formats);
-
+                    final List<FormatIdentifierResponse> formats =
+                        formatIdentifier.analysePath(file.toPath());
+                    final FormatIdentifierResponse format = getFirstPronomFormat(formats);
                     if (format == null) {
                         formatParameters.setStatus(StatusCode.KO);
                         formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO));
                     } else {
-                        LOGGER.debug("SIP format :" + format.getMimetype());
+                        LOGGER.debug(SIP_FORMAT + format.getMimetype());
+                        mimeType = format.getMimetype();
                         if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
-                            mimeType = format.getMimetype();
                             isSupportedMedia = true;
                         } else {
+                            LOGGER.error(SIP_WRONG_FORMAT + format.getMimetype() + IS_NOT_SUPPORTED);
                             formatParameters.setStatus(StatusCode.KO);
                             formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                                 VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO, format.getMimetype()));
@@ -257,29 +310,29 @@ public class IngestExternalImpl implements IngestExternal {
                     }
 
 
-                } catch (FormatIdentifierNotFoundException e) {
+                } catch (final FormatIdentifierNotFoundException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
 
-                } catch (FormatIdentifierFactoryException e) {
+                } catch (final FormatIdentifierFactoryException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
 
-                } catch (FormatIdentifierTechnicalException e) {
+                } catch (final FormatIdentifierTechnicalException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (FileFormatNotFoundException e) {
+                } catch (final FileFormatNotFoundException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (FormatIdentifierBadRequestException e) {
+                } catch (final FormatIdentifierBadRequestException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -298,55 +351,147 @@ public class IngestExternalImpl implements IngestExternal {
 
                 if (isSupportedMedia) {
                     try {
-                        inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
+                        inputStream = (InputStream) workspaceFileSystem
+                            .getObject(containerName.getId(), objectName.getId()).getEntity();
                     } catch (final ContentAddressableStorageException e) {
                         LOGGER.error(e.getMessage());
                         throw new IngestExternalException(e);
                     }
+                } else {
+                    responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+                        isFileInfected, mimeType, endParameters);
                 }
             } else {
                 // finalize end step param
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
+                responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
+                    isFileInfected, mimeType, endParameters);
             }
 
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
 
-                // FIXME P0 Status could be >= 400 but still getting an ATR KO!
-                // One should try to forward the ATR (whatever OK or KO) using async mode
-                // Moreover one should finalize the Logbook Operation with new entries like
+                // FIXME P1 one should finalize the Logbook Operation with new entries like
                 // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
                 // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                // TODO Response async
-                responseResult = ingestClient.upload(ingestGuid, helper.removeCreateDelegate(containerName.getId()),
-                    inputStream, mimeType);
-
+                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
+                if (!isFileInfected && isSupportedMedia) {
+                    final Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
+                    final AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
+                    final ResponseBuilder responseBuilder =
+                        Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+                    asyncHelper.writeResponse(responseBuilder);
+                    return response;
+                }
+                final AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, responseNoProcess);
+                final ResponseBuilder responseBuilder =
+                    Response.status(responseNoProcess.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+                asyncHelper.writeResponse(responseBuilder);
+                return responseNoProcess;
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
-            return responseResult;
-
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new IngestExternalException(e);
         } finally {
             if (workspaceFileSystem != null) {
                 try {
-                    workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                    if (containerName != null) {
+                        workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                    }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);
                 }
                 try {
-                    workspaceFileSystem.deleteContainer(containerName.getId());
+                    if (containerName != null) {
+                        workspaceFileSystem.deleteContainer(containerName.getId());
+                    }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);
                 }
             }
+            StreamUtils.closeSilently(input);
         }
+    }
+
+    /**
+     * @param containerName
+     * @param ingestGuid
+     * @param helper
+     * @param startedParameters
+     * @param isFileInfected
+     * @param mimeType
+     * @param endParameters
+     * @return
+     * @throws LogbookClientNotFoundException
+     * @throws IngestExternalException
+     */
+    private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
+        final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
+        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters)
+        throws LogbookClientNotFoundException, IngestExternalException {
+        Response responseNoProcess;
+        // Add step started in the logbook
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+        // FIXME P1 later on real ATR KO
+        if (isFileInfected) {
+            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                    "SANITY_CHECK_SIP", null, StatusCode.KO),
+                MediaType.APPLICATION_XML_TYPE, null);
+        } else {
+            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                    "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO),
+                MediaType.APPLICATION_XML_TYPE, null);
+        }
+        // add the step in the logbook
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
+        // log final status PROCESS_SIP when sanity check KO or FATAL
+        // in this case PROCESS_SIP inherits SANITY_CHECK Status
+        startedParameters.setStatus(endParameters.getStatus());
+        startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, endParameters.getStatus()));
+        // update PROCESS_SIP
+        helper.updateDelegate(startedParameters);
+        return responseNoProcess;
+    }
+
+    private void addStpIngestFinalisationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
+        StatusCode status)
+        throws LogbookClientNotFoundException {
+        final LogbookOperationParameters stpIngestFinalisationParameters =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                STP_INGEST_FINALISATION,
+                containerName,
+                LogbookTypeProcess.INGEST,
+                status,
+                VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
+                containerName);
+        helper.updateDelegate(stpIngestFinalisationParameters);
+    }
+
+    private void addTransferNotificationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
+        StatusCode status)
+        throws LogbookClientNotFoundException {
+        final LogbookOperationParameters transferNotificationParameters =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                ATR_NOTIFICATION,
+                containerName,
+                LogbookTypeProcess.INGEST,
+                status,
+                VitamLogbookMessages.getCodeOp(ATR_NOTIFICATION, status),
+                containerName);
+        helper.updateDelegate(transferNotificationParameters);
     }
 
     /**
@@ -356,7 +501,7 @@ public class IngestExternalImpl implements IngestExternal {
      * @return the first pronom file format or null if not found
      */
     private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
-        for (FormatIdentifierResponse format : formats) {
+        for (final FormatIdentifierResponse format : formats) {
             if (PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
                 return format;
             }

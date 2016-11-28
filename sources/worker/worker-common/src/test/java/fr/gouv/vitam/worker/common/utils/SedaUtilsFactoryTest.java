@@ -27,14 +27,17 @@
 package fr.gouv.vitam.worker.common.utils;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class SedaUtilsFactoryTest {
 
     @Test
     public void givenSedaUtilsFactoryWhenCallingCreateWithoutParamsThenReturnClient() {
-        assertTrue(SedaUtilsFactory.create() instanceof SedaUtils);
+        assertTrue(SedaUtilsFactory.create(mock(HandlerIO.class)) instanceof SedaUtils);
     }
 
 }

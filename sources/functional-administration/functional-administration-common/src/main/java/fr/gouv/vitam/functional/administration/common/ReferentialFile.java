@@ -41,6 +41,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 
 /**
  * ReferentialFile<E>
+ *
  * @param <E> Type of Referential
  *
  */
@@ -59,13 +60,9 @@ public interface ReferentialFile<E> {
     void importFile(InputStream file)
         throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException;
 
-
     /**
-     * delete Format Collection
-     */
-    void deleteCollection();
-
-    /**
+     * find document based on a given Id
+     *
      * @param id of vitam document
      * @return vitam document
      * @throws ReferentialException when error occurs
@@ -73,6 +70,8 @@ public interface ReferentialFile<E> {
     public VitamDocument<E> findDocumentById(String id) throws ReferentialException;
 
     /**
+     * find document based on DSL query
+     *
      * @param select filter
      * @return vitam document list
      * @throws ReferentialException when error occurs

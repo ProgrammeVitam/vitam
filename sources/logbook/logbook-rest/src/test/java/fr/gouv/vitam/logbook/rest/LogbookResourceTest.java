@@ -31,6 +31,8 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -39,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
@@ -62,7 +65,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -83,7 +87,7 @@ public class LogbookResourceTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
-
+    private static final String TRACEABILITY_URI = "/operations/traceability";
     private static int databasePort;
     private static int serverPort;
     private static LogbookApplication application;
@@ -99,7 +103,7 @@ public class LogbookResourceTest {
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
-    private static LogbookConfiguration realLogbook; 
+    private static LogbookConfiguration realLogbook;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -110,16 +114,18 @@ public class LogbookResourceTest {
         databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.setDbPort(databasePort);
+        realLogbook.getMongoDbNodes().get(0).setDbPort(databasePort);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, databasePort,
+                new DbConfigurationImpl(nodes,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
 
@@ -181,6 +187,20 @@ public class LogbookResourceTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
+    }
+
+    @Test
+    @Ignore("need a mock of workspace client factory")
+    public final void testTraceability() {
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        given()
+            .body(logbookParametersAppend)
+            .post(TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -247,14 +267,14 @@ public class LogbookResourceTest {
     public void testBulk() {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
-        LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
         queue.add(start);
         queue.add(append);
         append = LogbookParametersFactory.newLogbookOperationParameters(
@@ -340,11 +360,11 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testErrorSelect() {
+    public void testErrorSelect() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
             .then()
@@ -353,7 +373,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
             .then()
@@ -369,7 +389,7 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testOperationSelect() {
+    public void testOperationSelect() throws Exception {
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersSelect.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -386,7 +406,7 @@ public class LogbookResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_QUERY)
+            .body(JsonHandler.getFromString(BODY_QUERY))
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when()
             .post(OPERATIONS_URI)

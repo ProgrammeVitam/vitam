@@ -37,6 +37,7 @@ import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -48,7 +49,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
  */
 abstract class AbstractParameters implements LogbookParameters {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractParameters.class);
-
     @JsonIgnore
     private final Map<LogbookParameterName, String> mapParameters = new TreeMap<>();
 
@@ -107,6 +107,99 @@ abstract class AbstractParameters implements LogbookParameters {
             return StatusCode.valueOf(status);
         }
         return null;
+    }
+
+    @Override
+    public LogbookParameters setFinalStatus(String handlerId, String subTaskId,
+        StatusCode code, String additionalMessage, String... params) {
+        if (this instanceof LogbookOperationParameters) {
+            setFinalStatusOp(handlerId, subTaskId, code, additionalMessage, params);
+        } else {
+            setFinalStatusLfc(handlerId, subTaskId, code, additionalMessage, params);
+        }
+        return this;
+    }
+
+    @Override
+    public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
+        String additionnalMessage, String... params) {
+        if (this instanceof LogbookOperationParameters) {
+            setFinalStatusOp(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+        } else {
+            setFinalStatusLfc(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+        }
+        return this;
+    }
+
+    private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
+        StatusCode code, String additionnalMessage, String... params) {
+        putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getEventTypeLfc(handlerId));
+        putParameterValue(LogbookParameterName.outcome, code.name());
+        if (subTaskId != null) {
+            putParameterValue(LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, subTaskId, code));
+        } else {
+            putParameterValue(LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, code));
+        }
+        String detail;
+        if (subTaskId != null) {
+            if (params != null && params.length > 0) {
+                detail = VitamLogbookMessages.getCodeLfc(handlerId, subTaskId, code, params);
+            } else {
+                detail = VitamLogbookMessages.getCodeLfc(handlerId, subTaskId, code);
+            }
+            if (additionnalMessage != null) {
+                detail += additionnalMessage;
+            }
+        } else {
+            if (params != null && params.length > 0) {
+                detail = VitamLogbookMessages.getCodeLfc(handlerId, code, params);
+            } else {
+                detail = VitamLogbookMessages.getCodeLfc(handlerId, code);
+            }
+            if (additionnalMessage != null) {
+                detail += additionnalMessage;
+            }
+        }
+        putParameterValue(LogbookParameterName.outcomeDetailMessage, detail);
+        return this;
+    }
+
+    private LogbookParameters setFinalStatusOp(String handlerId, String subTaskId,
+        StatusCode code, String additionnalMessage, String... params) {
+        putParameterValue(LogbookParameterName.eventType, handlerId);
+        putParameterValue(LogbookParameterName.outcome, code.name());
+        if (subTaskId != null) {
+            putParameterValue(LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(handlerId, subTaskId, code));
+        } else {
+            putParameterValue(LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(handlerId, code));
+        }
+        String detail;
+        if (subTaskId != null) {
+            if (params != null && params.length > 0) {
+                detail = VitamLogbookMessages.getCodeOp(handlerId, subTaskId, code, params);
+            } else {
+                detail = VitamLogbookMessages.getCodeOp(handlerId, subTaskId, code);
+            }
+            if (additionnalMessage != null) {
+                detail += additionnalMessage;
+            }
+        } else {
+            if (params != null && params.length > 0) {
+                detail = VitamLogbookMessages.getCodeOp(handlerId, code, params);
+            } else {
+                detail = VitamLogbookMessages.getCodeOp(handlerId, code);
+            }
+            if (additionnalMessage != null) {
+                detail += additionnalMessage;
+            }
+        }
+        putParameterValue(LogbookParameterName.outcomeDetailMessage, detail);
+        return this;
     }
 
     @JsonIgnore

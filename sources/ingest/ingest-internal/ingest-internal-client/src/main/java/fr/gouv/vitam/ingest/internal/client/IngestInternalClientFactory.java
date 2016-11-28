@@ -29,13 +29,13 @@ package fr.gouv.vitam.ingest.internal.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * IngestInternal client factory<br>
- * 
+ *
  * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
  * <br>
  * mock IngestInternal client will be returned
@@ -50,7 +50,7 @@ public class IngestInternalClientFactory extends VitamClientFactory<IngestIntern
     private static final String RESOURCE_PATH = "/ingest/v1";
 
     private IngestInternalClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, true);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**

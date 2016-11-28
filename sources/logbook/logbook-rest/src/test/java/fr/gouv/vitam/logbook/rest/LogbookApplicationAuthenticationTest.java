@@ -1,7 +1,6 @@
 package fr.gouv.vitam.logbook.rest;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -40,8 +39,8 @@ public class LogbookApplicationAuthenticationTest {
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.setDbPort(port);
-        
+        realLogbook.getMongoDbNodes().get(0).setDbPort(port);
+
     }
 
     @AfterClass

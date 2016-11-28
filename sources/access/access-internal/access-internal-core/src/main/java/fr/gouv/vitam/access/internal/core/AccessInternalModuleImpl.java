@@ -29,8 +29,11 @@ package fr.gouv.vitam.access.internal.core;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -40,6 +43,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -49,14 +53,19 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -87,25 +96,41 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 /**
  * AccessModuleImpl implements AccessModule
  */
-// FIXME P0 : fully externalize logbook part if possible (like helper)
 public class AccessInternalModuleImpl implements AccessInternalModule {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
-    private LogbookLifeCyclesClient logbookLifeCycleClient;
-    private LogbookOperationsClient logbookOperationClient;
-    // FIXME P0 : should use the try with resources, then dont use the client as an attribute
-    private final StorageClient storageClient;
 
-    private final AccessInternalConfiguration accessConfiguration;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
+
+
+
+    private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
+    private final LogbookOperationsClient logbookOperationClientMock;
+    private final StorageClient storageClientMock;
 
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
-
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-    private static final String EVENT_TYPE = "Update_archive_unit_unitary";
+    private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
+    private static final String _DIFF = "$diff";
+    private static final String _ID = "_id";
+    private static final String RESULTS = "$results";
+    private static final String MIME_TYPE = "MimeType";
+    private static final String METADATA_INTERNAL_SERVER_ERROR = "Metadata internal server error";
+    private static final String LOGBOOK_OPERATION_ALREADY_EXISTS = "logbook operation already exists";
+    private static final String LOGBOOK_CLIENT_BAD_REQUEST_ERROR = "logbook client bad request error";
+    private static final String LOGBOOK_CLIENT_NOT_FOUND_ERROR = "logbook client not found error";
+    private static final String METADATA_EXECUTION_EXECUTION_ERROR = "metadata execution execution error";
+    private static final String DOCUMENT_CLIENT_SERVER_ERROR = "document client server error";
+    private static final String METADATA_DOCUMENT_SIZE_ERROR = "metadata document size error";
+    private static final String ILLEGAL_ARGUMENT = "illegal argument";
+    private static final String PARSING_ERROR = "parsing error";
+    private static final String CLIENT_SERVER_ERROR = "client server error";
+    private static final String CLIENT_NOT_FOUND = "client not found";
+    private static final String BAD_REQUEST = "bad request";
+    private static final String DIFF = "#diff";
+    private static final String ID = "#id";
 
     // TODO P1 setting in other place
     private final Integer tenantId = 0;
-    private boolean mock;
 
     /**
      * AccessModuleImpl constructor
@@ -115,41 +140,24 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     // constructor
     public AccessInternalModuleImpl(AccessInternalConfiguration configuration) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
-        accessConfiguration = configuration;
-        storageClient = StorageClientFactory.getInstance().getClient();
-        mock = false;
-    }
-
-    /**
-     * For testing purpose only
-     *
-     * @param configuration {@link AccessInternalConfiguration} access configuration
-     * @param storageClient a StorageClient instance
-     */
-
-    AccessInternalModuleImpl(AccessInternalConfiguration configuration, StorageClient storageClient) {
-        ParametersChecker.checkParameter("Configuration cannot be null", configuration);
-        accessConfiguration = configuration;
-        this.storageClient = storageClient;
-        mock = false;
+        storageClientMock = null;
+        logbookLifeCycleClientMock = null;
+        logbookOperationClientMock = null;
     }
 
     /**
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param configuration {@link AccessInternalConfiguration} access configuration
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
-    public AccessInternalModuleImpl(AccessInternalConfiguration configuration,
-        LogbookOperationsClient pLogbookOperationClient, LogbookLifeCyclesClient pLogbookLifeCycleClient) {
-        this(configuration);
-        logbookOperationClient = pLogbookOperationClient == null
-            ? LogbookOperationsClientFactory.getInstance().getClient() : pLogbookOperationClient;
-        logbookLifeCycleClient = pLogbookLifeCycleClient == null
-            ? LogbookLifeCyclesClientFactory.getInstance().getClient() : pLogbookLifeCycleClient;
-        mock = pLogbookOperationClient == null;
+    AccessInternalModuleImpl(StorageClient storageClient, LogbookOperationsClient pLogbookOperationClient,
+        LogbookLifeCyclesClient pLogbookLifeCycleClient) {
+        storageClientMock = storageClient;
+        logbookOperationClientMock = pLogbookOperationClient;
+        logbookLifeCycleClientMock = pLogbookLifeCycleClient;
     }
 
     /**
@@ -166,14 +174,20 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode jsonNode = null;
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-
-            jsonNode = metaDataClient.selectUnits(jsonQuery.toString());
+            SanityChecker.checkJsonAll(jsonQuery);
+            // Check correctness of request
+            final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+            parser.getRequest().reset();
+            if (!(parser instanceof SelectParserMultiple)) {
+                throw new InvalidParseOperationException("Not a Select operation");
+            }
+            jsonNode = metaDataClient.selectUnits(jsonQuery);
 
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("parsing error", e);
+            LOGGER.error(PARSING_ERROR, e);
             throw e;
         } catch (final IllegalArgumentException e) {
-            LOGGER.error("illegal argument", e);
+            LOGGER.error(ILLEGAL_ARGUMENT, e);
             throw e;
         } catch (final Exception e) {
             LOGGER.error("exeption thrown", e);
@@ -195,6 +209,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode selectUnitbyId(JsonNode jsonQuery, String idUnit)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
+        // Check correctness of request
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        parser.getRequest().reset();
+        if (!(parser instanceof SelectParserMultiple)) {
+            throw new InvalidParseOperationException("Not a Select operation");
+        }
         return selectMetadataDocumentById(jsonQuery, idUnit, DataCategory.UNIT);
     }
 
@@ -207,11 +227,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
                 case UNIT:
-                    jsonNode = metaDataClient.selectUnitbyId(jsonQuery.toString(), idDocument);
+                    jsonNode = metaDataClient.selectUnitbyId(jsonQuery, idDocument);
                     break;
                 case OBJECT_GROUP:
-                    // FIXME P0: metadata should return NotFound if the objectGroup is not found
-                    jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery.toString(), idDocument);
+                    // FIXME P1: metadata should return NotFound if the objectGroup is not found
+                    jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
@@ -227,11 +247,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode selectObjectGroupById(JsonNode jsonQuery, String idObjectGroup)
         throws InvalidParseOperationException, AccessInternalExecutionException {
+        // Check correctness of request
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        parser.getRequest().reset();
+        if (!(parser instanceof SelectParserMultiple)) {
+            throw new InvalidParseOperationException("Not a Select operation");
+        }
         return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECT_GROUP);
     }
 
     @Override
-    public AccessBinaryData getOneObjectFromObjectGroup(String idObjectGroup,
+    public AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
         JsonNode queryJson, String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
@@ -244,37 +270,43 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         selectRequest.parse(queryJson);
         final Select request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
-        // TODO P1 : create helper to build this kind of projection
-        // TODO P1 : it would be nice to be able to handle $slice in projection via builder
-        request.parseProjection(
-            "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version + "," +
-                "1]},\"_id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1}}");
+        // FIXME P1: we should find a better way to do that than use json, like a POJO.
+        request.setProjectionSliceOnQualifier(qualifier, version, "FormatIdentification", "FileInfo");
+
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
             throw new AccessInternalExecutionException("Null json response node from metadata");
         }
-        // FIXME P0: do not use direct access but POJO
-        final List<String> valuesAsText = jsonResponse.get("$result").findValuesAsText("_id");
+
+        // FIXME P1: do not use direct access but POJO
+        final List<String> valuesAsText = jsonResponse.get(RESULTS).findValuesAsText(_ID);
         if (valuesAsText.size() > 1) {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             throw new AccessInternalExecutionException("More than one object founds. Ids are : " + ids);
         }
+        LOGGER.debug(JsonHandler.prettyPrint(jsonResponse.get(RESULTS).get(0)));
         String mimetype = null;
         String filename = null;
-        JsonNode node = jsonResponse.get("$result").get("FormatIdentification");
-        if (node != null) {
-            node = node.get("MimeType");
-            if (node != null) {
-                mimetype = node.asText();
-            }
+
+
+        final List<String> mimeTypesAsText = jsonResponse.get(RESULTS).findValuesAsText(MIME_TYPE);
+        if (mimeTypesAsText.size() > 1) {
+            final String multipleMimetype = mimeTypesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
+            LOGGER.warn("Multiple mimetypes found {}, using the first.", multipleMimetype);
         }
-        node = jsonResponse.get("$result").get("FileInfo");
-        if (node != null) {
-            node = node.get("Filename");
-            if (node != null) {
-                filename = node.asText();
-            }
+        if (!mimeTypesAsText.isEmpty()) {
+            mimetype = mimeTypesAsText.get(0);
         }
+
+        final List<String> fileNamesAsText = jsonResponse.get(RESULTS).findValuesAsText("Filename");
+        if (fileNamesAsText.size() > 1) {
+            final String multipleFilenames = fileNamesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
+            LOGGER.warn("Multiple filenames found {}, using the first", multipleFilenames);
+        }
+        if (!fileNamesAsText.isEmpty()) {
+            filename = fileNamesAsText.get(0);
+        }
+
         if (Strings.isNullOrEmpty(mimetype)) {
             mimetype = MediaType.APPLICATION_OCTET_STREAM;
         }
@@ -282,12 +314,25 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (Strings.isNullOrEmpty(filename)) {
             filename = objectId;
         }
+        final StorageClient storageClient =
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
-            Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
+            final Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, qualifier)
+                    .header(GlobalDataRest.X_VERSION, version)
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .type(mimetype);
+            helper.writeResponse(responseBuilder);
             return new AccessBinaryData(filename, mimetype, response);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
         }
     }
 
@@ -306,50 +351,59 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
-
+        int tenant = tenantId;
+        final GUID idGUID;
+        try {
+            idGUID = GUIDReader.getGUID(idUnit);
+            tenant = idGUID.getTenantId();
+        } catch (final InvalidGuidOperationException e) {
+            throw new IllegalArgumentException("idUnit is not a valid GUID", e);
+        }
         // Check Request is really an Update
-        RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
+        final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
         if (!(parser instanceof UpdateParserMultiple)) {
+            parser.getRequest().reset();
             throw new IllegalArgumentException("Request is not an update operation");
         }
         // eventidentifierprocess for lifecycle
-        final GUID updateOpGuidStart = GUIDFactory.newEventGUID(tenantId);
+        final GUID updateOpGuidStart = GUIDFactory.newOperationLogbookGUID(tenant);
         JsonNode newQuery = queryJson;
         try {
             newQuery = ((UpdateParserMultiple) parser).getRequest()
                 .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                 .getFinalUpdate();
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-
+        LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
+        LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCycleClientMock;
+        if (logbookOperationClient == null) {
+            logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
+        }
+        if (logbookLifeCycleClient == null) {
+            logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+        }
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-
-            if (!mock) {
-                logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
-                logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
-            }
             // Create logbook operation
-            // TODO P1: interest of this private method ?
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.STARTED, "update archiveunit:" + idUnit, idUnit);
+                StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID);
             logbookOperationClient.create(logbookOpParamStart);
 
             // update logbook lifecycle
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                idUnit);
+                idGUID);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
-            final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery.toString(), idUnit);
+            final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
 
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, "update archiveunit:" + idUnit, idUnit);
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID);
             logbookOperationClient.update(logbookOpParamEnd);
 
             // update logbook lifecycle
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                idUnit);
+                idGUID);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -360,89 +414,90 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return jsonNode;
 
         } catch (final InvalidParseOperationException ipoe) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("parsing error", ipoe);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(PARSING_ERROR, ipoe);
             throw ipoe;
         } catch (final IllegalArgumentException iae) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("illegal argument", iae);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(ILLEGAL_ARGUMENT, iae);
             throw iae;
         } catch (final MetaDataDocumentSizeException mddse) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("metadata document size error", mddse);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(METADATA_DOCUMENT_SIZE_ERROR, mddse);
             throw new AccessInternalExecutionException(mddse);
         } catch (final LogbookClientServerException lcse) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("document client server error", lcse);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(DOCUMENT_CLIENT_SERVER_ERROR, lcse);
             throw new AccessInternalExecutionException(lcse);
         } catch (final MetaDataExecutionException mdee) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("metadata execution execution error", mdee);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(METADATA_EXECUTION_EXECUTION_ERROR, mdee);
             throw new AccessInternalExecutionException(mdee);
         } catch (final LogbookClientNotFoundException lcnfe) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("logbook client not found error", lcnfe);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_ERROR, lcnfe);
             throw new AccessInternalExecutionException(lcnfe);
         } catch (final LogbookClientBadRequestException lcbre) {
-            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
-            LOGGER.error("logbook client bad request error", lcbre);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(LOGBOOK_CLIENT_BAD_REQUEST_ERROR, lcbre);
             throw new AccessInternalExecutionException(lcbre);
         } catch (final LogbookClientAlreadyExistsException e) {
-            LOGGER.error("logbook operation already exists", e);
+            LOGGER.error(LOGBOOK_OPERATION_ALREADY_EXISTS, e);
             throw new AccessInternalExecutionException(e);
-        } catch (MetaDataClientServerException e) {
-            LOGGER.error("Metadata internal server error", e);
+        } catch (final MetaDataClientServerException e) {
+            LOGGER.error(METADATA_INTERNAL_SERVER_ERROR, e);
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);
         } finally {
-            if (!mock) {
-                logbookOperationClient.close();
-                logbookOperationClient = null;
+            if (logbookLifeCycleClientMock == null && logbookLifeCycleClient != null) {
                 logbookLifeCycleClient.close();
-                logbookLifeCycleClient = null;
+            }
+            if (logbookOperationClientMock == null && logbookOperationClient != null) {
+                logbookOperationClient.close();
             }
         }
     }
 
-    private void rollBackLogbook(GUID updateOpGuidStart, JsonNode queryJson, String objectIdentifier) {
+    private void rollBackLogbook(LogbookLifeCyclesClient logbookLifeCycleClient,
+        LogbookOperationsClient logbookOperationClient, GUID updateOpGuidStart, JsonNode queryJson,
+        GUID objectIdentifier) {
         try {
-            // TODO P1: interest of this private method ?
             final LogbookOperationParameters logbookOpParamEnd =
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.KO, "Echec de l'écriture de la mise à jour des métadonnées", objectIdentifier);
+                    StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), objectIdentifier);
             logbookOperationClient.update(logbookOpParamEnd);
-            // TODO P1: interest of this private method ?
             final LogbookLifeCycleUnitParameters logbookParametersEnd =
                 getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
                     objectIdentifier);
             logbookLifeCycleClient.rollback(logbookParametersEnd);
         } catch (final LogbookClientBadRequestException lcbre) {
-            LOGGER.error("bad request", lcbre);
+            LOGGER.error(BAD_REQUEST, lcbre);
         } catch (final LogbookClientNotFoundException lcbre) {
-            LOGGER.error("client not found", lcbre);
+            LOGGER.error(CLIENT_NOT_FOUND, lcbre);
         } catch (final LogbookClientServerException lcse) {
-            LOGGER.error("client server error", lcse);
+            LOGGER.error(CLIENT_SERVER_ERROR, lcse);
         }
     }
 
     private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, String objectIdentifier) {
+        StatusCode logbookOutcome, GUID objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, EVENT_TYPE,
+        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
             eventIdentifierProcess,
-            eventTypeProcess, logbookOutcome, "update archive unit",
-            "update unit " + objectIdentifier, objectIdentifier);
+            eventTypeProcess, logbookOutcome, VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),
+            VitamLogbookMessages.getCodeLfc(STP_UPDATE_UNIT, logbookOutcome) + objectIdentifier, objectIdentifier);
     }
 
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier,
         GUID eventIdentifierProcess, StatusCode logbookOutcome,
-        String outcomeDetailMessage, String eventIdentifierRequest) {
-        final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
+        String outcomeDetailMessage, GUID eventIdentifierRequest) {
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                EVENT_TYPE, eventIdentifierProcess, eventTypeProcess, logbookOutcome, outcomeDetailMessage,
+                STP_UPDATE_UNIT, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome,
+                outcomeDetailMessage,
                 eventIdentifierRequest);
-        parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest);
+        parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest.getId());
         return parameters;
     }
 
@@ -450,13 +505,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (diff == null) {
             return "";
         }
-        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$result");
+        final JsonNode arrayNode = diff.has(_DIFF) ? diff.get(_DIFF) : diff.get(RESULTS);
         if (arrayNode == null) {
             return "";
         }
         for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
-                return JsonHandler.writeAsString(diffNode.get("_diff"));
+            if (diffNode.get(ID) != null && unitId.equals(diffNode.get(ID).textValue())) {
+                return JsonHandler.writeAsString(diffNode.get(DIFF));
             }
         }
         // TODO P1 : empty string or error because no diff for this id ?

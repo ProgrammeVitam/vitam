@@ -49,17 +49,18 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 public class QueryTest {
     private int size;
     private static final int fakeSize = 1000;
-    
+
     @Before
     public void setSize() {
         size = GlobalDatas.getLimitValue();
         GlobalDatas.setLimitValue(fakeSize);
     }
-    
+
     @After
     public void resetSize() {
         GlobalDatas.setLimitValue(size);
     }
+
     @Test
     public void testRequestBoolean() {
         Query arg1, arg2, argIncomplete;
@@ -671,7 +672,7 @@ public class QueryTest {
 
     @Test
     public void testRequestTerm() {
-        final Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<>();
         final Date date1 = new Date(System.currentTimeMillis());
         map.put("var1", "val1");
         map.put("var2", "val2");

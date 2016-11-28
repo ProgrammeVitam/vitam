@@ -28,13 +28,13 @@
  */
 package fr.gouv.vitam.library.config;
 
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * LibraryConfiguration contains library app configuration
  */
-public class LibraryConfiguration {
+public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String jettyConfig;
     private String directoryPath;
 
     /**
@@ -45,28 +45,8 @@ public class LibraryConfiguration {
     }
 
     /**
-     * getter jettyConfig
-     * 
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     * 
-     * @param jettyConfig the jetty config
-     * @return this
-     */
-    public LibraryConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
-
-    /**
      * Getter : path of the root directory to serve static files from
-     * 
+     *
      * @return the path
      */
     public String getDirectoryPath() {
@@ -75,7 +55,7 @@ public class LibraryConfiguration {
 
     /**
      * Setter : path of the root directory to serve static files from
-     * 
+     *
      * @param directoryPath Root path
      */
     public void setDirectoryPath(String directoryPath) {

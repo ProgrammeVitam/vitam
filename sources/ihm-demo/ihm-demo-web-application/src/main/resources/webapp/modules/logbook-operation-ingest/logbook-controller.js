@@ -36,6 +36,14 @@ angular.module('ihm.demo')
       return input.slice(start);
     }
   })
+  .filter('replaceDoubleQuote', function() {
+      return function (input) {
+        if (!!input) {
+          return input.replace(/\'\'/g, '\'');
+    	}
+        return input;
+      }
+    })
   .controller('logbookController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
@@ -48,17 +56,32 @@ angular.module('ihm.demo')
     ctrl.pageActive = [true, false, false, false, false];
     ctrl.client = ihmDemoCLient.getClient('logbook');
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
+    ctrl.noResult = false;
+
+    function displayError(message) {
+      ctrl.noResult = true;
+      ctrl.errorMessage = message;
+      $timeout(function() {
+        ctrl.noResult = false;
+      }, 5000);
+    }
 
     ctrl.getLogbooks = function() {
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
+      if(ctrl.searchOptions.obIdIn === ""){
+    	  delete ctrl.searchOptions.obIdIn;
+      }
       ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
-        ctrl.fileFormatList = response.data.result;
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          displayError("Il n'y a aucun résultat pour votre recherche");
+          return;
+        }
+        ctrl.fileFormatList = response.data.$results;
         ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
-        ctrl.resultPages = Math.ceil(response.data.hits.total/ITEM_PER_PAGE);
-        ctrl.searchOptions = {};
+        ctrl.resultPages = Math.ceil(response.data.$hits.total/ITEM_PER_PAGE);
         ctrl.currentPage = ctrl.currentPage || 1;
         ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
         header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
@@ -77,10 +100,10 @@ angular.module('ihm.demo')
     };
 
     ctrl.getPreviousResults = function() {
-      ctrl.fileFormatList = [];
       if (ctrl.currentPage > 1 ) {
         ctrl.diplayPage -= 1;
         if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
+          ctrl.fileFormatList = [];
           ctrl.currentPage -=5;
           ctrl.diplayPage = 5;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
@@ -99,10 +122,10 @@ angular.module('ihm.demo')
     }
 
     ctrl.getNextResults = function() {
-      ctrl.fileFormatList = [];
       if (ctrl.currentPage+4 < ctrl.resultPages) {
         ctrl.diplayPage +=1;
         if (ctrl.diplayPage > 5) {
+          ctrl.fileFormatList = [];
           ctrl.currentPage += 5;
           ctrl.diplayPage = 1;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
@@ -136,7 +159,7 @@ angular.module('ihm.demo')
     var self = this;
 
     ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
-      self.detail = response.data.result;
+      self.detail = response.data.$results[0];
       self.detailId = idOperationService.getIdFromResult(self.detail);
     });
 

@@ -27,22 +27,22 @@
 
 package fr.gouv.vitam.common.server;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.xml.sax.SAXException;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
 /**
  * Basic implementation of a vitam server using embedded jetty as underlying app server
@@ -52,12 +52,16 @@ public class BasicVitamServer implements VitamServer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
         "A problem occurred while attempting to start the server";
+    /**
+     * Default TEST ONLY Jetty config file
+     */
+    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
     private int port;
     private Handler handler;
     private Server server;
     private XmlConfiguration serverConfiguration;
     private boolean configured = false;
-    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
+    VitamThreadPoolExecutor vitamThreadPoolExecutor = new VitamThreadPoolExecutor();
 
     /**
      * A Vitam server can only be instantiated with a given port to listen to
@@ -68,7 +72,10 @@ public class BasicVitamServer implements VitamServer {
     protected BasicVitamServer(int port) {
         ParametersChecker.checkValue("You must provide a valid port number", port, 1);
         this.port = port;
-        server = new Server(port);
+        server = new Server(vitamThreadPoolExecutor);
+        final ServerConnector serverConnector = new ServerConnector(server);
+        serverConnector.setPort(port);
+        server.addConnector(serverConnector);
     }
 
 
@@ -82,17 +89,14 @@ public class BasicVitamServer implements VitamServer {
      */
     protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
 
-        File jcFile = null;
         try {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
-
-            jcFile = PropertiesUtils.findFile(jettyConfigPath);
-            try (final FileInputStream fis = new FileInputStream(jcFile)) {
+            try (final InputStream fis = PropertiesUtils.getConfigAsStream(jettyConfigPath)) {
                 serverConfiguration = new XmlConfiguration(fis);
-                server = new Server();
+                server = new Server(vitamThreadPoolExecutor);
                 server = (Server) serverConfiguration.configure(server);
                 configured = true;
-    
+
                 LOGGER.info("Server started.");
             }
         } catch (final FileNotFoundException e) {
@@ -125,7 +129,7 @@ public class BasicVitamServer implements VitamServer {
     }
 
     @Override
-    public void run() throws VitamApplicationServerException {
+    public void startAndJoin() throws VitamApplicationServerException {
         start();
         try {
             server.join();
@@ -182,7 +186,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * Retrieving the server jetty configuration
-     * 
+     *
      * @return XmlConfiguration
      */
     @Override
@@ -221,34 +225,23 @@ public class BasicVitamServer implements VitamServer {
     }
 
     /**
-     * blocking until server is ready
+     * Retrieving the vitam server port.</br>
      *
-     * @throws VitamException
-     */
-    @Override
-    public void join() throws VitamException {
-        if (server != null && server.isStarted()) {
-            try {
-                server.join();
-            } catch (final InterruptedException e) {
-                throw new VitamException(e);
-            }
-        }
-    }
-
-    /**
-     * Retrieving the vitam server port
-     * 
+     * If the server is started, this returns the real port used. If not, returns the supposely configured one.
+     *
      * @return the vitam server port
      */
     @Override
     public int getPort() {
+        if (server != null && server.isStarted()) {
+            return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+        }
         return port;
     }
 
     /**
      * check if is configured
-     * 
+     *
      * @return true if it is configured
      */
     @Override
@@ -258,7 +251,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * setter configured status
-     * 
+     *
      * @param configured configured status
      */
     protected void setConfigured(boolean configured) {
@@ -267,7 +260,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * retrieving the handler
-     * 
+     *
      * @return the handler
      */
     @Override
@@ -278,12 +271,20 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * setter of the handler
-     * 
+     *
      * @param handler the handler to set
      */
     @Override
     public void setHandler(Handler handler) {
         ParametersChecker.checkParameter("Handler must not be nul", handler);
         this.handler = handler;
+    }
+
+    /**
+     *
+     * @return the VitamThreadPoolExecutor used by the server
+     */
+    public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {
+        return vitamThreadPoolExecutor;
     }
 }

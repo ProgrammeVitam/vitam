@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -56,7 +57,8 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -89,8 +91,11 @@ public class ReferentialAccessionRegisterImplTest {
             .build());
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
@@ -106,18 +111,18 @@ public class ReferentialAccessionRegisterImplTest {
 
     @After
     public void afterTest() {
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
     }
 
     @Test
     public void testcreateAccessionRegister() throws Exception {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(1, collection.count());
-        JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
+        final JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
         assertEquals(2, totalUnit.get("Total").asInt());
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
@@ -128,14 +133,14 @@ public class ReferentialAccessionRegisterImplTest {
     public void testFindAccessionRegisterDetail()
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
 
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
+        final List<AccessionRegisterDetail> detail = accessionRegisterImpl.findDetail(select.getFinalSelect());
         assertEquals(2, detail.size());
-        AccessionRegisterDetail item = detail.get(0);
+        final AccessionRegisterDetail item = detail.get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
     }
 
@@ -143,13 +148,13 @@ public class ReferentialAccessionRegisterImplTest {
     public void testFindAccessionRegisterSummary()
         throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
-        List<AccessionRegisterSummary> summary = accessionRegisterImpl.findDocuments(select.getFinalSelect());
+        final List<AccessionRegisterSummary> summary = accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertEquals(1, summary.size());
-        AccessionRegisterSummary item = summary.get(0);
+        final AccessionRegisterSummary item = summary.get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
     }
 }

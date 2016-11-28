@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.api;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -41,7 +41,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * improves a availability and scalability </br>
  * Various methods Distributor engine
  */
-public interface ProcessDistributor {
+public interface ProcessDistributor extends AutoCloseable {
 
     /**
      * Distribute different steps (execute a workflow actions step by step)
@@ -52,7 +52,7 @@ public interface ProcessDistributor {
      *
      * @return CompositeItemStatus : list of action response
      */
-    CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId);
+    ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId);
 
     /**
      * Register a new worker knowing its family

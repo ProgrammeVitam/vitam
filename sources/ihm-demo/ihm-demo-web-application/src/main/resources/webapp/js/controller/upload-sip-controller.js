@@ -29,28 +29,15 @@
 
 angular.module('ihm.demo')
   .constant("UPLOAD_CONSTANTS", {
-    "VITAM_URL": "/ihm-demo/v1/api/ingest/upload",
-    "ACCEPTED_STATUS": "202",
-    "KO_STATUS": "400"
+    "VITAM_URL": "/ihm-demo/v1/api/ingest/continue",
+    "ACCEPTED_STATUS": 206,
+    "NO_CONTENT_STATUS": 204,
+    "KO_STATUS": 400,
+    "FATAL_STATUS": 500
   })
-  .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS) {
+  .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
+    $interval, ihmDemoFactory, $http, $timeout) {
 
-    var uploader = $scope.uploader = new FileUploader({
-      queueLimit: 1,
-      url : UPLOAD_CONSTANTS.VITAM_URL,
-      headers : {
-        'Content-Type': 'application/octet-stream'
-      },
-      disableMultipart: true
-    });
-
-    // FILTERS
-    uploader.filters.push({
-      name: 'customFilter',
-      fn: function(item /*{File|FileLikeObject}*/, options) {
-        return this.queue.length < 1;
-      }
-    });
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
@@ -64,8 +51,124 @@ angular.module('ihm.demo')
     };
     // **************************************************************************** //
 
+    function downloadATR(response, headers){
+      var a = document.createElement("a");
+      document.body.appendChild(a);
 
-    uploader.getSize = function(bytes, precision) {
+      // item_715
+      var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+      a.href = url;
+
+      if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+        a.download = response.headers('content-disposition').split('filename=')[1];
+        a.click();
+      }
+    }
+
+
+    // *************************************** TIMER *********************************************** //
+    function clearHistoryAfterUpload(operationIdServerAppLevel) {
+      ihmDemoFactory.cleanOperationStatus(operationIdServerAppLevel)
+      .then(function (response) {
+        console.log("clean succeeded");
+      }, function(error) {
+        console.log("clean failed");
+      });
+    };
+
+    $scope.stopPromise = undefined;
+    $scope.check = function(fileItem, operationIdServerAppLevel) {
+       if ( angular.isDefined($scope.stopPromise) ) return;
+
+       $scope.stopPromise = $interval(function() {
+         // Every 100ms check if the operation is finished
+         ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel)
+         .then(function (response) {
+           if(response.status === UPLOAD_CONSTANTS.FATAL_STATUS) {
+             // stop check
+             $scope.stopCheck();
+             fileItem.isProcessing = false;
+             fileItem.isSuccess = false;
+             fileItem.isWarning = false;
+             fileItem.isError = true;
+
+             clearHistoryAfterUpload(operationIdServerAppLevel);
+             $scope.disableSelect = false;
+           } else if (response.status !== UPLOAD_CONSTANTS.NO_CONTENT_STATUS) {
+             // Finished operation
+             var receivedOperationId = response.headers('X-REQUEST-ID');
+             $scope.stopCheck();
+
+             $scope.ingestOperationId = receivedOperationId;
+             $scope.uploadFinished = true;
+             $scope.uploadLaunched = false;
+             $scope.uploadFailed = false;
+             fileItem.isProcessing = false;
+
+             if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
+               fileItem.isWarning = true;
+             } else {
+               fileItem.isWarning = false;
+             }
+             fileItem.isSuccess = !fileItem.isWarning;
+             downloadATR(response, response.headers);
+             clearHistoryAfterUpload(operationIdServerAppLevel);
+             $scope.disableSelect = false;
+           }
+         }, function (error) {
+             console.log('Upload failed with error : ' + error.status);
+
+             if(error.status !== -1){
+               $scope.stopCheck();
+               $scope.uploadFinished = true;
+               $scope.uploadLaunched = false;
+               $scope.uploadFailed = true;
+
+               // Refresh upload status icon
+               fileItem.isProcessing = false;
+               fileItem.isSuccess = false;
+               fileItem.isWarning = false;
+               fileItem.isError = true;
+               downloadATR(error, error.headers);
+               clearHistoryAfterUpload(operationIdServerAppLevel);
+               $scope.disableSelect = false;
+             }
+         });
+       }, 5000); // 5000 ms
+    };
+
+     $scope.stopCheck = function() {
+       if (angular.isDefined($scope.stopPromise)) {
+         $interval.cancel($scope.stopPromise);
+         $scope.stopPromise = undefined;
+       }
+     };
+
+    $scope.$on('$destroy', function() {
+     // Make sure that the interval is destroyed too
+     $scope.stopCheck();
+    });
+
+    //************************************************************************************************ //
+    $scope.fileItem = {};
+    $scope.fileItem.isProcessing = false;
+    $scope.fileItem.isSuccess = false;
+    $scope.fileItem.isError = false;
+    $scope.fileItem.isWarning = false;
+
+    $scope.startUpload = function(params){
+      // item_715
+      // Start pooling after receiving the first operationId
+      var operationIdServerAppLevel = params['x-request-id'];
+      $scope.fileItem.isProcessing = true;
+      $scope.fileItem.isSuccess = false;
+      $scope.fileItem.isError = false;
+      $scope.fileItem.isWarning = false;
+
+      $scope.check($scope.fileItem, operationIdServerAppLevel);
+    }
+
+    $scope.getSize = function(bytes, precision) {
       if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
       if (typeof precision === 'undefined') precision = 1;
       var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
@@ -73,98 +176,8 @@ angular.module('ihm.demo')
       return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     };
 
+    $scope.disableUpload = true;
+    $scope.disableSelect = false;
+    $scope.ctrl = $scope;
 
-    uploader.checkExtension = function($event,filename) {
-      var validFormats = ['zip', 'tar'];
-      var ext = filename.substr(filename.lastIndexOf('.')+1);
-      var index=validFormats.indexOf(ext);
-      if( index== -1){
-        var formats = ['tar.gz','tar.gz2'];
-        var spName=filename.split(".");
-        var ext1 = spName.pop();
-        var ext2 = spName.pop();
-        var extn = ext2+'.'+ext1;
-        if(formats.indexOf(extn)== -1){
-          $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2')
-          console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2');
-          $route.reload();
-        }
-      }
-    };
-
-    uploader.clear = function() {
-      while(this.queue.length) {
-        if(!this.queue[0].isUploading)
-        {
-          this.queue[0].remove();
-          this.progress = 0;
-        }
-      }
-    };
-
-    function downloadATR(response, headers){
-      var a = document.createElement("a");
-      document.body.appendChild(a);
-      var url = URL.createObjectURL(new Blob([response], { type: 'application/xml' }));
-      a.href = url;
-      a.download = headers['content-disposition'].split('filename=')[1];
-      a.click();
-    }
-
-    // CALLBACKS
-    uploader.onWhenAddingFileFailed = function(item /*{File|FileLikeObject}*/, filter, options) {
-      console.info('onWhenAddingFileFailed', item, filter, options);
-    };
-    uploader.onAfterAddingFile = function(fileItem) {
-      console.info('onAfterAddingFile', fileItem);
-    };
-    uploader.onAfterAddingAll = function(addedFileItems) {
-      console.info('onAfterAddingAll', addedFileItems);
-    };
-    uploader.onBeforeUploadItem = function(item) {
-      console.info('onBeforeUploadItem', item);
-    };
-    uploader.onProgressItem = function(fileItem, progress) {
-      console.info('onProgressItem', fileItem, progress);
-    };
-    uploader.onProgressAll = function(progress) {
-      console.info('onProgressAll', progress);
-    };
-    uploader.onSuccessItem = function(fileItem, response, status, headers) {
-      console.info('onSuccessItem', fileItem, response, status, headers);
-      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
-        $location.path('/login');
-        $cookies.remove('userCredentials');
-        $cookies.remove('role');
-      } else {
-        if(status == UPLOAD_CONSTANTS.ACCEPTED_STATUS){
-          fileItem.isWarning = true;
-        } else{
-          fileItem.isWarning = false;
-        }
-        fileItem.isSuccess = !fileItem.isWarning;
-        downloadATR(response, headers);
-      }
-    };
-    uploader.onErrorItem = function(fileItem, response, status, headers) {
-      console.info('onErrorItem', fileItem, response, status, headers);
-      if (typeof response === 'string' && response.indexOf("PROGRAMME VITAM")>-1)  {
-          $location.path('/login');
-          $cookies.remove('userCredentials');
-          $cookies.remove('role');
-        } else if(status == UPLOAD_CONSTANTS.KO_STATUS) {
-          downloadATR(response, headers);
-        }
-    };
-    uploader.onCancelItem = function(fileItem, response, status, headers) {
-      console.info('onCancelItem', fileItem, response, status, headers);
-    };
-    uploader.onCompleteItem = function(fileItem, response, status, headers) {
-      console.info('onCompleteItem', fileItem, response, status, headers);
-    };
-    uploader.onCompleteAll = function() {
-      console.info('onCompleteAll');
-    };
-
-    console.info('uploader', uploader);
   });

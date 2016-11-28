@@ -28,6 +28,8 @@ package fr.gouv.vitam.functional.administration.common;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
 /**
@@ -40,11 +42,11 @@ public class FileRules extends VitamDocument<FileRules> {
 
     public static final String RULEID = "RuleId";
 
-    private static final String RULETYPE = "RuleType";
-    private static final String RULEVALUE = "RuleValue";
-    private static final String RULEDESCRIPTION = "RuleDescription";
-    private static final String RULEDURATION = "RuleDuration";
-    private static final String RULEMEASUREMENT = "RuleMeasurement";
+    public static final String RULETYPE = "RuleType";
+    public static final String RULEVALUE = "RuleValue";
+    public static final String RULEDESCRIPTION = "RuleDescription";
+    public static final String RULEDURATION = "RuleDuration";
+    public static final String RULEMEASUREMENT = "RuleMeasurement";
     private static final String CREATIONDATE = "CreationDate";
     private static final String UPDATEDATE = "UpdateDate";
     private static final String TENANT = "_tenant";
@@ -66,6 +68,24 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(Document document) {
         super(document);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public FileRules(JsonNode content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public FileRules(String content) {
+        super(content);
         // FIXME P1
         append(TENANT, 0);
     }
@@ -141,7 +161,7 @@ public class FileRules extends VitamDocument<FileRules> {
      * setCreationDate
      *
      * @param creationDate
-     * @return
+     * @return this
      */
     public FileRules setCreationDate(String creationDate) {
         append(CREATIONDATE, creationDate);
@@ -152,7 +172,7 @@ public class FileRules extends VitamDocument<FileRules> {
      * setUpdateDate
      *
      * @param updateDate
-     * @return
+     * @return this
      */
 
     public FileRules setUpdateDate(String updateDate) {

@@ -1,9 +1,15 @@
 
+// Switch to admin database
+db = db.getSiblingDB('admin')
+
 // Create admin user
-db.createUser(
-    {
-        user: "{{mongoAdminUser}}",
-        pwd: "{{mongoAdminPassword}}",
-        roles: [ { role: "root", db: "admin" } ]
-    }
-)
+
+if (! db.getUser("{{mongoAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoAdminUser}}",
+            pwd: "{{mongoAdminPassword}}",
+            roles: [ "root" ]
+        }
+    )
+}

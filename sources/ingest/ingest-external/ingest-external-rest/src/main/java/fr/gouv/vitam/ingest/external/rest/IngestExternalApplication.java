@@ -43,9 +43,9 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
@@ -64,7 +64,8 @@ public final class IngestExternalApplication
 
     /**
      * Ingest External constructor
-     * @param configuration 
+     *
+     * @param configuration
      */
     public IngestExternalApplication(String configuration) {
         super(IngestExternalConfiguration.class, configuration);
@@ -124,8 +125,9 @@ public final class IngestExternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        IngestExternalResource resource = new IngestExternalResource(getConfiguration());
+        final IngestExternalResource resource = new IngestExternalResource(getConfiguration());
         serviceRegistry.register(IngestInternalClientFactory.getInstance());
+        // FIXME P1 Siegfried missing but different configuration...
         resourceConfig.register(resource)
             .register(new AdminStatusResource(serviceRegistry));
     }

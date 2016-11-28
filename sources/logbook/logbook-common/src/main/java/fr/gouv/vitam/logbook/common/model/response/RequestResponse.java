@@ -26,13 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model.response;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Logbook RequestResponse class contains request query
  *
  */
-//TODO P1 ; refactor to the common vitam
+// TODO P1 ; refactor to the common vitam
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;
@@ -41,6 +43,7 @@ public class RequestResponse {
     /**
      * @return the Result part
      */
+    @JsonGetter("result")
     public JsonNode getResult() {
         return results;
     }
@@ -51,6 +54,7 @@ public class RequestResponse {
      * @param result the result of type JsonNode which will be setted for RequestResponse
      * @return this
      */
+    @JsonSetter("result")
     public RequestResponse setResult(JsonNode result) {
         results = result;
         return this;
@@ -59,6 +63,7 @@ public class RequestResponse {
     /**
      * @return the query as JsonNode of Response
      */
+    @JsonGetter("query")
     public JsonNode getQuery() {
         return query;
     }
@@ -69,6 +74,7 @@ public class RequestResponse {
      * @param query the query of type JsonNode which will be setted for RequestResponse
      * @return this
      */
+    @JsonSetter("query")
     public RequestResponse setQuery(JsonNode query) {
         this.query = query;
         return this;

@@ -38,8 +38,8 @@ angular
   'ARCHIVE_SEARCH_MODULE_CONST', {
    'ARCHIVE_FORM_ALREADY_OPENED': 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.',
    'ARCHIVE_DETAILS_PATH': '#!/archiveunit/',
-   'SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!',
-   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
+   'SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche. Veuillez contacter votre administrateur!',
+   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
    'ARCHIVE_NOT_FOUND_MSG': 'L\'archive unit sélectionnée est introuvable.',
    'SEARCH_RESULT_INVALID': 'La réponse reçue est invalide. Impossible d\'afficher le résultat de la recherche.',
    'STARTDATE_GREATER_THAN_ENDDATE': 'La date de début doit être antérieure à la date de fin.',
@@ -49,17 +49,9 @@ angular
    'NO_CRITERIA_SET': 'Aucun résultat. Veuillez entrer au moins un critère de recherche'
   })
  .controller(
-  'ArchiveUnitSearchController', [
-   '$scope',
-   'ihmDemoFactory',
-   '$window',
-   '$mdToast',
-   '$mdDialog',
-   'ARCHIVE_SEARCH_MODULE_CONST',
-   'archiveDetailsService',
-   'dateValidator',
+  'ArchiveUnitSearchController',
    function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,
-    ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator) {
+    ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult) {
 
     // ******************************* Alert diplayed
     // ******************************* //
@@ -93,17 +85,17 @@ angular
        .then(
         function(response) {
 
-         if (response.data.$result == null || response.data.$result == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+         if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined) {
           $scope.error = true;
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
          } else {
-          $scope.archiveUnitsSearchResult = response.data.$result;
+          $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
           $scope.showResult = true;
           $scope.error = false;
 
           // Set Total result
-          $scope.totalResult = response.data.$hint.total;
+          $scope.totalResult = response.data.$hits.total;
 
           // ************************************Pagination
           // ****************************
@@ -165,12 +157,12 @@ angular
      };
 
      var displayFormCallBack = function(data) {
-      if (data.$result == null || data.$result == undefined || data.$hint == null || data.$hint == undefined) {
+      if (data.$results == null || data.$results == undefined || data.$hits == null || data.$hits == undefined) {
        $scope.error = true;
        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
        $scope.showAlert($event, "Erreur", $scope.errorMessage);
       } else {
-       $scope.totalFoundArchive = data.$hint.total;
+       $scope.totalFoundArchive = data.$hits.total;
        if ($scope.totalFoundArchive != 1) {
         console.log('Archive unit not found');
         $scope.error = true;
@@ -187,16 +179,16 @@ angular
           .then(
            function(response) {
             $scope.archiveDetailsConfig = response.data;
-            openArchiveDetailsWindow(data.$result);
+            openArchiveDetailsWindow(data.$results);
            },
            function(error) {
             console
              .log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
             $scope.archiveDetailsConfig = {};
-            openArchiveDetailsWindow(data.$result);
+            openArchiveDetailsWindow(data.$results);
            });
         } else {
-         openArchiveDetailsWindow(data.$result);
+         openArchiveDetailsWindow(data.$results);
         }
        }
       }
@@ -256,7 +248,7 @@ angular
          // Add title to criteria
          atLeastOneValidCriteriaExists = true;
          atLeastOneCriteriaExists = true;
-         $scope.criteriaSearch._id = id;
+         $scope.criteriaSearch.id = id;
       } else {
          if (title !== '' && title !== null && title !== undefined) {
             // Add title to criteria
@@ -328,18 +320,18 @@ angular
         .then(
          function(response) {
 
-          if (response.data.$result == null || response.data.$result == undefined || response.data.$hint == null || response.data.$hint == undefined) {
+          if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined) {
            $scope.error = true;
            $scope.showResult = false;
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
           } else {
-           $scope.archiveUnitsSearchResult = response.data.$result;
+           $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
            $scope.showResult = true;
            $scope.error = false;
 
            // Set Total result
-           $scope.totalResult = response.data.$hint.total;
+           $scope.totalResult = response.data.$hits.total;
 
            // ******************************** Pagination ****************************** //
            $scope.totalItems = $scope.archiveUnitsSearchResult.length;
@@ -363,5 +355,4 @@ angular
      // ***************************************************************************
      // //
 
-   }
-  ]);
+   });

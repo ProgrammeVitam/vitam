@@ -61,7 +61,7 @@ public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQ
      * @return The Path set
      */
     public Set<String> getPaths() {
-        final Set<String> set = new HashSet<String>();
+        final Set<String> set = new HashSet<>();
         for (final JsonNode node : currentObject) {
             set.add(node.asText());
         }

@@ -42,7 +42,7 @@ angular.module('ihm.demo')
 			var result = [];
 			for (var i = 0, len = fields.length; i<len; i++) {
 				var fieldId = fields[i];
-				result.push({id: fieldId, label: $filter('translate')('operation.logbook.displayField.' + fieldId)});
+				result.push({id: fieldId, label: $filter('replaceDoubleQuote')($filter('translate')('operation.logbook.displayField.' + fieldId))});
 			}
 			return result;
 		}
@@ -88,7 +88,15 @@ angular.module('ihm.demo')
       ctrl.searchOptions.orderby = "evDateTime";
 
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-        ctrl.operationList = response.data.result;
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          if (ctrl.searchType && ctrl.searchID) {
+            displayError("Veuillez ne remplir qu'un seul champ");
+          } else {
+            displayError("Il n'y a aucun résultat pour votre recherche");
+          }
+          return;
+        }
+        ctrl.operationList = response.data.$results;
         ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
         ctrl.currentPage = 1;
       }, function(response) {

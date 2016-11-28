@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.10.0-SNAPSHOT</version>
+		<version>0.11.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>integration-test</artifactId>
 	<name>All Integration Tests</name>
@@ -133,7 +133,35 @@
 			<artifactId>logbook-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-internal-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-internal-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-internal-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+             <groupId>fr.gouv.vitam</groupId>
+             <artifactId>access-internal-client</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+ 
+         <dependency>
+             <groupId>fr.gouv.vitam</groupId>
+             <artifactId>access-internal-rest</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -146,7 +174,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -209,6 +237,6 @@
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 	</dependencies>
 </project>

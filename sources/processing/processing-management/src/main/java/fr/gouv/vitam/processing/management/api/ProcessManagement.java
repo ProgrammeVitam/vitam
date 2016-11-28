@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.management.api;
 
 
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -38,7 +39,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * This service will be invoked by Ingest Module
  *
  */
-public interface ProcessManagement {
+public interface ProcessManagement extends VitamAutoCloseable {
     /**
      * execute Vitam process by workflow id
      *
@@ -48,7 +49,7 @@ public interface ProcessManagement {
      * @throws WorkflowNotFoundException thrown if the workflow was not found
      * @throws ProcessingException thrown in case of a technical exception in the execution
      * @throws IllegalArgumentException thrown in case parameters workParams or workflowId are null
-     * 
+     *
      */
     ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
 }

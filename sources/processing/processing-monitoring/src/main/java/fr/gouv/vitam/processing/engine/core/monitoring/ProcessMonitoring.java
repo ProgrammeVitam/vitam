@@ -36,7 +36,7 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 /**
  * Process Monitoring Interface offers services in order to monitor workflows
  */
-// FIXME P0 : propose a method that could purge the workflows
+// FIXME P1 : propose a method that could purge the workflows
 public interface ProcessMonitoring {
 
     /**
@@ -77,18 +77,18 @@ public interface ProcessMonitoring {
      * Get workflow status with its workflow id If the workflow id does not exist, an empty Map is returned
      *
      * @param processId the id of the process
-     * @return a map of steps 
+     * @return a map of steps
      * @throws ProcessingException if the process does not exist
      */
     Map<String, ProcessStep> getWorkflowStatus(String processId) throws ProcessingException;
 
     /**
      * Return true if at least one of the step status is KO or FATAL.
-     * 
+     *
      * @param processId the id of the workflow
      * @return true if at least one of the step status is KO or FATAL, else false
      * @throws ProcessingException if the process does not exist
      */
-    Boolean isWorkflowStatusGreaterOrEqualToKo(String processId) throws ProcessingException;
+    StatusCode getFinalWorkflowStatus(String processId) throws ProcessingException;
 
 }

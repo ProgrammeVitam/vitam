@@ -29,15 +29,13 @@ package fr.gouv.vitam.logbook.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -49,8 +47,9 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.VitamServerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
@@ -79,16 +78,18 @@ public class LogbookApplicationTest {
         databasePort = junitHelper.findAvailablePort();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.setDbPort(databasePort);
+        realLogbook.getMongoDbNodes().get(0).setDbPort(databasePort);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, databasePort,
+                new DbConfigurationImpl(nodes,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins

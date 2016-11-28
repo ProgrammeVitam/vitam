@@ -41,9 +41,9 @@ public class ProcessStep extends Step {
     private String id;
     private long elementProcessed;
     private long elementToProcess;
-    private StatusCode stepStatusCode;
+    private StatusCode stepStatusCode = StatusCode.UNKNOWN;
 
-    
+
     /**
      * Constructor to initalize a Process Step with a Step object
      *
@@ -55,14 +55,13 @@ public class ProcessStep extends Step {
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, long elementToProcess, long
-        elementProcessed) {
+    public ProcessStep(Step step, long elementToProcess, long elementProcessed) {
         ParametersChecker.checkParameter("Step could not be null", step);
-        this.setActions(step.getActions());
-        this.setDistribution(step.getDistribution());
-        this.setStepName(step.getStepName());
-        this.setBehavior(step.getBehavior());
-        this.setWorkerGroupId(step.getWorkerGroupId());
+        setActions(step.getActions());
+        setDistribution(step.getDistribution());
+        setStepName(step.getStepName());
+        setBehavior(step.getBehavior());
+        setWorkerGroupId(step.getWorkerGroupId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
     }
@@ -78,18 +77,18 @@ public class ProcessStep extends Step {
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, String containerName, String workflowId, int position, long elementToProcess, long
-        elementProcessed) {
+    public ProcessStep(Step step, String containerName, String workflowId, int position, long elementToProcess,
+        long elementProcessed) {
         ParametersChecker.checkParameter("containerName could not be null", containerName);
         ParametersChecker.checkParameter("workflowId could not be null", workflowId);
         ParametersChecker.checkParameter("position could not be null", position);
         ParametersChecker.checkParameter("Step could not be null", step);
-        this.id = containerName + "_" + workflowId + "_" + position + "_" + step.getStepName();
-        this.setActions(step.getActions());
-        this.setDistribution(step.getDistribution());
-        this.setStepName(step.getStepName());
-        this.setBehavior(step.getBehavior());
-        this.setWorkerGroupId(step.getWorkerGroupId());
+        id = containerName + "_" + workflowId + "_" + position + "_" + step.getStepName();
+        setActions(step.getActions());
+        setDistribution(step.getDistribution());
+        setStepName(step.getStepName());
+        setBehavior(step.getBehavior());
+        setWorkerGroupId(step.getWorkerGroupId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
     }
@@ -166,9 +165,9 @@ public class ProcessStep extends Step {
     @Override
     public boolean equals(Object object) {
         if (object instanceof ProcessStep) {
-            ProcessStep processStep = (ProcessStep) object;
-            return this.id.equals(processStep.getId()) && this.getStepName().equals(processStep.getStepName()) &&
-                this.getWorkerGroupId().equals(processStep.getWorkerGroupId());
+            final ProcessStep processStep = (ProcessStep) object;
+            return id.equals(processStep.getId()) && getStepName().equals(processStep.getStepName()) &&
+                getWorkerGroupId().equals(processStep.getWorkerGroupId());
         } else {
             return false;
         }
@@ -176,6 +175,6 @@ public class ProcessStep extends Step {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id, this.getStepName(), this.getWorkerGroupId());
+        return Objects.hash(id, getStepName(), getWorkerGroupId());
     }
 }

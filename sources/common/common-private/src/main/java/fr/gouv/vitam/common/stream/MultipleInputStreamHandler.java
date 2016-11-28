@@ -37,12 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * Multiple InputStream allows to handle from one unique InputStream multiple InputStreams linked to it, such that from
  * one InputStream, we can read efficiently separately (different threads) the very same InputStream once.
  */
-public class MultipleInputStreamHandler implements AutoCloseable {
+public class MultipleInputStreamHandler implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MultipleInputStreamHandler.class);
     private static final int BUFFER_SIZE = 65536;
     // Read ahead x4

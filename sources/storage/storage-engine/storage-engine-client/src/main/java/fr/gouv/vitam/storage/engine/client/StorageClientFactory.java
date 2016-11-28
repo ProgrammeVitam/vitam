@@ -29,9 +29,9 @@ package fr.gouv.vitam.storage.engine.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -62,13 +62,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * changeDefaultClientType method to change the client type.
  *
  */
-public class StorageClientFactory extends VitamClientFactory<StorageClient>  {
+public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "storage-client.conf";
     private static final StorageClientFactory STORAGE_CLIENT_FACTORY = new StorageClientFactory();
 
+    /**
+     * Default path
+     */
     public static final String RESOURCE_PATH = "/storage/v1";
-    
+
     private StorageClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
@@ -87,6 +90,7 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient>  {
      *
      * @return the default storage client
      */
+    @Override
     public StorageClient getClient() {
         StorageClient client;
         switch (getVitamClientType()) {

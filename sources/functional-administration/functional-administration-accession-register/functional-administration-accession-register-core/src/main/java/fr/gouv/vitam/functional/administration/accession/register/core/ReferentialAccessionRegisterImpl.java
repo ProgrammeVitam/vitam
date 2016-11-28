@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
@@ -52,18 +53,18 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 /**
  * Referential Accession Register Implement
  */
-public class ReferentialAccessionRegisterImpl implements AutoCloseable {
+public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
 
     /**
      * Constructor
-     * 
+     *
      * @param dbConfiguration
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration) {
-        this.mongoAccess = dbConfiguration;
+        mongoAccess = dbConfiguration;
     }
 
     /**
@@ -75,22 +76,22 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
 
 
         // TODO P1 replace with real tenant
-        int tenantId = 0;
+        final int tenantId = 0;
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
         // store accession register detail
         try {
-            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
+            mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
         }
 
         // store accession register summary
-        RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
         try {
-            AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
+            final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
                 .setId(GUIDFactory.newAccessionRegisterSummaryGUID(tenantId).getId())
                 .setOriginatingAgency(registerDetail.getOriginatingAgency())
@@ -104,25 +105,25 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
             LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
                 registerDetail.getOriginatingAgency());
 
-            this.mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
+            mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new ReferentialException(e);
-        } catch (MongoWriteException e) {
+        } catch (final MongoWriteException e) {
             LOGGER.info("Document existed, updating ...");
         }
 
         try {
-            Map<String, Object> updateMap = createMaptoUpdate(registerDetail);
-            this.mongoAccess.updateDocumentByMap(
+            final Map<String, Object> updateMap = createMaptoUpdate(registerDetail);
+            mongoAccess.updateDocumentByMap(
                 updateMap,
                 JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
                 UPDATEACTION.INC);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.info("Update error", e);
             throw new ReferentialException(e);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.info("Unknown error", e);
             throw new ReferentialException(e);
         }
@@ -130,7 +131,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
     }
 
     private Map<String, Object> createMaptoUpdate(AccessionRegisterDetail registerDetail) {
-        Map<String, Object> updateMap = new HashMap<>();
+        final Map<String, Object> updateMap = new HashMap<>();
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjectGroups().getTotal());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
@@ -159,13 +160,13 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         // Empty
     }
 
     /**
      * search for an accession register's summary
-     * 
+     *
      * @param select the search criteria for the select operation
      * @return A list of AccressionRegisterSummaries matching the 'select' criteria.
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error
@@ -193,7 +194,7 @@ public class ReferentialAccessionRegisterImpl implements AutoCloseable {
 
     /**
      * search for an accession register's operation detail
-     * 
+     *
      * @param select the search criteria for the select operation
      * @return A list of AccressionRegisterDetails matching the 'select' criteria.
      * @throws ReferentialException If the search's result is null or empty, or if the mongo search throw error

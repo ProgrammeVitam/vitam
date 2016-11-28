@@ -120,7 +120,7 @@ public class JsonHandlerTest {
         try {
             JsonHandler.getMapFromInputStream(null);
             fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // OK
         }
         final Map<String, Object> map =
@@ -323,5 +323,25 @@ public class JsonHandlerTest {
             // Ignore
         }
 
+        try {
+            JsonHandler.checkNullOrEmpty("message", null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
+
+        try {
+            JsonHandler.checkNullOrEmpty("message", JsonHandler.createObjectNode());
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
+
+        try {
+            JsonHandler.checkNullOrEmpty("message", JsonHandler.createArrayNode());
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final IllegalArgumentException e) {
+            // Ignore
+        }
     }
 }

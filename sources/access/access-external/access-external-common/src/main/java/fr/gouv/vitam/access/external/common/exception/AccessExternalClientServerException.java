@@ -38,7 +38,7 @@ public class AccessExternalClientServerException extends AccessExternalClientExc
 
     /**
      * constructor with message
-     * 
+     *
      * @param message associated message
      */
     public AccessExternalClientServerException(String message) {
@@ -47,7 +47,7 @@ public class AccessExternalClientServerException extends AccessExternalClientExc
 
     /**
      * constructor with throwable
-     * 
+     *
      * @param cause associated cause
      */
     public AccessExternalClientServerException(Throwable cause) {
@@ -56,7 +56,7 @@ public class AccessExternalClientServerException extends AccessExternalClientExc
 
     /**
      * constructor with message and throwable
-     * 
+     *
      * @param messsage associated message
      * @param cause associated cause
      */

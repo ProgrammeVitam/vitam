@@ -32,6 +32,12 @@ package fr.gouv.vitam.storage.driver.constants;
  * which will be property keys in their connection parameters for instance.
  */
 public enum StorageDriverParameterNames {
+    /**
+     * User
+     */
     USER,
+    /**
+     * Password
+     */
     PASSWORD
 }

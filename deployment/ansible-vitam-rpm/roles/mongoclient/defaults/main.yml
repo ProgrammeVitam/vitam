@@ -1,0 +1,16 @@
+---
+mongoclient_root_url: "http://localhost"
+mongoclient_port: 3000
+#mongoclient_user: ""
+#mongoclient_pwd: ""
+mongoclient_confdb:
+  host: localhost
+  port: 27017
+  name: mongoclient
+#  user:
+#  pwd:
+mongoclient_confmail: {}
+#  user:
+#  pwd:
+#  host:
+#  port:

@@ -31,6 +31,7 @@ package fr.gouv.vitam.metadata.api.exception;
  * Exception indicating the Metadata server has an internal error
  */
 public class MetaDataClientServerException extends MetaDataException {
+    private static final long serialVersionUID = 2595337250665740662L;
 
     /**
      * @param message message to associate with the exception

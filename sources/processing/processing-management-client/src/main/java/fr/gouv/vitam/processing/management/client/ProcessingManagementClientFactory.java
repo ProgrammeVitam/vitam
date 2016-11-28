@@ -26,20 +26,106 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 /**
  * ProcessingManagement factory for creating ProcessingManagement client
  */
-public class ProcessingManagementClientFactory {
-// FIXME P0 should be clientV2/ServerV2
-    /**
-     * Create ProcessingManagement client with server URL
-     *
-     * @param serviceUrl ProcessingManagemen server Url
-     * @return ProcessingManagementClient
-     */
+public class ProcessingManagementClientFactory extends VitamClientFactory<ProcessingManagementClient> {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientFactory.class);
+    private static final String RESOURCE_PATH = "/processing/v1";
+    private static final String CONFIGURATION_FILENAME = "processing-client.conf";
+    private static final ProcessingManagementClientFactory PROCESSING_MANAGEMENT_CLIENT_FACTORY =
+        new ProcessingManagementClientFactory();
 
-    public static ProcessingManagementClient create(String serviceUrl) {
-        return new ProcessingManagementClient(serviceUrl);
+    private ProcessingManagementClientFactory() {
+        super(null, RESOURCE_PATH, true, false, false);
+    }
+
+    /**
+     * Get the ProcessingManagementClientFactory instance
+     *
+     * @return the instance
+     */
+    public static final ProcessingManagementClientFactory getInstance() {
+        return PROCESSING_MANAGEMENT_CLIENT_FACTORY;
+    }
+
+    /**
+     * Get the default worker client
+     *
+     * @return the default worker client
+     */
+    @Override
+    public ProcessingManagementClient getClient() {
+        ProcessingManagementClient client;
+        switch (getVitamClientType()) {
+            case MOCK:
+                client = new ProcessingManagementClientMock();
+                break;
+            case PRODUCTION:
+                client = new ProcessingManagementClientRest(this);
+                break;
+            default:
+                throw new IllegalArgumentException("Worker client type unknown");
+        }
+        return client;
+    }
+
+    /**
+     * Change client configuration from a Yaml files
+     *
+     * @param configurationPath the path to the configuration file
+     */
+    static final ClientConfigurationImpl changeConfigurationFile(String configurationPath) {
+        ClientConfigurationImpl configuration = null;
+        try {
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class);
+        } catch (final IOException fnf) {
+            LOGGER
+                .debug("Error when retrieving configuration file {}, using mock",
+                    CONFIGURATION_FILENAME,
+                    fnf);
+        }
+        if (configuration == null) {
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                CONFIGURATION_FILENAME);
+        }
+        return configuration;
+    }
+
+    /**
+     * For compatibility with old implementation
+     *
+     * @param urlString
+     */
+    // TODO P2 should be removed
+    public static final void changeConfigurationUrl(String urlString) {
+        try {
+            final URI url = new URI(urlString);
+            LOGGER.info("Change configuration using " + url.getHost() + ":" + url.getPort());
+            changeMode(new ClientConfigurationImpl(url.getHost(), url.getPort()));
+        } catch (final URISyntaxException e) {
+            throw new IllegalStateException("Cannot parse the URI: " + urlString, e);
+        }
+    }
+
+    /**
+     *
+     * @param configuration null for MOCK
+     */
+    // TODO P2 should not be public (but IT test)
+    public static final void changeMode(ClientConfigurationImpl configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
 }

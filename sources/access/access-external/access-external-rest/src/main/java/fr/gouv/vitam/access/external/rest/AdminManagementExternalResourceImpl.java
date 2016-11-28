@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -42,14 +41,18 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -60,21 +63,20 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
-    private static final String FORMAT_COLLECTION = "formats";
-    private static final String RULES_COLLECTION = "rules";
-    private static final String ACCESSION_REGISTER_COLLECTION = "accession-registers";
+    private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
+    private static final String CODE_VITAM = "code_vitam";
+    private final int tenantId = 0;
 
     /**
      * Constructor
-     *
-     * @param configuration config for constructing AdminManagement
      */
     public AdminManagementExternalResourceImpl() {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    /** 
+    /**
      * checkDocument
+     *
      * @param collection
      * @param document
      * @return Response
@@ -84,26 +86,38 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
-        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
-                Status status = client.checkFormat(document);
-                return Response.status(status).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        try {
+            ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                if (AdminCollections.FORMATS.compareTo(collection)) {
+                    final Status status = client.checkFormat(document);
+                    return Response.status(status).entity(getErrorEntity(status)).build();
+                }
+                if (AdminCollections.RULES.compareTo(collection)) {
+                    final Status status = client.checkRulesFile(document);
+                    return Response.status(status).entity(getErrorEntity(status)).build();
+                }
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.PRECONDITION_FAILED;
+                return Response.status(status).entity(getErrorEntity(status)).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
-                Status status = client.checkRulesFile(document);
-                return Response.status(status).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (ReferentialException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(status).build();
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
         }
     }
 
     /**
      * importDocument
+     *
      * @param collection
      * @param document
      * @return Response
@@ -113,65 +127,45 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importDocument(@PathParam("collection") String collection, InputStream document) {
-        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
-                client.importFormat(document);
-                return Response.status(Status.CREATED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        try {
+            ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                if (AdminCollections.FORMATS.compareTo(collection)) {
+                    client.importFormat(document);
+                    final Status status = Status.CREATED;
+                    return Response.status(status).entity(getErrorEntity(status)).build();
+                }
+                if (AdminCollections.RULES.compareTo(collection)) {
+                    client.importRulesFile(document);
+                    final Status status = Status.CREATED;
+                    return Response.status(status).entity(getErrorEntity(status)).build();
+                }
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final DatabaseConflictException e) {
+                LOGGER.error(e);
+                final Status status = Status.CONFLICT;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status)).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
-                client.importRulesFile(document);
-                return Response.status(Status.CREATED).build();
-            }
-            if (ACCESSION_REGISTER_COLLECTION.equals(collection)) {
-                client.createorUpdateAccessionRegister(JsonHandler.getFromInputStream(document, AccessionRegisterDetail.class));
-                return Response.status(Status.CREATED).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (DatabaseConflictException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.CONFLICT;
-            return Response.status(status).entity(status).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(status).build();
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
         }
 
-    }
-
-    /**
-     * deleteDocuments
-     * @param collection
-     * @return Response
-     */
-    @Path("/{collection}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteDocuments(@PathParam("collection") String collection) {
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
-                client.deleteFormat();
-                return Response.status(Status.OK).build();
-            }
-            if (RULES_COLLECTION.equals(collection)) {
-                client.deleteRulesFile();
-                return Response.status(Status.OK).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        }
     }
 
     /**
      * findDocuments
+     *
      * @param collection
      * @param select
      * @return Response
@@ -181,25 +175,34 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
-        ParametersChecker.checkParameter("select query is a mandatory parameter", select);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
-                JsonNode result = client.getFormats(select);
-                return Response.status(Status.OK).entity(result).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        try {
+            SanityChecker.checkJsonAll(select);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                if (AdminCollections.FORMATS.compareTo(collection)) {
+                    final JsonNode result = client.getFormats(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+                if (AdminCollections.RULES.compareTo(collection)) {
+                    final JsonNode result = client.getRules(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (ReferentialException | IOException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status)).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
-                JsonNode result = client.getRule(select);
-                return Response.status(Status.OK).entity(result).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (ReferentialException | IOException e) {
+        } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(status).build();
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -207,6 +210,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * findDocumentByID
+     *
      * @param collection
      * @param documentId
      * @return Response
@@ -214,27 +218,43 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Path("/{collection}/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId) {
-        ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            if (FORMAT_COLLECTION.equals(collection)) {
-                JsonNode result = client.getFormatByID(documentId);
-                return Response.status(Status.OK).entity(result).build();
+    public Response findDocumentByID(@PathParam("collection") String collection,
+        @PathParam("id_document") String documentId) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                if (AdminCollections.FORMATS.compareTo(collection)) {
+                    final JsonNode result = client.getFormatByID(documentId);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+                if (AdminCollections.RULES.compareTo(collection)) {
+                    final JsonNode result = client.getRuleByID(documentId);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status)).build();
             }
-            if (RULES_COLLECTION.equals(collection)) {
-                JsonNode result = client.getRuleByID(documentId);
-                return Response.status(Status.OK).entity(result).build();
-            }
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (ReferentialException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(status).build();
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
 }

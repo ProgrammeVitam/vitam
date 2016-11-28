@@ -340,7 +340,7 @@ public class Digest {
 
     /**
      * Will update the Digest while the returned InputStream will be read
-     * 
+     *
      * @param inputStream from which the data to digest will be done
      * @return the new InputStream to use instead of the given one as parameter
      */

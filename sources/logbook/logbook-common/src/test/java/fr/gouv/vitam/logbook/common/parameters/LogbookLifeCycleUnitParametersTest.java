@@ -169,4 +169,19 @@ public class LogbookLifeCycleUnitParametersTest {
         final LogbookLifeCycleUnitParameters llcup = new LogbookLifeCycleUnitParameters(new HashMap());
         assertEquals(true, llcup.getMapParameters().isEmpty());
     }
+
+
+    @Test
+    public void testConstructorAndFinalMessage() {
+        final LogbookLifeCycleUnitParameters lunit = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        lunit.setFinalStatus("handler", "subtask", StatusCode.STARTED, null, null);
+        assertEquals(StatusCode.STARTED, lunit.getStatus());
+        lunit.setFinalStatus("handler", "subtask", StatusCode.OK, " Detail=", "test");
+        assertEquals(StatusCode.OK, lunit.getStatus());
+        lunit.setFinalStatus("handler", null, StatusCode.KO, null, null);
+        assertEquals(StatusCode.KO, lunit.getStatus());
+        lunit.setFinalStatus("handler", null, StatusCode.FATAL, " Detail=", "test");
+        assertEquals(StatusCode.FATAL, lunit.getStatus());
+    }
+
 }

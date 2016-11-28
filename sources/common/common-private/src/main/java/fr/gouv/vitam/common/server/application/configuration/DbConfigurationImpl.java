@@ -27,20 +27,22 @@
 
 package fr.gouv.vitam.common.server.application.configuration;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
  * Implementation of DbConfiguraton Interface
  */
-public class DbConfigurationImpl implements DbConfiguration {
+public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration implements DbConfiguration {
+    private static final String PORT_MUST_BE_POSITIVE = "Port must be positive";
     private static final String CONFIGURATION_PARAMETERS = "DbConfiguration parameters";
-    private String dbHost;
-    private int dbPort;
+    private List<MongoDbNode> mongoDbNodes;
     private String dbName;
     private boolean dbAuthentication = false;
     private String dbUserName;
     private String dbPassword;
-    
+
     /**
      * DbConfiguration empty constructor for YAMLFactory
      */
@@ -48,102 +50,92 @@ public class DbConfigurationImpl implements DbConfiguration {
         // empty
     }
 
-
     /**
      * DbConfiguration constructor with authentication
      *
-     * @param dbHost database server IP address
-     * @param dbPort database server port
+     * @param mongoDbNodes database server IP address and port
      * @param dbName database name
+     * @param dbAuthentication
+     * @param dbUserName
+     * @param dbPassword
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
-    public DbConfigurationImpl(String dbHost, int dbPort, String dbName,boolean dbAuthentication, String dbUserName, String dbPassword) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            dbHost, dbName);
-        if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+    public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
+        String dbUserName, String dbPassword) {
+        for (final MongoDbNode node : mongoDbNodes) {
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
+                node.getDbHost(), dbName);
+            if (node.getDbPort() <= 0) {
+                throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
+            }
         }
-        this.dbHost = dbHost;
-        this.dbPort = dbPort;
+        this.mongoDbNodes = mongoDbNodes;
         this.dbName = dbName;
         this.dbAuthentication = dbAuthentication;
         this.dbUserName = dbUserName;
-        this.dbPassword = dbPassword; 
+        this.dbPassword = dbPassword;
     }
-    
+
+
     /**
      * DbConfiguration constructor
      *
-     * @param dbHost database server IP address
-     * @param dbPort database server port
+     * @param mongoDbNodes database server IP address and port
      * @param dbName database name
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
-    public DbConfigurationImpl(String dbHost, int dbPort, String dbName) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            dbHost, dbName);
-        if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+    public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName) {
+        for (final MongoDbNode node : mongoDbNodes) {
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
+                node.getDbHost(), dbName);
+            if (node.getDbPort() <= 0) {
+                throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
+            }
         }
-        this.dbHost = dbHost;
-        this.dbPort = dbPort;
+        this.mongoDbNodes = mongoDbNodes;
         this.dbName = dbName;
-        this.dbAuthentication = false;
-    }
-
-
-    @Override
-    public String getDbHost() {
-        return dbHost;
+        dbAuthentication = false;
     }
 
     @Override
-    public int getDbPort() {
-        return dbPort;
+    public List<MongoDbNode> getMongoDbNodes() {
+        return mongoDbNodes;
     }
 
     @Override
     public String getDbName() {
         return dbName;
     }
-    
+
     @Override
     public String getDbUserName() {
         return dbUserName;
     }
-    
+
     @Override
     public String getDbPassword() {
         return dbPassword;
     }
-    
+
     @Override
     public boolean isDbAuthentication() {
         return dbAuthentication;
     }
 
     /**
-     * @param dbHost the Db Host to set
+     * @param mongoDbNodes to set
      * @return this
      * @throws IllegalArgumentException if dbHost is null or empty
      */
-    public DbConfigurationImpl setDbHost(String dbHost) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            dbHost);
-        this.dbHost = dbHost;
-        return this;
-    }
-
-    /**
-     * @param dbPort the Db Port to set
-     * @return this
-     * @throws IllegalArgumentException if dbPort <= 0
-     */
-    public DbConfigurationImpl setDbPort(int dbPort) {
-        if (dbPort <= 0) {
-            throw new IllegalArgumentException("Port must be positive");
+    public DbConfigurationImpl setMongoDbNodes(List<MongoDbNode> mongoDbNodes) {
+        for (final MongoDbNode node : mongoDbNodes) {
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
+                node.getDbHost());
+            if (node.getDbPort() <= 0) {
+                throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
+            }
         }
-        this.dbPort = dbPort;
+        this.mongoDbNodes = mongoDbNodes;
         return this;
     }
 
@@ -160,20 +152,20 @@ public class DbConfigurationImpl implements DbConfiguration {
     }
 
     /**
-     * @param dbUserName
+     * @param userName
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbUserName(String userName) {
-        this.dbUserName = userName;
+        dbUserName = userName;
         return this;
     }
 
     /**
-     * @param dbPassword
+     * @param password
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbPassword(String password) {
-        this.dbPassword = password;
+        dbPassword = password;
         return this;
     }
 
@@ -182,7 +174,7 @@ public class DbConfigurationImpl implements DbConfiguration {
      * @return MetaDataConfiguration
      */
     public DbConfigurationImpl setDbAuthentication(boolean authentication) {
-        this.dbAuthentication = authentication;
+        dbAuthentication = authentication;
         return this;
     }
 }

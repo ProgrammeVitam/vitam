@@ -32,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
@@ -47,12 +47,12 @@ public class ObjectInitTest {
         objectInit.setId("id");
         objectInit.setSize(1024);
         objectInit.setType(DataCategory.UNIT);
-        objectInit.setDigestAlgorithm(DigestType.SHA256);
+        objectInit.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
 
         assertNotNull(objectInit);
         assertEquals("id", objectInit.getId());
         assertEquals(1024, objectInit.getSize());
         assertEquals(DataCategory.UNIT, objectInit.getType());
-        assertEquals(DigestType.SHA256, objectInit.getDigestAlgorithm());
+        assertEquals(VitamConfiguration.getDefaultDigestType(), objectInit.getDigestAlgorithm());
     }
 }

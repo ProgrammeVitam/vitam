@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -42,8 +41,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 
 /**
  * CheckStorageAvailability Handler.<br>
@@ -54,7 +54,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
-    private final StorageClientFactory storageClientFactory;
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
@@ -63,7 +62,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
      *
      */
     public CheckStorageAvailabilityActionHandler() {
-        storageClientFactory = StorageClientFactory.getInstance();
+        // Empty
     }
 
     /**
@@ -75,23 +74,25 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
+        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         long totalSizeToBeStored;
         try {
-            checkMandatoryIOParameter(actionDefinition);
-            // TODO P0 get size manifest.xml in local
+            checkMandatoryIOParameter(handlerIO);
             // TODO P0 extract this information from first parsing
-            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            final long manifestSize = SedaUtils.getManifestSize(params);
+            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
             final JsonNode storageCapacityNode;
-            
+
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
             }
-                        
+
             final StorageInformation information =
                 JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
             final long storageCapacity = information.getUsableSpace();
@@ -108,7 +109,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override

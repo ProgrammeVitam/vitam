@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
  * All collections
  *
  */
-enum LogbookCollections {
+public enum LogbookCollections {
     /**
      * Operation Collection
      */
@@ -115,7 +115,7 @@ enum LogbookCollections {
      *
      * @return the associated class
      */
-    protected Class<?> getClasz() {
+    public Class<?> getClasz() {
         return vitamCollection.getClasz();
     }
 }

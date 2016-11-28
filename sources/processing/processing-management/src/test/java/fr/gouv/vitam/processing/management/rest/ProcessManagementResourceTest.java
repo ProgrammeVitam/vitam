@@ -42,11 +42,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.metadata.api.model.RequestResponseError;
-import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
@@ -61,20 +58,19 @@ public class ProcessManagementResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static JunitHelper junitHelper;
     private static int port;
+    private static ProcessManagementApplication application = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
-
         final ServerConfiguration configuration = new ServerConfiguration();
         configuration.setUrlMetadata(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         configuration.setJettyConfig(JETTY_CONFIG);
-        ProcessManagementApplication.run(configuration);
+        application = new ProcessManagementApplication(configuration);
+        application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
     }
@@ -82,9 +78,10 @@ public class ProcessManagementResourceTest {
     @AfterClass
     public static void shutdownAfterClass() {
         try {
-            ProcessManagementApplication.stop();
-        } catch (final Exception e) {
-        }
+            if (application != null) {
+                application.stop();
+            }
+        } catch (final Exception e) {}
         junitHelper.releasePort(port);
     }
 
@@ -117,8 +114,8 @@ public class ProcessManagementResourceTest {
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new RequestResponseError()
-            .setError(new VitamError(status.getStatusCode()).setContext("ingest").setState("code_vitam")
-                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())));
+        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext("ingest").setState("code_vitam")
+            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 }

@@ -1,10 +1,13 @@
 ---
-# TODO : à déplacer hors de ce playbook, avec mongo-express. Ce cas est uniquement nécessaire pour l'intégration VITAM ; pas en production
-# tasks file for storage-offer-default
+- name: Install vitam user for /vitam browser
+  yum:
+    name: vitam-user-vitam
+    state: latest
+
 - name: Install Apache package for displaying data content
   yum:
-    name=httpd
-    state=latest
+    name: httpd
+    state: latest
   when: (ansible_distribution == "CentOS" )
 
 - name: Ensure  Apache autostart && Apache is started
@@ -16,15 +19,15 @@
 
 - name: add vitam group to apache user
   user:
-    name=apache
-    groups=vitam
+    name: apache
+    groups: vitam
 
 - name: add configuration file for mapping # + notify httpd restart
   template:
-    src="{{item}}.j2"
-    dest="/etc/httpd/conf.d/{{item}}"
-    mode=0500
-    owner=root
+    src: "{{item}}.j2"
+    dest: "/etc/httpd/conf.d/{{item}}"
+    mode: 0500
+    owner: root
   when: (ansible_distribution == "CentOS" )
   notify: restart apache
   with_items:

@@ -39,6 +39,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -48,13 +50,23 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -67,12 +79,15 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 @javax.ws.rs.ApplicationPath("webresources")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID = "Missing the tenant ID (X-Tenant-Id)";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
+    private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
+    private static final String CODE_VITAM = "code_vitam";
+
+    private final int tenantId = 0;
 
     /**
      * Constructor
-     *
-     * @param configuration the workspace offer configuration to be applied
      */
     public DefaultOfferResource() {
         LOGGER.debug("DefaultOfferResource initialized");
@@ -80,7 +95,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     /**
      * Get the information on the offer objects collection (free and used capacity, etc)
-     * 
+     *
      * @param xTenantId
      * @return information on the offer objects collection
      *
@@ -92,7 +107,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
@@ -115,32 +130,25 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      * @param objectId object id
      * @param headers http header
-     * @return object data or digest
+     * @param asyncResponse async response
      * @throws IOException when there is an error of get object
      */
     @GET
     @Path("/objects/{id:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
-    public Response getObject(@PathParam("id") String objectId, @Context HttpHeaders headers) throws IOException {
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
-        }
-        InputStream stream = null;
-        try {
-            stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
-            return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
-                .build();
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
-            return Response.status(Status.NOT_FOUND).entity(objectId).build();
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build();
-        }
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public void getObject(@PathParam("id") String objectId, @Context HttpHeaders headers,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                getObjectAsync(objectId, headers, asyncResponse);
+            }
+        });
     }
+
 
     /**
      * Initialise a new object.
@@ -162,7 +170,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         ObjectInit objectInit) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
@@ -203,7 +211,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response putObject(@PathParam("id") String objectId, @Context HttpHeaders headers, InputStream input) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
@@ -214,7 +222,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            SizedInputStream sis = new SizedInputStream(input);
+            final SizedInputStream sis = new SizedInputStream(input);
             final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, sis,
                 xCommandHeader.equals(StorageConstants.COMMAND_END));
             return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis
@@ -222,6 +230,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (IOException | ContentAddressableStorageException exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
     }
 
@@ -233,8 +243,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      */
     @DELETE
     @Path("/objects/{id:.+}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@PathParam("id") String idObject) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -251,18 +264,61 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response headObject(@PathParam("id") String idObject,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
             if (DefaultOfferServiceImpl.getInstance().isObjectExist(xTenantId, idObject)) {
                 return Response.status(Response.Status.NO_CONTENT).build();
-            } else{
-                return Response.status(Response.Status.NOT_FOUND).build();                
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    private void getObjectAsync(String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
+        try {
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.PRECONDITION_FAILED).build());
+                return;
+            }
+            DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId, asyncResponse);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            buildErrorResponseAsync(VitamCode.STORAGE_NOT_FOUND, asyncResponse);
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            buildErrorResponseAsync(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, asyncResponse);
+        }
+
+    }
+
+    /**
+     * Add error response in async response using with vitamCode
+     *
+     * @param vitamCode vitam error Code
+     * @param asyncResponse asynchronous response
+     */
+    private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
+                new VitamError(VitamCodeHelper.getCode(vitamCode))
+                    .setContext(vitamCode.getService().getName())
+                    .setState(vitamCode.getDomain().getName())
+                    .setMessage(vitamCode.getMessage())
+                    .setDescription(vitamCode.getMessage()))
+                .toString()).build());
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+    }
+
 }

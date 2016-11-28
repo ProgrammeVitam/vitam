@@ -12,7 +12,7 @@ if [ ! -d ${TEMP_CERTS} ]; then
 	mkdir -p ${TEMP_CERTS}
 fi
 
-for  i in server client
+for  i in server client timestamping
 do
 	mkdir -p ${REPERTOIRE_CA}/${i}
 	echo "	Création de CA root pour ${i}..."

@@ -1,7 +1,12 @@
 Introduction
 ############
 
-Votre service d'archives s'est dotée d'un logiciel Vitam pour optimisé la conservation de ses documents d'archivage, leur pérénisation et assurer l'accessibilité et la traçabilité des archives.
+Votre entité s'est dotée du logiciel Vitam pour optimiser la conservation de ses documents, leur pérénisation et assurer l'accessibilité et la traçabilité d'archives.
 
-Ce manuel a pour objectif de guider l'utilisateur de Vitam dans la gestion de ses archives, de faciliter l'utilisation de ce logiciel tout en permettant de se familiariser avec ses principales fonctionnalités.
-L'utilisateur est une personne habillité à utiliser Vitam. Il possède une identifiant et un mot de passe unique
+Ce manuel a pour objectif de guider l'utilisateur de Vitam, via des IHM minimales, dans la gestion de ses archives, de lui faciliter l'utilisation de ce logiciel tout en lui permettant de se familiariser avec ses principales fonctionnalités.
+L'utilisateur peut se connecter sur deux types d'IHM :
+
+- Une IHM de démonstration, regroupant toutes les fonctionnalités métiers Vitam
+- Une IHM de recette, permettant aux utilisateurs de réaliser des actions d'administrations (e.g. nettoyage des bases de données, contrôle des tests automatisés ...)
+
+L'utilisateur est une personne habillitée à utiliser Vitam. Il possède un identifiant et un mot de passe uniques.

@@ -27,7 +27,7 @@
 package fr.gouv.vitam.storage.offers.workspace.rest;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Workspace offer configuration.

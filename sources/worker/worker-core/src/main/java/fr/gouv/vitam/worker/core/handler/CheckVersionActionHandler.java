@@ -30,14 +30,13 @@ import java.util.List;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
  * CheckVersionActionHandler handler class used to check the versions of BinaryDataObject in manifest
@@ -61,15 +60,15 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        final SedaUtils sedaUtils = SedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
 
         try {
-            checkMandatoryIOParameter(actionDefinition);
+            checkMandatoryIOParameter(handlerIO);
             final List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (!versionInvalidList.isEmpty()) {
                 itemStatus.increment(StatusCode.KO);
@@ -81,7 +80,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override

@@ -1,0 +1,16 @@
+{
+  "title": "metrics-vitam-business-running-workflows-search",
+  "description": "",
+  "hits": 0,
+  "columns": [
+    "_source"
+  ],
+  "sort": [
+    "@timestamp",
+    "desc"
+  ],
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"metrics-vitam-business*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[{\"meta\":{\"negate\":false,\"index\":\"metrics-vitam-business*\",\"key\":\"name\",\"value\":\"Running workflows\",\"disabled\":false,\"alias\":null},\"query\":{\"match\":{\"name\":{\"query\":\"Running workflows\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+  }
+}

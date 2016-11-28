@@ -1,15 +1,15 @@
 <ArchiveUnit id="ID019G">
 	<Management>
 		<StorageRule>
-			<Rule id="ID012">Rule0</Rule>
+			<Rule>Rule0</Rule>
 			<FinalAction>RestrictAccess</FinalAction>
 		</StorageRule>
 		<AppraisalRule>
-			<Rule id="ID014">Rule2</Rule>
+			<Rule>Rule2</Rule>
 			<FinalAction>Keep</FinalAction>
 		</AppraisalRule>
 		<AccessRule>
-			<Rule id="ID016">Rule4</Rule>
+			<Rule>Rule4</Rule>
 		</AccessRule>
 		<DisseminationRule>
 			<Rule id="ID020">Rule6</Rule>

@@ -32,20 +32,19 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-/** 
+/**
  * Handler checking that digital objects number in workspace matches with manifest.xml.
  *
  */
@@ -62,17 +61,18 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
+    private HandlerIO handlerIO;
 
     /**
      * Default Constructor
      */
     public CheckObjectsNumberActionHandler() {
-        this.containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
+        containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
     }
 
     /**
      * Constructor for Junit Tests
-     * 
+     *
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
     protected CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
@@ -90,13 +90,15 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) throws ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
+        throws ContentAddressableStorageServerException {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
-            checkMandatoryIOParameter(actionDefinition);
+            checkMandatoryIOParameter(handlerIO);
+            this.handlerIO = handlerIO;
             final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
@@ -114,7 +116,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
 
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 
@@ -128,7 +130,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private ExtractUriResponse getUriListFromManifest(WorkerParameters params)
         throws ProcessingException {
         // get uri list from manifest
-        final SedaUtils sedaUtils = SedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
         return sedaUtils.getAllDigitalObjectUriFromManifest(params);
     }
 
@@ -139,9 +141,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return List of uri
      * @throws ProcessingException throws when error in execution
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
-    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException, ContentAddressableStorageServerException {
+    private List<URI> getUriListFromWorkspace(WorkerParameters params)
+        throws ProcessingException, ContentAddressableStorageServerException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
@@ -185,7 +188,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
              * count the number of digital object in the sip found in the manifest
              */
             int countConsistentDigitalObjectFromWorkspace = 0;
-            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty, ...)
+            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty,
+            // ...)
             // faster and better
             for (final URI uriManifest : uriListManifest) {
                 if (uriListWorkspace.contains(uriManifest)) {

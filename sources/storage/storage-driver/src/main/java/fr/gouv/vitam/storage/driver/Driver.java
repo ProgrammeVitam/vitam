@@ -33,7 +33,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 /**
  * Driver interface that all storage offer drivers MUST implement to be discovered by the Vitam driver manager. </br>
- * 
+ *
  * It describes all the services the storage offer MUST at least provide to the Vitam engine.
  */
 

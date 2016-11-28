@@ -27,7 +27,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY",
+            "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -48,7 +48,7 @@
               },
               {
                 "name": "mapsObjectGroup.file",
-                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {
                 "name": "mapsBDOtoVersionBDO.file",
@@ -61,22 +61,26 @@
               {
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
               }
             ]
           }
         },
         {
           "action": {
-            "actionKey": "CHECK_CONSISTENCY_POST",
+            "actionKey": "CHECK_CONSISTENCY",
             "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "mapsBDOtoOG.file",
-                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {
-                "name": "mapsBDOtoOG.file",
-                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
               }
             ]
           }

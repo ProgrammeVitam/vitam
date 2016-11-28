@@ -38,8 +38,7 @@ public class ProcessEngineImplFactory {
      * @return ProcessEngineImpl object created
      */
     public ProcessEngineImpl create() {
-        final ProcessEngineImpl processImpl = new ProcessEngineImpl();
-        return processImpl;
+        return new ProcessEngineImpl();
     }
 
     /**

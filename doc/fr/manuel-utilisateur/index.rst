@@ -2,10 +2,6 @@
 |doc_title|
 ###########
 
-####################################################
-Sommaire
-####################################################
-
 .. toctree::
    :maxdepth: 2
 
@@ -14,3 +10,4 @@ Sommaire
    Entree.rst
    Consultation.rst
    Administration.rst
+   recette.rst

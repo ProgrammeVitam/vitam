@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
@@ -81,12 +82,12 @@ public class MongoDbAccessFactoryTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        nodes = new ArrayList<ElasticsearchNode>();
+        nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         // MongoDB
@@ -115,8 +116,11 @@ public class MongoDbAccessFactoryTest {
 
     @Test
     public void testCreateFn() {
-        mongoDbAccess = new MongoDbAccessMetadataFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG));
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
+        mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        new MongoDbAccessMetadataFactory();
+        mongoDbAccess = MongoDbAccessMetadataFactory
+            .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

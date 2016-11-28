@@ -52,7 +52,7 @@ public class MongoDbAccessMetadataFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
+    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
         ElasticsearchAccessMetadata esClient;
@@ -68,8 +68,8 @@ public class MongoDbAccessMetadataFactory {
             classList.add(e.getClasz());
         }
         MetadataCollections.class.getEnumConstants();
-        
-        MongoClient mongoClient =
+
+        final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
         return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient);
     }

@@ -1,8 +1,16 @@
+
 # Configuration MongoDB
-dbHost: {{vitam_mongodb_host}}
-dbPort: {{vitam_mongodb_port}}
-dbName: Vitam
+mongoDbNodes:
+{% for server in groups['mongos'] %}
+- dbHost: {{server}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
+dbName: logbook
 dbAuthentication: {{mongo_authentication}}
 dbUserName: {{mongoLogbookUser}}
 dbPassword: {{mongoLogbookPassword}}
 jettyConfig: jetty-config.xml
+p12LogbookPassword: {{p12_logbook_password}}
+p12LogbookFile: logbook.p12
+workspaceUrl: {{vitam_workspace_baseurl}}
+

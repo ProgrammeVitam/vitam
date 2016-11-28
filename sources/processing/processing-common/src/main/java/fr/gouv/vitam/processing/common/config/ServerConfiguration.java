@@ -27,16 +27,16 @@
 package fr.gouv.vitam.processing.common.config;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * ServerConfiguration class contains the different parameter {hostName ,ipAddress, port }to connect a remote server
  * such as workspace or metaData
  */
-public class ServerConfiguration {
+public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlMetadata;
     private String urlWorkspace;
-    private String jettyConfig;
 
     /**
      * @return the urlMetadata
@@ -78,23 +78,4 @@ public class ServerConfiguration {
         return this;
     }
 
-    /**
-     * jettyConfig setter
-     *
-     * @return jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * jettyConfig getter
-     *
-     * @param jettyConfig to be set
-     * @return this
-     */
-    public ServerConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
 }

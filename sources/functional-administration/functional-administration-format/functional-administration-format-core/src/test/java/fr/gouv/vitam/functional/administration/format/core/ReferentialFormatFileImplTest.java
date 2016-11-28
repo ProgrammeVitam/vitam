@@ -33,6 +33,7 @@ import static org.junit.Assert.assertFalse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -54,7 +55,8 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -84,9 +86,11 @@ public class ReferentialFormatFileImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME)));
+                new DbConfigurationImpl(nodes, DATABASE_NAME)));
 
     }
 
@@ -108,7 +112,7 @@ public class ReferentialFormatFileImplTest {
     }
 
     @Test
-    public void testimportAndDeleteFormat() throws Exception {
+    public void testimportFormat() throws Exception {
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -123,8 +127,6 @@ public class ReferentialFormatFileImplTest {
         assertFalse(fileList.get(0).getBoolean("Alert"));
         assertEquals(fileList.get(0).getString("Group"), "");
         assertEquals(fileList.get(0).getString("Comment"), "");
-        formatFile.deleteCollection();
-        assertEquals(0, collection.count());
         client.close();
     }
 }

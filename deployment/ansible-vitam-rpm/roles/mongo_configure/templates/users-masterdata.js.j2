@@ -1,0 +1,17 @@
+
+// Switch to masterdata database
+db = db.getSiblingDB('masterdata')
+
+// Create functional-admin user
+
+if (! db.getUser("{{mongoFunctionalAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoFunctionalAdminUser}}",
+            pwd: "{{mongoFunctionalAdminPassword}}",
+            roles: [
+                { role: "readWrite", db: "masterdata" }
+            ]
+        }
+    )
+}

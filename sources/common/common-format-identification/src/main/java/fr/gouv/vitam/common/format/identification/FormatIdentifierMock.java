@@ -55,5 +55,10 @@ class FormatIdentifierMock implements FormatIdentifier {
     public FormatIdentifierInfo status() {
         return new FormatIdentifierInfo("1.0", "FormatIdentifierMock");
     }
+
+    @Override
+    public void close() {
+        // Nothing to do
+    }
 }
 

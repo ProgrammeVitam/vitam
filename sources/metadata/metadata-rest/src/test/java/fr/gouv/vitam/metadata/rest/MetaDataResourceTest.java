@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.MarshalException;
 
 import org.jhades.JHades;
 import org.junit.After;
@@ -61,30 +62,27 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.api.model.DatabaseCursor;
-import fr.gouv.vitam.metadata.api.model.RequestResponseError;
-import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
-import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String DATA3 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
 
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
@@ -99,9 +97,9 @@ public class MetaDataResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
-    private static final String QUERY_EXISTS = "{ $exists :  \"_id\"  }";
+    private static final String QUERY_EXISTS = "{ $exists :  \"#id\"  }";
     private static final String QUERY_TEST =
-        "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
+        "{ $or : " + "[ " + "   {$exists : '#id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
             "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
             "          { $nin : { 'mavar5' : ['maval2', true] } } ] " + "   } " + "]}";
 
@@ -121,12 +119,12 @@ public class MetaDataResourceTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         dataBasePort = junitHelper.findAvailablePort();
@@ -138,10 +136,13 @@ public class MetaDataResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
+        mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
+        // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         application = new MetaDataApplication(configuration);
         application.start();
@@ -167,7 +168,7 @@ public class MetaDataResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
-    
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -178,8 +179,8 @@ public class MetaDataResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws Exception {
+        return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -192,14 +193,11 @@ public class MetaDataResourceTest {
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new RequestResponseError()
-            .setError(new VitamError(status.getStatusCode()).setContext("ingest").setState("code_vitam")
-                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())));
+        return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext("ingest").setState("code_vitam")
+            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 
-    private static String generateResponseOK(DatabaseCursor cursor, JsonNode query) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(new RequestResponseOK().setHits(cursor).setQuery(query));
-    }
 
     /**
      * Test status endpointgivenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest
@@ -213,8 +211,8 @@ public class MetaDataResourceTest {
      * Test insert Unit endpoint
      */
 
-    @Test
-    public void shouldReturnErrorBadRequestIfBodyIsNotCorrect() throws Exception {
+    @Test(expected = InvalidParseOperationException.class)
+    public void shouldRaiseExceptionIfBodyIsNotCorrect() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("invalid", DATA)).when()
@@ -284,7 +282,7 @@ public class MetaDataResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
     }
 
-    @Test
+    @Test(expected = MarshalException.class)
     public void shouldReturnErrorIfContentTypeIsNotJson() throws Exception {
         given()
             .contentType("application/xml")
@@ -309,10 +307,10 @@ public class MetaDataResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
@@ -322,13 +320,13 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseOK(new DatabaseCursor(1, 0, 1),
-                JsonHandler.getFromString(buildDSLWithOptions("", DATA)))))
+            .body(equalTo(
+                new RequestResponseOK().setHits(1, 0, 1).setQuery(buildDSLWithOptions("", DATA)).toString()))
             .statusCode(Status.CREATED.getStatusCode());
     }
 
     // Test object group
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
@@ -376,10 +374,10 @@ public class MetaDataResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(60))).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 

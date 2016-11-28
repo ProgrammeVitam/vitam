@@ -334,7 +334,7 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      * Constructs a null operation (nop) query, meaning there is no 'where' demand.
-     * 
+     *
      * @return a NopQuery
      * @throws InvalidCreateOperationException using NOP operator
      */

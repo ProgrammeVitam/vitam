@@ -28,11 +28,13 @@ package fr.gouv.vitam.common.collection;
 
 import java.util.Iterator;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+
 /**
  * Iterator with a close method.
  *
  * @param <E> Data type of the iterator
  *
  */
-public interface CloseableIterator<E> extends Iterator<E>, AutoCloseable {
+public interface CloseableIterator<E> extends Iterator<E>, VitamAutoCloseable {
 }

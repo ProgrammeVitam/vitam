@@ -34,10 +34,10 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -105,16 +105,17 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         if (mock != null) {
-            resourceConfig.register(new WorkerResource(getConfiguration(), mock));
+            resourceConfig.register(new WorkerResource(mock));
         } else {
             resourceConfig.register(new WorkerResource(getConfiguration()));
             WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
             // Logbook dependency
             serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
-             // Workspace dependency
+                // Workspace dependency
                 .register(WorkspaceClientFactory.getInstance())
-            // Metadata dependency
+                // Metadata dependency
                 .register(MetaDataClientFactory.getInstance());
+            // FIXME P1 Siegfried missing but different configuration...
             // Processing dependency: optional ?
             // serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }

@@ -73,7 +73,7 @@ public class UnitTest {
         unit.put("_min", 2);
         unit.put("_max", 5);
 
-        final List<Unit> units = new ArrayList<Unit>();
+        final List<Unit> units = new ArrayList<>();
         units.add(subUnit1);
         units.add(subUnit2);
         // TODO P1 REVIEW add multiple units at once seems in error
@@ -94,11 +94,11 @@ public class UnitTest {
         final Unit unit = new Unit(s1);
         assertEquals("[{ \"id1\" : 1}]", unit.getSubDepth().toString());
 
-        final List<Document> list = new ArrayList<Document>();
+        final List<Document> list = new ArrayList<>();
         list.add(Document.parse("{\"UUID2\" : 3}"));
         list.add(Document.parse("{\"UUID1\" : 4}"));
 
-        final Map<String, Object> map2 = new HashMap<String, Object>();
+        final Map<String, Object> map2 = new HashMap<>();
         map2.put("_uds", list);
         unit.putAll(map2);
         assertEquals("Unit: Document{{_id=id1, title=title1, _uds=[Document{{UUID2=3}}, Document{{UUID1=4}}]}}",

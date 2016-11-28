@@ -39,9 +39,11 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.result.DeleteResult;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -53,7 +55,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MongoDbAccess.class);
 
-    private ElasticsearchAccessMetadata esClient;
+    private final ElasticsearchAccessMetadata esClient;
 
     /**
      *
@@ -178,5 +180,55 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      */
     public ElasticsearchAccessMetadata getEsClient() {
         return esClient;
+    }
+
+    /**
+     * Delete Object Group metadata Not check, test feature !
+     *
+     * @throws DatabaseException thrown when error on delete
+     */
+    public void deleteObjectGroup() throws DatabaseException {
+        final long count = MetadataCollections.C_OBJECTGROUP.getCollection().count();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " count before: " + count);
+        }
+        if (count > 0) {
+            final DeleteResult result = MetadataCollections.C_OBJECTGROUP.getCollection().deleteMany(new Document());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
+                    .getDeletedCount());
+            }
+            esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP);
+            if (result.getDeletedCount() != count) {
+                throw new DatabaseException(
+                    String.format("%s: Delete %s from %s elements", MetadataCollections.C_OBJECTGROUP.getName(), result
+                        .getDeletedCount(), count));
+            }
+        }
+    }
+
+    /**
+     * Delete Unit metadata Not check, test feature !
+     *
+     * @throws DatabaseException thrown when error on delete
+     */
+    public void deleteUnit() throws DatabaseException {
+        final long count = MetadataCollections.C_UNIT.getCollection().count();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(MetadataCollections.C_UNIT.getName() + " count before: " + count);
+        }
+        if (count > 0) {
+            final DeleteResult result = MetadataCollections.C_UNIT.getCollection().deleteMany(new Document());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(MetadataCollections.C_UNIT.getName() + " result.result.getDeletedCount(): " + result
+                    .getDeletedCount());
+            }
+            esClient.deleteIndex(MetadataCollections.C_UNIT);
+            if (result.getDeletedCount() != count) {
+                throw new DatabaseException(
+                    String.format("%s: Delete %s from %s elements", MetadataCollections.C_UNIT.getName(), result
+                        .getDeletedCount(), count));
+            }
+        }
     }
 }

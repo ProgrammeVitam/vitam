@@ -34,6 +34,7 @@ import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -58,13 +59,14 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     public void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
-    
+
     /**
-     * Drop FileFormat collections
+     * Delete FileFormat collections
      *
      * @param collection collection of Mongo for insert
+     * @throws DatabaseException thrown when error on delete
      */
-    public void deleteCollection(FunctionalAdminCollections collection);
+    public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException;
 
     /**
      * @param id of vitam document
@@ -74,7 +76,7 @@ public interface MongoDbAccessReferential {
      */
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException;
-    
+
     /**
      * @param map Map of key-value
      * @param object
@@ -82,7 +84,8 @@ public interface MongoDbAccessReferential {
      * @param action
      * @throws ReferentialException when error occurs
      */
-    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection, UPDATEACTION action)
+    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
+        UPDATEACTION action)
         throws ReferentialException;
 
     /**

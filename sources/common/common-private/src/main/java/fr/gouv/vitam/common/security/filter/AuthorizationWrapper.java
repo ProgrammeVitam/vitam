@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -59,17 +59,17 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
 
     /**
      * check Headers X-Platform-Id and X-Timestamp
-     * 
+     *
      * @return boolean
      */
     public boolean checkAutorizationHeaders() {
-        if ((getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH)) ||
-            (getRequestURI().endsWith(VitamConfiguration.STATUS_URL))) {
+        if (getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
+            getRequestURI().endsWith(VitamConfiguration.STATUS_URL)) {
             return true;
         }
         if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-            Enumeration<String> headerNames = getHeaderNames();
-            Map<String, String> headersValues = new HashMap<>();
+            final Enumeration<String> headerNames = getHeaderNames();
+            final Map<String, String> headersValues = new HashMap<>();
             if (headerNames != null) {
 
                 headersValues.put(GlobalDataRest.X_PLATFORM_ID, getHeader(GlobalDataRest.X_PLATFORM_ID));
@@ -89,12 +89,12 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
      */
     private boolean checkHeadersValues(Map<String, String> headersValues) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, headersValues);
-        String platformId = headersValues.get(GlobalDataRest.X_PLATFORM_ID);
-        String timestamp = headersValues.get(GlobalDataRest.X_TIMESTAMP);
-        if ((Strings.isNullOrEmpty(platformId)) || (Strings.isNullOrEmpty(timestamp))) {
+        final String platformId = headersValues.get(GlobalDataRest.X_PLATFORM_ID);
+        final String timestamp = headersValues.get(GlobalDataRest.X_TIMESTAMP);
+        if (Strings.isNullOrEmpty(platformId) || Strings.isNullOrEmpty(timestamp)) {
             return false;
         } else {
-            return checkTimestamp(timestamp) && (checkPlatformId(platformId, timestamp));
+            return checkTimestamp(timestamp) && checkPlatformId(platformId, timestamp);
         }
     }
 
@@ -104,8 +104,8 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
      */
     private boolean checkTimestamp(String timestamp) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, timestamp);
-        long currentEpoch = System.currentTimeMillis() / 1000;
-        long requestEpoch = Long.parseLong(timestamp);
+        final long currentEpoch = System.currentTimeMillis() / 1000;
+        final long requestEpoch = Long.parseLong(timestamp);
         if (Math.abs(currentEpoch - requestEpoch) <= VitamConfiguration.getAcceptableRequestTime()) {
             return true;
         }
@@ -121,9 +121,9 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
      */
     private boolean checkPlatformId(String platformId, String timestamp) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, platformId, timestamp);
-        String uri = getRequestURI();
-        String httpMethod = getMethod();
-        String code = URLCodec.encodeURL(httpMethod, uri, timestamp, VitamConfiguration.getSecret(),
+        final String uri = getRequestURI();
+        final String httpMethod = getMethod();
+        final String code = URLCodec.encodeURL(httpMethod, uri, timestamp, VitamConfiguration.getSecret(),
             VitamConfiguration.getSecurityDigestType());
         if (code.equals(platformId)) {
             return true;

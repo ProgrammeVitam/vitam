@@ -30,5 +30,6 @@ package fr.gouv.vitam.common.server.application.configuration;
 /**
  * Common interface for all application configuration.
  */
-public interface VitamApplicationConfiguration {
+public interface VitamApplicationConfiguration extends VitamApplicationConfigurationInterface {
+    // Empty
 }

@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public class Update extends RequestMultiple {
-    protected List<Action> actions = new ArrayList<Action>();
+    protected List<Action> actions = new ArrayList<>();
 
     /**
      *

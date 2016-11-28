@@ -30,6 +30,9 @@ package fr.gouv.vitam.storage.offers.workspace.core;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
@@ -61,11 +64,12 @@ public interface DefaultOfferService {
      *
      * @param containerName the container containing the object
      * @param objectId the object id
-     * @return the object as an inputStream
+     * @param asyncResponse the async Response
+     * @return the object included in a response
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException thrown when a server error occurs
      */
-    InputStream getObject(String containerName, String objectId)
+    Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
@@ -101,7 +105,7 @@ public interface DefaultOfferService {
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
-     * send in the great order. 
+     * send in the great order.
      *
      * @param containerName the container name
      * @param objectId the offer objectId to create
@@ -112,9 +116,8 @@ public interface DefaultOfferService {
      * @throws IOException if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
-    //FIXME P0 : multithreading
-    //TODO P1 : add chunk number to be able to retry and check error
-    //TODO P1 : better chunk management
+    // TODO P1 : add chunk number to be able to retry and check error
+    // TODO P1 : better chunk management
     String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
         throws IOException, ContentAddressableStorageException;
 
@@ -124,7 +127,7 @@ public interface DefaultOfferService {
      * @param containerName the container suppose to contain the object
      * @param objectId the objectId to check
      * @return true if object exists, false otherwise
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException;
 
@@ -134,7 +137,7 @@ public interface DefaultOfferService {
      * @param containerName the container name
      * @return Json with usableSpace information
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;

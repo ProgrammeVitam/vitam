@@ -171,21 +171,21 @@ public class DbRequestTest {
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
     private static final String REQUEST_INSERT_TEST_ES =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
         "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['aeaqaaaaaet33ntwablhaaku6z67pzqaaaas'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
-        "{$query: { $match : { 'id' : 'aeaqaaaaaet33ntwablhaaku6z67pzqaaaas' , '$max_expansions' : 1  } }}";
+        "{$query: { $match : { '#id' : 'aeaqaaaaaet33ntwablhaaku6z67pzqaaaas' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE =
-        "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"title\": \"Archive3\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"title\": \"Archive3\" }";
 
 
     /**
@@ -197,11 +197,11 @@ public class DbRequestTest {
         junitHelper = JunitHelper.getInstance();
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
-        
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
@@ -904,7 +904,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         LOGGER.debug("InsertParser: {}", insertParser);
         final Result result = dbRequest.execRequest(insertParser, null);
-        assertEquals("Document{{Result=null}}", result.getFinal().toString());
+        assertEquals("Document{{results=null}}", result.getFinal().toString());
 
         final Bson projection = null;
         result.setFinal(projection);
@@ -915,7 +915,7 @@ public class DbRequestTest {
         assertEquals(1, result.currentIds.size());
         assertEquals(1, (int) result.nbResult);
 
-        final Set<String> currentIds = new HashSet<String>();
+        final Set<String> currentIds = new HashSet<>();
         currentIds.add("UNITS");
         currentIds.add("OBJECTGROUPS");
         result.setCurrentIds(currentIds);
@@ -942,8 +942,8 @@ public class DbRequestTest {
         final Insert insert = new Insert();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        final JsonNode json = JsonHandler.getFromString("{\"_id\":\"" + uuid +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final JsonNode json = JsonHandler.getFromString("{\"#id\":\"" + uuid +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
         insert.addData((ObjectNode) json);
         insert.addRoots(uuidParent.getId());
         final ObjectNode insertRequest = insert.getFinalInsert();
@@ -1006,8 +1006,8 @@ public class DbRequestTest {
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addRoots(uuidUnit.getId());
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
@@ -1055,10 +1055,10 @@ public class DbRequestTest {
         final Insert insert = new Insert();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
 
-        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid1 +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
-        final ObjectNode json1 = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid2 +
-            "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid1 +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        final ObjectNode json1 = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid2 +
+            "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
         requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1083,7 +1083,7 @@ public class DbRequestTest {
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result = dbRequest.execRequest(selectParser, null);
-        assertEquals("Document{{Result=null}}", result.getFinal().toString());
+        assertEquals("Document{{results=null}}", result.getFinal().toString());
 
     }
 
@@ -1235,7 +1235,7 @@ public class DbRequestTest {
         // insert title ARchive 3
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        Insert insert = new Insert();
+        final Insert insert = new Insert();
         insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1255,7 +1255,7 @@ public class DbRequestTest {
         // check old value should not exist in the collection
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser2 = new SelectParserMultiple();
-        Select select1 = new Select();
+        final Select select1 = new Select();
         select1.addQueries(match("title", "Archive3").setDepthLimit(1))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser2.parse(select1.getFinalSelect());
@@ -1266,7 +1266,7 @@ public class DbRequestTest {
         // check new value should exist in the collection
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple();
-        Select select = new Select();
+        final Select select = new Select();
         select.addQueries(match("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);

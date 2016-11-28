@@ -1,0 +1,31 @@
+
+// Switch to logbook database
+db = db.getSiblingDB('logbook')
+
+// Create indexes
+// A single collection can have no more than 64 indexes.
+
+db.LogbookOperation.createIndex( { "_tenant" : 1 } )
+db.LogbookOperation.createIndex( { "evType" : 1 } )
+db.LogbookOperation.createIndex( { "evTypeProc" : 1 } )
+db.LogbookOperation.createIndex( { "events.evType" : 1 } )
+db.LogbookOperation.createIndex( { "events.outcome" : 1 } )
+db.LogbookOperation.createIndex( { "outcome" : 1 } )
+
+db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "evType" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "evIdProc" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "evTypeProc" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "outcome" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "events.evType" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "events.outcome" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "event.evIdProc" : 1 } )
+
+db.LogbookLifeCycleObjectGroup.createIndex( { "_tenant" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "evType" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "evIdProc" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "evTypeProc" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "outcome" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "events.evType" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "events.outcome" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "event.evIdProc" : 1 } )

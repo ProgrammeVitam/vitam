@@ -26,19 +26,20 @@
 # accept its terms.
 #*******************************************************************************
 # Rebuild the entire repository. To be executed at the root of a VITAM repository
-echo "Building maven rpm..."
-mvn -f sources/pom.xml clean package rpm:rpm -DskipTests
+echo "Building maven rpm (with parallel build)..."
+mvn -T 1C -f sources/pom.xml clean package rpm:rpm -DskipTests
 echo "Building platform rpm..."
 ./rpm/vitam-product/clean-all.sh
 ./rpm/vitam-product/build-all.sh
 ./rpm/vitam-external/build_repo.sh
 
 echo "Creating local yum repository..."
+rm -rf /code/repodata
 createrepo -x '.git/*' .
 echo "Cleaning up yum cache..."
-yum clean all
+sudo yum clean all
 echo "Creating cache"
-yum --disablerepo="*" --enablerepo="local" makecache
+sudo yum --disablerepo="*" --enablerepo="local" makecache
 echo "Done ! Available rpm packages in local vitam-product repository :"
 yum --disablerepo="*" --enablerepo="local" list available
 echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"

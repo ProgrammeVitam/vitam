@@ -1,1 +1,22 @@
-Zone source,Zone cible,Protocole,Port cible,DescriptionSIA,Accès,https,8443,Accès à ingest-externalSIA,Accès,https,8444,Accès à access-externalSIA,Accès,https,8445,Accès à administration-externalAccès,Applicative,http,9000,Accès à ingest-interneAccès,Applicative,http,9001,Accès à access-interneAccès,Applicative,http,9002,Accès à logbookAccès,Applicative,http,9003,Accès à functional-administrationApplicative,Stockage,http,9900,Accès à storage-offerApplicative,Données,tcp,9300,Accès à elasticsearch-dataApplicative,Données,tcp,27017,Accès à mongodbAccès / Applicative / Stockage / Données,Administration,syslog/tcp,10514,Envoi des logs au concentrateurAccès / Applicative / Stockage / Données,Administration,tcp,8300,Appels RPC consulAccès / Applicative / Stockage / Données,Administration,tcp,8301,Gossip ConsulAdministration,Accès / Applicative / Stockage / Données,tcp,8301,Gossip ConsulAdministration,Accès / Applicative / Stockage / Données,ssh,22,Accès ssh pour déploiementAccès / Applicative / Stockage / Données,Administration,http(s),n/a,Accès aux dépôts rpmExploitation technique,Administration,http,5601,Accès utilisateur à KibanaExploitation technique,Administration,http,9201,Accès utilisateur à l'administration elasticsearch-logExploitation technique,Administration,http,8500,Accès utilisateur à l'administration consulExploitation technique,Données,http,9200,Accès utilisateur à l'administration elasticsearch-dataAccès / Applicative / Stockage / Données,Administration,dns/udp,53,Accès aux serveurs DNS externesExploitation technique,Accès / Applicative / Stockage / Données,http,divers,Accès aux API de monitoring des composants
+Zone source,Zone cible,Protocole,Port cible,Description
+Externe,Accès,https,8443,Accès à ingest-external
+Externe,Accès,https,8444,Accès à access-external
+Accès,Applicative,http,9000,Accès à ingest-internal
+Accès,Applicative,http,9001,Accès à access-internal
+Accès,Applicative,http,9003,Accès à functional-administration
+Applicative,Stockage,http,9900,Accès à storage-offer
+Applicative,Données,tcp,9300,Accès à elasticsearch-data
+Applicative,Données,tcp,27017,Accès à mongodb
+Accès / Applicative / Stockage / Données,Administration,syslog/tcp,10514,Envoi des logs au concentrateur
+Accès / Applicative / Stockage / Données,Administration,tcp,8300,Appels RPC consul
+Accès / Applicative / Stockage / Données,Administration,tcp,8301,Gossip Consul
+Accès / Applicative / Stockage / Données,Administration,http,9201,Envoi des métriques à Elasticsearch
+Administration,Accès / Applicative / Stockage / Données,tcp,8301,Gossip Consul
+Administration,Accès / Applicative / Stockage / Données,ssh,22,Accès ssh pour déploiement
+Accès / Applicative / Stockage / Données,Administration,http(s),n/a,Accès aux dépôts rpm
+Exploitation technique,Administration,http,5601,Accès utilisateur à Kibana
+Exploitation technique,Administration,http,9201,Accès utilisateur à l'administration elasticsearch-log
+Exploitation technique,Administration,http,8500,Accès utilisateur à l'administration consul
+Exploitation technique,Données,http,9200,Accès utilisateur à l'administration elasticsearch-data
+Accès / Applicative / Stockage / Données,Administration,dns/udp,53,Accès aux serveurs DNS externes
+Exploitation technique,Accès / Applicative / Stockage / Données,http,divers,Accès aux API de monitoring des composants

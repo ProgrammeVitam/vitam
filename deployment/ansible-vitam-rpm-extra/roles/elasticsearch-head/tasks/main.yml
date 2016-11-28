@@ -1,0 +1,13 @@
+---
+
+#### Elasticsearch plugins ####
+
+- name: install vitam-elasticsearch-head rpm
+  yum:
+    name: vitam-elasticsearch-head
+    state: latest
+
+- name: install vitam-elasticsearch-kopf rpm
+  yum:
+    name: vitam-elasticsearch-kopf
+    state: latest

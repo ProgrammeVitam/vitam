@@ -68,7 +68,7 @@ Chaque _Objet_ n'est lié qu'à un seul _Groupe_. Chaque _Objet_ a un qualifier 
 - **Dissemination** : il s'agit d'une version adaptée à la diffusion via le réseau et l'usage dans des navigateurs
 - **Thumbnail** : il s'agit d'une version adaptée à la diffusion dans une taille et une qualité correspondant à une vignette (utile lors de l'affichage d'une liste)
 - **TextContent** : il s'agit d'une version ne contenant que le texte du document, sans la mise en forme (son usage est en prévision du futur, par exemple pour des opérations d'analyses sémantiques)
-- **All** : il s'agit en consultation d'un accès en cas de ZIP ou TAR à l'ensemble des usages et versions. Il est utilisable également en mode HEAD.
+- **All** (**UNSUPPORTED**) : il s'agit en consultation d'un accès en cas de ZIP ou TAR à l'ensemble des usages et versions. Il est utilisable également en mode HEAD.
 
 Ces qualifiers peuvent être utilisés dans une requête GET en conjonction avec le Header *Accept: application/octet-stream ou application/zip ou application/x-tar* pour accéder en lecture ou en check à un usage particulier.
 Le qualifier **All** est ajouté pour permettre l'accès à l'ensemble des usages avec le Header *Accept: application/zip ou application/x-tar*.

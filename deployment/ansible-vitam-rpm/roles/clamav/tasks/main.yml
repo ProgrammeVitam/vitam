@@ -1,0 +1,14 @@
+---
+# tasks file for engine-external
+
+# Question : move the scan-clamav.sh in /app ?
+- name: change perms on scan-clamav.sh
+  file:
+    path: "{{vitam_folder_root}}/conf/ingest-external/scan-clamav.sh"
+    mode: 0750
+
+# TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
+- name: install ClamAV packages
+  yum:
+    name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
+    state: latest

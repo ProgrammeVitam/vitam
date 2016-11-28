@@ -1,9 +1,9 @@
-<VirtualHost *:8080>
-  DocumentRoot "/var/www/html-{{vitam_reverse_domain}}"
+<VirtualHost *:{{ reverse_proxy_port }}>
+  DocumentRoot "/var/www/html-{{environnement}}"
   ProxyPreserveHost Off
-  ServerName {{vitam_reverse_domain}}.env.programmevitam.fr
+  ServerName {{vitam_reverse_external_dns}}
 
-<Directory "/var/www/html-{{vitam_reverse_domain}}">
+<Directory "/var/www/html-{{environnement}}">
     #
     # Possible values for the Options directive are "None", "All",
     # or any combination of:
@@ -32,8 +32,11 @@
 </Directory>
 
 # VITAM
-  ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=600 retry=5
-  ProxyPassReverse  /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo
+  ProxyPass {{ vitam_ihm_demo_baseurl }} http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}{{ vitam_ihm_demo_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+  ProxyPassReverse  {{ vitam_ihm_demo_baseurl }} http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}{{ vitam_ihm_demo_baseurl }}
+
+  ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+  ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
 
   ProxyPass /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5
   ProxyPassReverse  /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook
@@ -59,12 +62,20 @@
   ProxyPassReverse  /nodes/{{item}}/browse http://{{item}}/browse
 {% endfor %}
 
-# Mongo express
+{% if groups['hosts-mongoclient']|length >0 %}
+  # Mongoclient
+  ProxyPass /mongoclient http://{{groups['hosts-mongoclient'][0]}}:{{mongoclientPort}}/mongoclient acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /mongo-express http://{{groups['hosts-mongoclient'][0]}}:{{mongoclientPort}}/mongoclient
+{% endif %}
+
+{% if groups['hosts-mongo-express']|length >0 %}
+  # Mongo express
   ProxyPass /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
   ProxyPassReverse  /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express
+{% endif %}
 
-
-# Kibana
+{% if groups['hosts-log-server']|length >0 %}
+  # Kibana
 
   ProxyPass /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
   ProxyPassReverse /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana
@@ -78,32 +89,45 @@
   # Needed as it conflicts with Elasticsearch reverse proxy
   ProxyPass /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
   ProxyPassReverse /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
+{% endif %}
 
+{% if groups['library']|length >0 %}
 # Documentation
   ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
   ProxyPassReverse /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
+{% endif %}
 
 
+{% if groups['hosts-elasticsearch-log']|length >0 %}
 # Elasticsearch
   ProxyPass /_plugin http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
   ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/_plugin
+{% elif groups['hosts-elasticsearch-data']|length >0 %}
+  ProxyPass /_plugin http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/_plugin
+{% endif %}
 
+{% if groups['hosts-elasticsearch-log']|length >0 %}
   ProxyPass /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/
   ProxyPassReverse /elasticsearch-log http://{{groups['hosts-elasticsearch-log'][0]}}:{{elasticsearch_log_http_port}}/
+{% endif %}
 
+{% if groups['hosts-elasticsearch-data']|length >0 %}
   ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
   ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
+{% endif %}
 
-# ProxyPass /_cluster 
-# ProxyPass /_stats 
-# ProxyPass /_nodes 
+# ProxyPass /_cluster
+# ProxyPass /_stats
+# ProxyPass /_nodes
 
-# Consul UI
-
+{% if groups['hosts-consul-server']|length >0 %}
+  # Consul UI
   ProxyPass /ui http://{{groups['hosts-consul-server'][0]}}:8500/ui
   ProxyPassReverse /ui http://{{groups['hosts-consul-server'][0]}}:8500/ui
 
   ProxyPass /v1 http://{{groups['hosts-consul-server'][0]}}:8500/v1
   ProxyPassReverse /v1 http://{{groups['hosts-consul-server'][0]}}:8500/v1
+{% endif %}
 
 </VirtualHost>

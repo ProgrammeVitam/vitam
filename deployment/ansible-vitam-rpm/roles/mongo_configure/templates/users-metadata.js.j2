@@ -1,0 +1,17 @@
+
+// Switch to metadata database
+db = db.getSiblingDB('metadata')
+
+// Create metadata user
+
+if (! db.getUser("{{mongoMetadataUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoMetadataUser}}",
+            pwd: "{{mongoMetadataPassword}}",
+            roles: [
+                { role: "readWrite", db: "metadata" }
+            ]
+        }
+    )
+}

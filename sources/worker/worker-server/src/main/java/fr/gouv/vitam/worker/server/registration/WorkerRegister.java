@@ -71,7 +71,7 @@ public class WorkerRegister implements Runnable {
         int nbRegisterCall = 0;
         final long delay = configuration.getRegisterDelay() * 1000;
         final ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
+            ProcessingManagementClientFactory.getInstance().getClient();
         boolean registerOk = false;
         while (!registerOk && configuration.getRegisterRetry() >= nbRegisterCall) {
             LOGGER.debug("WorkerRegister run : try register");

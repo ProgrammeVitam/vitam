@@ -1,0 +1,18 @@
+
+// Switch to mongoclient database
+db = db.getSiblingDB('mongoclient')
+
+// Create mongoclient user
+
+if (! db.getUser("{{mongoClientUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoClientUser}}",
+            pwd: "{{mongoClientPassword}}",
+            roles: [
+                { role: "readWrite", db: "mongoclient" },
+                { role: "dbAdmin", db: "mongoclient" }
+            ]
+        }
+    )
+}

@@ -26,7 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.auth.core.authc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,40 +44,40 @@ public class X509CredentialsSha256MatcherTest {
     private X509Certificate cert2;
     private X509AuthenticationToken token;
     private X509CredentialsSha256Matcher match;
-    
-    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
-    byte[] cert2Bytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 8 };
+
+    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
+    byte[] cert2Bytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 8};
     BigInteger serial = new BigInteger("1000000000000000");
-    
+
     @Before
     public void setUp() throws Exception {
         cert = mock(X509Certificate.class);
         when(cert.getEncoded()).thenReturn(certBytes);
         when(cert.getSerialNumber()).thenReturn(serial);
-        
+
         cert2 = mock(X509Certificate.class);
         when(cert2.getEncoded()).thenReturn(cert2Bytes);
         when(cert2.getSerialNumber()).thenReturn(serial);
-        
-        X509Certificate[] clientCertChain = new X509Certificate[]{cert};
+
+        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
         token = new X509AuthenticationToken(clientCertChain, "XXX");
-        
+
         match = new X509CredentialsSha256Matcher();
     }
-    
+
     @Test
-    public void givenClientCertificateSha256WhenMatchRealmThenReturnTrue(){       
-        Set<X509Certificate> grantedIssuers = new HashSet<X509Certificate>();
+    public void givenClientCertificateSha256WhenMatchRealmThenReturnTrue() {
+        final Set<X509Certificate> grantedIssuers = new HashSet<>();
         grantedIssuers.add(cert);
-        X509AuthenticationInfo info = new X509AuthenticationInfo("username", cert, grantedIssuers, "testRealm");
+        final X509AuthenticationInfo info = new X509AuthenticationInfo("username", cert, grantedIssuers, "testRealm");
         assertTrue(match.doCredentialsMatch(token, info));
     }
-    
+
     @Test
-    public void givenClientCertificateSha256WhenNotMatchRealmThenfalse(){
-        Set<X509Certificate> grantedIssuers = new HashSet<X509Certificate>();
+    public void givenClientCertificateSha256WhenNotMatchRealmThenfalse() {
+        final Set<X509Certificate> grantedIssuers = new HashSet<>();
         grantedIssuers.add(cert2);
-        X509AuthenticationInfo info = new X509AuthenticationInfo("username", cert2, grantedIssuers, "testRealm");
+        final X509AuthenticationInfo info = new X509AuthenticationInfo("username", cert2, grantedIssuers, "testRealm");
         assertFalse(match.doCredentialsMatch(token, info));
     }
 

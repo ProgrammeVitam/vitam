@@ -28,6 +28,8 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
@@ -63,6 +65,15 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
      * @param content
      */
     public LogbookLifeCycleObjectGroup(String content) {
+        super(content);
+    }
+
+    /**
+     * Constructor for Codec
+     *
+     * @param content
+     */
+    public LogbookLifeCycleObjectGroup(JsonNode content) {
         super(content);
     }
 

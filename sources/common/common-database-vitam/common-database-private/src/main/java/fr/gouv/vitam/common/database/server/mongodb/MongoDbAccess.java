@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.mongodb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -40,6 +42,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * MongoDbAccess interface
@@ -71,7 +74,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         try {
             mongoClient.getDatabase(dbname).runCommand(new BasicDBObject("ping", "1"));
             return true;
-        } catch (MongoException e) {
+        } catch (final MongoException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return false;
         }
@@ -131,67 +134,47 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     public void close() {
         mongoClient.close();
     }
-    
+
     /**
      * Create a mongoDB client according to the configuration and using the MongoClientOptions specific to the
      * sub-systems (ex: metadata,logbook)
-     * 
+     *
      * @param configuration
      * @param options
      * @return the MongoClient
      */
     public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
-        if (configuration.isDbAuthentication()) {
-
-            // create user with username, password and specify the database name
-            MongoCredential credential = MongoCredential.createCredential(
-                configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
-
-            // create an instance of mongoclient
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                Arrays.asList(credential),
-                options);
-        } else {
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                options);
+        final List<MongoDbNode> nodes = configuration.getMongoDbNodes();
+        final List<ServerAddress> serverAddress = new ArrayList<>();
+        for (final MongoDbNode node : nodes) {
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
         }
-    }
-    
-    /**
-     * Create a mongoDB client according to the configuration and using the MongoClientOptions specific to the
-     * sub-systems (ex: metadata,logbook)
-     * 
-     * @param configuration
-     * @param options
-     * @return the MongoClient
-     */
-    public static MongoClient createMongoClient(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration, MongoClientOptions options) {
+
         if (configuration.isDbAuthentication()) {
 
             // create user with username, password and specify the database name
-            MongoCredential credential = MongoCredential.createCredential(
+            final MongoCredential credential = MongoCredential.createCredential(
                 configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
 
             // create an instance of mongoclient
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                Arrays.asList(credential),
-                options);
+            return new MongoClient(serverAddress, Arrays.asList(credential), options);
         } else {
-            return new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                options);
+            return new MongoClient(serverAddress, options);
         }
     }
 
     @Override
     public String toString() {
         return dbname;
+    }
+
+    /**
+     * Change the target database
+     *
+     * @param dbname Name of the target database
+     */
+    public void setDatabase(String dbname) {
+        mongoDatabase = mongoClient.getDatabase(dbname);
+        this.dbname = dbname;
     }
 }

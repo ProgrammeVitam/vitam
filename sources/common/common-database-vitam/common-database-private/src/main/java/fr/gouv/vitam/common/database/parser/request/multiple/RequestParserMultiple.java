@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
 
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -80,7 +81,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
 
 
     /**
-     *
+     * Constructor
      */
     public RequestParserMultiple() {
         request = getNewRequest();
@@ -196,6 +197,16 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
+            // Check valid variable names first
+            if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
+                final JsonNode node = rootNode.get(SELECTFILTER.ORDERBY.exactToken());
+                final Iterator<String> names = node.fieldNames();
+                while (names.hasNext()) {
+                    final String name = names.next();
+                    adapter.getVariableName(name);
+                }
+            }
+
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
@@ -313,8 +324,17 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
                 relativedepth, exactdepth, isDepth);
         }
 
-        QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
-            exactdepth, relativedepth);
+        if (adapter.metadataAdapter()) {
+            QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
+                exactdepth, relativedepth);
+        } else {
+            query.setFullText(hasFullTextCurrentQuery);
+            if (exactdepth != 0) {
+                query.setExactDepthLimit(exactdepth);
+            } else {
+                query.setRelativeDepthLimit(relativedepth);
+            }
+        }
         hasFullTextQuery |= hasFullTextCurrentQuery;
         request.addQueries(query);
     }
@@ -336,23 +356,26 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * Allow to add one condition to the current parsed Request on top Query</br>
      * </br>
      * Example:</br>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
      *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
      *   parser.parse(jsonQuery);
      *   parser.addCondition(eq(FieldName, value));
      *   JsonNode newJsonQuery = parser.getRootNode();
-     * </code></pre>
-     * 
+     * </code>
+     * </pre>
+     *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
-        RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
+        final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
         newOne.parse(rootNode);
-        RequestMultiple request = newOne.getRequest();
-        Query query = request.getNthQuery(0);
-        Query newQuery = QueryHelper.and().add(query, condition);
+        final RequestMultiple request = newOne.getRequest();
+        final Query query = request.getNthQuery(0);
+        final Query newQuery = QueryHelper.and().add(query, condition);
         getRequest().getQueries().set(0, newQuery);
         if (newOne instanceof SelectParserMultiple) {
             parse(((Select) getRequest()).getFinalSelect().deepCopy());

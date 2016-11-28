@@ -35,12 +35,12 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+
 /**
  * Admin management web application
  */
@@ -49,12 +49,13 @@ public final class AdminManagementApplication
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementApplication.class);
     private static final String CONF_FILE_NAME = "functional-administration.conf";
-    private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();   
+    private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
     static VitamServiceRegistry serviceRegistry = null;
+
     /**
      * AdminManagementApplication constructor
-     * 
+     *
      * @param configuration
      */
     public AdminManagementApplication(String configuration) {
@@ -85,7 +86,7 @@ public final class AdminManagementApplication
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
-    }    
+    }
 
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {
         serviceRegistry = newServiceRegistry;
@@ -94,9 +95,9 @@ public final class AdminManagementApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        AdminManagementResource resource = new AdminManagementResource(getConfiguration());
+        final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
         serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
-            .register((DatabaseConnection) resource.getLogbookDbAccess());
+            .register(resource.getLogbookDbAccess());
         resourceConfig.register(new AdminManagementResource(getConfiguration()))
             .register(new AdminStatusResource(serviceRegistry));
     }

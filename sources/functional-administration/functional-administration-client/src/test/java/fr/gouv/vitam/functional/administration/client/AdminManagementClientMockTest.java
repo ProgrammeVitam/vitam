@@ -70,15 +70,9 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void givenClientMockWhenDeleteThenReturnOK() throws FileFormatException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.deleteFormat();
-    }
-
-    @Test
     public void getFormatByIDTest() throws InvalidParseOperationException, ReferentialException {
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         assertNotNull(client.getFormatByID("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz"));
     }
 
@@ -87,14 +81,14 @@ public class AdminManagementClientMockTest {
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
         IOException {
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
         assertNotNull(client.getFormats(select.getFinalSelect()));
     }
 
     /****************
      * Rules Manager
-     * 
+     *
      * @throws FileNotFoundException
      *****/
     @Test
@@ -112,22 +106,16 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void givenClientMockWhenDeleteRuleThenReturnOK()
-        throws FileFormatException, FileRulesException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        client.deleteRulesFile();
-    }
-
-    @Test
     public void getRuleByIDTest() throws InvalidParseOperationException, ReferentialException {
-        // ObjectNode objectNode=
-        // {"RuleId":"APP-00001","RuleType":"testList","RuleDescription":"testList","RuleDuration":"10","RuleMeasurement":"Annee"};
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
-        assertEquals("AppraiseRule", objectNode.get("RuleType").asText().toString());
-        assertEquals("10", objectNode.get("RuleDuration").asText().toString());
-        assertEquals("Annee", objectNode.get("RuleMeasurement").asText().toString());
+        assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
+        assertEquals("AppraisalRule",
+            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText().toString());
+        assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText().toString());
+        assertEquals("Année",
+            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText().toString());
     }
 
     @Test
@@ -135,9 +123,9 @@ public class AdminManagementClientMockTest {
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
         IOException {
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        assertNotNull(client.getRule(select.getFinalSelect()));
+        assertNotNull(client.getRules(select.getFinalSelect()));
     }
 
     @Test
@@ -150,26 +138,26 @@ public class AdminManagementClientMockTest {
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
         IOException {
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
         assertNotNull(client.getAccessionRegister(select.getFinalSelect()));
     }
-    
+
     @Test
     public void getAccessionRegisterDetailTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
         IOException {
         AdminManagementClientFactory.changeMode(null);
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        JsonNode detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
-        JsonNode detail = detailResponse.get("results");
+        final JsonNode detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
+        final JsonNode detail = detailResponse.get("$results");
         assertNotNull(detail);
         assertTrue(detail.isArray());
-        ArrayNode detailAsArray = (ArrayNode) detail;
-        assertEquals(2, detailAsArray.size());
-        JsonNode item = detailAsArray.get(0);
-        assertEquals("AG2", item.get("SubmissionAgency").asText());
+        final ArrayNode detailAsArray = (ArrayNode) detail;
+        assertEquals(1, detailAsArray.size());
+        final JsonNode item = detailAsArray.get(0);
+        assertEquals("FRAN_NP_005061", item.get("SubmissionAgency").asText());
     }
-    
+
 }

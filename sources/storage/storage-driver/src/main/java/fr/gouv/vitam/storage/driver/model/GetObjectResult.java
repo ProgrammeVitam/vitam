@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import java.io.InputStream;
+import javax.ws.rs.core.Response;
 
 /**
  * Holds result data that come as a result of a request to retrieve an object on the distant storage offer
@@ -36,23 +36,23 @@ public class GetObjectResult {
 
     private final String tenantId;
 
-    private final InputStream object;
+    private final Response object;
 
     /**
      * Initialize the needed parameters for get results
      *
      * @param tenantId The request tenantId
-     * @param object Datastream of the object in the offer
+     * @param object Response of the object in the offer
      */
-    public GetObjectResult(String tenantId, InputStream object) {
+    public GetObjectResult(String tenantId, Response object) {
         this.tenantId = tenantId;
         this.object = object;
     }
 
     /**
-     * @return the object datastream
+     * @return the object Response
      */
-    public InputStream getObject() {
+    public Response getObject() {
         return object;
     }
 

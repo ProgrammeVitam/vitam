@@ -73,37 +73,37 @@ public class ProcessMonitoringImplTest {
 
     @Test
     public void processMonitoringInitSimpleWorkflowOK() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        Map<String, ProcessStep> initMap =
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflow(), "containerName");
         assertEquals(initMap.size(), 1);
-        ProcessStep processStep = initMap.get("containerName_wf1_0_step1");
+        final ProcessStep processStep = initMap.get("containerName_wf1_0_step1");
         assertNotNull(processStep);
         assertEquals("containerName_wf1_0_step1", processStep.getId());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void processMonitoringInitSimpleWorkflowException() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        Map<String, ProcessStep> initMap =
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflowWithNullStep(), "containerName");
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownProcessThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStep("UNKNOWN_PROCESS_ID", "UNIQUE_ID", 10, false);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        processMonitoring.updateStepStatus("UNKNOWN_PROCESS_ID", "UNIQUE_ID", StatusCode.OK);        
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        processMonitoring.updateStepStatus("UNKNOWN_PROCESS_ID", "UNIQUE_ID", StatusCode.OK);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateStatusSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStepStatus("EXISTING_PROCESS_ID", "UNKNOWN_UNIQUE_STEP_ID", StatusCode.OK);
     }
 
@@ -122,7 +122,7 @@ public class ProcessMonitoringImplTest {
         assertEquals("containerName_wf1_0_step1", pStep.getId());
         assertEquals(10, pStep.getElementToProcess());
         assertEquals(0, pStep.getElementProcessed());
-        
+
         processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", pStep.getId(), 0, true);
         orderedSteps = processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID_FOR_UPDATE");
         pStep = orderedSteps.get(pStep.getId());
@@ -143,7 +143,7 @@ public class ProcessMonitoringImplTest {
         simpleWorkflow.setId("wf1");
         final Step step1 = new Step();
         step1.setStepName("step1");
-        List<Step> steps = new ArrayList<>();
+        final List<Step> steps = new ArrayList<>();
         steps.add(step1);
         simpleWorkflow.setSteps(steps);
         return simpleWorkflow;

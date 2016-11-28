@@ -11,8 +11,8 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
 - **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
 - **X-Valid: true** : pour une requête HEAD sur un **Object** pour vérifier la validité (check d'empreinte)
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour récupérer un usage et une version particulière
-- **X-Callback** : pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
-- **X-Cursor: true** et **X-Cursor-Id** : pour la gestion d'une requête en mode "curseur"
+- **X-Callback** (**UNSUPPORTED**) : pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
+- **X-Cursor: true** et **X-Cursor-Id** (**UNSUPPORTED**) : pour la gestion d'une requête en mode "curseur"
 - **X-Http-Method-Override** : pour permettre aux clients HTTP ne supportant pas tous les modes de la RFC 7231 (GET/PUT/DELETE avec Body)
 
 ## Units et Objects uniquement
@@ -50,7 +50,7 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
   - Permet de définir le contenu à insérer dans la collection.
 - **$action**: uniquement pour *PUT*
   - Permet de définir le contenu à modifier dans la collection.
-- **facetQuery**: uniquement pour *GET* et optionnel
+- **facetQuery** (**UNSUPPORTED**): uniquement pour *GET* et optionnel
   - Permet de définir des sous-requêtes (sous la forme d'agrégats) correspondant généralement à des facettes dans l'application Front-Office
 
 ## Autres collections
@@ -62,12 +62,12 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
   - Il permet de spécifier des filtres additionnels :
     - Pour *GET* :
       - **$limit**: le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
-      - **$per_page**: le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
+      - **$per_page** (**UNSUPPORTED**): le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri
-      - **$hint: "nocache"** permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
+      - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
     - Pour *POST*, *PUT* et *DELETE*
-      - **$mult**: booléen où *true* signifie que l'opération peut concerner de multiples items (par défaut, positionné à *false*)
+      - **$mult** (**UNSUPPORTED**): booléen où *true* signifie que l'opération peut concerner de multiples items (par défaut, positionné à *false*)
         - *POST*: les pères sélectionnés peuvent être multiples
         - *PUT*: la mise à jour peut concerner de multiples items simultanément
         - *DELETE*: l'effacement peut concerner plusieurs items
@@ -81,7 +81,7 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
   - Permet de définir le contenu à insérer dans la collection.
 - **$action**: uniquement pour *PUT*
   - Permet de définir le contenu à modifier dans la collection.
-- **facetQuery**: uniquement pour *GET* et optionnel
+- **facetQuery** (**UNSUPPORTED**): uniquement pour *GET* et optionnel
   - Permet de définir des sous-requêtes (sous la forme d'agrégats) correspondant généralement à des facettes dans l'application Front-Office
 
 ## Query
@@ -97,14 +97,14 @@ Les commandes de la Query peuvent être :
 | Existence |	$exists, $missing, $isNull |	Champ |	Existence d'un champ |
 | Tableau |	$in, $nin |	Champ et valeurs |	Présence de valeurs dans un tableau |
 |      | $size |	Champ et taille |	Taille d'un tableau |
-|      | [n] |	Position (n >= 0) |	Élément d'un tableau |
+|      | [n] **UNSUPPORTED** |	Position (n >= 0) |	Élément d'un tableau |
 | Textuel |	$term, $wildcard |	Champ, mot clef |	Comparaison de champs mots-clefs |
 |       | $match, $matchPhrase, $matchPhrasePrefix |	Champ, phrase, $max_expansions (optionnel) | Recherche de phrase |
 |       | $regex |	Champ, Expression régulière	| Recherche via une expression régulière |
 |       | $search |	Champ, valeur	| Recherche du type moteur de recherche |
 |       | $flt, $mlt |	Champ, valeur |	Recherche « More Like This » |
 | Géomatique |	$geometry, $box, $polygon, $center |	Positions |	Définition d'une position géographique |
-|            | $geoWithin, $geoIntersects, $near |	Une forme |	Recherche par rapport à une forme géométrique |
+| **UNSUPPORTED** | $geoWithin, $geoIntersects, $near |	Une forme |	Recherche par rapport à une forme géométrique |
 
 Chaque Query dispose éventuellement d'arguments additionnels pour gérer l'arborescence :
 
@@ -127,7 +127,7 @@ Dans la commande PUT (Update) :
 | $push, $pull | nom de champ,  liste de valeurs | ajoute/retire les éléments de la liste du champ (qui est un tableau) |
 | $add, $pop | nom de champ,  liste de valeurs | ajoute/retire les éléments de la liste du champ (qui est un "set" avec unicité des valeurs) |
 
-## FacetQuery
+## FacetQuery **UNSUPPORTED**
 
 Lors d'une commande GET (Select), les possibilités envisagées sont :
 
@@ -255,8 +255,8 @@ La réponse dispose également de champs dans le *Header* :
 - **X-Request-Id** : pour chaque requête, un unique identifiant est fourni en réponse
 - **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour indiquer un usage et une version particulière
-- **X-Callback** : pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
-- Si **X-Cursor: true** a été spécifié et si la réponse nécessite l'usage d'un curseur (nombre de réponses > *$per_page*), le SAE retourne **X-Cursor-Id** et **X-Cursor-Timeout** (date de fin de validité du curseur) : pour la gestion d'une requête en mode "curseur" par le client
+- **X-Callback** (**UNSUPPORTED**): pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
+- (**UNSUPPORTED**) Si **X-Cursor: true** a été spécifié et si la réponse nécessite l'usage d'un curseur (nombre de réponses > *$per_page*), le SAE retourne **X-Cursor-Id** et **X-Cursor-Timeout** (date de fin de validité du curseur) : pour la gestion d'une requête en mode "curseur" par le client
 
 ## Exemples
 
@@ -364,20 +364,20 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
 ```json
   {
     "httpCode": 404,
-    "code" : 123456,
+    "code" : "codeVitam1",
     "context": "ingest",
     "state": "Item_Not_Found",
     "message": "Item is not found",
     "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>",
     "errors": [
       { "httpCode": 415,
-        "code" : 123457,
+        "code" : "codevitam2",
         "context": "ingest",
         "state": "Unsupported_Media_Type",
         "message": "Unsupported media type detected",
         "description": "File xxx has an unsupported media type yyy" },
       { "httpCode": 412,
-        "code": 123458,
+        "code": "codevitam3",
         "context": "ingest",
         "state": "Precondition_Failed",
         "message": "Precondition in error",
@@ -386,7 +386,7 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
   }
 ```
 
-## Cas particulier : HEAD pour test d'existence et validation
+## Cas particulier : HEAD pour test d'existence et validation (**UNSUPPORTED**)
 
 La commande *HEAD* permet de savoir pour un item donné s'il existe (retour **204**) ou pas (retour **404**).
 

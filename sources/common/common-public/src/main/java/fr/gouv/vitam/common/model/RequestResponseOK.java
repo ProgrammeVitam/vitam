@@ -26,10 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -42,20 +43,26 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public final class RequestResponseOK extends RequestResponse {
+    @JsonProperty("$hits")
     private DatabaseCursor hits = new DatabaseCursor(0, 0, 0);
-    private final List<JsonNode> results = new ArrayList<>();
+    @JsonProperty("$results")
+    private final ArrayNode results = JsonHandler.createArrayNode();
+    @JsonProperty("$context")
+    private JsonNode query = JsonHandler.createObjectNode();
+
 
     /**
-     * Empty RequestResponseError constructor
+     * Empty RequestResponseOK constructor
      *
      **/
     public RequestResponseOK() {
         // Empty
     }
 
+
     /**
      * Add one result
-     * 
+     *
      * @param result
      * @return this
      */
@@ -64,13 +71,15 @@ public final class RequestResponseOK extends RequestResponse {
         results.add(result);
         return this;
     }
+
     /**
      * Add list of results
      *
      * @param resultList the list of results
      * @return RequestResponseOK with mutable results list of String
      */
-    public RequestResponseOK addAllResults(List<JsonNode> resultList) {
+    @JsonSetter("$results")
+    public RequestResponseOK addAllResults(ArrayNode resultList) {
         ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
         results.addAll(resultList);
         return this;
@@ -88,6 +97,7 @@ public final class RequestResponseOK extends RequestResponse {
      * @param hits as DatabaseCursor object
      * @return RequestReponseOK with the hits are setted
      */
+    @JsonSetter("$hits")
     public RequestResponseOK setHits(DatabaseCursor hits) {
         if (hits != null) {
             this.hits = hits;
@@ -101,55 +111,58 @@ public final class RequestResponseOK extends RequestResponse {
      * @param limit of unit per response as integer
      * @return the RequestReponseOK with the hits are setted
      */
+    @JsonSetter("$hits")
     public RequestResponseOK setHits(int total, int offset, int limit) {
-        hits = new DatabaseCursor(total, offset, limit);
+        hits = new DatabaseCursor(total, offset, limit, total);
+        return this;
+    }
+
+    /**
+     * @param total of units inserted/modified as integer
+     * @param offset of unit in database as integer
+     * @param limit of unit per response as integer
+     * @param size of unit per response
+     * @return the RequestReponseOK with the hits are setted
+     */
+    @JsonSetter("$hits")
+    public RequestResponseOK setHits(int total, int offset, int limit, int size) {
+        hits = new DatabaseCursor(total, offset, limit, size);
         return this;
     }
 
     /**
      * @return the result of RequestResponse as a list of String
      */
-    public List<JsonNode> getResults() {
+    @JsonGetter("$results")
+    public ArrayNode getResults() {
         return results;
     }
 
-    @Override
+    /**
+     * @return the query as JsonNode of Response
+     */
+    public JsonNode getQuery() {
+        return query;
+    }
+
+    /**
+     * @param query
+     * @return this
+     */
     public RequestResponseOK setQuery(JsonNode query) {
-        super.setQuery(query);
+        if (query != null) {
+            this.query = query;
+        }
         return this;
     }
 
-    @Override
-    public String toString() {
-        return JsonHandler.unprettyPrintLowerCamelCase(this);
-    }
-    
     /**
-     * 
-     * @return the Json representation
-     * @throws InvalidParseOperationException 
-     */
-    public JsonNode toJsonNode() throws InvalidParseOperationException {
-        return JsonHandler.getFromString(this.toString());
-    }
-    
-    /**
-     * 
-     * @param string
-     * @return the corresponding VitamError
-     * @throws InvalidParseOperationException
-     */
-    public static RequestResponseOK getFromString(String string) throws InvalidParseOperationException {
-        return JsonHandler.getFromStringLowerCamelCase(string, RequestResponseOK.class);
-    }
-
-    /**
-     * 
+     *
      * @param node
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException
      */
     public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNodeLowerCamelCase(node, RequestResponseOK.class);
+        return JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
     }
 }

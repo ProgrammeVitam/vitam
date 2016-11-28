@@ -39,7 +39,7 @@ public interface UploadService {
 
     /**
      * Upload compressed SIP as Stream, will be uncompressed in workspace. <br>
-     * 
+     *
      * @since 0.9.0 : support zip , tar and tar.gz archive format
      *
      * @param partList

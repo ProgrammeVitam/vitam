@@ -19,7 +19,7 @@
         <div ng-repeat="path in $ctrl.fullArchiveTree">
           <ul ng-repeat="parent in path.slice().reverse()">
             <li ng-style="$ctrl.getIntent($index)">
-              <a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a>
+              <a ng-href="#!/archiveunit/{{parent['#id']}}">{{parent.Title}}</a>
             </li>
           </ul>
         </div>
@@ -156,7 +156,8 @@
       -->
       <span class="panel-header no-toggle">
   			<h2>Groupe d'Objets</h2>
-  			<a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''" ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-default" role="button" style="float:right;margin:0px">
+  			<a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''"
+  			ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-primary" role="button" style="float:right;margin:0px">
   				<i class="material-icons pull-left">camera</i>
   				<span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
   			</a>

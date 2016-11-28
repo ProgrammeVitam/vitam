@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  * else return false
  */
 public class ValidationXsdUtils {
-    
+
     private static final String HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1 = "http://www.w3.org/XML/XMLSchema/v1.1";
     /**
      * Filename of the catalog file ; should be found in the classpath.
@@ -83,7 +83,7 @@ public class ValidationXsdUtils {
 
     private Schema getSchema(String xsdFile) throws SAXException {
         // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
-        final SchemaFactory factory = 
+        final SchemaFactory factory =
             SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
 
         // Load catalog to resolve external schemas even offline.

@@ -32,18 +32,31 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * Interface for every Vitam REST Server
  */
-public interface VitamServer {
+public interface VitamServer extends VitamServerInterface {
 
-    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.port";
+    /**
+     * Default message
+     */
     public static final String SERVER_CAN_NOT_START = "%s application server can not start. ";
+    /**
+     * Default message
+     */
     public static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file %s is a mandatory argument. ";
+    /**
+     * Default message
+     */
     public static final String CONFIGURATION_IS_A_MANDATORY_ARGUMENT = "Configuration %s is a mandatory argument. ";
+    /**
+     * Default message
+     */
     public static final String CAN_CONFIGURE_SERVER = "Can not config %s server. ";
+    /**
+     * Default message
+     */
     public static final String SERVER_START_WITH_JETTY_CONFIG = "%s application server start with jetty config. ";
 
     /**
@@ -55,16 +68,11 @@ public interface VitamServer {
     void configure(Handler applicationHandler) throws VitamApplicationServerException;
 
     /**
-     * Start the server
+     * Start the server with implicit Join
      *
      * @throws VitamApplicationServerException
      */
-    void run() throws VitamApplicationServerException;
-
-    /**
-     * @return the associated port
-     */
-    int getPort();
+    void startAndJoin() throws VitamApplicationServerException;
 
     /**
      * @return true if Server is configured
@@ -106,13 +114,6 @@ public interface VitamServer {
     public boolean isStopped();
 
     /**
-     * blocking until server is ready
-     *
-     * @throws VitamException
-     */
-    public void join() throws VitamException;
-
-    /**
      * stop the jetty server
      *
      * @throws VitamApplicationServerException
@@ -122,7 +123,7 @@ public interface VitamServer {
 
 
     /**
-     * start the jetty server
+     * start the jetty server without join (Junit only)
      *
      * @throws VitamApplicationServerException
      */

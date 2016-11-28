@@ -29,9 +29,9 @@ package fr.gouv.vitam.ingest.external.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -44,10 +44,11 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
     private static final String CONFIGURATION_FILENAME = "ingest-external-client.conf";
 
 
-    private static final String RESOURCE_PATH = "/ingest-ext/v1";
+    private static final String RESOURCE_PATH = "/ingest-external/v1";
 
     private IngestExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        disableUseAuthorizationFilter();
     }
 
 

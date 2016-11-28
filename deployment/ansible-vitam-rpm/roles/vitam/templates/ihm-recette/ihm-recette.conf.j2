@@ -1,0 +1,33 @@
+serverHost: {{vitam_ihm_recette_host}}
+port: {{vitam_ihm_recette_port}}
+
+baseUrl: "{{ vitam_ihm_recette_baseurl }}"
+staticContent: "{{ vitam_ihm_recette_static_content }}"
+
+jettyConfig: jetty-config.xml
+secure: true
+sipDirectory: {{vitam_folder_data}}/
+
+# Configuration MongoDB
+mongoDbNodes:
+{% for server in groups['mongos'] %}
+- dbHost: {{server}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
+# Actually need this field for compatibility
+dbName: admin
+# @integ: parametrize it !
+masterdataDbName: masterdata
+logbookDbName: logbook
+metadataDbName: metadata
+dbAuthentication: {{mongo_authentication}}
+dbUserName: {{mongoAdminUser}}
+dbPassword: {{mongoAdminPassword}}
+
+# ElasticSearch
+clusterName: {{cluster_name}}
+elasticsearchNodes:
+{% for server in groups['hosts-elasticsearch-data'] %}
+- hostName: {{server}}
+  tcpPort: {{elasticsearch_data_tcp_port}}
+{% endfor %}

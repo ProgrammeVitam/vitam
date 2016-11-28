@@ -29,14 +29,11 @@ package fr.gouv.vitam.worker.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
-
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -68,7 +65,7 @@ public class WorkerClientMockTest {
         final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();
         final DescriptionStep descriptionStep = new DescriptionStep(step, workParams);
         final String requestId = "requestId";
-        final CompositeItemStatus result = client.submitStep(requestId, descriptionStep);
+        final ItemStatus result = client.submitStep(descriptionStep);
 
         assertNotNull(result);
         assertEquals(result.getItemsStatus().size(), 1);

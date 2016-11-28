@@ -41,15 +41,12 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * DslQueryHelper junit test
@@ -90,7 +87,7 @@ public class DslQueryHelperTest {
         "$action : " + updateAction + " }";
 
     private static final String UNIT_ID = "1";
-    private static List<String> IMMEDIATE_PARENTS = new ArrayList<String>();
+    private static List<String> IMMEDIATE_PARENTS = new ArrayList<>();
 
 
     @BeforeClass
@@ -110,7 +107,7 @@ public class DslQueryHelperTest {
     public void testCreateSingleQueryDSL()
         throws InvalidCreateOperationException, InvalidParseOperationException {
 
-        final HashMap<String, String> myHashMap = new HashMap<String, String>();
+        final HashMap<String, String> myHashMap = new HashMap();
         myHashMap.put("title", "Archive2");
         myHashMap.put("date", "2006-03-05");
         myHashMap.put("orderby", "evDateTime");
@@ -118,10 +115,10 @@ public class DslQueryHelperTest {
         myHashMap.put("INGEST", "date");
         myHashMap.put("FORMAT", "PUID");
 
-        final String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
+        final JsonNode request = DslQueryHelper.createSingleQueryDSL(myHashMap);
         assertNotNull(request);
         final SelectParserSingle request2 = new SelectParserSingle();
-        request2.parse(JsonHandler.getFromString(request));
+        request2.parse(request);
         assertEquals(result, request2.toString());
     }
 
@@ -132,14 +129,14 @@ public class DslQueryHelperTest {
     @Test
     public void testCreateSingleQueryDSLEvent()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final HashMap<String, String> myHashMap = new HashMap<String, String>();
+        final HashMap<String, String> myHashMap = new HashMap();
 
         myHashMap.put("EventID", "all");
         myHashMap.put("EventType", "all");
-        final String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
+        final JsonNode request = DslQueryHelper.createSingleQueryDSL(myHashMap);
         assertNotNull(request);
         final SelectParserSingle request2 = new SelectParserSingle();
-        request2.parse(JsonHandler.getFromString(request));
+        request2.parse(request);
         assertEquals(result2, request2.toString());
         System.out.println(request2.toString());
 
@@ -148,45 +145,41 @@ public class DslQueryHelperTest {
     @Test
     public void testCreateSelectElasticsearchDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("titleAndDescription", "Arch");
         queryMap.put("orderby", "date");
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
-        final String selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") != null);
-        assertTrue(((Select) selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 1);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     @Test
     public void testCreateSelectDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("Title", "Archive2");
         queryMap.put("orderby", "date");
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         queryMap.put("isAdvancedSearchFlag", "YES");
 
-        final String selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") != null);
-        assertTrue(((Select) selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 1);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     /**
@@ -197,21 +190,19 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testEmptyQueries() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("projection_id", "#id");
         queryMap.put("projection_qualifiers", "#qualifiers");
 
-        final String selectRequest = DslQueryHelper.createSelectDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 0);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
-        assertTrue(((Select) selectParser.getRequest()).getProjection().size() == 1);
+        assertTrue(selectParser.getRequest().getNbQueries() == 0);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
     }
 
     /**
@@ -223,7 +214,7 @@ public class DslQueryHelperTest {
     @Test(expected = InvalidParseOperationException.class)
     public void testInvalidParseOperationExceptionWithEmptyValue()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "");
         DslQueryHelper.createSelectDSLQuery(queryMap);
     }
@@ -237,7 +228,7 @@ public class DslQueryHelperTest {
     @Test(expected = InvalidParseOperationException.class)
     public void testInvalidParseOperationExceptionWithEmptyKey()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("", "value");
         DslQueryHelper.createSelectDSLQuery(queryMap);
     }
@@ -250,19 +241,17 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testCreateUpdateDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "Archive2");
         queryMap.put("date", "09/09/2015");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "#id");
-        final String updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
         assertNotNull(updateRequest);
 
-        final JsonNode updateRequestJsonNode = JsonHandler.getFromString(updateRequest);
-
-        final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
+        final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
         assertTrue(updateParser instanceof UpdateParserMultiple);
-        assertTrue(((Update) updateParser.getRequest()).getActions().size() == 2);
-        assertTrue(((Update) updateParser.getRequest()).getRoots().size() == 1);
+        assertTrue(updateParser.getRequest().getActions().size() == 2);
+        assertTrue(updateParser.getRequest().getRoots().size() == 1);
 
     }
 
@@ -274,17 +263,15 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testUpdateEmptyQueries() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "Mosqueteers");
 
-        final String updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap);
         assertNotNull(updateRequest);
 
-        final JsonNode updateRequestJsonNode = JsonHandler.getFromString(updateRequest);
-
-        final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
+        final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
         assertTrue(updateParser instanceof UpdateParserMultiple);
-        assertTrue(((Update) updateParser.getRequest()).getActions().size() == 1);
+        assertTrue(updateParser.getRequest().getActions().size() == 1);
     }
 
     /**
@@ -296,7 +283,7 @@ public class DslQueryHelperTest {
     @Test(expected = InvalidParseOperationException.class)
     public void testUpdateQueryInvalidParseOperationExceptionWithEmptyValue()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "");
         DslQueryHelper.createUpdateDSLQuery(queryMap);
     }
@@ -310,7 +297,7 @@ public class DslQueryHelperTest {
     @Test(expected = InvalidParseOperationException.class)
     public void testUpdateQueryInvalidParseOperationExceptionWithEmptyKey()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put("", "value");
         DslQueryHelper.createUpdateDSLQuery(queryMap);
     }
@@ -325,24 +312,23 @@ public class DslQueryHelperTest {
     public void testCreateSelectUnitTreeDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        final String selectRequest = DslQueryHelper.createSelectUnitTreeDSLQuery(UNIT_ID, IMMEDIATE_PARENTS);
+        final JsonNode selectRequest = DslQueryHelper.createSelectUnitTreeDSLQuery(UNIT_ID, IMMEDIATE_PARENTS);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
         assertTrue(
-            ((Select) selectParser.getRequest()).getProjection().get("$fields").has(UiConstants.ID.getConstantValue()));
+            selectParser.getRequest().getProjection().get("$fields")
+                .has(UiConstants.ID.getResultCriteria()));
         assertTrue(
-            ((Select) selectParser.getRequest()).getProjection().get("$fields")
-                .has(UiConstants.TITLE.getConstantValue()));
+            selectParser.getRequest().getProjection().get("$fields")
+                .has(UiConstants.TITLE.getResultCriteria()));
         assertTrue(
-            ((Select) selectParser.getRequest()).getProjection().get("$fields")
-                .has(UiConstants.UNITUPS.getConstantValue()));
+            selectParser.getRequest().getProjection().get("$fields")
+                .has(UiConstants.UNITUPS.getResultCriteria()));
     }
 
 
@@ -355,33 +341,29 @@ public class DslQueryHelperTest {
     @Test
     public void testFundsRegisterDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put(ACCESSION_REGISTER, "");
 
-        final String selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap2 = new HashMap<String, String>();
+        final Map<String, String> queryMap2 = new HashMap();
         queryMap2.put(ORIGINATING_AGENCY, "id01");
 
-        final String selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
-        assertNotNull(selectRequest);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest2);
 
-        final JsonNode selectRequestJsonNode2 = JsonHandler.getFromString(selectRequest2);
-
-        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequestJsonNode2);
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
         assertTrue(selectParser2 instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser2.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser2.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser2.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
     }
 
 
@@ -394,47 +376,41 @@ public class DslQueryHelperTest {
     @Test
     public void testRulesDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap<String, String>();
+        final Map<String, String> queryMap = new HashMap();
         queryMap.put(RULES, "");
 
-        final String selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
-        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
         assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap2 = new HashMap<String, String>();
+        final Map<String, String> queryMap2 = new HashMap();
         queryMap2.put(RULETYPE, "AppraisingRule");
 
-        final String selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
-        assertNotNull(selectRequest);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest2);
 
-        final JsonNode selectRequestJsonNode2 = JsonHandler.getFromString(selectRequest2);
-
-        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequestJsonNode2);
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
         assertTrue(selectParser2 instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser2.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser2.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser2.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap3 = new HashMap<String, String>();
+        final Map<String, String> queryMap3 = new HashMap();
         queryMap3.put(RULETYPE, "AppraisingRule,test");
 
-        final String selectRequest3 = DslQueryHelper.createSingleQueryDSL(queryMap3);
-        assertNotNull(selectRequest);
+        final JsonNode selectRequest3 = DslQueryHelper.createSingleQueryDSL(queryMap3);
+        assertNotNull(selectRequest3);
 
-        final JsonNode selectRequestJsonNode3 = JsonHandler.getFromString(selectRequest3);
-
-        final RequestParserMultiple selectParser3 = RequestParserHelper.getParser(selectRequestJsonNode3);
+        final RequestParserMultiple selectParser3 = RequestParserHelper.getParser(selectRequest3);
         assertTrue(selectParser3 instanceof SelectParserMultiple);
-        assertTrue(((Select) selectParser3.getRequest()).getNbQueries() == 1);
-        assertTrue(((Select) selectParser3.getRequest()).getRoots().size() == 0);
-        assertTrue(((Select) selectParser3.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(selectParser3.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser3.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser3.getRequest().getFilter().get("$orderby") == null);
     }
 
 }

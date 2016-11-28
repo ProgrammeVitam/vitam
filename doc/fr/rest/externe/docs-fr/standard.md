@@ -23,9 +23,9 @@ Les méthodes utilisées :
 Les codes retours HTTP standards utilisés sont :
 - 200: Sur des opérations de GET, PUT, DELETE, HEAD, OPTIONS
 - 201: Sur l'opération POST (sans X-Http-Method-Override)
-- 202: Pour les réponses asynchrones
+- 202: Pour les réponses asynchrones (**UNSUPPORTED**)
 - 204: Pour des réponses sans contenu (type HEAD sans options)
-- 206: Pour des réponses partielles
+- 206: Pour des réponses partielles ou des réponses en mode Warning (OK mais avec une alerte)
 
 Les codes d'erreurs HTTP standards utilisés sont :
 - 400: Requête mal formulée
@@ -37,11 +37,11 @@ Les codes d'erreurs HTTP standards utilisés sont :
 - 415: Le Media Type demandé n'est pas supporté
 - 501: Le service n'est pas implémenté
 
-## Modèle asynchrone
+## Modèle asynchrone **UNSUPPORTED**
 
 Dans le cas d'une opération asynchrone, deux options sont possibles :
 
-### Mode Pooling
+### Mode Pooling **UNSUPPORTED**
 
 Dans le mode pooling, le client est responsable de requêter de manière répétée l'URI de vérification du statut, et ce de manière raisonnée (pas trop souvent).
 
@@ -54,7 +54,7 @@ Le principe est le suivant :
 - Fin de pooling sur l'opération demandée
   - Exemple : GET /ingests/#id et retourne 200 + le résultat
 
-### Mode Callback
+### Mode Callback **UNSUPPORTED**
 
 Dans le mode Callback, le client soumet une création d'opération et simultanément propose une URI de Callback sur laquelle Vitam rappellera le client pour lui indiquer que cette opération est terminée.
 
@@ -75,7 +75,8 @@ Dans le cas où l'accès au résulat final ne doit pas se faire sur l'URI /resou
 L'authentification dans Vitam authentifie l'application Front-Office qui se connecte à ses API. Cette authentification s'effectue en trois temps :
 - Un premier composant authentifie la nouvelle connexion
   - La première implémentation sera basée sur une authentification du certificat client dans la connexion TLS
-- Le premier composant passe au service REST la variable Header "X-Identity" contenant l'identifiant de l'application Front-Office
+- Le premier composant passe au service REST la variable Header "X-Identity" contenant l'identifiant de l'application Front-Office.
+  - Comme cette identification est actuellement interne, ce Header est actuellement non généré.
 - Le service REST, sur la base de cette authentification, s'assure que l'application Front-Office ait bien l'habilitation nécessaire pour effectuer la requête exprimée.
 
 
@@ -84,19 +85,23 @@ L'authentification dans Vitam authentifie l'application Front-Office qui se conn
 Vitam étant un service REST, il est "State Less". Il ne dispose donc pas de notion de session en propre.
 Cependant chaque requête retourne un identifiant de requête "**X-Request-Id**" qui est traçé dans les logs et journaux du SAE et permet donc de faire une corrélation avec les événements de l'application Front-Office cliente si celle-ci enregistre elle-aussi cet identifiant.
 
-Considérant que cela peut rendre difficile le suivi d'une session utilisateur connecté sur un Front-Office, il est proposé que l'application Front-Office puisse passé en paramètre dans le Header l'argument "**X-Application-Id**" correspondant à un identifiant de session de l'utilisateur connecté. Cet identifiant DOIT être non signifiant car il sera lui aussi dans les logs et les journaux de Vitam. Il est inclu dans chaque réponse de Vitam si celui-ci est exprimé dans la requête correspondante.
+Considérant que cela peut rendre difficile le suivi d'une session utilisateur connecté sur un Front-Office, il est proposé que l'application Front-Office puisse passer en paramètre dans le Header l'argument "**X-Application-Id**" correspondant à un identifiant de session de l'utilisateur connecté. Cet identifiant DOIT être non signifiant car il sera lui aussi dans les logs et les journaux de Vitam. Il est inclus dans chaque réponse de Vitam si celui-ci est exprimé dans la requête correspondante.
 Grâce à cet identifiant externe de session, il est alors plus facile de retracer l'activité d'un utilisateur grâce d'une part au regroupement de l'ensemble des actions dans Vitam au travers de cet identifiant, et d'autre part grâce aux logs de l'application Front-Office utilisant ce même identifiant de session.
 
 ## Pagination
 
 Vitam ne dispose pas de notion de session en raison de son implémentation « State Less ». Néanmoins, pour des raisons d'optimisations sur des requêtes où le nombre de résultats serait important, il est proposé une option tendant à améliorer les performances : X-Cursor et X-Cursor-Id.
 
+### Méthode standard
+
 De manière standard, il est possible de paginer les résultats en utilisant le DSL avec les arguments suivants dans la requête : (pour GET uniquement)
 - **$limit** : le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
-- **$per_page** : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
+- **$per_page** : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100) (**UNSUPPORTED**)
 - **$offset** : la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
 
 En raison du principe State-less, les requêtes suivantes (en manipulant notamment $offset) seront à nouveau exécutées, conduisant à des performances réduites.
+
+### Méthode optimisée **UNSUPPORTED**
 
 Afin d'optimiser, il est proposé d'ajouter de manière optionnelle dans le Header lors de la première requête le champs suivant : **X-Cursor: true**
 Si la requête nécessite une pagination (plus d'une page de réponses possible), le SAE répondra alors la première page (dans le Body) et dans le Header :

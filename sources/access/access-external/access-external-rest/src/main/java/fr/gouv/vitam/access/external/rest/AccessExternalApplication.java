@@ -47,13 +47,11 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.waf.WafFilter;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 
 /**
@@ -71,7 +69,7 @@ public class AccessExternalApplication
 
     /**
      * AccessApplication constructor
-     * 
+     *
      * @param configuration
      */
     public AccessExternalApplication(String configuration) {
@@ -106,11 +104,7 @@ public class AccessExternalApplication
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        // FIXME P0 Logbook Should be remove
-        serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
-            .register(LogbookOperationsClientFactory.getInstance())
-            .register(AccessInternalClientFactory.getInstance())
-        // FIXME P0 missing when ready (included with correct configuration file)
+        serviceRegistry.register(AccessInternalClientFactory.getInstance())
             .register(AdminManagementClientFactory.getInstance());
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())

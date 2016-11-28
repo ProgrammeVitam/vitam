@@ -30,13 +30,14 @@ import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 
 /**
  * Logbook client interface
  */
-public interface SiegfriedClient {
+public interface SiegfriedClient extends MockOrRestClient {
 
     /**
      * Call siegfried instance to analyse the given file and format a Json response

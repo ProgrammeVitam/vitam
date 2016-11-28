@@ -35,7 +35,12 @@ import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -51,9 +56,9 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -63,6 +68,9 @@ import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.ResultError;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({DbRequestFactoryImpl.class, MongoDbAccessMetadataFactory.class})
 public class MetaDataImplTest {
 
     private MetaData metaDataImpl;
@@ -73,24 +81,29 @@ public class MetaDataImplTest {
     private static final String DATA_INSERT = "{ \"data\": \"test\" }";
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+    private static final String SAMPLE_OBJECTGROUP_FILTERED_FILENAME = "sample_objectGroup_document_filtered.json";
     private static JsonNode sampleObjectGroup;
+    private static JsonNode sampleObjectGroupFiltered;
 
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String REQUEST_TEST =
-        "{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
-            "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-            "{ $ne : { 'mavar9' : 'ab' } }, " +
-            "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
-            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
-            "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
+        "{ \"$roots\" : [ \"id0\" ], \"$query\" : [ " + "{ \"$path\" : [ \"id1\", \"id2\"] }," +
+            "{ \"$and\" : [ " + "{\"$exists\" : \"mavar1\"}, " + "{\"$missing\" : \"mavar2\"}, " +
+            "{\"$isNull\" : \"mavar3\"}, " +
+            "{ \"$or\" : [ " +
+            "{\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " +
+            "{ \"$nin\" : { \"mavar5\" : [\"maval2\", true] } } ] } ] }," +
+            "{ \"$not\" : [ " + "{ \"$size\" : { \"mavar5\" : 5 } }, " + "{ \"$gt\" : { \"mavar6\" : 7 } }, " +
+            "{ \"$lte\" : { \"mavar7\" : 8 } } ] , \"$exactdepth\" : 4}," + "{ \"$not\" : [ " +
+            "{ \"$eq\" : { \"mavar8\" : 5 } }, " +
+            "{ \"$ne\" : { \"mavar9\" : \"ab\" } }, " +
+            "{ \"$range\" : { \"mavar10\" : { \"$gte\" : 12, \"$lte\" : 20} } } ], \"$depth\" : 1}, " +
+            "{ \"$and\" : [ { \"$term\" : { \"mavar14\" : \"motMajuscule\", \"mavar15\" : \"simplemot\" } } ] }, " +
+            "{ \"$regex\" : { \"mavar14\" : \"^start?aa.*\" } } " + "], " +
+            "\"$filter\" : {\"$offset\" : 100, \"$limit\" : 1000, \"$hint\" : [\"cache\"], " +
+            "\"$orderby\" : { \"maclef1\" : 1 , \"maclef2\" : -1,  \"maclef3\" : 1 } }," +
+            "\"$projection\" : {\"$fields\" : {\"#dua\" : 1, \"#all\" : 1}, \"$usage\" : \"abcdef1234\" } }";
 
 
 
@@ -114,15 +127,20 @@ public class MetaDataImplTest {
     @BeforeClass
     public static void loadStaticResources() throws Exception {
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
+        sampleObjectGroupFiltered =
+            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME));
     }
 
     @Before
     public void setUp() throws Exception {
         request = mock(DbRequest.class);
+        PowerMockito.mockStatic(MongoDbAccessMetadataFactory.class);
         mongoDbAccessFactory = mock(MongoDbAccessMetadataFactory.class);
-        dbRequestFactory = mock(DbRequestFactory.class);
+        PowerMockito.mockStatic(DbRequestFactoryImpl.class);
+        dbRequestFactory = mock(DbRequestFactoryImpl.class);
+        PowerMockito.when(DbRequestFactoryImpl.getInstance()).thenReturn(dbRequestFactory);
         when(dbRequestFactory.create()).thenReturn(request);
-        when(mongoDbAccessFactory.create(null)).thenReturn(null);
+        when(MongoDbAccessMetadataFactory.create(null)).thenReturn(null);
 
     }
 
@@ -130,7 +148,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -138,7 +156,7 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -147,7 +165,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -155,7 +173,7 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -165,7 +183,7 @@ public class MetaDataImplTest {
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
         when(request.execRequest(anyObject(), anyObject())).thenThrow(error);
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -175,7 +193,7 @@ public class MetaDataImplTest {
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
         when(request.execRequest(anyObject(), anyObject())).thenThrow(error);
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -183,7 +201,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenIllegalAccessExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -191,33 +209,39 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenIllegalAccessExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", bigData));
-        GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
+            metaDataImpl.insertUnit(buildQueryJsonWithOptions("", bigData));
+        } finally {
+            GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        }
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
-        metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", bigData));
-        GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
+            metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", bigData));
+        } finally {
+            GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
+        }
     }
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
@@ -225,23 +249,28 @@ public class MetaDataImplTest {
     public void given_Select_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsByQuery(REQUEST_TEST);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(REQUEST_TEST));
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
-    public void given_SelectUnitWhenStringTooLong_Then_Throw_MetaDataDocumentSizeException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.selectUnitsByQuery(createLongString(1001));
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_SelectUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        final int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(createLongString(1001)));
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
 
@@ -249,34 +278,34 @@ public class MetaDataImplTest {
     public void given_selectUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
     @Test
     public void given_filled_query_When_SelectUnitById_() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsById(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test
     public void given_filled_query_When_UpdateUnitById_() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsByQuery(QUERY);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsByQuery("");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(""));
     }
 
 
@@ -285,28 +314,28 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_selectUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsById("", "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(""), "unitId");
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_updateUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId("", "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -314,8 +343,8 @@ public class MetaDataImplTest {
         throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -323,45 +352,50 @@ public class MetaDataImplTest {
         throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.selectUnitsById(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()
         throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId("", "");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "");
     }
 
-    @Test(expected = MetaDataDocumentSizeException.class)
-    public void given_UpdateUnitWhenStringTooLong_Then_Throw_MetaDataDocumentSizeException() throws Exception {
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        GlobalDatasParser.limitRequest = 1000;
-        metaDataImpl.updateUnitbyId(createLongString(1001), "unitId");
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_UpdateUnitWhenStringTooLong_Then_Throw_InvalidParseOperationException() throws Exception {
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        final int oldValue = GlobalDatasParser.limitRequest;
+        try {
+            GlobalDatasParser.limitRequest = 1000;
+            metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
+        } finally {
+            GlobalDatasParser.limitRequest = oldValue;
+        }
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_Update_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(REQUEST_TEST, "");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(REQUEST_TEST), "");
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        metaDataImpl.updateUnitbyId(QUERY, "unitId");
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test
@@ -371,22 +405,19 @@ public class MetaDataImplTest {
         result.setNbResult(1);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        final JsonNode jsonNode = metaDataImpl.selectObjectGroupById(QUERY, "ogId");
-        final ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
-        assertEquals(1, resultArray.size());
-        final ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
-        final String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
-        final String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
-        assertEquals(expectedObjectGroup, resultedObjectGroup);
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        final ArrayNode jsonNode = metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
+        final ObjectNode objectGroupDocument = (ObjectNode) jsonNode.get(0);
+        assertEquals(sampleObjectGroupFiltered, objectGroupDocument);
     }
 
     @Test
     public void testDiffResultOnUpdate() throws Exception {
-        final String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    title : title" +
-            "\\n-    description : description\\n+    title : MODIFIED title" +
-            "\\n+    description : MODIFIED description\"}]}";
+        final String wanted = "[{\"#id\":\"unitId\",\"#diff\":\"-  title : title" +
+            "\\n-  description : description\\n+  title : MODIFIED title" +
+            "\\n+  description : MODIFIED description\"}]";
+        final String wantedDiff = "\"-  title : title\\n-  description : description\\n+  " +
+            "title : MODIFIED title\\n+  description : MODIFIED description\"";
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");
@@ -410,14 +441,40 @@ public class MetaDataImplTest {
         secondUnit.put("description", "MODIFIED description");
         secondSelectResult.addFinal(secondUnit);
 
+        final JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
+            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
+
         when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
         when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
             secondSelectResult);
-        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
-        final JsonNode ret = metaDataImpl.updateUnitbyId("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}",
-            "unitId");
-
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        final ArrayNode ret = metaDataImpl
+            .updateUnitbyId(updateRequest, "unitId");
         assertEquals(wanted, ret.toString());
+
+        final RequestResponseOK response = new RequestResponseOK()
+            .setHits(ret.size(), 0, 1)
+            .setQuery(updateRequest)
+            .addAllResults(ret);
+        assertEquals(wantedDiff, getDiffMessageFor(response.toJsonNode(), "unitId"));
     }
+
+
+    private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
+        if (diff == null) {
+            return "";
+        }
+        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$results");
+        if (arrayNode == null) {
+            return "";
+        }
+        for (final JsonNode diffNode : arrayNode) {
+            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
+                return JsonHandler.writeAsString(diffNode.get("#diff"));
+            }
+        }
+        return "";
+    }
+
+
 }

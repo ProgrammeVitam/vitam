@@ -42,7 +42,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
-// FIXME P0 REVIEW add a factory plus constructor and class as package protected
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private final ProcessEngine processEngine;
@@ -107,5 +106,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
 
         return response;
+    }
+
+    @Override
+    public void close() {
+        // Nothing to do
     }
 }

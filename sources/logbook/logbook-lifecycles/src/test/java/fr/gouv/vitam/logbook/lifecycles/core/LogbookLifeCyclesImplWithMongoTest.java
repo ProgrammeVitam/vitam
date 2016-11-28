@@ -30,6 +30,9 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,12 +47,14 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -94,9 +99,11 @@ public class LogbookLifeCyclesImplWithMongoTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         mongoDbAccess =
             LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, port,
+                new DbConfigurationImpl(nodes,
                     "vitam-test"));
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
@@ -368,4 +375,50 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl.getObjectGroupById("notExist");
     }
 
+    @Test
+    public void testIterator()
+        throws LogbookDatabaseException, InvalidParseOperationException, LogbookNotFoundException {
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
+        logbookLifeCyclesImpl.finalizeCursor(result);
+        result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
+        logbookLifeCyclesImpl.finalizeCursor(result);
+
+        result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        while (true) {
+            try {
+                logbookLifeCyclesImpl.getCursorUnitNext(result);
+            } catch (final LogbookNotFoundException e) {
+                break;
+            }
+        }
+        try {
+            logbookLifeCyclesImpl.getCursorUnitNext(result);
+            fail("Should raized an exception");
+        } catch (final LogbookDatabaseException e) {}
+        logbookLifeCyclesImpl.finalizeCursor(result);
+        result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+        assertNotNull(result);
+        while (true) {
+            try {
+                logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
+            } catch (final LogbookNotFoundException e) {
+                break;
+            }
+        }
+        try {
+            logbookLifeCyclesImpl.getCursorObjectGroupNext(result);
+            fail("Should raized an exception");
+        } catch (final LogbookDatabaseException e) {}
+        logbookLifeCyclesImpl.finalizeCursor(result);
+    }
 }

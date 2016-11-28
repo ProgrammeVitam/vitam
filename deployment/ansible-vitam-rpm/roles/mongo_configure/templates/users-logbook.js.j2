@@ -1,0 +1,17 @@
+
+// Switch to logbook database
+db = db.getSiblingDB('logbook')
+
+// Create logbook user
+
+if (! db.getUser("{{mongoLogbookUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoLogbookUser}}",
+            pwd: "{{mongoLogbookPassword}}",
+            roles: [
+                { role: "readWrite", db: "logbook" }
+            ]
+        }
+    )
+}

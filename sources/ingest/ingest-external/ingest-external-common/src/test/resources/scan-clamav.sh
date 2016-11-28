@@ -59,4 +59,5 @@ else # one argument, let's go
 		RET=$(cat "$1") # return code of scan virus script
 	fi
 fi
+echo OUTPUT TEST
 exit ${RET}

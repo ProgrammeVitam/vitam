@@ -32,34 +32,39 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
+import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 
 /**
  * The Ingest External Resource
  */
-@Path("/ingest-ext/v1")
+@Path("/ingest-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
-    private IngestExternalConfiguration ingestExternalConfiguration;
+    private final IngestExternalConfiguration ingestExternalConfiguration;
 
     /**
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration
-     * 
+     *
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
@@ -69,37 +74,41 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param stream data input stream
-     * @param header method for entry data
-     * @return Response
-     * @throws XMLStreamException
+     * @param uploadedInputStream data input stream
+     * @param asyncResponse
      */
-    // TODO P0 : add file name
-    @Path("upload")
+    @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_XML)
-    public Response upload(InputStream stream) throws XMLStreamException {
-        Response response;
-        try {
-            IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            response = ingestExtern.upload(stream);
-        } catch (final IngestExternalException e) {
-            LOGGER.error(e.getMessage());
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new IngestExternalError(status.getStatusCode())
-                    .setContext("ingest")
-                    .setState("Error")
-                    .setMessage("The ingest external server error")
-                    .setDescription(
-                        "The application 'Xxxx' requested an ingest operation and this operation has errors."))
-                .build();
-        }
-        // FIXME P0 Fix ByteArray vs Close vs AsyncResponse
-        return Response.status(response.getStatus()).entity(response.getEntity())
-            .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    // TODO P2 : add file name
+    public void upload(InputStream uploadedInputStream, @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, uploadedInputStream));
+    }
 
+    private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream) {
+        try {
+            // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
+            final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
+            ingestExtern.upload(uploadedInputStream, asyncResponse);
+        } catch (final IngestExternalException exc) {
+            LOGGER.error(exc);
+            try {
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
+                            "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
+                            "PROCESS_SIP_UNITARY", exc.getMessage(), StatusCode.FATAL))
+                        .type(MediaType.APPLICATION_XML_TYPE).build());
+            } catch (final IngestExternalException e) {
+                // Really bad
+                LOGGER.error(e);
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            }
+        } finally {
+            StreamUtils.closeSilently(uploadedInputStream);
+        }
     }
 
 }

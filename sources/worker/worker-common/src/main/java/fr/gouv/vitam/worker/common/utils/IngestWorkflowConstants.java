@@ -101,6 +101,9 @@ public class IngestWorkflowConstants {
     public static final String WORK_TAG = "WORK";
     public static final String UPS_SEPARATOR = "-";
     public static final String UP_FIELD = "_up";
+    public static final String RULES = "RulesToApply";
+
+    public static final String RULES_TAG = "Rules";
 
     /**
      * Sub folder for work file in Worskpace folder of container : containerId/ATR

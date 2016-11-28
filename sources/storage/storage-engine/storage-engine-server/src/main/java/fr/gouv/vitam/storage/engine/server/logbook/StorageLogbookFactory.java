@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Storage Logbook Factory
  *
  * Example of a lot addition:
- * 
+ *
  * <pre>
  * {
  *     &#64;code

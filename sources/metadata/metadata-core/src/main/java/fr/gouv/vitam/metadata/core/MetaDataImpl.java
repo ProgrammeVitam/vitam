@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -74,20 +73,16 @@ public class MetaDataImpl implements MetaData {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
-    private final DbRequestFactory dbRequestFactory;
-    private MongoDbAccessMetadataImpl mongoDbAccess;
+    private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
      * MetaDataImpl constructor
      *
      * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
-     * @param dbRequestFactory
      */
-    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
-        DbRequestFactory dbRequestFactory) {
-        mongoDbAccess = mongoDbAccessFactory.create(configuration);
-        this.dbRequestFactory = dbRequestFactory;
+    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
+        mongoDbAccess = MongoDbAccessMetadataFactory.create(configuration);
     }
 
     /**
@@ -102,16 +97,13 @@ public class MetaDataImpl implements MetaData {
      *
      * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
-     * @param dbRequestFactory
      * @return a new instance of MetaDataImpl
-     * @throws IllegalArgumentException if one of dbRequestFactory and mongoDbAccessFactory is null
+     * @throws IllegalArgumentException if mongoDbAccessFactory is null
      */
     public static MetaData newMetadata(MetaDataConfiguration configuration,
-        MongoDbAccessMetadataFactory mongoDbAccessFactory,
-        DbRequestFactory dbRequestFactory) {
-        ParametersChecker.checkParameter("DbRequestFactory and / or mongoDbAccessFactory cannot be null",
-            dbRequestFactory, mongoDbAccessFactory);
-        return new MetaDataImpl(configuration, mongoDbAccessFactory, dbRequestFactory);
+        MongoDbAccessMetadataFactory mongoDbAccessFactory) {
+        ParametersChecker.checkParameter("MongoDbAccessFactory cannot be null", mongoDbAccessFactory);
+        return new MetaDataImpl(configuration, mongoDbAccessFactory);
     }
 
     @Override
@@ -120,15 +112,9 @@ public class MetaDataImpl implements MetaData {
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
-            GlobalDatasParser.sanityRequestCheck(insertRequest.toString());
-        } catch (final InvalidParseOperationException e) {
-            throw new MetaDataDocumentSizeException(e);
-        }
-
-        try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
-            result = dbRequestFactory.create().execRequest(insertParser, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
@@ -147,16 +133,10 @@ public class MetaDataImpl implements MetaData {
         Result result = null;
 
         try {
-            GlobalDatasParser.sanityRequestCheck(objectGroupRequest.toString());
-        } catch (final InvalidParseOperationException e) {
-            throw new MetaDataDocumentSizeException(e);
-        }
-
-        try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            result = dbRequestFactory.create().execRequest(insertParser, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
@@ -169,7 +149,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsByQuery(String selectQuery)
+    public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
@@ -178,7 +158,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectUnitsById(String selectQuery, String unitId)
+    public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
@@ -186,7 +166,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+    public ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
@@ -194,27 +174,21 @@ public class MetaDataImpl implements MetaData {
             Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
-    // FIXME P0 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
+    // FIXME P1 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
-    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId,
+    private ArrayNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse;
-        if (Strings.isNullOrEmpty(selectQuery)) {
+        ArrayNode arrayNodeResponse;
+        if (selectQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
-        }
-        try {
-            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
-            GlobalDatasParser.sanityRequestCheck(selectQuery);
-        } catch (final InvalidParseOperationException eInvalidParseOperationException) {
-            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
         }
         try {
             // parse Select request
             final RequestParserMultiple selectRequest = new SelectParserMultiple(new MongoDbVarNameAdapter());
-            selectRequest.parse(JsonHandler.getFromString(selectQuery));
+            selectRequest.parse(selectQuery);
             // Reset $roots (add or override id on roots)
             if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
                 final RequestMultiple request = selectRequest.getRequest();
@@ -234,55 +208,51 @@ public class MetaDataImpl implements MetaData {
                 }
             }
             // Execute DSL request
-            result = dbRequestFactory.create().execRequest(selectRequest, result);
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
             MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return jsonNodeResponse;
+        return arrayNodeResponse;
     }
 
+    // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+    public ArrayNode updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse;
-        if (Strings.isNullOrEmpty(updateQuery)) {
+        ArrayNode arrayNodeResponse;
+        if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
         try {
-            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
-            GlobalDatasParser.sanityRequestCheck(updateQuery);
-        } catch (final InvalidParseOperationException eInvalidParseOperationException) {
-            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
-        }
-        try {
             // parse Update request
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple();
-            updateRequest.parse(JsonHandler.getFromString(updateQuery));
+            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+            updateRequest.parse(updateQuery);
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
                 final RequestMultiple request = updateRequest.getRequest();
                 if (request != null) {
                     LOGGER.debug("Reset $roots unit_id by :" + unitId);
                     request.resetRoots().addRoots(unitId);
+                    LOGGER.debug("DEBUG: {}", request);
                 }
             }
 
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = dbRequestFactory.create().execRequest(updateRequest, result);
+            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest, result);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             final Map<String, List<String>> diffs = new HashMap<>();
             diffs.put(unitId, getConcernedDiffLines(getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
+            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
@@ -291,13 +261,13 @@ public class MetaDataImpl implements MetaData {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
-        return jsonNodeResponse;
+        return arrayNodeResponse;
     }
 
     private JsonNode getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException {
         final Select select = new Select();
-        return selectUnitsById(select.getFinalSelect().toString(), id);
+        return selectUnitsById(select.getFinalSelect(), id);
     }
 
     /**
@@ -311,7 +281,7 @@ public class MetaDataImpl implements MetaData {
         final List<String> beforeList = Arrays.asList(original.split("\\n"));
         final List<String> revisedList = Arrays.asList(revised.split("\\n"));
 
-        final Patch patch = DiffUtils.diff(beforeList, revisedList);
+        final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
 
         return generateUnifiedDiff(original, revised, beforeList, patch, 1);
     }

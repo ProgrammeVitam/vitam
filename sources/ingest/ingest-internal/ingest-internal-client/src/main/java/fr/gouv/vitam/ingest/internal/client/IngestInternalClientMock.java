@@ -35,8 +35,9 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
-import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -47,15 +48,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
  */
 public class IngestInternalClientMock extends AbstractMockClient implements IngestInternalClient {
 
+    private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
     public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
 
     @Override
-    public Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList, InputStream inputStream,
-        String archiveType) {
-
-        // Do not check inputStream since it can be null
-        ParametersChecker.checkParameter("Params cannot be null", logbookParametersList);
+    public Response upload(InputStream inputStream, MediaType archiveType) throws VitamException {
+        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
 
         LOGGER.debug("Post SIP");
@@ -63,5 +62,19 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         return new AbstractMockClient.FakeInboundResponse(Status.OK,
             IOUtils.toInputStream(MOCK_INGEST_INTERNAL_RESPONSE_STREAM),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
+    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamException {
+        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
+        return Response.status(Status.CREATED).build();
+    }
+
+    @Override
+    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamClientException {
+        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
+        // Nothing
     }
 }

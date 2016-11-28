@@ -1,0 +1,101 @@
+[ ca ]
+default_ca      = CA_default
+
+[ CA_default ]
+dir             = ./PKI
+certs           = $dir/CA/certs/server
+new_certs_dir   = $dir/newcerts
+database        = $dir/config/server/index.txt
+certificate     = $dir/CA/server/ca.crt
+serial          = $dir/config/server/serial
+private_key     = $dir/CA/server/ca.key
+default_days    = 3650
+default_md      = sha256
+preserve        = no
+policy          = policy_match
+unique_subject  = no
+
+[ CA_intermediate ]
+dir             = ./PKI
+certs           = $dir/CA/server_intermediate
+new_certs_dir   = $dir/newcerts
+database        = $dir/config/server/index.txt
+certificate     = $dir/CA/server_intermediate/ca.crt
+serial          = $dir/config/server/serial
+private_key     = $dir/CA/server_intermediate/ca.key
+default_days    = 1095
+default_md      = sha256
+preserve        = no
+policy          = policy_match
+unique_subject  = no
+
+
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = match
+localityName		= match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+distinguished_name      = req_distinguished_name
+
+[ req_distinguished_name ]
+countryName                     = Pays
+countryName_default             = FR
+stateOrProvinceName             = Departement
+stateOrProvinceName_default     = idf
+localityName                    = Ville
+localityName_default            = Paris
+organizationName        	= Organisation
+organizationName_default        = Vitam
+commonName                      = Nom ou URL
+commonName_max                  = 64
+emailAddress                    = Adresse Email
+emailAddress_max                = 40
+
+[CA_ROOT]
+nsComment                       = "CA Racine"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+basicConstraints                = critical,CA:TRUE,pathlen:1
+keyUsage                        = keyCertSign, cRLSign
+
+[CA_SSL]
+nsComment                       = "CA SSL"
+basicConstraints                = critical,CA:TRUE,pathlen:0
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+keyUsage                        = keyCertSign, cRLSign
+nsCertType                      = sslCA
+
+[TIMESTAMPING_RSA_SSL]
+nsComment                       = "Certificat Serveur SSL"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+subjectAltName                  = DNS:ingest-external.service.consul
+basicConstraints                = critical,CA:FALSE
+keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType                      = server
+extendedKeyUsage                = critical,timeStamping
+
+[CLIENT_RSA_SSL]
+nsComment                       = "Certificat Client SSL"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+issuerAltName                   = issuer:copy
+subjectAltName                  = critical,email:copy,email:etienne.carriere@culture.gouv.fr,email:user-ter@bdf.fr
+basicConstraints                = critical,CA:FALSE
+keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType                      = client
+extendedKeyUsage                = clientAuth
+
+
+[ extension_ca_root ]
+subjectKeyIdentifier			= hash
+authorityKeyIdentifier			= keyid:always,issuer
+basicConstraints 				= CA:true

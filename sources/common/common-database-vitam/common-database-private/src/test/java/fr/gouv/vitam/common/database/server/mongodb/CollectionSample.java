@@ -28,13 +28,15 @@ package fr.gouv.vitam.common.database.server.mongodb;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  *
  */
 public class CollectionSample extends VitamDocument<CollectionSample> {
 
     /**
-    * 
+    *
     */
     private static final long serialVersionUID = -132115596185118655L;
 
@@ -45,6 +47,27 @@ public class CollectionSample extends VitamDocument<CollectionSample> {
      * @throws IllegalArgumentException if Id is not a GUID
      */
     public CollectionSample(Document content) {
+        super(content);
+    }
+
+    /**
+     *
+     */
+    public CollectionSample() {
+        // Empty
+    }
+
+    /**
+     * @param content
+     */
+    public CollectionSample(JsonNode content) {
+        super(content);
+    }
+
+    /**
+     * @param content
+     */
+    public CollectionSample(String content) {
         super(content);
     }
 

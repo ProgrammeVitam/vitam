@@ -26,34 +26,105 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Abstract RequestResponse for all request response in Vitam
  *
  */
 public abstract class RequestResponse {
-    private JsonNode query = JsonHandler.createObjectNode();
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestResponse.class);
 
     /**
-     * @return the query as JsonNode of Response
+     * @return True if this RequestResponse is an Ok response
      */
-    public JsonNode getQuery() {
-        return query;
+    @JsonIgnore
+    public boolean isOk() {
+        return this instanceof RequestResponseOK;
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.unprettyPrint(this);
     }
 
     /**
-     * RequestResponse constructor
      *
-     * @param query the query of type JsonNode which will be setted for RequestResponse
-     * @return the updated RequestResponse Object
+     * @return the Json representation
+     * @throws IllegalStateException
      */
-    public RequestResponse setQuery(JsonNode query) {
-        if (query != null) {
-            this.query = query;
+    @JsonIgnore
+    public JsonNode toJsonNode() {
+        try {
+            return JsonHandler.getFromString(toString());
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException(e);
         }
-        return this;
+    }
+
+    /**
+     * Parser the response for a RequestResponse object.<br/>
+     * <br/>
+     * Might return an empty VitamError in case response is empty with only the HttpCode set and the Code set to empty
+     * String.
+     *
+     * @param response
+     * @return The associate RequestResponseOk or VitamError
+     * @throws IllegalStateException if the response cannot be parsed to one of the two model
+     */
+    @JsonIgnore
+    public static RequestResponse parseFromResponse(Response response) throws IllegalStateException {
+        final String result = response.readEntity(String.class);
+        if (result != null && !result.isEmpty()) {
+            if (result.contains("$hits")) {
+                try {
+                    return JsonHandler.getFromString(result, RequestResponseOK.class);
+                } catch (final InvalidParseOperationException e) {
+                    // Issue, trying VitamError model
+                    LOGGER.warn("Issue while decoding RequestResponseOk", e);
+                }
+            } else if (result.contains("httpCode")) {
+                try {
+                    return JsonHandler.getFromString(result, VitamError.class);
+                } catch (final InvalidParseOperationException e) {
+                    // Issue, while trying VitamError model
+                    LOGGER.warn("Issue while decoding VitamError", e);
+                }
+            }
+            throw new IllegalStateException("Cannot parse the response");
+        }
+        return new VitamError("UnknownCode").setHttpCode(response.getStatus()).setCode("");
+    }
+
+    /**
+     *
+     * @param response
+     * @return the RequestResponseOk
+     * @throws InvalidParseOperationException
+     */
+    @JsonIgnore
+    public static RequestResponseOK parseRequestResponseOk(Response response) throws InvalidParseOperationException {
+        return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+    }
+
+    /**
+     *
+     * @param response
+     * @return the VitamError
+     * @throws InvalidParseOperationException
+     */
+    @JsonIgnore
+    public static VitamError parseVitamError(Response response) throws InvalidParseOperationException {
+        return JsonHandler.getFromString(response.readEntity(String.class), VitamError.class);
     }
 }

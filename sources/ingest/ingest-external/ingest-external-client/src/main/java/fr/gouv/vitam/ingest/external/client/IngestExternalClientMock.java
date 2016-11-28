@@ -32,12 +32,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
@@ -45,13 +44,13 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 /**
  * Mock client implementation for IngestExternal
  */
-public class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
+class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
 
     @Override
     public Response upload(InputStream stream)
-        throws IngestExternalException, XMLStreamException {
+        throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }

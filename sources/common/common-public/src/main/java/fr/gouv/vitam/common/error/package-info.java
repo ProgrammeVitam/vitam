@@ -26,8 +26,8 @@
  *******************************************************************************/
 /**
  * Contains <br />
- * - services codes and their name  <br />
- * - domains codes and their name  <br />
+ * - services codes and their name <br />
+ * - domains codes and their name <br />
  * - public Vitam codes
  */
 package fr.gouv.vitam.common.error;

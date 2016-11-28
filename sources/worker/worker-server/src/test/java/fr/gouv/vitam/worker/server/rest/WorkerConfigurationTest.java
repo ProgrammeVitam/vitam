@@ -48,11 +48,5 @@ public class WorkerConfigurationTest {
 
         workerConfiguration.setJettyConfig("jettyFakeConfig");
         assertEquals("jettyFakeConfig", workerConfiguration.getJettyConfig());
-        workerConfiguration.setDbHost("localhost");
-        assertEquals("localhost", workerConfiguration.getDbHost());
-        workerConfiguration.setDbPort(55555);
-        assertEquals(55555, workerConfiguration.getDbPort());
-        workerConfiguration.setDbName("Vitam-test");
-        assertEquals("Vitam-test", workerConfiguration.getDbName());
     }
 }

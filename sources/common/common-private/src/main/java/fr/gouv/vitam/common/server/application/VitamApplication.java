@@ -27,21 +27,55 @@
 
 package fr.gouv.vitam.common.server.application;
 
-import java.nio.file.Path;
+import org.eclipse.jetty.server.Handler;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 
 /**
  * VitamApplication Interface
  *
  * @param <A> The VitamApplication final class
+ * @param <C> The VitamApplicationConfiguration final class
  */
-public interface VitamApplication<A extends VitamApplication<?>> {
+public interface VitamApplication<A extends VitamApplication<A, C>, C extends VitamApplicationConfiguration>
+    extends VitamApplicationInterface<A, C> {
+    /**
+     * Return the name as a string of your configuration file. Example : "logbook.conf" </br>
+     * Could be overridden if necessary
+     *
+     * @return the name of the application configuration file
+     */
+    String getConfigFilename();
+
+    /**
+     * @return the configuration
+     */
+    C getConfiguration();
+
+    /**
+     * Allow to override this method in Junit
+     *
+     * @param configuration
+     */
+    void setConfiguration(C configuration);
+
     /**
      *
-     * @param configPath
-     * @return the VitamApplication
+     * @return the Configuration Class
+     */
+    Class<C> getConfigurationType();
+
+    /**
+     * @return the application Handler
+     */
+    Handler getApplicationHandler();
+
+    /**
+     * Start the server as full daemon and blocking
+     *
      * @throws VitamApplicationServerException
      */
-    A configure(Path configPath) throws VitamApplicationServerException;
+    void run() throws VitamApplicationServerException;
+
 }

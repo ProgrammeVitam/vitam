@@ -32,6 +32,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 
+import javax.ws.rs.core.Response;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,7 +52,7 @@ public class RequestResultTest {
     @BeforeClass
     public static void init() {
         getObjectRequest = new GetObjectRequest("ti", "oi", "object");
-        getObjectResult = new GetObjectResult("ti", BYTES);
+        getObjectResult = new GetObjectResult("ti", Response.ok(BYTES).build());
         removeObjectRequest = new RemoveObjectRequest();
         removeObjectResult = new RemoveObjectResult();
         storageCapacityResult = new StorageCapacityResult("ti", 1000, 100);

@@ -4,7 +4,7 @@ JunitHelper
 MongoDb or Web Server Junit Support
 ***********************************
 
-Si dans un Junit, il est nécessaire d'activer un service utilisant un port, et ceci afin de favoriser un parallélisme maximal des tests unitaires, il est demandé de procéder comme suit :
+Si dans un Web Server Junit, il est nécessaire d'activer un service utilisant un port, et ceci afin de favoriser un parallélisme maximal des tests unitaires, il est demandé de procéder comme suit :
 
 .. code-block:: java
   

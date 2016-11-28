@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,11 +54,12 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * Tests UserInterfaceTransactionManager class
@@ -68,109 +71,120 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class UserInterfaceTransactionManagerTest {
     private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
     private static String SEARCH_UNIT_DSL_QUERY =
-        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
+        "{ \"$queries\": [{$eq : { #id : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
     private static String ID_UNIT = "1";
-    private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
+    private static String UNIT_DETAILS = "{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
     private static String SEARCH_RESULT =
-        "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+        "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_FIELD_IMPACTED_RESULT =
-        "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+        "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_UNIT_DSL_QUERY =
-        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
+        "{ \"$queries\": [{$eq : { '#id' : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String ALL_PARENTS =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
+        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static String ID_OBJECT_GROUP = "idOG1";
-    private static JsonNode unitDetails;
-    private static JsonNode searchResult;
-    private static JsonNode updateResult;
+    private static RequestResponse unitDetails;
+    private static RequestResponse searchResult;
+    private static RequestResponse updateResult;
     private static JsonNode allParents;
 
     private static AccessExternalClientFactory accessClientFactory;
     private static AccessExternalClient accessClient;
-    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
-    private static JsonNode sampleObjectGroup;
 
     @BeforeClass
     public static void setup() throws Exception {
-        unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
-        searchResult = JsonHandler.getFromString(SEARCH_RESULT);
-        updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT);
+        unitDetails = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(UNIT_DETAILS));
+        searchResult = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_RESULT));
+        updateResult = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT));
         allParents = JsonHandler.getFromString(ALL_PARENTS);
+    }
+
+    @Before
+    public void setupTests() throws Exception {
         PowerMockito.mockStatic(AccessExternalClientFactory.class);
         accessClientFactory = PowerMockito.mock(AccessExternalClientFactory.class);
         accessClient = org.mockito.Mockito.mock(AccessExternalClient.class);
         PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessClientFactory);
         PowerMockito.when(AccessExternalClientFactory.getInstance().getClient()).thenReturn(accessClient);
-        sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
     }
 
     @Test
     public void testSuccessSearchUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(accessClient.selectUnits(SEARCH_UNIT_DSL_QUERY)).thenReturn(searchResult);
-
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        when(accessClient.selectUnits(anyObject())).thenReturn(searchResult);
         // Test method
-        final JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
-        assertTrue(searchResult.get("$hint").get("total").textValue().equals("1"));
+        final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+        assertTrue(result.getHits().getTotal() == 1);
     }
 
     @Ignore
     @Test
     public void testSuccessGetArchiveUnitDetails()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
-
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT))
+            .thenReturn(unitDetails);
         // Test method
-        final JsonNode archiveDetails =
-            UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
-        assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
+        final RequestResponseOK archiveDetails =
+            (RequestResponseOK) UserInterfaceTransactionManager
+                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT);
+        assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
     @Test
     public void testSuccessUpdateUnits()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        when(accessClient.updateUnitbyId(UPDATE_UNIT_DSL_QUERY, ID_UNIT)).thenReturn(updateResult);
-
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        when(accessClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
-        final JsonNode updateResult = UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
-        assertTrue(updateResult.get("$hint").get("total").textValue().equals("1"));
+        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
+            .getFromString(UPDATE_UNIT_DSL_QUERY), "1");
+        assertTrue(results.getHits().getTotal() == 1);
     }
 
     @Ignore
     @Test
     public void testSuccessSelectObjectbyId()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException {
-        final JsonNode result = JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY);
-        when(accessClient.selectObjectById(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP)).thenReturn(result);
-
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException {
+        final RequestResponse result =
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
+            .thenReturn(result);
         // Test method
-        final JsonNode objectGroup =
-            UserInterfaceTransactionManager.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP);
+        final RequestResponseOK objectGroup =
+            (RequestResponseOK) UserInterfaceTransactionManager
+                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
         assertTrue(
-            objectGroup.get("$result").get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
+            objectGroup.getResults().get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
     }
 
     @Ignore
     @Test
     public void testSuccessGetObjectAsInputStream()
-        throws AccessExternalClientServerException, AccessExternalClientNotFoundException, InvalidParseOperationException, IOException {
-        when(accessClient.getObject(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
+        throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
+        InvalidParseOperationException, IOException {
+        when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1))
             .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
         // Test method
-        assertTrue(IOUtils.contentEquals(streamToTest,
-            UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1)));
+        // TODO: comment due to async mode, review this call (but test already ignored)
+        // assertTrue(IOUtils.contentEquals(streamToTest,
+        // UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
+        // );
     }
 
     @Test
@@ -184,14 +198,14 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(onePath.size() == 3);
 
         final JsonNode oneImmediateParent = onePath.get(0);
-        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID028") ||
-            oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID030"));
+        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID028") ||
+            oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID030"));
 
         final JsonNode nextParent = onePath.get(1);
-        assertTrue(nextParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID027"));
+        assertTrue(nextParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID027"));
 
         final JsonNode oneRoot = onePath.get(2);
-        assertTrue(oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID025") ||
-            oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID026"));
+        assertTrue(oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID025") ||
+            oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID026"));
     }
 }

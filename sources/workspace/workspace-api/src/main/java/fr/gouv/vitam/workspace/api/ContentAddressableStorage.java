@@ -30,6 +30,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
@@ -91,16 +94,17 @@ public interface ContentAddressableStorage {
      * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a container exists
      *
      * @param containerName name of container
      * @return boolean type
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
 
@@ -136,7 +140,7 @@ public interface ContentAddressableStorage {
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
      * @return boolean type
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     boolean isExistingFolder(String containerName, String folderName) throws ContentAddressableStorageServerException;
 
@@ -159,16 +163,38 @@ public interface ContentAddressableStorage {
 
     /**
      * Retrieves an object representing the data at location containerName/objectName
+     * <p>
+     * <b>WARNING</b> : use this method only if the response has to be consumed right away. If the response has to be
+     * forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync}
+     * instead
+     * </p>
      *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
-     * @return the object you intended to receive or empty array, if it doesn't exist.
+     * @return the object you intended to receive
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    public InputStream getObject(String containerName, String objectName)
+    public Response getObject(String containerName, String objectName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+
+    // TODO P1 : getObjectAsync should replace getObject in the future. and getObject uses should be reviewed
+    /**
+     * Retrieves an object representing the data at location containerName/objectName
+     *
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     * @param asyncResponse the asyncResponse
+     * @return the object you intended to receive
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
+     */
+    public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
@@ -191,10 +217,11 @@ public interface ContentAddressableStorage {
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
      * @return boolean type
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
 
-    public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageServerException;
+    public boolean isExistingObject(String containerName, String objectName)
+        throws ContentAddressableStorageServerException;
 
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
@@ -253,7 +280,7 @@ public interface ContentAddressableStorage {
      * @return container information like usableSpace and usedSpace
      * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
      *         exist
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
      */
     ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;

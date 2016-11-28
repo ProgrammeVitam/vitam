@@ -48,8 +48,9 @@ public enum VitamCode {
     TEST(ServiceName.VITAM, DomainName.TEST, "00", Status.INTERNAL_SERVER_ERROR, "message or message key and " +
         "parameter %s"),
 
-    GLOBAL_INTERNAL_SERVER_ERROR(ServiceName.VITAM, DomainName.NETWORK, "00", Status.INTERNAL_SERVER_ERROR, "Internal Server Error"),
-    
+    GLOBAL_INTERNAL_SERVER_ERROR(ServiceName.VITAM, DomainName.NETWORK, "00", Status.INTERNAL_SERVER_ERROR,
+        "Internal Server Error"),
+
     STORAGE_MISSING_HEADER(ServiceName.STORAGE, DomainName.ILLEGAL, "00", Status.PRECONDITION_FAILED, "Header are " +
         "missing"),
     STORAGE_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "00", Status.NOT_FOUND, "Storage not found"),

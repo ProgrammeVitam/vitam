@@ -35,7 +35,6 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -92,8 +91,6 @@ public class ValidationXsdUtilsTest {
                 SEDA_VITAM_VALIDATION_FILE));
     }
 
-    // FIXME P1 should be wrong but is True
-    @Ignore
     @Test(expected = SAXException.class)
     public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();

@@ -29,23 +29,20 @@ package fr.gouv.vitam.access.external.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfiguration;
-import fr.gouv.vitam.common.client2.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Access External Client Factory<br>
  *
- * Used to create access client : if configuration file does not exist 'access-client.conf',<br>
+ * Used to create access client : if configuration file does not exist 'access-external-client.conf',<br>
  * mock access client will be returned
  */
 public final class AccessExternalClientFactory extends VitamClientFactory<AccessExternalClient> {
-    /**
-     * Default client operation type
-     */
 
     private static final String CONFIGURATION_FILENAME = "access-external-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientFactory.class);
@@ -55,6 +52,7 @@ public final class AccessExternalClientFactory extends VitamClientFactory<Access
 
     private AccessExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
+        disableUseAuthorizationFilter();
     }
 
     /**

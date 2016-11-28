@@ -7,7 +7,7 @@
 
 - hosts: vitam
   roles:
-    - packetbeat
+     - {role: packetbeat, when: "ansible_virtualization_type != 'docker'"}
 
 - hosts: vitam
   roles:
@@ -15,11 +15,17 @@
 
 - hosts: hosts-mongo-express
   roles:
-    - mongo-express
+    - {role: mongo-express, when: "ansible_virtualization_type != 'docker'"}
+
+- hosts: elasticsearch
+  roles:
+    - {role: elasticsearch-head}
 
 - hosts: library
   roles:
-    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" } 
+    - {role: vitam, vitam_component: library, java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}", secret_platform: "false" }
+
+- include: ihm-recette.yml
 
 - hosts: reverse
   roles:

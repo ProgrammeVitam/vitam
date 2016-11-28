@@ -36,9 +36,9 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * 
+ *
  * Logbook parameters factory </br>
-
+ *
  * Factory to get LogbookParameters object </br>
  *
  * Example:
@@ -174,40 +174,6 @@ public class LogbookParametersFactory {
      *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
-     * @deprecated Use the other using more constrained values
-     */
-    @Deprecated
-    public static LogbookOperationParameters newLogbookOperationParameters(String eventIdentifier,
-        String eventType, String eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetailMessage,
-        String eventIdentifierRequest) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, outcome, eventTypeProcess);
-        final LogbookOperationParameters parameters = newLogbookOperationParameters();
-        return (LogbookOperationParameters) parameters
-            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier)
-            .putParameterValue(LogbookParameterName.eventType, eventType)
-            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess)
-            .setTypeProcess(eventTypeProcess)
-            .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
-    }
-
-    /**
-     * Get a new LogbookOperationParameters object
-     *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetailMessage
-     * @param eventIdentifierRequest
-     *
-     * @return the LogbookOperationParameters
-     * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
@@ -234,7 +200,8 @@ public class LogbookParametersFactory {
      * @param eventIdentifierProcess
      * @param eventTypeProcess
      * @param outcome
-     * @param outcomeDetailMessage
+     * @param subtask may be null
+     * @param appendedDetailMessage may be null
      * @param eventIdentifierRequest
      *
      * @return the LogbookOperationParameters
@@ -242,19 +209,18 @@ public class LogbookParametersFactory {
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetailMessage, String eventIdentifierRequest) {
+        StatusCode outcome, String subtask, String appendedDetailMessage, GUID eventIdentifierRequest) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType);
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
-        return (LogbookOperationParameters) parameters
+        parameters
             .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-            .putParameterValue(LogbookParameterName.eventType, eventType)
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
             .setTypeProcess(eventTypeProcess)
-            .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId());
+        parameters.setFinalStatus(eventType, subtask, outcome, appendedDetailMessage);
+        return parameters;
     }
 
     /**
@@ -290,41 +256,6 @@ public class LogbookParametersFactory {
             .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
             .putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier.getId());
-    }
-
-    /**
-     * Get a new LogbookLifeCycleUnitParameters object with objectIdentifier as String
-     *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetail
-     * @param outcomeDetailMessage
-     * @param objectIdentifier
-     *
-     * @return the LogbookLifeCycleUnitParameters
-     * @throws IllegalArgumentException if any parameter is null or empty
-     */
-    public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(GUID eventIdentifier,
-        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
-        String objectIdentifier) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
-            outcomeDetailMessage);
-        final LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters();
-        return (LogbookLifeCycleUnitParameters) parameters
-            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
-            .putParameterValue(LogbookParameterName.eventType, eventType)
-            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
-            .setTypeProcess(eventTypeProcess)
-            .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetail, outcomeDetail)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
     }
 
     /**

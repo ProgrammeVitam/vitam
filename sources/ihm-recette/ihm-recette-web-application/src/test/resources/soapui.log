@@ -1,0 +1,735 @@
+2016-11-08 17:28:40,463 INFO  [DefaultSoapUICore] initialized soapui-settings from [/home/lubla/soapui-settings.xml]
+2016-11-08 17:28:42,814 INFO  [PluginManager] Adding plugin from [/home/lubla/.soapuios/plugins/ready-mqtt-plugin-dist.jar]
+2016-11-08 17:28:42,814 INFO  [PluginManager] Adding plugin from [/home/lubla/.soapuios/plugins/soapui-swagger-plugin-2.2-dist.jar]
+2016-11-08 17:28:44,147 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory], see error log for details
+2016-11-08 17:28:44,148 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:44,154 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory], see error log for details
+2016-11-08 17:28:44,155 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:44,241 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory], see error log for details
+2016-11-08 17:28:44,241 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:44,243 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory], see error log for details
+2016-11-08 17:28:44,243 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:44,271 INFO  [PluginManager] Adding plugin from [/home/lubla/.soapuios/plugins/ready-uxm-plugin-1.0.1-dist.jar]
+2016-11-08 17:28:45,168 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory], see error log for details
+2016-11-08 17:28:45,169 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:45,170 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory], see error log for details
+2016-11-08 17:28:45,170 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:45,173 INFO  [PluginManager] Adding plugin from [/home/lubla/.soapuios/plugins/readyapi-swaggerhub-plugin-1.0.jar]
+2016-11-08 17:28:45,560 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory], see error log for details
+2016-11-08 17:28:45,560 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoImportMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:45,562 ERROR [SoapUI] An error occurred [com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory], see error log for details
+2016-11-08 17:28:45,562 ERROR [errorlog] java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+java.lang.ClassNotFoundException: com.eviware.soapui.plugins.auto.factories.AutoDiscoveryMethodFactory
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.net.URLClassLoader$1.run(Unknown Source)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+	at java.lang.ClassLoader.loadClass(Unknown Source)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Unknown Source)
+	at com.eviware.soapui.plugins.LoaderBase.loadAutoFactories(LoaderBase.java:96)
+	at com.eviware.soapui.plugins.LoaderBase.loadFactories(LoaderBase.java:64)
+	at com.eviware.soapui.plugins.PluginLoader.loadPluginFactories(PluginLoader.java:129)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:92)
+	at com.eviware.soapui.plugins.PluginLoader.loadPlugin(PluginLoader.java:42)
+	at com.eviware.soapui.plugins.PluginManager.doInstallPlugin(PluginManager.java:136)
+	at com.eviware.soapui.plugins.PluginManager.access$600(PluginManager.java:38)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.computeSequentially(PluginManager.java:415)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:372)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:377)
+	at com.eviware.soapui.plugins.PluginManager$LoadPluginsTask.compute(PluginManager.java:360)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.execTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.work(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+2016-11-08 17:28:45,569 INFO  [PluginManager] 4 plugins loaded in 2757 ms
+2016-11-08 17:28:45,569 INFO  [DefaultSoapUICore] All plugins loaded
+2016-11-08 17:28:46,390 INFO  [WsdlProject] Loaded project from [file:/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/story-tests.xml]
+2016-11-08 17:28:46,395 INFO  [SoapUITestCaseRunner] Setting project property [ingestHost] to [https://143.126.93.158:8443/]
+2016-11-08 17:28:46,398 INFO  [SoapUITestCaseRunner] Setting project property [logbookHost] to [http://143.126.93.158:9002/]
+2016-11-08 17:28:46,398 INFO  [SoapUITestCaseRunner] Setting project property [certfile] to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/k.all]
+2016-11-08 17:28:46,398 INFO  [SoapUITestCaseRunner] Setting project property [dataDir] to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/data/]
+2016-11-08 17:28:46,398 INFO  [SoapUITestCaseRunner] Setting project property [reportingDir] to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/report/]
+2016-11-08 17:28:46,399 INFO  [SoapUITestCaseRunner] Setting project property [configDir] to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/config/]
+2016-11-08 17:28:46,399 INFO  [SoapUITestCaseRunner] Running SoapUI tests in project [TestSIP]
+2016-11-08 17:28:46,400 INFO  [SoapUITestCaseRunner] Running Project [TestSIP], runType = SEQUENTIAL
+2016-11-08 17:28:46,727 INFO  [log] 
+congig  directory :/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/soapui/config/
+2016-11-08 17:28:46,790 INFO  [SoapUITestCaseRunner] Running SoapUI testcase [SIPTEST]
+2016-11-08 17:28:46,791 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:28:46,833 INFO  [log] #### Debut  du test ####
+2016-11-08 17:28:46,852 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:28:55,384 INFO  [log]  statusOK  =false result =  400 expected = 200
+2016-11-08 17:28:55,384 INFO  [log] false
+2016-11-08 17:28:55,384 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:28:55,437 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:28:55,478 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq 
+2016-11-08 17:28:55,501 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.228, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.230, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.233, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.235, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.236, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evDateTime=2016-11-08T20:08:37.201, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhgttaaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:28:55,503 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:28:55,507 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:28:55,507 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:28:55,509 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-0-FAILED.txt]
+2016-11-08 17:28:55,513 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:28:55,544 INFO  [log] ### Fin du test
+2016-11-08 17:28:55,544 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:28:55,544 INFO  [log] #### Debut  du test ####
+2016-11-08 17:28:55,545 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:01,894 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:01,894 INFO  [log] false
+2016-11-08 17:29:01,895 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:01,915 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:01,916 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhituyaaaaq 
+2016-11-08 17:29:01,935 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.378, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.380, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.382, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.384, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.385, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evDateTime=2016-11-08T20:08:45.371, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhituyaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:01,936 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:01,936 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:01,936 INFO  [log] ### Fin du test
+2016-11-08 17:29:01,937 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:01,937 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:01,937 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:08,272 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:08,273 INFO  [log] false
+2016-11-08 17:29:08,274 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:08,295 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:08,295 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq 
+2016-11-08 17:29:08,313 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.755, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.757, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.759, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.761, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.764, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evDateTime=2016-11-08T20:08:51.746, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhkfqyaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:08,313 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:08,314 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:29:08,315 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:29:08,316 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-2-FAILED.txt]
+2016-11-08 17:29:08,316 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:08,317 INFO  [log] ### Fin du test
+2016-11-08 17:29:08,317 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:08,317 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:08,317 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:14,631 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:14,631 INFO  [log] false
+2016-11-08 17:29:14,632 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:14,651 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:14,651 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq 
+2016-11-08 17:29:14,675 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.115, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.116, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.118, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.120, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.122, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evDateTime=2016-11-08T20:08:58.106, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhlxnaaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:14,675 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:14,676 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:14,676 INFO  [log] ### Fin du test
+2016-11-08 17:29:14,676 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:14,676 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:14,676 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:21,016 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:21,016 INFO  [log] false
+2016-11-08 17:29:21,017 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:21,036 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:21,036 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq 
+2016-11-08 17:29:21,058 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.499, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.501, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.503, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.504, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.507, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evDateTime=2016-11-08T20:09:04.491, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhnjdiaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:21,058 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:21,059 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:29:21,059 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:29:21,060 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-4-FAILED.txt]
+2016-11-08 17:29:21,060 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:21,060 INFO  [log] ### Fin du test
+2016-11-08 17:29:21,060 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:21,061 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:21,061 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:27,525 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:27,525 INFO  [log] false
+2016-11-08 17:29:27,525 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:27,541 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:27,541 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwho26qaaaaq 
+2016-11-08 17:29:27,562 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:11.002, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:11.004, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:11.008, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:11.010, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:11.012, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evDateTime=2016-11-08T20:09:10.991, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwho26qaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:27,562 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:27,562 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:27,563 INFO  [log] ### Fin du test
+2016-11-08 17:29:27,563 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:27,563 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:27,563 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:33,886 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:33,886 INFO  [log] false
+2016-11-08 17:29:33,887 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:33,907 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:33,907 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq 
+2016-11-08 17:29:33,930 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.369, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.371, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.373, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.375, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.377, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evDateTime=2016-11-08T20:09:17.360, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhqnziaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:33,931 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:33,932 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:33,932 INFO  [log] ### Fin du test
+2016-11-08 17:29:33,933 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:33,933 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:33,934 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:42,034 INFO  [log]  statusOK  =false result =  400 expected = 200
+2016-11-08 17:29:42,034 INFO  [log] false
+2016-11-08 17:29:42,034 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:42,046 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:42,047 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq 
+2016-11-08 17:29:42,059 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.918, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.920, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.921, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.937, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.941, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evDateTime=2016-11-08T20:09:23.907, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhsa4iaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:42,059 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:42,060 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:29:42,060 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:29:42,062 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-7-FAILED.txt]
+2016-11-08 17:29:42,062 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:42,062 INFO  [log] ### Fin du test
+2016-11-08 17:29:42,063 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:42,063 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:42,063 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:48,414 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:48,414 INFO  [log] false
+2016-11-08 17:29:48,415 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:48,447 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:48,450 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwht7baaaaaq 
+2016-11-08 17:29:48,466 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.896, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.900, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.902, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.904, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.906, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evDateTime=2016-11-08T20:09:31.881, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwht7baaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:48,466 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:48,467 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:29:48,467 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:29:48,468 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-8-FAILED.txt]
+2016-11-08 17:29:48,469 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:48,469 INFO  [log] ### Fin du test
+2016-11-08 17:29:48,469 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:48,469 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:48,469 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:29:54,792 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:29:54,792 INFO  [log] false
+2016-11-08 17:29:54,793 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:29:54,814 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:29:54,814 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq 
+2016-11-08 17:29:54,832 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.277, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.279, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.281, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.282, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.284, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evDateTime=2016-11-08T20:09:38.269, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhvrbyaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:29:54,833 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:29:54,833 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:29:54,834 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:29:54,835 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-9-FAILED.txt]
+2016-11-08 17:29:54,835 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:29:54,836 INFO  [log] ### Fin du test
+2016-11-08 17:29:54,836 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:29:54,836 INFO  [log] #### Debut  du test ####
+2016-11-08 17:29:54,836 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:30:01,171 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:30:01,172 INFO  [log] false
+2016-11-08 17:30:01,172 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:30:01,195 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:30:01,196 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq 
+2016-11-08 17:30:01,215 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.658, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.660, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.662, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.664, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.666, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evDateTime=2016-11-08T20:09:44.645, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhxczaaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:30:01,215 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:30:01,216 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:30:01,216 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:30:01,217 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-10-FAILED.txt]
+2016-11-08 17:30:01,217 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:30:01,218 INFO  [log] ### Fin du test
+2016-11-08 17:30:01,218 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:30:01,218 INFO  [log] #### Debut  du test ####
+2016-11-08 17:30:01,218 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:30:07,550 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:30:07,551 INFO  [log] false
+2016-11-08 17:30:07,552 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:30:07,570 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:30:07,571 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq 
+2016-11-08 17:30:07,594 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.035, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.036, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.038, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.040, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.042, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evDateTime=2016-11-08T20:09:51.008, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwhyuxyaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:30:07,595 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:30:07,596 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:30:07,596 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:30:07,598 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-11-FAILED.txt]
+2016-11-08 17:30:07,598 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:30:07,598 INFO  [log] ### Fin du test
+2016-11-08 17:30:07,599 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:30:07,599 INFO  [log] #### Debut  du test ####
+2016-11-08 17:30:07,599 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:30:14,069 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:30:14,069 INFO  [log] false
+2016-11-08 17:30:14,070 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:30:14,082 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:30:14,082 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq 
+2016-11-08 17:30:14,098 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.555, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.557, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.559, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.561, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.563, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evDateTime=2016-11-08T20:09:57.546, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh2gtiaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:30:14,098 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:30:14,099 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:30:14,099 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:30:14,100 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-12-FAILED.txt]
+2016-11-08 17:30:14,101 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:30:14,101 INFO  [log] ### Fin du test
+2016-11-08 17:30:14,101 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:30:14,101 INFO  [log] #### Debut  du test ####
+2016-11-08 17:30:14,102 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:30:20,760 INFO  [log]  statusOK  =false result =  500 expected = 200
+2016-11-08 17:30:20,761 INFO  [log] false
+2016-11-08 17:30:20,761 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:30:20,774 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:30:20,774 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq 
+2016-11-08 17:30:20,789 INFO  [log] {result={_tenant=0, outMessg=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, agIdAppSession=null, events=[{outMessg=Début du processus du contrôle sanitaire du SIP, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.246, outcome=STARTED, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}, {outMessg=Succès du contrôle sanitaire : aucun virus détecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.248, outcome=OK, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle de format, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.250, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=CHECK_CONTAINER, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}, {outMessg=Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.252, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=STP_SANITY_CHECK_SIP, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}, {outMessg=Entrée en échec, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.254, outcome=KO, evDetData=null, evTypeProc=INGEST, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}], agIdApp=null, agId={"Name":"11f7d754adcb","Role":"ingest-internal","PlatformId":425367}, obIdIn=null, evIdProc=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evDateTime=2016-11-08T20:10:04.236, outcome=STARTED, evDetData=null, _id=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, agIdSubm=null, evTypeProc=INGEST, agIdOrig=null, evIdReq=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, evType=PROCESS_SIP_UNITARY, obId=null, obIdReq=null, evId=aedqaaaaacaam7mxabpzsakyiwh3zlaaaaaq, outDetail=null}, hits={limit=1, total=1, offset=0}, query=null}
+2016-11-08 17:30:20,789 INFO  [log] ------------------------------------->resultat observé  KO
+2016-11-08 17:30:20,790 ERROR [SoapUI] An error occurred [assert resultat
+       |
+       false], see error log for details
+2016-11-08 17:30:20,791 ERROR [errorlog] Assertion failed: 
+
+assert resultat
+       |
+       false
+
+Assertion failed: 
+
+assert resultat
+       |
+       false
+
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:399)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:655)
+	at Script1.run(Script1.groovy:36)
+	at com.eviware.soapui.support.scripting.groovy.SoapUIGroovyScriptEngine.run(SoapUIGroovyScriptEngine.java:92)
+	at com.eviware.soapui.impl.wsdl.teststeps.WsdlGroovyScriptTestStep.run(WsdlGroovyScriptTestStep.java:141)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.runTestStep(AbstractTestCaseRunner.java:211)
+	at com.eviware.soapui.impl.wsdl.testcase.WsdlTestCaseRunner.runCurrentTestStep(WsdlTestCaseRunner.java:47)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:138)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestCaseRunner.internalRun(AbstractTestCaseRunner.java:46)
+	at com.eviware.soapui.impl.wsdl.support.AbstractTestRunner.run(AbstractTestRunner.java:129)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Unknown Source)
+	at java.util.concurrent.FutureTask.run(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.lang.Thread.run(Unknown Source)
+2016-11-08 17:30:20,792 ERROR [SoapUITestCaseRunner] details failed, exporting to [/home/lubla/workspaces/VITAM/vitam/sources/ihm-recette/ihm-recette-web-application/src/test/resources/TestSuite-SIPTEST-details-13-FAILED.txt]
+2016-11-08 17:30:20,793 INFO  [SoapUITestCaseRunner] running step [while]
+2016-11-08 17:30:20,793 INFO  [log] ### Fin du test
+2016-11-08 17:30:20,793 INFO  [SoapUITestCaseRunner] running step [init]
+2016-11-08 17:30:20,793 INFO  [log] #### Debut  du test ####
+2016-11-08 17:30:20,794 INFO  [SoapUITestCaseRunner] running step [upload]
+2016-11-08 17:30:28,781 INFO  [log]  statusOK  =false result =   expected = 200
+2016-11-08 17:30:28,782 INFO  [log] false
+2016-11-08 17:30:28,782 INFO  [SoapUITestCaseRunner] running step [find]
+2016-11-08 17:30:28,791 INFO  [SoapUITestCaseRunner] running step [details]
+2016-11-08 17:30:28,792 INFO  [log] curl http://143.126.93.158:9002/logbook/v1/operations/aedqaaaaacaam7mxabpzsakyiwh5nwaaaaaq 

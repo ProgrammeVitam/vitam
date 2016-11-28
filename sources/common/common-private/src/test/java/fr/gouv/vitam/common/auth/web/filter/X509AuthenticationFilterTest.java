@@ -26,59 +26,59 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.auth.web.filter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class X509AuthenticationFilterTest {
-//    X509AuthenticationFilter filter;
+    // X509AuthenticationFilter filter;
     private X509Certificate cert;
-    
-    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
+
+    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
     BigInteger serial = new BigInteger("1000000000000000");
-    
-    HttpServletRequest request = mock(HttpServletRequest.class);       
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
-    HttpServletRequest requestNull = mock(HttpServletRequest.class); 
-    
+    HttpServletRequest requestNull = mock(HttpServletRequest.class);
+
     @Before
     public void setUp() throws Exception {
         cert = mock(X509Certificate.class);
         when(cert.getEncoded()).thenReturn(certBytes);
         when(cert.getSerialNumber()).thenReturn(serial);
-        X509Certificate[] clientCertChain = new X509Certificate[]{cert};
-        
+        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+
         when(request.getRemoteHost()).thenReturn("127.0.0.1");
-        when(request.getAttribute( "javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
-        
+        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
+
         when(requestNull.getRemoteHost()).thenReturn("127.0.0.1");
     }
-    
+
     @Ignore
     @Test
-    public void givenFilterAccessDenied() throws Exception{
-        X509AuthenticationFilter filter = new X509AuthenticationFilter();
+    public void givenFilterAccessDenied() throws Exception {
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.onAccessDenied(request, response);
     }
-    
+
     @Test
-    public void givenFilterCreateToken() throws Exception{
-        X509AuthenticationFilter filter = new X509AuthenticationFilter();
+    public void givenFilterCreateToken() throws Exception {
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.createToken(request, response);
     }
-    
+
     @Test(expected = Exception.class)
-    public void givenFilterCreateTokenWhenClientCertChainNullThenThrowException() throws Exception{
-        X509AuthenticationFilter filter = new X509AuthenticationFilter();
+    public void givenFilterCreateTokenWhenClientCertChainNullThenThrowException() throws Exception {
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.createToken(requestNull, response);
     }
 

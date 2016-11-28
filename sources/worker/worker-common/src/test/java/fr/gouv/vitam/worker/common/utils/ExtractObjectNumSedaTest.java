@@ -34,6 +34,8 @@ import static org.mockito.Mockito.when;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
@@ -41,7 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -73,7 +75,7 @@ public class ExtractObjectNumSedaTest {
     public ExtractObjectNumSedaTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
     }
-    
+
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -81,14 +83,15 @@ public class ExtractObjectNumSedaTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(client);
-        
     }
 
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
-        when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        utils = SedaUtilsFactory.create();
+        when(client.getObject(anyObject(), anyObject())).thenReturn(Response.status(Status.OK).entity(seda).build());
+        final HandlerIO handlerIO = mock(HandlerIO.class);
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
+        utils = SedaUtilsFactory.create(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 
         assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();

@@ -37,6 +37,7 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
@@ -54,7 +55,7 @@ public class JavaExecuteScript {
      * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
-     * @throws IngestExternalException 
+     * @throws IngestExternalException
      * @throws IngestExternException
      * @throws FileNotFoundException
      */
@@ -91,6 +92,20 @@ public class JavaExecuteScript {
             }
         } catch (final IOException e) {
             throw new IngestExternalException(e);
+        } finally {
+            // TODO Until now, output is lost
+            watchdog.stop();
+            try {
+                pumpStreamHandler.stop();
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            out.reset();
+            try {
+                out.close();
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
         return exitValue;
     }

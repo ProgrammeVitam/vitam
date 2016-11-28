@@ -27,12 +27,12 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Worker configuration class mapping
  */
-public final class WorkerConfiguration extends DbConfigurationImpl {
+public final class WorkerConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String processingUrl;
     private String urlMetadata;

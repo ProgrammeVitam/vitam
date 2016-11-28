@@ -45,7 +45,7 @@ angular.module('archive.unit')
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
     'MGT_LABEL': 'Management',
-    'LIST_ITEM_LABEL': 'Valeur ',
+    'LIST_ITEM_LABEL': 'Valeur',
     'MGT_WITH_CSHARP_KEY': '#mgt'
   })
   .filter('filterSize', function() {
@@ -56,9 +56,10 @@ angular.module('archive.unit')
         number = Math.floor(Math.log(bytes) / Math.log(1024));
       return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     }})
-  .controller('ArchiveUnitController', function($scope, $http, $routeParams, ihmDemoFactory, $window, ARCHIVE_UNIT_MODULE_CONST,
-                                                ARCHIVE_UNIT_MODULE_FIELD_LABEL, ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL,
-                                                archiveDetailsService, $mdToast, $mdDialog){
+  .controller('ArchiveUnitController', function($scope, $http, $routeParams, $filter, ihmDemoFactory, $window,
+                                                ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
+                                                ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
+                                                $mdDialog, transferToIhmResult){
 
     var self = this;
 
@@ -162,7 +163,7 @@ angular.module('archive.unit')
             fieldSetSecond.isChild = true;
 
             if(angular.isArray(contentField)){
-              fieldSetSecond.fieldName = ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL + keyArrayIndex;
+              fieldSetSecond.fieldName = (fieldSet.fieldName ? fieldSet.fieldName : ARCHIVE_UNIT_MODULE_CONST.LIST_ITEM_LABEL) + ' ' + keyArrayIndex;
               keyArrayIndex = keyArrayIndex + 1;
             }
 
@@ -231,13 +232,13 @@ angular.module('archive.unit')
           // Archive unit updated: send new select query to back office
           // Find archive unit details
           var displayUpdatedArchiveCallBack = function (data) {
-            if(data.$result == null || data.$result == undefined ||
-              data.$hint == null || data.$hint == undefined) {
-              console.log("Erreur survenue à la mise à jour de l'archive unit");
-              self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+            if(data.$results == null || data.$results == undefined ||
+              data.$hits == null || data.$hits == undefined) {
+              console.log("Erreur survenue lors de la mise à jour de l'unité archivistique");
+              self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
             } else {
               // Archive unit found
-              self.archiveFields = data.$result[0];
+              self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
               //get archive object groups informations to be displayed in the table
               ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
                 .then(function (response) {
@@ -260,32 +261,33 @@ angular.module('archive.unit')
               // Refresh archive Details
               // Cancel EditMode
               self.isEditMode = false;
-              self.showAlert($event, "Info", "Mise à jour réussie de l'archive unit");
+              self.showAlert($event, "Info", "Mise à jour réussie de l'unité archivistique");
             }
           };
 
           var failureUpdateDisplayCallback = function(errorMsg){
             // Display error message
             console.log(errorMsg);
-            self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+            self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
           };
           archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
 
         }, function (error) {
           console.log('Update Archive unit failed : ' + error.message);
-          self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
+          self.showAlert($event, "Erreur", "Erreur survenue lors de la mise à jour de l'unité archivistique");
         });
     };
 
 // ************ Diplay Archive Unit Form dynamically ************* /
     self.refreshArchiveDetails = function () {
       var displayUpdatedArchiveCallBack = function (data) {
-        if(data.$result == null || data.$result == undefined ||
-          data.$hint == null || data.$hint == undefined) {
+        if(data.$results == null || data.$results == undefined ||
+          data.$hits == null || data.$hits == undefined) {
           console.log("errorMsg");
         } else {
           // Archive unit found
-          self.archiveFields = data.$result[0];
+          var results = transferToIhmResult.transferUnit(data.$results);
+          self.archiveFields = results[0];
 
           //get archive object groups informations to be displayed in the table
           ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
@@ -312,7 +314,7 @@ angular.module('archive.unit')
               // Add displayed unit details
               var displayedUnitDetails = {};
               displayedUnitDetails.Title = self.archiveFields.Title;
-              displayedUnitDetails._id = self.archiveId;
+              displayedUnitDetails["#id"] = self.archiveId;
 
               self.fullArchiveTree = [];
               angular.forEach(self.archiveTree, function(value) {
@@ -393,7 +395,7 @@ angular.module('archive.unit')
               // Add displayed unit details
               var displayedUnitDetails = {};
               displayedUnitDetails.Title = self.archiveFields.Title;
-              displayedUnitDetails._id = self.archiveId;
+              displayedUnitDetails["#id"] = self.archiveId;
 
               self.fullArchiveTree = [];
               angular.forEach(self.archiveTree, function(value) {
@@ -419,20 +421,46 @@ angular.module('archive.unit')
           angular.forEach(self.archiveFields, function(value, key) {
             if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
               key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+              var addedField = false;
+              if (angular.isArray(value)) {
+                var tmpValue = value;
+                self.archiveFields[key] = tmpValue[0];
+                value = tmpValue[0];
+                var fieldSet = buildSingleField(value, key, key, []);
+                 fieldSet.isModificationAllowed = true;
+
+                if (mainFields.indexOf(key) >= 0) {
+                  self.mainFields[key] = fieldSet;
+                } else {
+                  self.archiveArray.push(fieldSet);
+                }
+
+                tmpValue.forEach(function(objectValue, index) {
+                  if (index > 0) {
+                    var newKey = self.displayLabel(key, key) + ' ' + index;
+                    self.archiveFields[newKey] = objectValue;
+                    fieldSet = buildSingleField(objectValue, newKey, newKey, []);
+                    fieldSet.isModificationAllowed = true;
+                    self.archiveArray.push(fieldSet);
+                  }
+                });
+                addedField = true;
+              }
               // Get Title archive
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;
                 $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
                   $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
               }
-              var parents = [];
-              self.fieldSet = buildSingleField(value, key, key, parents);
-              self.fieldSet.isModificationAllowed = true;
 
-              if (mainFields.indexOf(key) >= 0) {
-                self.mainFields[key] = self.fieldSet;
-              } else {
-                self.archiveArray.push(self.fieldSet);
+              self.fieldSet = buildSingleField(value, key, key, []);
+              self.fieldSet.isModificationAllowed = true;
+              if (!addedField) {
+                if (mainFields.indexOf(key) >= 0 ) {
+                  self.mainFields[key] = self.fieldSet;
+                } else {
+                  self.archiveArray.push(self.fieldSet);
+                }
               }
             }
           });
@@ -546,20 +574,8 @@ angular.module('archive.unit')
       var options = {};
       options.usage = usage;
       options.version = version;
-      ihmDemoFactory.getObjectAsInputStream(objGId, options)
-        .then(function (response) {
-          var a = document.createElement("a");
-          document.body.appendChild(a);
-          var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream' }));
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          setTimeout(function() {
-            window.URL.revokeObjectURL(url);
-          }, 100);
-        },function (error) {
-          console.log('ERROR : '+error);
-        });
+      options.filename = fileName;
+      window.open(ihmDemoFactory.getObjectAsInputStreamUrl(objGId, options), '_blank');
     };
     // **************************************************************************** //
 

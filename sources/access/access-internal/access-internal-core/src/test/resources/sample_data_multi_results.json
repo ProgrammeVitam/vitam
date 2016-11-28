@@ -1,0 +1,26 @@
+{$results:[
+{
+  "#qualifiers" : {
+    "Thumbnail" : {
+      "versions" : [ {
+        "_id" : "aeaaaaaaaaaam7mxab574akys2qtseaaaaaq",
+        "FormatIdentification" : {
+          "Filename" : "Wrong name",
+          "FormatLitteral" : "Portable Network Graphics",
+          "MimeType" : "image/png",
+          "FormatId" : "fmt/12"
+        },
+        "FileInfo" : {
+          "Filename" : "Vitam-S\u00E9nsibilisation de l' API-V1.0.png",
+          "MimeType" : "plain/text",
+          "CreatingApplicationName" : "LibreOffice/Impress",
+          "CreatingApplicationVersion" : "5.0.5.2",
+          "CreatingOs" : "Windows_X86_64",
+          "CreatingOsVersion" : 10,
+          "LastModified" : "2016-06-23T12:45:20"
+        }
+      } ]
+    }
+  }
+}
+]}

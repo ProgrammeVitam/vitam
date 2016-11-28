@@ -44,15 +44,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -63,9 +60,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
 import fr.gouv.vitam.storage.driver.model.GetObjectResult;
@@ -75,28 +78,66 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
-public class ConnectionImplTest extends JerseyTest {
+public class ConnectionImplTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
     private static JunitHelper junitHelper;
-    private static int port;
     private static ConnectionImpl connection;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response get();
-
-        Response put();
-
-        Response post();
+    public ConnectionImplTest() {
+        super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
     }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        connection = new ConnectionImpl("http://" + HOSTNAME + ":" + port, "driverName");
+    }
+
+    @Override
+    public void beforeTest() throws VitamApplicationServerException {
+        try {
+            connection = DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
+        } catch (final StorageDriverException e) {
+            throw new VitamApplicationServerException(e);
+        }
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+
+        @Override
+        protected void platformSecretConfiguration() {
+            // None
+        }
+
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     @Path("/offer/v1")
@@ -148,7 +189,6 @@ public class ConnectionImplTest extends JerseyTest {
 
     @AfterClass
     public static void shutdownAfterClass() {
-        junitHelper.releasePort(port);
         try {
             connection.close();
         } catch (final Exception e) {
@@ -156,28 +196,17 @@ public class ConnectionImplTest extends JerseyTest {
         }
     }
 
-    @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
-    }
-
-    @Test(expected = StorageDriverException.class)
+    @Test(expected = VitamApplicationServerException.class)
     public void getStatusKO() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        connection.getStatus();
+        connection.checkStatus();
     }
 
     @Test
     public void getStatusNoContent() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         assertNotNull(connection.getServiceUrl());
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
-            connection.getStatus().getStatusInfo().getStatusCode());
+        connection.checkStatus();
     }
 
     @Test(expected = StorageDriverException.class)
@@ -427,6 +456,61 @@ public class ConnectionImplTest extends JerseyTest {
         assertNotNull(result);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void objectExistInOfferWithEmptyParameterThrowsException() throws Exception {
+        connection.objectExistsInOffer(null);
+    }
+
+    @Test
+    public void objectExistInOfferInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
+        try {
+            connection.objectExistsInOffer(request);
+            fail("Expected exception");
+        } catch (final StorageDriverException exc) {
+            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+        }
+    }
+
+    @Test
+    public void objectExistInOfferNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
+        try {
+            final boolean found = connection.objectExistsInOffer(request);
+            assertEquals(false, found);
+        } catch (final StorageDriverException exc) {
+            fail("Ne exception expected");
+        }
+    }
+
+    @Test
+    public void objectExistInOfferFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
+        try {
+            final boolean found = connection.objectExistsInOffer(request);
+            assertEquals(true, found);
+        } catch (final StorageDriverException exc) {
+            fail("Ne exception expected");
+        }
+    }
+
+
+    @Test
+    public void objectExistInOfferPreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        final GetObjectRequest request = new GetObjectRequest("0" + this, "guid", DataCategory.OBJECT.getFolder());
+        try {
+            connection.objectExistsInOffer(request);
+            fail("Expected exception");
+        } catch (final StorageDriverException exc) {
+            assertEquals(StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc.getErrorCode());
+        }
+    }
+
+
     private PutObjectRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
         boolean putTenantId, boolean putType)
         throws Exception {
@@ -457,7 +541,7 @@ public class ConnectionImplTest extends JerseyTest {
     private ObjectInit getPostObjectResult(int uniqueId) {
         final ObjectInit object = new ObjectInit();
         object.setId("" + uniqueId);
-        object.setDigestAlgorithm(DigestType.SHA256);
+        object.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
         object.setSize(1024);
         object.setType(DataCategory.OBJECT);
         return object;
@@ -471,7 +555,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     private JsonNode getStorageCapacityResult() throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
-        final JsonNode result = mapper.readTree("{\"tenantId\":\"0" + this +"\",\"usableSpace\":\"100000\"," +
+        final JsonNode result = mapper.readTree("{\"tenantId\":\"0" + this + "\",\"usableSpace\":\"100000\"," +
             "\"usedSpace\":\"100000\"}");
         return result;
     }

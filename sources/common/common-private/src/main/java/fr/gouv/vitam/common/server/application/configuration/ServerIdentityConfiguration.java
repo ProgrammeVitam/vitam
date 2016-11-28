@@ -35,7 +35,7 @@ package fr.gouv.vitam.common.server.application.configuration;
  * Your configuration class must implement it
  *
  */
-public interface ServerIdentityConfiguration extends VitamApplicationConfiguration {
+public interface ServerIdentityConfiguration {
     /**
      * Must return the value of a 'identityName' attribute
      *

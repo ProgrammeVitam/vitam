@@ -29,17 +29,14 @@ package fr.gouv.vitam.workspace.client;
 import java.net.URI;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 /**
  * WorkspaceClient factory for creating workspace client
  */
 public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClientFactory.class);
     private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory();
     private static final String RESOURCE_PATH = "/workspace/v1";
 
@@ -61,9 +58,9 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
     }
 
     /**
-     * change mode client by serveur url
-     * 
-     * @param configuration as String
+     * change mode client by server url
+     *
+     * @param serviceUrl as String
      */
     public static final void changeMode(String serviceUrl) {
         ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);

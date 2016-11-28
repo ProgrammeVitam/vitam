@@ -27,11 +27,41 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
  * Logbook configuration class mapping
  */
 public final class LogbookConfiguration extends DbConfigurationImpl {
     // Empty
+
+    private String p12LogbookPassword;
+
+    private String p12LogbookFile;
+
+    private String workspaceUrl;
+
+    public String getP12LogbookPassword() {
+        return p12LogbookPassword;
+    }
+
+    public void setP12LogbookPassword(String p12LogbookPassword) {
+        this.p12LogbookPassword = p12LogbookPassword;
+    }
+
+    public String getP12LogbookFile() {
+        return p12LogbookFile;
+    }
+
+    public void setP12LogbookFile(String p12LogbookFile) {
+        this.p12LogbookFile = p12LogbookFile;
+    }
+
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    public void setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
+    }
 }

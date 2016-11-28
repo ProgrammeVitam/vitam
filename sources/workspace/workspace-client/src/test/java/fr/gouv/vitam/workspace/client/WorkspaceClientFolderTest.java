@@ -48,11 +48,9 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.common.Entry;
 
 public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
@@ -169,40 +167,47 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     // check existence
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCheckFolderExistenceThenRaiseAnException() throws ContentAddressableStorageServerException {
+    public void givenNullParamWhenCheckFolderExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingFolder(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCheckFolderExistenceThenRaiseAnException() throws ContentAddressableStorageServerException{
+    public void givenEmptyParamWhenCheckFolderExistenceThenRaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.isExistingFolder(CONTAINER_NAME, "");
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnTrue() throws ContentAddressableStorageServerException {
+    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnTrue()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         assertTrue(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnFalse() throws ContentAddressableStorageServerException{
+    public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnFalse()
+        throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     // get URI list
     @Test(expected = IllegalArgumentException.class)
-    public void given_NullParam_When_FindingUriObjects_Then_RaiseAnException() throws ContentAddressableStorageServerException{
+    public void given_NullParam_When_FindingUriObjects_Then_RaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void given_EmptyParam_When_FindingUriObjects_Then_RaiseAnException() throws ContentAddressableStorageServerException  {
+    public void given_EmptyParam_When_FindingUriObjects_Then_RaiseAnException()
+        throws ContentAddressableStorageServerException {
         client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, "");
     }
 
     @Test
-    public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList() throws ContentAddressableStorageServerException {
+    public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList()
+        throws ContentAddressableStorageServerException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris = client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME);
         assertTrue(uris.isEmpty());

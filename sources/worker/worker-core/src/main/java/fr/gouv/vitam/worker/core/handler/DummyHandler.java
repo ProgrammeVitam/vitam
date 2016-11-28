@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
- * 
+ * Dummy Handler (for test purpose)
  */
 public class DummyHandler extends ActionHandler {
     private static final String HANDLER_ID = "DummyHandler";
@@ -46,15 +45,15 @@ public class DummyHandler extends ActionHandler {
     }
 
     /**
-     * 
+     *
      */
     public DummyHandler() {
         // Nothing to do . It is a dummy handler
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID));
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID));
     }
 
     @Override

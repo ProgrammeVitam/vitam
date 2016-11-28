@@ -48,12 +48,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperExceptio
 
 /**
  * The driver mapper implementation
- * 
- * Using file to persist driver / offer association. One file by driver (the filename
- * is the driver name). In the file, offers are isolated by delimiter.
+ *
+ * Using file to persist driver / offer association. One file by driver (the filename is the driver name). In the file,
+ * offers are isolated by delimiter.
  */
-
-//FIXME P0 : concurrent access ?
 
 public class FileDriverMapper implements DriverMapper {
 

@@ -31,24 +31,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 
 /**
  * AccessApplication Test class
  */
 public class AccessInternalApplicationTest {
 
-    private AccessInternalApplication application;   
+    private AccessInternalApplication application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
-    
+
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(portAvailable));
     }
 
     @After

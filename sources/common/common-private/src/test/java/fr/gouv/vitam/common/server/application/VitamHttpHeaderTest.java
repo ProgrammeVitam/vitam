@@ -54,7 +54,7 @@ public class VitamHttpHeaderTest {
         assertNotNull(name);
         assertEquals("X-Tenant-Id", name);
 
-        String regExp = VitamHttpHeader.METHOD_OVERRIDE.getRegExp();
+        final String regExp = VitamHttpHeader.METHOD_OVERRIDE.getRegExp();
         assertNotNull(regExp);
         assertEquals("get|patch|delete", regExp);
     }

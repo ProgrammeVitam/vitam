@@ -37,7 +37,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 /**
  * Test class for client (and parameters) factory
@@ -46,7 +46,8 @@ public class AccessInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        AccessInternalClientFactory.changeMode(AccessInternalClientFactory.changeConfigurationFile("access-client.conf"));
+        AccessInternalClientFactory
+            .changeMode(AccessInternalClientFactory.changeConfigurationFile("access-client.conf"));
     }
 
     @Test

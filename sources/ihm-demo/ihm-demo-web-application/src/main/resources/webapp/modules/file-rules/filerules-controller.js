@@ -68,7 +68,11 @@ angular.module('ihm.demo')
       ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
     }
       ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
-        ctrl.fileRulesList = response.data.sort(function (a, b) {
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          displayError("Il n'y a aucun résultat pour votre recherche");
+          return;
+        }
+        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
           return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
         });
         ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
@@ -82,7 +86,7 @@ angular.module('ihm.demo')
       ctrl.searchOptions = {};
       clearResults();
       ctrl.client.all('rules').post({RULES: "all", orderby: "RuleValue"}).then(function(response) {
-        ctrl.fileRulesList = response.data.sort(function (a, b) {
+        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
           return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
         });
         ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
@@ -114,13 +118,13 @@ angular.module('ihm.demo')
 
     self.getRulesEntry = function(id) {
       ihmDemoCLient.getClient('admin/rules').all(id).post({}).then(function(response) {
-        updateEntry(response.data);
+        updateEntry(response.data.$results[0]);
       });
     };
 
     self.getRulesEntryByRuleValue = function(ruleId) {
       ihmDemoCLient.getClient('admin').all('rules').post({RULES: "all", RuleValue: RuleValue}).then(function(response) {
-        updateEntry(response.data[0]);
+        updateEntry(response.data.$results[0]);
       });
     };
 

@@ -48,13 +48,12 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client2.BasicClient;
+import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -78,7 +77,7 @@ public class WorkerResourceTest {
     private static WorkerApplication application;
 
     private static Worker worker;
-    
+
     private static final String BODY_TEST_NOT_JSON = "body_test";
 
     private static final String WORKER_CONF = "worker-test.conf";
@@ -176,12 +175,12 @@ public class WorkerResourceTest {
     public final void testSubmitStepOK()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException, ContentAddressableStorageServerException {
-        
-        ItemStatus itemStatus= new ItemStatus("ID");
+
+        final ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
-        StatusCode status= StatusCode.OK;
+        final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
-        final CompositeItemStatus responses = new CompositeItemStatus("ID");
+        final ItemStatus responses = new ItemStatus("ID");
         Mockito.reset(worker);
 
         when(worker.run(anyObject(), anyObject())).thenReturn(responses);
@@ -223,6 +222,7 @@ public class WorkerResourceTest {
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
+
 
 }
 

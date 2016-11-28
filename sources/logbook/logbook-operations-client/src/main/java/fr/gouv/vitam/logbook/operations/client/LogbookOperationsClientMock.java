@@ -30,21 +30,21 @@ import java.util.Iterator;
 import java.util.Queue;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -57,48 +57,9 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
     private static final String UPDATE = "UPDATE";
     private static final String CREATE = "CREATE";
-    private static final String MOCK_SELECT_RESULT_1 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
-
-    private static final String MOCK_SELECT_RESULT_2 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
-
+    private static final String GUID_EXAMPLE = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq";
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-    
+
     @Override
     public void create(LogbookOperationParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -113,14 +74,6 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         logInformation(UPDATE, parameters);
     }
 
-    /**
-     *
-     * @return the default first answer
-     */
-    public static String getMockSelectOperationResult() {
-        return MOCK_SELECT_RESULT_1;
-    }
-
     private void logInformation(String operation, LogbookParameters parameters) {
         String result;
         try {
@@ -133,20 +86,25 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     }
 
     @Override
-    public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request:" + select);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
-        response.setQuery(JsonHandler.getFromString(select));
-        response.setResult(JsonHandler.getFromString('[' + MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookResults();
     }
 
     @Override
     public JsonNode selectOperationbyId(String id) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public RequestResponseOK traceability() throws InvalidParseOperationException {
+        LOGGER.debug("calling traceability ");
+        final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+
+        resultAsJson.add(GUID_EXAMPLE);
+
+        return new RequestResponseOK().setHits(1, 0, 1).addAllResults(resultAsJson);
     }
 
     @Override
@@ -163,7 +121,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     public void bulkCreate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookOperationParameters> iterator = queue.iterator();
+            final Iterator<LogbookOperationParameters> iterator = queue.iterator();
             if (iterator.hasNext()) {
                 logInformation(CREATE, iterator.next());
                 while (iterator.hasNext()) {
@@ -181,7 +139,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     public void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            Iterator<LogbookOperationParameters> iterator = queue.iterator();
+            final Iterator<LogbookOperationParameters> iterator = queue.iterator();
             while (iterator.hasNext()) {
                 logInformation(UPDATE, iterator.next());
             }
@@ -194,13 +152,13 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
     @Override
     public void commitCreateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
         bulkCreate(eventIdProc, queue);
     }
 
     @Override
     public void commitUpdateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
+        final Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
         bulkUpdate(eventIdProc, queue);
     }
 
@@ -209,5 +167,5 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         super.close();
         helper.clear();
     }
-    
+
 }

@@ -51,8 +51,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * abstract class for multi query request
  */
 public abstract class RequestMultiple extends AbstractRequest {
-    protected Set<String> roots = new HashSet<String>();
-    protected List<Query> queries = new ArrayList<Query>();
+    protected Set<String> roots = new HashSet<>();
+    protected List<Query> queries = new ArrayList<>();
 
     /**
      *
@@ -119,7 +119,7 @@ public abstract class RequestMultiple extends AbstractRequest {
             throw new InvalidCreateOperationException(
                 "Query is not ready to be added: " + query.getCurrentQuery());
         }
-        queries = new ArrayList<Query>();
+        queries = new ArrayList<>();
         queries.add(query);
         return this;
     }
@@ -170,9 +170,10 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      * Get the json final of request
-     * 
+     *
      * @return the Final containing all 3 parts: roots, queries array and filter
      */
+    @Override
     protected final ObjectNode getFinal() {
         final ObjectNode node = JsonHandler.createObjectNode();
         if (roots != null && !roots.isEmpty()) {

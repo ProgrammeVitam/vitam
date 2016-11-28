@@ -495,23 +495,28 @@ public abstract class BuilderToken {
     }
 
     /**
-     * Projection args model <br><br>
-     * 
+     * Projection args model <br>
+     * <br>
+     *
      * specific fields: nbunits, dua, ... <br>
      * $fields : [ #nbunits:1, #dua:1, #all:1... ]
      *
      * #all:1 means all, while #all:0 means none
      */
- 
+
     public static enum PROJECTIONARGS {
         /**
          * Id of the item
          */
         ID("id"),
         /**
-         * Number of units from each result (Unit = subUnit, ObjectGroup = objects)
+         * Number of units immediate children from this Unit
          */
         NBUNITS("nbunits"),
+        /**
+         * Number of objects within ObjectGroup
+         */
+        NBOBJECTS("nbobjects"),
         /**
          * All Dua for the result
          */
@@ -527,15 +532,21 @@ public abstract class BuilderToken {
         /**
          * Object size
          */
+        // FIXME P2 not valid
         SIZE("size"),
         /**
          * Object format
          */
+        // FIXME P2 not valid
         FORMAT("format"),
         /**
          * Unit/ObjectGroup type
          */
         TYPE("type"),
+        /**
+         * Unit/ObjectGroup Tenant
+         */
+        TENANT("tenant"),
         /**
          * Unit's ObjectGroup
          */
@@ -544,6 +555,22 @@ public abstract class BuilderToken {
          * Unit's immediate parents
          */
         UNITUPS("unitups"),
+        /**
+         * Unit's MIN distance from root
+         */
+        MIN("min"),
+        /**
+         * Unit's MAX distance from root
+         */
+        MAX("max"),
+        /**
+         * All Unit's parents
+         */
+        ALLUNITUPS("allunitups"),
+        /**
+         * Management bloc
+         */
+        MANAGEMENT("management"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -642,7 +669,7 @@ public abstract class BuilderToken {
      * }
      * </pre>
      */
-    
+
     /**
      * Update model
      *

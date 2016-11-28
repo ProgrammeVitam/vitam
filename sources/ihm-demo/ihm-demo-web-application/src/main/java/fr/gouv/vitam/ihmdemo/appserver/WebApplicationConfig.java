@@ -27,17 +27,17 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Web Application Configuration class
  */
-public class WebApplicationConfig {
+public class WebApplicationConfig extends DefaultVitamApplicationConfiguration {
 
     private int port;
     private String serverHost;
     private String baseUrl;
     private String staticContent;
-    private String jettyConfig;
     private boolean secure;
     private String sipDirectory;
 
@@ -106,27 +106,6 @@ public class WebApplicationConfig {
     public WebApplicationConfig setStaticContent(String staticContent) {
         ParametersChecker.checkParameter("staticContent is mandatory", staticContent);
         this.staticContent = staticContent;
-        return this;
-    }
-
-
-    /**
-     * getter jettyConfig
-     *
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config
-     */
-    public WebApplicationConfig setJettyConfig(String jettyConfig) {
-        ParametersChecker.checkParameter("jetty configuration is mandatory", staticContent);
-        this.jettyConfig = jettyConfig;
         return this;
     }
 

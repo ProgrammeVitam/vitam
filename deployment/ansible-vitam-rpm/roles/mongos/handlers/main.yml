@@ -1,0 +1,11 @@
+---
+# handlers file for common
+- name: reload consul configuration
+  service:
+    name: vitam-consul
+    state: reloaded
+
+- name: restart mongos
+  service:
+    name: vitam-mongos
+    state: restarted

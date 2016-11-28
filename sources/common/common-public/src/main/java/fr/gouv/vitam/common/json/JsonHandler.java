@@ -312,8 +312,8 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter(OBJECT, object);
-            return OBJECT_MAPPER.readTree(OBJECT_MAPPER.writeValueAsString(object));
-        } catch (final IOException | IllegalArgumentException e) {
+            return OBJECT_MAPPER.convertValue(object, JsonNode.class);
+        } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
     }
@@ -409,6 +409,25 @@ public final class JsonHandler {
             OBJECT_MAPPER.writeValue(outputStream, object);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     * Check if JsonNodes are not null and not empty
+     *
+     * @param message default message within exception
+     * @param nodes
+     * @throws IllegalArgumentException if nodes are null or empty
+     */
+    public static final void checkNullOrEmpty(final String message, final JsonNode... nodes) {
+        if (nodes != null) {
+            for (final JsonNode jsonNode : nodes) {
+                if (jsonNode == null || jsonNode.size() == 0) {
+                    throw new IllegalArgumentException(message);
+                }
+            }
+        } else {
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -560,7 +579,7 @@ public final class JsonHandler {
         } finally {
             try {
                 inputStream.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
@@ -581,22 +600,22 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
-            try {
-                return OBJECT_MAPPER.readValue(inputStream, clasz);
-            } finally {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            }
+            return OBJECT_MAPPER.readValue(inputStream, clasz);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 
 
     /**
+     * From one ArrayNode, get a new ArrayNode from offset to limit items
+     *
      * @param array
      * @param offset
      * @param limit

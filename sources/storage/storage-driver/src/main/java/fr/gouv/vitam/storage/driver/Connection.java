@@ -100,7 +100,7 @@ public interface Connection extends AutoCloseable {
 
     /**
      * Override AutoCloseable implementation to specify the exception
-     * 
+     *
      * @throws StorageDriverException to be thrown in case of any driver exception
      */
     @Override

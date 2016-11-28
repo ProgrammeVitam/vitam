@@ -41,10 +41,9 @@ angular.module('core')
   'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
   'UNIT_LIFECYCLE_TYPE': 'unit',
   'OG_LIFECYCLE_TYPE': 'objectgroup',
-  'SIP_TO_UPLOAD_URL': '/upload/fileslist',
-  'UPLOAD_SELECTED_SIP_URL': '/upload/',
-  'GENERATE_STAT_URL': '/stat/',
-  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register'
+  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register',
+  'CHECK_OPERATION_STATUS': '/check/',
+  'CLEAR_OPERATION_STATUS_HISTORY': '/clear/'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -84,6 +83,10 @@ angular.module('core')
         headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
   };
 
+  dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
+    return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId + '?usage=' + encodeURIComponent(options.usage) + '&version=' + encodeURIComponent(options.version) + '&filename=' + encodeURIComponent(options.filename);
+  };
+
   // LifeCycle details
   dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
     if (IHM_URLS.UNIT_LIFECYCLE_TYPE == lifeCycleType) {
@@ -98,24 +101,19 @@ angular.module('core')
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_TREE_URL + unitId, allParents);
   };
 
-  //Get Available SIP on server for upload
-  dataFactory.getAvailableSipForUpload = function(){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.SIP_TO_UPLOAD_URL);
-  };
-
-  // upload selected SIP
-  dataFactory.uploadSelectedSip = function(selectedFile){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.UPLOAD_SELECTED_SIP_URL + selectedFile);
-  };
-
-  // Generate INGEST statistics report
-  dataFactory.generateIngestStatReport = function(operationId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.GENERATE_STAT_URL + operationId);
-  };
-
   // Default Accession Register Search
   dataFactory.getAccessionRegisters = function(defaultCriteria){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.DEFAULT_ACCESSION_REGISTER_SEARCH_URL, defaultCriteria);
+  };
+
+  // Check operation status
+  dataFactory.checkOperationStatus = function(operationId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CHECK_OPERATION_STATUS + operationId, {timeout: 2000});
+  };
+
+  // Check operation status
+  dataFactory.cleanOperationStatus = function(operationId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY + operationId);
   };
 
   return dataFactory;
@@ -212,5 +210,33 @@ angular.module('core')
       }
     }
 
+  })
+  .factory('transferToIhmResult', function(){
+    return {
+        transferUnit : function(Result){
+         Result.forEach(function(unit) {
+            unit._id = unit["#id"];
+            delete unit["#id"];
+            unit._og = unit["#object"];
+            delete unit["#object"];
+            unit._ops = unit["#operations"];
+            delete unit["#operations"];
+            unit._tenant = unit["#tenant"];
+            delete unit["#tenant"];
+            unit._nbc = unit["#nbunits"];
+            delete unit["#nbunits"];
+            unit._up = unit["#unitups"];
+            delete unit["#unitups"];
+            unit._us = unit["#allunitups"];
+            delete unit["#allunitups"];
+            unit._min = unit["#min"];
+            delete unit["#min"];
+            unit._max = unit["#max"];
+            delete unit["#max"];
+	    unit._mgt = unit["#management"];
+            delete unit["#management"];
+        });
+        return Result;
+      }
+    }
   });
-

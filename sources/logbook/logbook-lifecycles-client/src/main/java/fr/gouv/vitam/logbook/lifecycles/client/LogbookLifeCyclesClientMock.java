@@ -27,27 +27,28 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
+import java.util.Iterator;
+
 import javax.ws.rs.HttpMethod;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
-import fr.gouv.vitam.common.client2.VitamRequestIterator;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
@@ -64,28 +65,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String COMMIT = "COMMIT";
     private static final String ROLLBACK = "ROLLBACK";
 
-    private static final String MOCK_SELECT_RESULT_1 = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
-
     @Override
-    public void create(LogbookParameters parameters)
+    public void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -97,7 +78,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void update(LogbookParameters parameters)
+    public void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -109,7 +90,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void commit(LogbookParameters parameters)
+    public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -121,7 +102,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void rollback(LogbookParameters parameters)
+    public void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
@@ -130,14 +111,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(ROLLBACK, parameters);
-    }
-
-    /**
-     *
-     * @return the default first answer
-     */
-    public static String getMockSelectOperationResult() {
-        return MOCK_SELECT_RESULT_1;
     }
 
     private void logInformation(String operation, LogbookParameters parameters) {
@@ -152,33 +125,84 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectObjectGroupLifeCycleById(String id) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
-        return new ObjectMapper().convertValue(response, JsonNode.class);
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
     public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-                "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+            "/", null, ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
     public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", null, JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+            "/", null, ClientMockResultHelper.getLogbookOperation());
     }
+
+    private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException {
+        if (queue != null) {
+            final Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            if (iterator.hasNext()) {
+                logInformation(CREATE, iterator.next());
+                while (iterator.hasNext()) {
+                    logInformation(UPDATE, iterator.next());
+                }
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    private void bulkUpdate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException {
+        if (queue != null) {
+            final Iterator<LogbookLifeCycleParameters> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                logInformation(UPDATE, iterator.next());
+            }
+        } else {
+            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(
+                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+        }
+    }
+
+    @Override
+    public void bulkCreateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        bulkCreate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkUpdateUnit(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkCreateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        bulkCreate(eventIdProc, queue);
+    }
+
+    @Override
+    public void bulkUpdateObjectGroup(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        bulkUpdate(eventIdProc, queue);
+    }
+
 }

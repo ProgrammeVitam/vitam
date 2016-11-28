@@ -36,7 +36,7 @@ public class AccessExternalExecutionException extends AccessExternalException {
 
     /**
      * constructor with message
-     * 
+     *
      * @param message message to associate with the exception
      */
     public AccessExternalExecutionException(String message) {
@@ -45,7 +45,7 @@ public class AccessExternalExecutionException extends AccessExternalException {
 
     /**
      * constructor with throwable
-     * 
+     *
      * @param cause cause to associate with the exception
      */
     public AccessExternalExecutionException(Throwable cause) {
@@ -54,7 +54,7 @@ public class AccessExternalExecutionException extends AccessExternalException {
 
     /**
      * constructor with message and throwable
-     * 
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

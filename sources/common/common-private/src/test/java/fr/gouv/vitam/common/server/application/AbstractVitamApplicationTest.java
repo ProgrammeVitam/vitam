@@ -27,74 +27,134 @@
 package fr.gouv.vitam.common.server.application;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
 
-import org.eclipse.jetty.server.Handler;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
 
 public class AbstractVitamApplicationTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplicationTest.class);
 
-    private static final String TEST_CONF_CONF = "test-conf.conf";
+    private static final String TEST_CONF_CONF = "benchmark-test.conf";
 
     private static class TestVitamApplication
-        extends AbstractVitamApplication<TestVitamApplication, DbConfigurationImpl> {
+        extends AbstractVitamApplication<TestVitamApplication, BenchmarkConfiguration> {
 
-        String conf = TEST_CONF_CONF;
+        protected TestVitamApplication(Class<BenchmarkConfiguration> configurationType, String config) {
+            super(configurationType, config);
+        }
 
-        protected TestVitamApplication(Class<TestVitamApplication> applicationType,
-            Class<DbConfigurationImpl> configurationType) {
-            super(applicationType, configurationType);
+        protected TestVitamApplication(Class<BenchmarkConfiguration> configurationType, BenchmarkConfiguration config) {
+            super(configurationType, config);
         }
 
         @Override
-        protected Handler buildApplicationHandler() {
-            return null;
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            // Do nothing
         }
-
-        @Override
-        protected String getConfigFilename() {
-            return conf;
-        }
-
     }
 
     @Test
     public final void testBuild() throws VitamApplicationServerException, FileNotFoundException {
-        final TestVitamApplication testVitamApplication =
-            new TestVitamApplication(TestVitamApplication.class, DbConfigurationImpl.class);
+        TestVitamApplication testVitamApplication =
+            new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
         final String filename1 = testVitamApplication.getConfigFilename();
         assertTrue(filename1.equals(TEST_CONF_CONF));
-        final Path path0 = testVitamApplication.computeConfigurationPathFromInputArguments();
-        final Path path1 = testVitamApplication.computeConfigurationPathFromInputArguments(
-            PropertiesUtils.getResourceFile(filename1).getAbsolutePath());
-        System.out.println(path0);
-        System.out.println(path1);
-        assertTrue(path0.equals(path1));
-        final TestVitamApplication testVitamApplication2 = testVitamApplication.configure(path0);
-        assertNotNull(testVitamApplication2);
-        assertNull(testVitamApplication.getApplicationHandler());
-        final DbConfigurationImpl configuration = testVitamApplication.getConfiguration();
+        assertNotNull(testVitamApplication.getApplicationHandler());
+        final BenchmarkConfiguration configuration = testVitamApplication.getConfiguration();
         assertNotNull(configuration);
-        assertEquals(45678, configuration.getDbPort());
-        assertEquals("localhost", configuration.getDbHost());
-        assertEquals("Vitam-test", configuration.getDbName());
-        testVitamApplication.conf = "fake-file-not-exist.conf";
+        assertEquals("jetty-config-benchmark-test.xml", configuration.getJettyConfig());
+        testVitamApplication =
+            new TestVitamApplication(BenchmarkConfiguration.class, configuration);
+        final String filename2 = testVitamApplication.getConfigFilename();
+        assertNull(filename2);
+        assertNotNull(testVitamApplication.getApplicationHandler());
+        final BenchmarkConfiguration configuration2 = testVitamApplication.getConfiguration();
+        assertEquals(configuration, configuration2);
+        assertEquals("jetty-config-benchmark-test.xml", configuration2.getJettyConfig());
+
+        final File file = PropertiesUtils.getResourceFile(TEST_CONF_CONF);
+        testVitamApplication =
+            new TestVitamApplication(BenchmarkConfiguration.class, file.getAbsolutePath());
+        final String filename3 = testVitamApplication.getConfigFilename();
+        assertTrue(filename3.equals(file.getAbsolutePath()));
+
         try {
-            testVitamApplication.computeConfigurationPathFromInputArguments();
-            fail("Should raized an exception");
-        } catch (final VitamApplicationServerException e) {
-            // ignore
+            testVitamApplication =
+                new TestVitamApplication(BenchmarkConfiguration.class, (String) null);
+            fail("should raized an exception");
+        } catch (final IllegalStateException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        try {
+            testVitamApplication =
+                new TestVitamApplication(BenchmarkConfiguration.class, (BenchmarkConfiguration) null);
+            fail("should raized an exception");
+        } catch (final IllegalStateException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
+    @Test
+    public void testMultipleServerSamePort() {
+        final int port = JunitHelper.getInstance().findAvailablePort();
+        final TestVitamApplication testVitamApplication =
+            new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
+        LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
+        assertFalse(testVitamApplication.getVitamServer().isStarted());
+        try {
+            testVitamApplication.start();
+        } catch (final VitamApplicationServerException e) {
+            fail("should not");
+        }
+        LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
+        assertTrue(testVitamApplication.getVitamServer().isStarted());
+        // Start second application
+        final TestVitamApplication testVitamApplication2 =
+            new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
+        LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort());
+        assertFalse(testVitamApplication2.getVitamServer().isStarted());
+        try {
+            testVitamApplication2.start();
+            fail("should not");
+        } catch (final VitamApplicationServerException e) {
+            LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort() + " but ", e);
+            assertFalse(testVitamApplication2.getVitamServer().isStarted());
+        }
+        try {
+            testVitamApplication.stop();
+        } catch (final VitamApplicationServerException e) {
+            fail("should not");
+        }
+        LOGGER.warn("Port: " + testVitamApplication.getVitamServer().getPort());
+        assertFalse(testVitamApplication.getVitamServer().isStarted());
+        try {
+            testVitamApplication2.start();
+        } catch (final VitamApplicationServerException e) {
+            fail("should not");
+        }
+        LOGGER.warn("Port: " + testVitamApplication2.getVitamServer().getPort());
+        assertTrue(testVitamApplication2.getVitamServer().isStarted());
+        try {
+            testVitamApplication2.stop();
+        } catch (final VitamApplicationServerException e) {
+            fail("should not");
+        }
+        JunitHelper.getInstance().releasePort(port);
+    }
 }

@@ -28,10 +28,12 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,9 +43,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -54,22 +56,24 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 /**
  * Accession Register Handler
  */
-public class AccessionRegisterActionHandler extends ActionHandler implements AutoCloseable {
+public class AccessionRegisterActionHandler extends ActionHandler implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIO handlerIO;
 
-    private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
+    private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
 
-    public static final int HANDLER_IO_PARAMETER_NUMBER = 4;
+    private static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
     private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
@@ -81,7 +85,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
      */
     public AccessionRegisterActionHandler() {
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
-            handlerInitialIOList.addInput(File.class);
+            handlerInitialIOList.add(File.class);
         }
     }
 
@@ -93,7 +97,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
     }
 
     @Override
-    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
@@ -102,12 +106,13 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
         handlerIO = handler;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
             }
-            AccessionRegisterDetail register = generateAccessionRegister(params);
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
+            final AccessionRegisterDetail register = generateAccessionRegister(params);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
+                    "register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
             }
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
@@ -120,48 +125,45 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
         }
 
         LOGGER.debug("TransferNotificationActionHandler response: " + itemStatus.getGlobalStatus());
-        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
+        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 
     private AccessionRegisterDetail generateAccessionRegister(WorkerParameters params) throws ProcessingException {
         AccessionRegisterDetail register = new AccessionRegisterDetail();
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        try {
-            final InputStream archiveUnitMapStream =
-                new FileInputStream((File) handlerIO.getInput().get(ARCHIVE_UNIT_MAP_RANK));
+        try (final InputStream archiveUnitMapStream =
+            new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
-                new FileInputStream((File) handlerIO.getInput().get(OBJECTGOUP_MAP_RANK));
+                new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput().get(BDO_TO_VERSION_BDO_MAP_RANK));
+                new FileInputStream((File) handlerIO.getInput(BDO_TO_VERSION_BDO_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handlerIO.getInput().get(SEDA_PARAMETERS_RANK))
+                JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
             if (sedaParameters != null) {
-                JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                final JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
                 if (node != null) {
-                    JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    final JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
                     } else {
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
-                    JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                    final JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
                     } else {
@@ -176,7 +178,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
 
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
-            final long objectsSizeInSip = SedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             register = new AccessionRegisterDetail()
                 .setId(params.getContainerName())
                 .setOriginatingAgency(originalAgency)
@@ -196,7 +199,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
                 .setObjectSize(new RegisterValueDetail()
                     .setTotal(objectsSizeInSip)
                     .setRemained(objectsSizeInSip));
-        } catch (FileNotFoundException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
         }
@@ -205,5 +208,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
     }
 
     @Override
-    public void close() throws Exception {}
+    public void close() {
+        // Empty
+    }
 }

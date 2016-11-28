@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.api;
 
+import javax.ws.rs.container.AsyncResponse;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -93,7 +95,8 @@ public interface AccessInternalModule {
 
     /**
      * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
-     * 
+     *
+     * @param asyncResponse the async Response
      * @param idObjectGroup The Object Group Id
      * @param queryJson the DSL query
      * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
@@ -107,7 +110,7 @@ public interface AccessInternalModule {
      * @throws InvalidParseOperationException when a query is badly structured
      * @throws AccessInternalExecutionException For other technical errors
      */
-    AccessBinaryData getOneObjectFromObjectGroup(String idObjectGroup, JsonNode queryJson,
+    AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup, JsonNode queryJson,
         String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;

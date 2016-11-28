@@ -29,11 +29,12 @@ package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -43,18 +44,33 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 public interface IngestInternalClient extends MockOrRestClient {
 
     /**
-     * 
+     *
      * Upload compressed SIP as stream
-     * 
-     * @param guid
+     *
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
-     * @param logbookParametersList list of log book parameters {@link LogbookParameters}
      * @throws VitamException if stream is null
      * @return Response {@link Response}
-     * 
+     *
      */
-    Response upload(GUID guid, Iterable<LogbookOperationParameters> logbookParametersList, InputStream inputStream,
-        String archiveType) throws VitamException;
+    Response upload(InputStream inputStream, MediaType archiveType) throws VitamException;
 
+    /**
+     * Create only Logbook
+     *
+     * @param logbookParametersList
+     * @return Response as just CREATED
+     * @throws VitamException
+     */
+    Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamException;
+
+    /**
+     * Finalize the ingest operation by sending back the final Logbook Operation entries from Ingest external
+     *
+     * @param logbookParametersList
+     * @throws VitamClientException
+     */
+    void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamClientException;
 }

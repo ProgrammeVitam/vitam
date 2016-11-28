@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+This role installs a Apache server as a reverse proxy for VITAM components && creates a landing page with usefull links.
 
 Requirements
 ------------
@@ -30,7 +30,7 @@ Including an example of how to use your role (for instance, with variables passe
 License
 -------
 
-BSD
+CeCill
 
 Author Information
 ------------------

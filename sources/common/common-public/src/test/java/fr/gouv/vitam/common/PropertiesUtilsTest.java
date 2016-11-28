@@ -132,6 +132,14 @@ public class PropertiesUtilsTest {
         } catch (final IOException e) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try (
+            InputStream inputStream = PropertiesUtils.getConfigAsStream(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES)) {
+            //
+        } catch (final FileNotFoundException e) {
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        } catch (final IOException e) {
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
     }
 
     static class ConfigurationTest {
@@ -175,7 +183,7 @@ public class PropertiesUtilsTest {
             final Map<String, Object> testMap = PropertiesUtils.readYaml(
                 PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 new TypeReference<Map<String, Object>>() {});
-            assertEquals("test", (String) testMap.get("test"));
+            assertEquals("test", testMap.get("test"));
             assertEquals(12346, (int) testMap.get("number"));
         } catch (final IOException e1) {
             e1.printStackTrace();

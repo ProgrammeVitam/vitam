@@ -77,7 +77,7 @@ public class SysErrLogger {
      * Used only in classes where VitamLogger is not allowed
      *
      * @param message
-     * @param e 
+     * @param e
      */
     public void syserr(String message, Throwable e) {
         System.err.print("ERROR " + message + ": "); // NOSONAR

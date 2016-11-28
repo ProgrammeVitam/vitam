@@ -26,10 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.api;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -88,7 +91,7 @@ public interface LogbookOperations {
 
     /**
      * Create one Logbook Operation with already multiple sub-events
-     * 
+     *
      * @param operationArray with first and next events to add/update
      *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
@@ -102,14 +105,55 @@ public interface LogbookOperations {
      * Update one Logbook Operation with multiple sub-events <br>
      * <br>
      * It adds this new entry within the very same Logbook Operaton entry in "events" array.
-     * 
+     *
      * @param operationArray containing all operations Logbook in order
-     * 
+     *
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
     void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Select all logbook operations entries after a given date
+     *
+     * @param date the select request in format of JsonNode
+     * @return the Closeable MongoCursor of LogbookOperation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws InvalidCreateOperationException
+     */
+    MongoCursor<LogbookOperation> selectAfterDate(LocalDateTime date)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
+        InvalidCreateOperationException;
+
+
+    /**
+     * Find One logbook TraceabilityOperation after a given date
+     *
+     * @param date the select request in format of JsonNode
+     * @return the LogbookOperation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws InvalidCreateOperationException
+     */
+    LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
+
+
+    /**
+     * @return the last valid traceability operation
+     * @throws InvalidCreateOperationException
+     * @throws LogbookNotFoundException
+     * @throws LogbookDatabaseException
+     * @throws InvalidParseOperationException
+     */
+    LogbookOperation findLastTraceabilityOperationOK()
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
+        InvalidParseOperationException;
+
 
 }

@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -56,7 +55,6 @@ import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -102,6 +100,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         "runtime exceptions thrown by the Process distributor during runnig...";
     private static final String ELEMENT_UNITS = "Units";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
+    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private static final Map<String, NavigableMap<String, WorkerBean>> WORKERS_LIST = new HashMap<>();
     private final List<String> availableWorkers = new ArrayList<>();
@@ -135,24 +134,27 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Empty constructor
      */
-    public ProcessDistributorImpl() {}
+    public ProcessDistributorImpl() {
+        // Empty
+    }
 
     // FIXME P1 : make this method (distribute()) more generic
     @Override
-    public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
-        final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
+        final ItemStatus responses = new ItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
-        //WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
+        // WorkspaceClientFactory.changeMode(workParams.getUrlWorkspace());
         try {
             // update workParams
-            LOGGER.debug("Status {}", ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId));
+            LOGGER.debug("Status {}",
+                ProcessMonitoringImpl.getInstance().getFinalWorkflowStatus(processId));
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
-                ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId).toString());
+                ProcessMonitoringImpl.getInstance().getFinalWorkflowStatus(processId).name());
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -160,12 +162,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     // Test regarding Unit to be indexed
                     if (step.getDistribution().getElement().equals(ELEMENT_UNITS)) {
-                        objectsList = new ArrayList<URI>();
+                        objectsList = new ArrayList<>();
 
                         // get the file to retrieve the GUID
                         final InputStream levelFile =
-                            workspaceClient.getObject(workParams.getContainerName(),
-                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                            (InputStream) workspaceClient.getObject(workParams.getContainerName(),
+                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK).getEntity();
                         final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
                         while (iteratorlLevelFile.hasNext()) {
@@ -186,15 +188,17 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     }
                     // Iterate over Objects List
                     if (objectsList == null || objectsList.isEmpty()) {
-                        responses.setItemsStatus("OBJECTS_LIST_EMPTY", getItemStatus("OBJECTS_LIST_EMPTY", StatusCode.WARNING));
+                        responses.setItemsStatus(OBJECTS_LIST_EMPTY,
+                            getItemStatus(OBJECTS_LIST_EMPTY, StatusCode.WARNING));
                     } else {
                         // update the number of element to process
                         ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(),
                             false);
                         for (final URI objectUri : objectsList) {
                             if (availableWorkers.isEmpty()) {
-                                LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
-                                responses.setItemsStatus("WORKERS_LIST_EMPTY", getItemStatus("WORKERS_LIST_EMPTY", StatusCode.FATAL));
+                                LOGGER.error("available Workers List is empty()" + StatusCode.FATAL.toString());
+                                responses.setItemsStatus("WORKERS_LIST_EMPTY",
+                                    getItemStatus("WORKERS_LIST_EMPTY", StatusCode.FATAL));
                                 break;
                             } else {
                                 // Load configuration
@@ -202,15 +206,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                                 // run step
                                 workParams.setObjectName(objectUri.getPath());
-                                final CompositeItemStatus actionsResponse;
+                                final ItemStatus actionsResponse;
                                 try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
                                     actionsResponse =
-                                        workerClient.submitStep("requestId",
-                                            new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                                        workerClient.submitStep(
+                                            new DescriptionStep(step, workParams));
                                 }
-                                // FIXME P1 : This is inefficient. The aggregation of results must be placed here and not
-                                // in
-                                // ProcessResponse
+                                // FIXME P1 : This is inefficient. The aggregation of results must be placed here and
+                                // not in ProcessResponse
                                 responses.setItemsStatus(actionsResponse);
                                 // update the number of processed element
                                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
@@ -218,7 +221,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                                 // then break the process
                                 if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
-                                    responses.getGlobalStatus().isGreaterOrEqualToKo()) {
+                                    responses.getGlobalStatus().isGreaterOrEqualToFatal()) {
                                     break;
                                 }
                             }
@@ -229,15 +232,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {
-                    LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
+                    LOGGER.error("available Workers List is empty()" + StatusCode.FATAL.toString());
                     responses.increment(StatusCode.FATAL);
                 } else {
                     // TODO P1 : management of parallel distribution and availability
                     loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                     workParams.setObjectName(step.getDistribution().getElement());
                     responses.setItemsStatus(
-                        WorkerClientFactory.getInstance().getClient().submitStep("requestId",
-                            new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
+                        WorkerClientFactory.getInstance().getClient().submitStep(
+                            new DescriptionStep(step, workParams)));
                     // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }
@@ -302,7 +305,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
         } else {
             LOGGER.debug("Family unknown");
-            final NavigableMap<String, WorkerBean> familyWorkers = new TreeMap<String, WorkerBean>();
+            final NavigableMap<String, WorkerBean> familyWorkers = new TreeMap<>();
 
             familyWorkers.put(workerId, worker);
             WORKERS_LIST.put(familyId, familyWorkers);
@@ -327,9 +330,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             throw new WorkerFamilyNotFoundException("Worker Family does not exist");
         }
     }
-    
-    private ItemStatus getItemStatus(String label, StatusCode statusCode){
+
+    private ItemStatus getItemStatus(String label, StatusCode statusCode) {
         return new ItemStatus(label).increment(statusCode);
-        
+
+    }
+
+    @Override
+    public void close() {
+        // Nothing
     }
 }

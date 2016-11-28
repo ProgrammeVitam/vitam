@@ -17,11 +17,15 @@ hosts-mongo-express
 
 ########### Extra VITAM applications ###########
 
-[library] 
+[library]
 # TODO: Put here servers where this service will be deployed : library
 
-[hosts-mongo-express] 
+[hosts-mongo-express]
 # TODO: Put here servers where this service will be deployed : mongo-express
+
+[elasticsearch:children] # EXTRA : elasticsearch
+hosts-elasticsearch-data
+hosts-elasticsearch-log
 
 ########### VITAM services ###########
 
@@ -41,7 +45,7 @@ zone-admin
 [zone-external:children]
 hosts-ihm-demo
 
-[hosts-ihm-demo] 
+[hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
 
 
@@ -52,7 +56,7 @@ hosts-ihm-demo
 hosts-ingest-external
 hosts-access-external
 
-[hosts-ingest-external] 
+[hosts-ingest-external]
 # TODO: Put here servers where this service will be deployed : ingest-external
 
 
@@ -139,7 +143,7 @@ mongos
 mongoc
 mongod
 
-[mongos] 
+[mongos]
 # TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
 # Example : vitam-iaas-mongos-01.int shard_id=0
 
@@ -160,19 +164,22 @@ mongod
 hosts-consul-server
 hosts-log-server
 hosts-elasticsearch-log
+hosts-mongoclient
 
-[hosts-consul-server] 
+[hosts-consul-server]
 # TODO: Put here servers where this service will be deployed : consul
 
 
-[hosts-log-server] 
+[hosts-log-server]
 # TODO: Put here servers where this service will be deployed : log-server (kibana/logstash)
 
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
 
-
+[hosts-mongoclient]
+# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
+# Example : vitam-iaas-mongos-01.int shard_id=0
 
 ########### Global vars ###########
 
@@ -180,22 +187,14 @@ hosts-elasticsearch-log
 # Declare user for ansible on target machines
 ansible_ssh_user=
 
-# Can target user become as root ? true/false 
-ansible_become=
-
-# DEPRECATED
-# TODO: remove
-local_user=
+# Can target user become as root ? ; true is required by VITAM (usage of a sudoer is mandatory)
+ansible_become=true
 
 # Environment (defines consul environment name ; in extra on homepage)
 environnement=
 
-# For extra ; used when VITAM is under a reverse proxy (provides configuration for reverse proxy && displayed in header page)
-vitam_reverse_domain=
-
-# DEPRECATED
-# TODO : remove
-vitam_ihm_demo_external_dns=
+# EXTRA : FQDN of the front reverse-proxy ; used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
+vitam_reverse_external_dns=
 
 # Version that has to be deployed (defined in the release note)
 # Example: rpm_version=0.9.0-RC1*
@@ -205,7 +204,7 @@ rpm_version=
 #	Days before deletion on log management cluster; 365 for production environment
 days_to_delete=
 
-#	Days before claosing "old" indexes on log management cluster; 30 for production environment
+#	Days before closing "old" indexes on log management cluster; 30 for production environment
 days_to_close=
 
 #	Days before deletion for topbeat index only on log management cluster; 365 for production environment
@@ -214,3 +213,22 @@ days_to_delete_topbeat=
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
 dns_servers=
+
+#	LOG level defined in logback files ; can be a value in "ERROR","WARN","INFO","DEBUG","TRACE". Recommended value is "WARN"
+log_level=
+# FOr SoapUI files tests
+web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
+
+# For reverse proxy use
+reverse_proxy_port=80
+
+# For metrics
+# curator job : days before closing
+days_to_close_metrics=7
+# curator job : days before deleting
+days_to_delete_metrics=30
+# Installation ClamAV ? true/false
+installation_clamav=true
+
+# cas de l'appel au webDAV pour récupérer les jeux de tests
+http_proxy_environnement=

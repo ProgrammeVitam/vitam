@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 import org.bson.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -59,26 +60,41 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         append(TENANT, 0);
     }
 
-
     /**
      * Constructor
-     * 
+     *
      * @param document
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
         // FIXME P1
         append(TENANT, 0);
-
     }
 
+    /**
+     * @param content
+     */
+    public AccessionRegisterDetail(JsonNode content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
+
+    /**
+     * @param content
+     */
+    public AccessionRegisterDetail(String content) {
+        super(content);
+        // FIXME P1
+        append(TENANT, 0);
+    }
 
     /**
      * @param id
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setId(String id) {
-        this.append(VitamDocument.ID, id);
+        append(VitamDocument.ID, id);
         return this;
     }
 
@@ -87,7 +103,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setOriginatingAgency(String orgAgency) {
-        this.append(ORIGINATING_AGENCY, orgAgency);
+        append(ORIGINATING_AGENCY, orgAgency);
         return this;
     }
 
@@ -96,7 +112,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return String
      */
     public String getOriginatingAgency() {
-        return this.getString(ORIGINATING_AGENCY);
+        return getString(ORIGINATING_AGENCY);
     }
 
     /**
@@ -104,7 +120,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return this
      */
     public AccessionRegisterDetail setSubmissionAgency(String subAgency) {
-        this.append(SUBMISSION_AGENCY, subAgency);
+        append(SUBMISSION_AGENCY, subAgency);
         return this;
     }
 
@@ -113,7 +129,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStartDate(String startDate) {
-        this.append(START_DATE, startDate);
+        append(START_DATE, startDate);
         return this;
     }
 
@@ -122,7 +138,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setEndDate(String endDate) {
-        this.append(END_DATE, endDate);
+        append(END_DATE, endDate);
         return this;
     }
 
@@ -130,7 +146,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return String
      */
     public String getEndDate() {
-        return this.getString(END_DATE);
+        return getString(END_DATE);
     }
 
     /**
@@ -138,7 +154,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
-        this.append(LAST_UPDATE, lastUpdate);
+        append(LAST_UPDATE, lastUpdate);
         return this;
     }
 
@@ -147,7 +163,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalUnits(RegisterValueDetail totalUnits) {
-        this.append(TOTAL_UNITS, totalUnits);
+        append(TOTAL_UNITS, totalUnits);
         return this;
     }
 
@@ -163,7 +179,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalObjectGroups(RegisterValueDetail totalObjectGroups) {
-        this.append(TOTAL_OBJECTGROUPS, totalObjectGroups);
+        append(TOTAL_OBJECTGROUPS, totalObjectGroups);
         return this;
     }
 
@@ -179,7 +195,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return this
      */
     public AccessionRegisterDetail setTotalObjects(RegisterValueDetail total) {
-        this.append(TOTAL_OBJECTS, total);
+        append(TOTAL_OBJECTS, total);
         return this;
     }
 
@@ -195,7 +211,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setObjectSize(RegisterValueDetail objectSize) {
-        this.append(OBJECT_SIZE, objectSize);
+        append(OBJECT_SIZE, objectSize);
         return this;
     }
 
@@ -211,7 +227,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStatus(AccessionRegisterStatus status) {
-        this.append(STATUS, status.name());
+        append(STATUS, status.name());
         return this;
     }
 

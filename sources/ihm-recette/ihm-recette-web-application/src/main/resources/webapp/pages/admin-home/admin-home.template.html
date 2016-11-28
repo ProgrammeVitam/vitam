@@ -1,0 +1,149 @@
+<div id="global" class="container-fluid" >
+
+  <div class="panel panel-default col-md-12" style="padding-bottom: 15px;">
+    <span class="panel-header no-toggle">
+      <h2>Purge de toutes les collections VITAM</h2>
+    </span>
+
+    <div class="text-justify">
+      <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteAll, 'all')">
+        <i class="material-icons pull-left">delete_choix</i>
+        <span>Supprimer</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+      <h2>Référentiels</h2>
+    </span>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxFormats" data-toggle="collapse">
+        <i>Purge des Formats</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxFormats">
+
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteFormats, 'format')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxRules" data-toggle="collapse">
+        <i>Purge des Règles</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxRules">
+
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteRules, 'rule')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxAccession" data-toggle="collapse">
+        <i>Purge des Registres des fonds</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxAccession">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteAccessionRegisters, 'accessionRegister')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+      <h2>journaux</h2>
+    </span>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxLogbook" data-toggle="collapse">
+        <i>Purge des journaux d'opérations</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxLogbook">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteLogbooks, 'logbook')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxLifeCycleUnit" data-toggle="collapse">
+        <i>Purge des journaux de cycle de vie (Unité Archivistique)</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxLifeCycleUnit">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteUnitLifeCycles, 'unitLifeCycle')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxLifeCycleOG" data-toggle="collapse">
+        <i>Purge des journaux de Cycles de vie (Groupe d'objet)</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxLifeCycleOG">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteOGLifeCycles, 'objectGroupLifeCycle')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+      <h2>Objets</h2>
+    </span>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxUnit" data-toggle="collapse">
+        <i>Purge des unités archivistiques</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxUnit">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteArchiveUnits, 'archiveUnit')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <a class="panel-header" data-target="#boxOG" data-toggle="collapse">
+        <i>Purge des groupes d'objets</i>
+      </a>
+      <div class="row archive-desc panel-collapse collapse in" id="boxOG">
+        <div class="text-justify">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="deleteConfirm(deleteObjectGroups, 'object')">
+            <i class="material-icons pull-left">delete_choix</i>
+            <span>Supprimer</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

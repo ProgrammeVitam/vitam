@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
 
 public class RulesManagerParserTest {
     String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";

@@ -16,8 +16,8 @@ angular.module('core')
 .service('responseValidator', function(){
   var self = this;
   self.validateReceivedResponse = function (responseToValidate) {
-    if (responseToValidate.data === undefined || responseToValidate.data.hits === undefined ||
-        responseToValidate.data.hits === null || responseToValidate.data.result === undefined || responseToValidate.data.result === null) {
+    if (responseToValidate.data === undefined || responseToValidate.data.$hits === undefined ||
+        responseToValidate.data.$hits === null || responseToValidate.data.$results === undefined || responseToValidate.data.$results === null) {
       // Invalid response
       // Display error message
       return false;
@@ -65,7 +65,6 @@ angular.module('core')
   self.loadFromFile = function() {
     // File loaded only on the first call (change page or refresh page (F5) will fire another HTTP call
     if (!promise) {
-      console.log('Load values from file');
       promise = $http.get(filePath);
     }
     return promise;

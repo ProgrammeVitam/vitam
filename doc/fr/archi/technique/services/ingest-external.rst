@@ -13,7 +13,7 @@ Typologie de consommation de resources :
 	* Réseau : généralement faible, sauf dans le cas d'entrées massive d'archives (entrant)
 	* Disque : important (stockage temporaire des fichiers SEDA entrants)
 
-.. seealso:: Ce composant fait également appel :doc:`au composant Siegfried <siegfried>` pour l'identification des formats de fichier.
+.. seealso:: Ce composant fait également appel :doc:`au composant Siegfried <Siegfried>` pour l'identification des formats de fichier.
 
 
 Antivirus

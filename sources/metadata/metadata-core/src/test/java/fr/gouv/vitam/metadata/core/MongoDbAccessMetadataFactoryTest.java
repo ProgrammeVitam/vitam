@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -70,13 +71,14 @@ public class MongoDbAccessMetadataFactoryTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static List<ElasticsearchNode> nodes;
+    private static List<MongoDbNode> mongoDbNodes;
 
     private static final String DATABASE_HOST = "localhost";
-    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     static MongoDbAccessMetadataImpl mongoDbAccess;
     private static JunitHelper junitHelper;
     private static int port;
     private static MongoEmbeddedService mongo;
+    private static MongoEmbeddedService mongo_bis;
     private static final String databaseName = "db-metadata";
     private static final String user = "user-metadata";
     private static final String pwd = "user-metadata";
@@ -87,21 +89,33 @@ public class MongoDbAccessMetadataFactoryTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
         junitHelper = JunitHelper.getInstance();
 
-        nodes = new ArrayList<ElasticsearchNode>();
+        nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 
-        // MongoDB
+        // MongoDB Node1
+        mongoDbNodes = new ArrayList<>();
         port = junitHelper.findAvailablePort();
+        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
 
         // Starting the embedded services within temporary dir
         mongo = new MongoEmbeddedService(
             DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
         mongo.start();
+
+        // MongoDB Node2
+        mongoDbNodes = new ArrayList<>();
+        port = junitHelper.findAvailablePort();
+        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
+
+        // Starting the embedded services within temporary dir
+        mongo_bis = new MongoEmbeddedService(
+            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
+        mongo_bis.start();
     }
 
     /**
@@ -119,9 +133,10 @@ public class MongoDbAccessMetadataFactoryTest {
 
     @Test
     public void testCreateMetadataMongoAccessWithAuthentication() {
-        MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG, true, user, pwd);
-        mongoDbAccess = new MongoDbAccessMetadataFactory()
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, true, user, pwd);
+        new MongoDbAccessMetadataFactory();
+        mongoDbAccess = MongoDbAccessMetadataFactory
             .create(config);
         assertNotNull(mongoDbAccess);
         assertEquals("db-metadata", mongoDbAccess.getMongoDatabase().getName());
@@ -130,17 +145,18 @@ public class MongoDbAccessMetadataFactoryTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testCreateFnWithError() throws Exception {
-        final List<ElasticsearchNode> nodesEmpty = new ArrayList<ElasticsearchNode>();
-        final MongoDbAccessMetadataImpl mongoDbAccessError = new MongoDbAccessMetadataFactory()
+        final List<ElasticsearchNode> nodesEmpty = new ArrayList<>();
+        new MongoDbAccessMetadataFactory();
+        final MongoDbAccessMetadataImpl mongoDbAccessError = MongoDbAccessMetadataFactory
             .create(
-                new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodesEmpty, JETTY_CONFIG));
+                new MetaDataConfiguration(mongoDbNodes, "vitam-test", CLUSTER_NAME, nodesEmpty));
         mongoDbAccessError.close();
     }
 
     @Test(expected = com.mongodb.MongoCommandException.class)
     public void shouldThrowExceptionWhenGetDatabaseNames() {
-        MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);
@@ -151,26 +167,29 @@ public class MongoDbAccessMetadataFactoryTest {
         }
         MetadataCollections.class.getEnumConstants();
 
-        MongoCredential credential = MongoCredential.createCredential(
+        final MongoCredential credential = MongoCredential.createCredential(
             config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
 
-        MongoClient mongoClient = new MongoClient(new ServerAddress(
-            config.getDbHost(),
-            config.getDbPort()),
+        final List<ServerAddress> serverAddress = new ArrayList<>();
+        for (final MongoDbNode node : mongoDbNodes) {
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
+
+        final MongoClient mongoClient = new MongoClient(serverAddress,
             Arrays.asList(credential),
             VitamCollection.getMongoClientOptions(classList));
 
-        MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
+        final MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
 
         // access only to metadata base, so DatabaseNames() should raise an exception
-        List<String> dbs = mongoClient.getDatabaseNames();
+        final List<String> dbs = mongoClient.getDatabaseNames();
     }
 
 
     @Test
-    public void shouldHavePermissions() throws MetaDataException{        
-        MetaDataConfiguration config =
-            new MetaDataConfiguration(DATABASE_HOST, port, databaseName, CLUSTER_NAME, nodes, JETTY_CONFIG);
+    public void shouldHavePermissions() throws MetaDataException {
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);
         config.setDbPassword(pwd);
         config.setDbAuthentication(true);
@@ -181,20 +200,23 @@ public class MongoDbAccessMetadataFactoryTest {
         }
         MetadataCollections.class.getEnumConstants();
 
-        MongoCredential credential = MongoCredential.createCredential(
+        final MongoCredential credential = MongoCredential.createCredential(
             config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
 
-        MongoClient mongoClient = new MongoClient(new ServerAddress(
-            config.getDbHost(),
-            config.getDbPort()),
+        final List<ServerAddress> serverAddress = new ArrayList<>();
+        for (final MongoDbNode node : mongoDbNodes) {
+            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
+        }
+
+        final MongoClient mongoClient = new MongoClient(serverAddress,
             Arrays.asList(credential),
             VitamCollection.getMongoClientOptions(classList));
 
-        MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
-        
+        final MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
+
         // User "integration" have authentication in Database "Metadata"
         metadatabase.createCollection("Unit2");
-        MongoCollection<Document> col = metadatabase.getCollection("Unit2");
+        final MongoCollection<Document> col = metadatabase.getCollection("Unit2");
         col.insertOne(new Document("_id", "1234"));
         col.find(Filters.eq("_id", "1234"));
         col.deleteOne(Filters.eq("_id", "1234"));

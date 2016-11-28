@@ -9,7 +9,6 @@ KeyManagerPassword_access_external: qsdfgh
 TrustStorePassword_access_external: tqsdfgh
 grantedKeyStorePassphrase_access_external: gqsdfgh
 plateforme_secret: vitamsecret
-mongoPassPhrase: mongogo
 mongoAdminUser: vitamdb-admin
 mongoAdminPassword: azerty
 mongoMetadataUser: metadata
@@ -18,5 +17,9 @@ mongoLogbookUser: logbook
 mongoLogbookPassword: azerty
 mongoFunctionalAdminUser: functional-admin
 mongoFunctionalAdminPassword: azerty
-mongoWorkerUser: worker
-mongoWorkerPassword: azerty
+mongoClientUser: mongoclient
+mongoClientPassword: azerty
+mongoPassPhrase: mongogo
+p12_ihm_recette_password: grokbizftej
+TrustStore_ihm_recette_password: AzErTy
+p12_logbook_password: p12logbook1234

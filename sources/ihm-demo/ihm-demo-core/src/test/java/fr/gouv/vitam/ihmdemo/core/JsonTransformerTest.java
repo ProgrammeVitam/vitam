@@ -48,36 +48,36 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class JsonTransformerTest {
 
     private static final String VALID_ALL_PARENTS =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
+        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_ID =
-        "[{Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
+        "[{Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_UP =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
-            "{_id:'ID028',Title:'ID028',_tenant:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_tenant:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
+        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_INVALID_UP =
-        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_tenant:0}, " +
-            "{_id:'ID028',Title:'ID028',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID030',Title:'ID030',_up:['ID027'],_tenant:0}," +
-            "{_id:'ID027',Title:'ID027',_up:'WRONG_UP',_tenant:0}," +
-            "{_id:'ID026',Title:'ID026',_up:[],_tenant:0}," +
-            "{_id:'ID025',Title:'ID025',_up:[],_tenant:0}]";
+        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
+            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+            "{#id:'ID027',Title:'ID027',#unitups:'WRONG_up',_tenant:0}," +
+            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static JsonNode validParents;
     private static JsonNode invalidParentsWithMissingId;

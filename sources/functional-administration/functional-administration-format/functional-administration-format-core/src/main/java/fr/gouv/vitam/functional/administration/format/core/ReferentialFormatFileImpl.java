@@ -41,9 +41,11 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -66,18 +68,15 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
-public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, AutoCloseable {
+public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "FileFormat";
-    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
-    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
 
-    private static final String EVENT_TYPE_CREATE = "CREATE";
-    private static final String EVENT_TYPE_DELETE = "DELETE";
-    private static final LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
+    private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
+    private static final String VERSION = " version ";
+    private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
 
     /**
      * Constructor
@@ -95,8 +94,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                    "start importing referential file ", eip);
+                    eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
             try {
                 client.create(logbookParametersStart);
             } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
@@ -113,9 +113,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
 
                     final LogbookOperationParameters logbookParametersEnd =
                         LogbookParametersFactory.newLogbookOperationParameters(
-                            eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK,
-                            MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
-                                " du fichier de signature PRONOM (DROID_SignatureFile)",
+                            eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                            LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
+                                pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
                             eip1);
 
                     try {
@@ -127,8 +128,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                     }
                 } else {
                     final LogbookOperationParameters logbookParametersEnd =
-                        LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
-                            LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                        LogbookParametersFactory.newLogbookOperationParameters(eip1,
+                            STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                            LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
                     try {
                         client.update(logbookParametersEnd);
                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -142,8 +145,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
             } catch (final ReferentialException e) {
                 LOGGER.error(e.getMessage());
                 final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                        LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
                 try {
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -152,38 +156,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
                     throw new ReferentialException(e1);
                 }
                 throw new ReferentialException(e);
-            }
-        }
-    }
-
-    @Override
-    public void deleteCollection() {
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final GUID eip = GUIDFactory.newGUID();
-            final LogbookOperationParameters logbookParametersStart =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                    "start deleting referential format from database ", eip);
-            try {
-                client.create(logbookParametersStart);
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-            }
-
-            mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-
-            final GUID eip1 = GUIDFactory.newGUID();
-            final LogbookOperationParameters logbookParametersEnd =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
-                    eip1);
-
-            try {
-                client.update(logbookParametersEnd);
-            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
             }
         }
     }
@@ -239,7 +211,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, A
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         // Empty
     }
 }

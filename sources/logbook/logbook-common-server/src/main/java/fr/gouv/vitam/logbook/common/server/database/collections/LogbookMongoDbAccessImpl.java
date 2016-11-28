@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -94,7 +95,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * SLICE command to optimize listing
      */
-    public static final String SLICE = "$slice";
+    private static final String SLICE = "$slice";
     private static final String UPDATE_NOT_FOUND_ITEM = "Update not found item: ";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);
@@ -104,11 +105,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final String CREATION_ISSUE = "Creation issue";
     private static final String UPDATE_ISSUE = "Update issue";
     private static final String ROLLBACK_ISSUE = "Rollback issue";
+
     /**
      * Quick projection for ID Only
      */
     static final BasicDBObject ID_PROJECTION = new BasicDBObject(LogbookDocument.ID, 1);
     static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
+    static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
     static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
     static final int LAST_EVENT_SLICE = -1;
@@ -170,8 +173,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
         }
         LogbookOperation.addIndexes();
-        LogbookLifeCycleUnit.addIndexes();
-        LogbookLifeCycleObjectGroup.addIndexes();
+        LogbookLifeCycle.addIndexes();
+        LogbookLifeCycle.addIndexes();
     }
 
     /**
@@ -179,8 +182,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     static final void removeIndexBeforeImport() {
         LogbookOperation.dropIndexes();
-        LogbookLifeCycleUnit.dropIndexes();
-        LogbookLifeCycleObjectGroup.dropIndexes();
+        LogbookLifeCycle.dropIndexes();
+        LogbookLifeCycle.dropIndexes();
     }
 
     /**
@@ -249,15 +252,20 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select)
+    public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
-        // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
+        // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to
+        // last
         // Logbook operation event . Must be removed when the processing will be reworked
-        final ObjectNode operationSlice = JsonHandler.createObjectNode();
-        operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
-        return select(LogbookCollections.OPERATION, select, operationSlice);
+        if (sliced) {
+            final ObjectNode operationSlice = JsonHandler.createObjectNode();
+            operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
+            return select(LogbookCollections.OPERATION, select, operationSlice);
+        } else {
+            return select(LogbookCollections.OPERATION, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -265,7 +273,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_UNIT, select);
+        return select(LogbookCollections.LIFECYCLE_UNIT, select, true);
     }
 
     @SuppressWarnings("unchecked")
@@ -275,7 +283,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return selectExecute(LogbookCollections.LIFECYCLE_UNIT, select);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -285,7 +293,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
+        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select, true);
     }
 
     @SuppressWarnings("unchecked")
@@ -295,7 +303,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return selectExecute(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -441,14 +449,18 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookException
      */
     @SuppressWarnings("rawtypes")
-    private final MongoCursor select(final LogbookCollections collection, final JsonNode select)
+    private final MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        return select(collection, select, DEFAULT_SLICE);
+        if (sliced) {
+            return select(collection, select, DEFAULT_SLICE);
+        } else {
+            return select(collection, select, null);
+        }
     }
 
     /**
      * Select with slice possibility
-     * 
+     *
      * @param collection
      * @param select
      * @param slice may be null
@@ -512,7 +524,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
-        parser.addProjection(JsonHandler.createObjectNode(), DEFAULT_ALLKEYS);
+        parser.addProjection(DEFAULT_SLICE_WITH_ALL_EVENTS, DEFAULT_ALLKEYS);
         return selectExecute(collection, parser);
     }
 
@@ -793,5 +805,24 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException {
         updateBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItems);
+    }
+
+    // Not check, test feature !
+    @Override
+    public void deleteCollection(LogbookCollections collection) throws DatabaseException {
+        final long count = collection.getCollection().count();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(collection.getName() + " count before: " + count);
+        }
+        if (count > 0) {
+            final DeleteResult result = collection.getCollection().deleteMany(new Document());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
+            }
+            if (result.getDeletedCount() != count) {
+                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
+                    .getDeletedCount(), count));
+            }
+        }
     }
 }

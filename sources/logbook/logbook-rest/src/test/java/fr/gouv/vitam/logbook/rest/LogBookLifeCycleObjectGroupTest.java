@@ -28,6 +28,9 @@ package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.hamcrest.BaseMatcher;
@@ -58,6 +61,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -114,8 +118,14 @@ public class LogBookLifeCycleObjectGroupTest {
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
-            logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
+            final List<MongoDbNode> nodes = new ArrayList<>();
+            nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
+            logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
             logbookConf.setJettyConfig(JETTY_CONFIG);
+            logbookConf.setP12LogbookFile("tsa.p12");
+            logbookConf.setP12LogbookPassword("1234");
+            logbookConf.setWorkspaceUrl("http://localhost:8001");
+
             application = new LogbookApplication(logbookConf);
             application.start();
 
@@ -281,6 +291,15 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        // Test direct access
+        given()
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/objectgrouplifecycles/" +
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
         // Test Iterator
         given()
             .contentType(ContentType.JSON)
@@ -294,7 +313,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
                 @Override
                 public boolean matches(Object item) {
-                    return (item != null && item instanceof String && !((String) item).isEmpty());
+                    return item != null && item instanceof String && !((String) item).isEmpty();
                 }
 
                 @Override

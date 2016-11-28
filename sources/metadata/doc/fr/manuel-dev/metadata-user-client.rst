@@ -25,9 +25,13 @@ Il faut ajouter la dependance au niveau de pom.xml
 .. code-block exemple :: java
 
 	1. Créer le client métadata
-
-	metaDataClientFactory = new MetaDataClientFactory();
-        metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+	En deux étapes
+	- chargement de la configuration en utilisant 
+		MetaDataClientFactory.changeMode(new ClientConfigurationImpl(server, port));
+		ou 
+		MetaDataClientFactory.changeMode(ConfigurationFilePath);)
+	- création du client
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         
 	2. Accéder aux fonctionnalités différents
 	le client métadata fournit les foncitonnalités suivantes : insérer un ArchiveUnit, 
@@ -36,7 +40,7 @@ Il faut ajouter la dependance au niveau de pom.xml
 
 	2.1 Insérer des ArchiveUnits 
 	 	try {
-			String result= metadataClient.insertUnit(String insertQuery) 
+			JsonNode result= metadataClient.insertUnit(JsonNode insertQuery) 
 		} catch (InvalidParseOperationException e) {
 	            LOG.error("parsing error", e);
         	    throw e;
@@ -54,7 +58,7 @@ Il faut ajouter la dependance au niveau de pom.xml
         	    throw e;
         	}
  
-	Paramètre d'entrée est une requête DSL de type String en format Json, indiquant la requte sur la collection Unit. 
+	Paramètre d'entrée est une requête DSL de type JsonNode, indiquant la requête sur la collection Unit. 
 	Un exemple de la requête paramètrée est le suivant : 
 
 		{
@@ -64,12 +68,12 @@ Il faut ajouter la dependance au niveau de pom.xml
 		  "$data": { "_id": "value" }
 		}
 
-	Cette fonction retourne une réponse de type String contenant les informations : code de retour en cas d'erreur, 
+	Cette fonction retourne une réponse de type JsonNode contenant les informations : code de retour en cas d'erreur, 
 	la requête effectuée sur la collection ... 
 
 	2.1 Insérer des ObjectGroups
 	try {
-			String result= metadataClient.insertObjectGroup(String insertQuery) 
+			JsonNode result= metadataClient.insertObjectGroup(JsonNode insertQuery) 
 		} catch (InvalidParseOperationException e) {
 	            LOG.error("parsing error", e);
         	    throw e;
@@ -87,7 +91,7 @@ Il faut ajouter la dependance au niveau de pom.xml
         	    throw e;
         	}
  
-	Paramètre d'entrée est une requête DSL de type String en format Json, indiquant la requête sur la collection ObjectGroup. 
+	Paramètre d'entrée est une requête DSL de type JsonNode, indiquant la requête sur la collection ObjectGroup. 
 	Un exemple de la requête paramètrée est le suivant : 
 		{
 		  "$root" : [],	
@@ -95,7 +99,7 @@ Il faut ajouter la dependance au niveau de pom.xml
 		  "$filter": { },
 		  "$data": { "_id": "objectgroupValue" }
 		}
-	Cette fonction retourne une réponse de type String contenant les informations : code de retour en cas d'erreur, 
+	Cette fonction retourne une réponse de type JsonNode contenant les informations : code de retour en cas d'erreur, 
 	la requête effectuée sur la collection ... 
 
 	2.3 Sélection des ArchiveUnits 
@@ -129,7 +133,7 @@ Il faut ajouter la dependance au niveau de pom.xml
    2.4 Sélection d'un ObjectGroup 
 
         try { 
-            String selectQuery;
+            JsonNode selectQuery;
             String objectGroupId;
         // return JsonNode
             jsonNode = metaDataClient.selectObjectGrouptbyId(selectQuery, objectGroupId);

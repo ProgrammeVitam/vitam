@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Vitam Server factory for REST server
  */
 public class VitamServerFactory {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerFactory.class);
 
     private static final int DEFAULT_PORT = 8082;
@@ -101,7 +100,8 @@ public class VitamServerFactory {
             ParametersChecker.checkParameter("jetty config file", jettyConfigFile);
             return new BasicVitamServer(jettyConfigFile);
         } catch (final IllegalArgumentException e) {
-            LOGGER.error("Jetty server can not run with this jetty config file : " + jettyConfigFile + e.getMessage(),
+            LOGGER.error(
+                "Jetty server can not run with this jetty config file : " + jettyConfigFile + " " + e.getMessage(),
                 e);
             throw new VitamApplicationServerException(
                 "Jetty server can not run with this jetty config file : " + jettyConfigFile);

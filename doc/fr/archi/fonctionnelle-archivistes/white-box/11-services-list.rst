@@ -1,7 +1,7 @@
 Services métiers
 ################
 
-Les services métiers sont présentés dans les sections suivantes ; pour chaque service, est indiqué son nom commun (en français), ainsi que le nom de service correspondant (en anglais, basé sur les usages OAIS (Cf. :doc:`/introduction`)).
+Les services métiers sont présentés dans les sections suivantes ; pour chaque service, est indiqué son nom commun (en français), ainsi que le nom de service correspondant (en anglais, basé sur les usages :term:`OAIS`).
 
 
 Moteur d’exécution (processing)
@@ -78,7 +78,7 @@ Rôle :
 Fonctions :
 
 * Appel uniquement à partir de l’application
-  
+
 Contraintes techniques :
 
 * Besoin fort de fiabilité
@@ -95,8 +95,6 @@ Fonctions :
 
 * Gestion du référentiel des formats (PRONOM)
 * Gestion des règles de gestion des archives
-
-.. todo  : a-t-on ici également les contrats en bêta ?
 
 
 Interface de démonstration (ihm-demo)
@@ -154,7 +152,7 @@ Moteur d'accès (access-internal)
 Rôle :
 
 * Permettre l'accès aux données du système VITAM
-  
+
 Fonction :
 
 * Exposition des fonctions de recherche d'archives offertes par metadata ;

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +44,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class StatusProcessingManagementClientTest extends JerseyTest {
@@ -60,7 +60,8 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         url = "http://localhost:" + port;
-        client = new ProcessingManagementClient(url);
+        ProcessingManagementClientFactory.changeConfigurationUrl(url);
+        client = ProcessingManagementClientFactory.getInstance().getClient();
     }
 
     @AfterClass
@@ -93,10 +94,9 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
     }
 
     @Test
-    public void shouldGetStatusOK() {
+    public void shouldGetStatusOK() throws VitamApplicationServerException {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        final Response response = client.status();
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        client.checkStatus();
     }
 
 }

@@ -9,7 +9,7 @@
   fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
   when: selinux.stdout == "Enforcing"
 
-- name: ensure parent dir is OK ith correct permissions
+- name: Ensure parent dir is OK ith correct permissions
   file:
     path: "{{vitam_folder_root}}"
     state: directory
@@ -17,7 +17,7 @@
     group: root
     mode: 0555
 
-- name: ensure {{vitam_folder_root}} sub-directories exist
+- name: Ensure {{vitam_folder_root}} sub-directories exist
   file:
     path: "{{vitam_folder_root}}/{{item}}"
     owner: root
@@ -33,3 +33,13 @@
     - log
     - script
     - tmp
+
+- name: Install epel-release
+  yum:
+    name: epel-release
+    state: present
+
+- name: Update yum cache
+  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
+  tags:
+    - update_package_vitam

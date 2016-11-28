@@ -1,14 +1,23 @@
 ---
-
 - name: Install Consul rpm
   yum:
     name: "{{consul_service}}"
     state: latest
-    update_cache: yes
+  notify:
+      - restart consul
 
-- name: Check that the consul directories exist 
-  file: 
-    path: "/vitam/{{ item }}/{{consul_component}}"
+- name: Enable consul service
+  service:
+    name: "{{consul_service}}"
+    enabled: true
+  notify:
+      - restart consul
+
+#### Configuration ####
+
+- name: Check that the consul directories exist
+  file:
+    path: "{{vitam_folder_root}}/{{ item }}/{{consul_component}}"
     state: directory
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
@@ -18,10 +27,11 @@
     - bin
     - conf
     - lib
-    - log 
+    - log
     - data
     - tmp
-
+  notify:
+      - restart consul
 
 - name: Deploy consul common configuration files
   template:
@@ -32,18 +42,18 @@
     mode: "{{vitam_conf_permission}}"
   with_items:
     - "consul.json"
-
-- name: (re-)start consul
-  service: 
-    name: "{{consul_service}}"
-    enabled: true
   notify:
-      - restart consul
+      - reload consul
 
 # Ensure that the installation is complete and consul up before setting up the system-wide dns resolver...
 - meta: flush_handlers
 
-- name: add consul nameserver to resolv.conf
+- name: Ensure service is started
+  service:
+    name: "{{consul_service}}"
+    state: started
+
+- name: Add consul nameserver to resolv.conf
   blockinfile:
     backup: yes
     dest: /etc/resolv.conf

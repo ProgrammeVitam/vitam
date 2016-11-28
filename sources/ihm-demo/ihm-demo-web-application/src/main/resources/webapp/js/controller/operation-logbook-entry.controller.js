@@ -32,7 +32,7 @@ angular.module('ihm.demo')
     var operationId = $routeParams.entryId;
 
     ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
-      $scope.detail = response.data.result;
+      $scope.detail = response.data.$results[0];
       $scope.detailId = operationId;
     });
 

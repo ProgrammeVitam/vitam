@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.10.0-SNAPSHOT</version>
+		<version>0.11.0-SNAPSHOT</version>
 		<relativePath>../sources/pom.xml</relativePath>
 	</parent>
 
@@ -73,7 +73,14 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>access-rest</artifactId>
+			<artifactId>access-internal-rest</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>access-external-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
@@ -151,6 +158,13 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ihm-demo-web-application</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-recette-web-application</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>

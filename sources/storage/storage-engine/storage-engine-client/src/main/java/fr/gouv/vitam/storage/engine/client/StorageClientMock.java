@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.InputStream;
 import java.time.LocalDateTime;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -37,7 +37,7 @@ import org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.client2.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -53,7 +53,18 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
     static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
-    static final String MOCK_GET_FILE_CONTENT = "Vitam test";
+    static final String MOCK_GET_FILE_CONTENT =
+        "Vitam test of long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long file";
 
     @Override
     public JsonNode getStorageInformation(String tenantId, String strategyId)
@@ -95,10 +106,6 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return true;
     }
 
-    @Override
-    public InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type) {
-        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
-    }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
         final StoredInfoResult result = new StoredInfoResult();
@@ -108,11 +115,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
     }
-    
+
     @Override
     public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-        return Response.status(Status.OK).entity(IOUtils.toInputStream(MOCK_GET_FILE_CONTENT)).build();
+        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
 }

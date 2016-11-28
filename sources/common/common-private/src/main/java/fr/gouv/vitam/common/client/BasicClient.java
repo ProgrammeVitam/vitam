@@ -26,36 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.NotFoundException;
-
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.VitamConfiguration;
 
 /**
  * Basic client api for vitam client
  */
-public interface BasicClient {
-
-    String STATUS_URL = "/status";
+public interface BasicClient extends MockOrRestClient {
 
     /**
-     * Get the status from the service
-     *
-     * @return the MessageStatus status
-     * @throws VitamClientException if the Server got an internal error
-     * @throws NotFoundException if the requested object does not exist
+     * Global status url for Application and Admin Status
      */
-    StatusMessage getStatus() throws VitamClientException;
+    String STATUS_URL = VitamConfiguration.STATUS_URL;
 
-    /**
-     * Get the resource path of the server.
-     *
-     * @return the resource path as string
-     */
-    String getResourcePath();
-
-    /**
-     * Close the underneath http client
-     */
-    void shutdown();
 }

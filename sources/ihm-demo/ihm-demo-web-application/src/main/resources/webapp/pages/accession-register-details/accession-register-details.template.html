@@ -69,7 +69,7 @@
               <td>Total: {{result.TotalUnits.total}}, Supprimé: {{result.TotalUnits.deleted}}, Restant: {{result.TotalUnits.remained}}</td>
               <td>Total: {{result.TotalObjectGroups.total}}, Supprimé: {{result.TotalObjectGroups.deleted}}, Restant: {{result.TotalObjectGroups.remained}}</td>
               <td>Total: {{result.TotalObjects.total}}, Supprimé: {{result.TotalObjects.deleted}}, Restant: {{result.TotalObjects.remained}}</td>
-              <td>{{'search.accessionRegister.fields.Status.' + result.Status | translate}}</td>
+              <td>{{'search.accessionRegister.fields.Status.' + result.Status | translate | replaceDoubleQuote}}</td>
             </tr>
             </tbody>
           </table>

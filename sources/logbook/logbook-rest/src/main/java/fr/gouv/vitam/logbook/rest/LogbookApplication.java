@@ -35,11 +35,11 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server2.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 
 /**
  * Logbook web APPLICATION
@@ -55,15 +55,16 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
 
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     public LogbookApplication(String configuration) {
         super(LogbookConfiguration.class, configuration);
     }
+
     /**
      * LogbookApplication constructor
-     * 
+     *
      * @param configuration
      */
     public LogbookApplication(LogbookConfiguration configuration) {
@@ -104,7 +105,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
-        LogbookResource resource = new LogbookResource(getConfiguration());
+        final LogbookResource resource = new LogbookResource(getConfiguration());
         // Database dependency
         serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess());
         resourceConfig.register(resource)

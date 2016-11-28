@@ -41,19 +41,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.VitamError;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -67,11 +65,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 @javax.ws.rs.ApplicationPath("webresources")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
-
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
-    // FIXME P0 should be allocated each time a request is received
-    private final Worker worker;
+
+    private final int tenantId = 0;
+    private final Worker workerMocked;
 
     /**
      * Constructor
@@ -80,30 +78,18 @@ public class WorkerResource extends ApplicationStatusResource {
      */
     public WorkerResource(WorkerConfiguration configuration) {
         LOGGER.info("init Worker Resource server");
-        DbConfigurationImpl databaseConfiguration;
-        if (configuration.isDbAuthentication()) {
-            databaseConfiguration =
-                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
-                    configuration.getDbName(),
-                    true, configuration.getDbUserName(), configuration.getDbPassword());
-        } else {
-            databaseConfiguration = new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(),
-                configuration.getDbName());
-        }
-        this.worker =
-            WorkerImplFactory.create(LogbookMongoDbAccessFactory.create(databaseConfiguration));
+        workerMocked = null;
     }
 
 
     /**
      * Constructor for tests
      *
-     * @param configuration the worker configuration to be applied
      * @param worker the worker service be applied
      */
-    WorkerResource(WorkerConfiguration configuration, Worker worker) {
+    WorkerResource(Worker worker) {
         LOGGER.info("init Worker Resource server");
-        this.worker = worker;
+        workerMocked = worker;
     }
 
     /**
@@ -116,7 +102,9 @@ public class WorkerResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getStepsList() {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -135,20 +123,24 @@ public class WorkerResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a step description", descriptionStep);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
-            final CompositeItemStatus responses =
-                worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
-            return Response.status(Status.OK).entity(responses).build();
+            final ItemStatus responses;
+            if (workerMocked == null) {
+                try (Worker worker = WorkerImplFactory.create()) {
+                    responses =
+                        worker.run(descriptionStep.getWorkParams(),
+                            descriptionStep.getStep());
+                    return Response.status(Status.OK).entity(responses).build();
+                }
+            } else {
+                responses = workerMocked.run(descriptionStep.getWorkParams(),
+                    descriptionStep.getStep());
+                return Response.status(Status.OK).entity(responses).build();
+            }
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
-        } catch (final IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (final HandlerNotFoundException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (final ProcessingException | ContentAddressableStorageServerException exc) {
+        } catch (final IllegalArgumentException | ProcessingException | ContentAddressableStorageServerException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }
@@ -165,7 +157,9 @@ public class WorkerResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStepStatus(@PathParam("id_async") String idAsync) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -179,12 +173,14 @@ public class WorkerResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyStep(@PathParam("id_async") String idAsync) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
-    private RequestResponseError getErrorEntity(Status status) {
-        return new RequestResponseError().setError(new VitamError(status.getStatusCode()).setContext(WORKER_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(WORKER_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
 }

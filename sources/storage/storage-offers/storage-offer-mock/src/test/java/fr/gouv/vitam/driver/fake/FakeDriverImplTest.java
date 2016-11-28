@@ -37,7 +37,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -85,8 +85,9 @@ public class FakeDriverImplTest {
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getObject());
         final PutObjectRequest putObjectRequest =
-            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam" +
-                " test"),
+            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(), "guid",
+                IOUtils.toInputStream("Vitam" +
+                    " test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest));
 
@@ -101,7 +102,8 @@ public class FakeDriverImplTest {
         }
 
         final PutObjectRequest putObjectRequest3 =
-            new PutObjectRequest("tenantId" + this, DigestType.SHA256.getName(), "digest_bad_test",
+            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(),
+                "digest_bad_test",
                 IOUtils.toInputStream("Vitam test"),
                 "type");
         assertNotNull(connect.putObject(putObjectRequest3));

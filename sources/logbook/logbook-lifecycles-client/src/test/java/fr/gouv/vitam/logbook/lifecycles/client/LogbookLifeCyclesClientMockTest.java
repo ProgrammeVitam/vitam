@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -39,6 +38,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -55,7 +55,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -88,7 +89,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -121,7 +123,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -154,7 +157,8 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookLifeCycleParameters logbookParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -179,6 +183,19 @@ public class LogbookLifeCyclesClientMockTest {
         assertFalse(catchException);
     }
 
+    @Test
+    public void testSelect() throws LogbookClientException, InvalidParseOperationException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        assertNotNull(client);
+        assertNotNull(client.selectObjectGroupLifeCycleById("id"));
+        assertNotNull(client.selectUnitLifeCycleById("id"));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id"));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id"));
+
+    }
 
     @Test
     public void statusTest() throws LogbookClientException, VitamApplicationServerException {

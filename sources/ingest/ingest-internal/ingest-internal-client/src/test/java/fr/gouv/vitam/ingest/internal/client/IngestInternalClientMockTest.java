@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
@@ -91,17 +90,19 @@ public class IngestInternalClientMockTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        InputStream inputstreamMockATR =
+        final InputStream inputstreamMockATR =
             IOUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
-        InputStream inputStream =
+        final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response = client.upload(conatinerGuid, operationList, inputStream, CommonMediaType.ZIP);
-        assertEquals(response.getStatus(), Status.OK.getStatusCode());
+        final Response response = client.uploadInitialLogbook(operationList);
+        assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        final Response response2 = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        assertEquals(response2.getStatus(), Status.OK.getStatusCode());
 
         try {
-            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response.readEntity(InputStream.class)));
-        } catch (IOException e) {
+            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response2.readEntity(InputStream.class)));
+        } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }

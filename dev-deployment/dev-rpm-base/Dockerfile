@@ -36,6 +36,7 @@ RUN yum install -y \
         rpmdevtools \
         initscripts.x86_64 \
         golang \
+        npm \
     && yum clean all
 
 # Add Java to path
@@ -70,13 +71,26 @@ COPY devlocal.repo /etc/yum.repos.d/devlocal.repo
 COPY vitam-build-repo /usr/bin
 COPY vitam-deploy /usr/bin
 COPY vitam-deploy-extra /usr/bin
+COPY vitam-maven-build-only /usr/bin
+COPY vitam-redeploy /usr/bin
+COPY vitam-redeploy-extra /usr/bin
+COPY vitam-command /usr/bin
 RUN chmod a+x /usr/bin/vitam-*
+
+COPY install-meteor.sh /usr/bin
+RUN chmod a+x /usr/bin/install-meteor.sh && \
+   /usr/bin/install-meteor.sh && \
+   mv /root/.meteor /devhome && \
+   chmod -R o+wX /devhome/.meteor
 
 COPY profile-build-repo.sh /etc/profile.d
 COPY profile-prompt-usage.sh /etc/profile.d
 COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
 COPY wheel-nopwd /etc/sudoers.d
+
+# Disable fastestmirror ; helps gain several seconds per yum invocation
+COPY fastestmirror.conf /etc/yum/pluginconf.d
 
 ENV TERM xterm
 

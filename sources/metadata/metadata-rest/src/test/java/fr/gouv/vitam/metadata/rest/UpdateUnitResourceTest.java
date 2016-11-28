@@ -42,14 +42,12 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -58,23 +56,25 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class UpdateUnitResourceTest {
 
 
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -91,10 +91,10 @@ public class UpdateUnitResourceTest {
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String X_HTTP_Method = "X-Http-Method-Override";
-    private static final String GET = "GET";
-
-    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST =
+        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+    private static final String REAL_UPDATE_BODY_TEST =
+        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -102,6 +102,7 @@ public class UpdateUnitResourceTest {
     private static MetaDataApplication application;
 
     private static ElasticsearchTestConfiguration config = null;
+    private static ElasticsearchAccessMetadata esClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -111,12 +112,13 @@ public class UpdateUnitResourceTest {
         // ES
         try {
             config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (VitamApplicationServerException e1) {
+        } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
 
         dataBasePort = junitHelper.findAvailablePort();
 
@@ -127,10 +129,13 @@ public class UpdateUnitResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
+        final List<MongoDbNode> mongo_nodes = new ArrayList<>();
+        mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
+        // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         application = new MetaDataApplication(configuration);
         application.start();
@@ -152,6 +157,7 @@ public class UpdateUnitResourceTest {
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
+
     @Before
     public void before() {
         Assume.assumeTrue("Elasticsearch not started but should", config != null);
@@ -162,8 +168,14 @@ public class UpdateUnitResourceTest {
         MetadataCollections.C_UNIT.getCollection().drop();
     }
 
-    private static final String buildDSLWithOptions(String query, String data) {
-        return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
+    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
+    }
+
+    private static final JsonNode buildDSLWithOptionsRoot(String query, String data, String root)
+        throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ $roots : [ '" + root + "' ], $query : [ " + query + " ], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -177,8 +189,8 @@ public class UpdateUnitResourceTest {
 
     // Unit by ID (request and uri)
 
-
-
+    // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl /
+    // MetadataJsonResponseUtils
     @Test
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()
@@ -189,100 +201,69 @@ public class UpdateUnitResourceTest {
 
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptionsRoot("", DATA, ID_UNIT)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
+            .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.FOUND.getStatusCode());
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
 
-        given().headers(Headers.headers(new Header(X_HTTP_Method, GET)))
+        given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST).when()
+            .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
-    @Test
-    public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
-            .body("")
+            .body(JsonHandler.getFromString(""))
             .when()
             .put("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-
     @Test
-    public void given_bad_header_when_UpdateByID_thenReturn_Not_allowed() {
+    public void given_bad_header_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "ABC")
-            .body(BODY_TEST)
+            .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .put("/units/" + ID_UNIT)
             .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
-    public void shouldReturn_Request_Entity_Too_Large_If_DocumentIsTooLarge() throws Exception {
+    public void shouldReturn_REQUEST_ENTITY_TOO_LARGE_If_DocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
-    @Test
-    public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
-        final int limitRequest = GlobalDatasParser.limitRequest;
-        GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
-    }
-
-
-
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .header(X_HTTP_Method, "GET")
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-
-    @Ignore
-    @Test
-    public void given_pathWithId_when_get_UpdateByID_thenReturn_Found() {
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(BODY_TEST)
-            .when()
-            .put("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.FOUND.getStatusCode());
     }
 
 }

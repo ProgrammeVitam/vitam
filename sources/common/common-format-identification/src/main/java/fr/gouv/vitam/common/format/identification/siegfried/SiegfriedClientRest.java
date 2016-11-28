@@ -29,54 +29,40 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 
 import java.nio.file.Path;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
  * HTTP implementation of siegfried client.
  */
-public class SiegfriedClientRest implements SiegfriedClient {
+public class SiegfriedClientRest extends DefaultClient implements SiegfriedClient {
     private static final String INTERNAL_ERROR_MSG = "Internal server error";
-
-    private final Client client;
-    private final ClientConfigurationImpl clientConfiguration;
-    private final String serviceUrl;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SiegfriedClientRest.class);
 
     /**
      * Create a new Siegfried HTTP Client
      *
-     * @param host The hostname of the installed siegfried server
-     * @param port The port used to call siegfried server
+     * @param factory
      */
-    SiegfriedClientRest(String host, int port) {
-        clientConfiguration = new ClientConfigurationImpl(host, port);
-        serviceUrl =
-            "http://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() + "/identify";
-
-        final ClientConfig config = configure();
-        client = ClientBuilder.newClient(config);
+    SiegfriedClientRest(SiegfriedClientFactory factory) {
+        super(factory);
     }
 
     @Override
     public JsonNode analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
+        LOGGER.debug("Path to analyze: " + filePath);
         final Response siegfriedResponse = callSiegfried(filePath);
         return handleCommonResponseIdentify(siegfriedResponse);
     }
@@ -94,10 +80,11 @@ public class SiegfriedClientRest implements SiegfriedClient {
         final String encodedFilePath = BaseXx.getBase64Padding(filePath.toString().getBytes());
         Response response = null;
         try {
-            response = client.target(serviceUrl).path("/" + encodedFilePath).request()
-                .accept(MediaType.APPLICATION_JSON).get();
+            response =
+                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, MediaType.APPLICATION_JSON_TYPE, false);
         } catch (final Exception e) {
             LOGGER.error("While call Siegfried HTTP Client", e);
+            consumeAnyEntityAndClose(response);
             throw new FormatIdentifierTechnicalException(e);
         }
 
@@ -106,37 +93,37 @@ public class SiegfriedClientRest implements SiegfriedClient {
 
     private JsonNode handleCommonResponseIdentify(Response response)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                return response.readEntity(JsonNode.class);
-            case NOT_FOUND:
-                throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
-            default:
-                LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
-                throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
+        try {
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return response.readEntity(JsonNode.class);
+                case NOT_FOUND:
+                    throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
+                default:
+                    LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
+                    throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
+            }
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
     private JsonNode handleCommonResponseStatus(Response response)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case OK:
-                return response.readEntity(JsonNode.class);
-            case NOT_FOUND:
-                throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
-            default:
-                LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
-                throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
+        try {
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return response.readEntity(JsonNode.class);
+                case NOT_FOUND:
+                    throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
+                default:
+                    LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
+                    throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
+            }
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
-
-    private ClientConfig configure() {
-        final ClientConfig config = new ClientConfig();
-        config.register(JacksonJsonProvider.class);
-        config.register(JacksonFeature.class);
-        return config;
-    }
-
 }

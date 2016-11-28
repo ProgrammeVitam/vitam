@@ -56,7 +56,7 @@ public class BasicVitamServerTest {
         @Override
         public void run() {
             try {
-                server.run();
+                server.startAndJoin();
             } catch (final VitamApplicationServerException e) {
                 System.err.println("Should not");
                 // ignore
@@ -67,8 +67,8 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testBuild() {
-        JunitHelper junitHelper = JunitHelper.getInstance();
-        int port = junitHelper.findAvailablePort();
+        final JunitHelper junitHelper = JunitHelper.getInstance();
+        final int port = junitHelper.findAvailablePort();
         final BasicVitamServer server = new BasicVitamServer(port);
         try {
             server.configure(null);
@@ -79,7 +79,7 @@ public class BasicVitamServerTest {
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) {}
         try {
-            server.run();
+            server.startAndJoin();
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {}
         try {
@@ -105,20 +105,27 @@ public class BasicVitamServerTest {
     public final void testStartingServerWithCorrectConfig() {
 
         try {
-            int servePort = JunitHelper.getInstance().findAvailablePort();
+            final JunitHelper junitHelper = JunitHelper.getInstance();
+            final int port = junitHelper.findAvailablePort();
             final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE);
             assertTrue(server.isConfigured());
-
+            assertNotNull(server.getServerConfiguration());
+            assertFalse(server.isStarted());
+            assertTrue(server.isStopped());
             server.start();
+            assertTrue(server.isStarted());
+            assertFalse(server.isStopped());
 
             try {
-                server.getServer().stop();
+                server.stop();
             } catch (final Exception e) {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
+            assertTrue(server.isStopped());
             server.getServer().destroy();
-            JunitHelper.getInstance().releasePort(servePort);
-        } catch (VitamApplicationServerException e) {
+            junitHelper.releasePort(port);
+
+        } catch (final VitamApplicationServerException e) {
             assertTrue(false);
         }
     }
@@ -139,27 +146,25 @@ public class BasicVitamServerTest {
             }
             server.getServer().destroy();
 
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             assertFalse(false);
         }
     }
 
     @Test
     public final void testNotStartServerWithConfigNotFound() {
-
         try {
-            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO_NOTFOUND);
-        } catch (VitamApplicationServerException e) {
+            new BasicVitamServer(JETTY_CONFIG_FILE_KO_NOTFOUND);
+        } catch (final VitamApplicationServerException e) {
             assertFalse(false);
         }
     }
 
     @Test
     public final void testNotStartServerWithConfigCantBeParse() {
-
         try {
-            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO2);
-        } catch (VitamApplicationServerException e) {
+            new BasicVitamServer(JETTY_CONFIG_FILE_KO2);
+        } catch (final VitamApplicationServerException e) {
             assertFalse(false);
         }
     }

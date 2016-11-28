@@ -51,7 +51,7 @@ public class ProcessResponseTest {
         assertTrue(processResponse.getStepResponses().isEmpty());
 
         assertEquals(StatusCode.OK.name(), processResponse.setStatus(StatusCode.OK).getStatus().name());
-        final ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
+        final ArrayList<EngineResponse> list = new ArrayList<>();
         list.add(processResponse.setStatus(StatusCode.WARNING));
         assertEquals(StatusCode.WARNING, processResponse.getGlobalProcessStatusCode(list));
 
@@ -59,11 +59,11 @@ public class ProcessResponseTest {
             .isEmpty());
 
         assertEquals(0, new ProcessResponse().getErrorNumber());
-        final ArrayList<String> detailMessages = new ArrayList<String>();
+        final ArrayList<String> detailMessages = new ArrayList<>();
         detailMessages.add(TEST);
         assertEquals(1, processResponse.setErrorNumber(detailMessages.size()).getErrorNumber());
-        final Map<String, List<EngineResponse>> stepResponses = new HashMap<String, List<EngineResponse>>();
-        final List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
+        final Map<String, List<EngineResponse>> stepResponses = new HashMap<>();
+        final List<EngineResponse> processResponses = new ArrayList<>();
         processResponses.add(processResponse.setStatus(StatusCode.KO));
         processResponses.add(new ProcessResponse().setStatus(StatusCode.OK));
 

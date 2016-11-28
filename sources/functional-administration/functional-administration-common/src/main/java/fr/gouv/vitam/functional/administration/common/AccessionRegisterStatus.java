@@ -47,13 +47,13 @@ public enum AccessionRegisterStatus {
      * UNSTORED : indicates that the Accession register is not stored
      */
     UNSTORED("stored");
-    
+
     private final String value;
-    
+
     private AccessionRegisterStatus(String val) {
         value = val;
     }
-    
+
     /**
      * @return value
      */

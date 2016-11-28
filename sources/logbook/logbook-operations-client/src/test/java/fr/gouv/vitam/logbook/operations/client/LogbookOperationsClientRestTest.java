@@ -26,7 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -42,17 +47,21 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
@@ -109,7 +118,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
 
     @Path("/logbook/v1")
     @javax.ws.rs.ApplicationPath("webresources")
-    public static class MockResource  extends ApplicationStatusResource {
+    public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -121,6 +130,29 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response createLogbookOperation(LogbookOperationParameters parameters) {
+            return expectedResponse.post();
+        }
+
+        @PUT
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkUpdateLogbookOperation(String parameters) {
+            return expectedResponse.put();
+        }
+
+        @POST
+        @Path("/operations/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceability() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkCreateLogbookOperation(String parameters) {
             return expectedResponse.post();
         }
 
@@ -183,6 +215,28 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         client.create(log);
     }
 
+    @Test
+    public void traceability() throws Exception {
+        when(mock.post())
+            .thenReturn(
+                Response.status(Status.OK).entity(
+                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
+                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
+                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
+                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"agIdApp\" : null," + "    \"agIdAppSession\" : null," +
+                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," + "    \"agIdSubm\" : null," +
+                        "    \"agIdOrig\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
+                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
+                        "    \"_tenant\" : 0" + "}")
+                    .build());
+        client.traceability();
+    }
+
+
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenUpdateThenReturnIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
@@ -236,6 +290,93 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             "\"pid\":123}")
             .build());
         client.checkStatus();
+    }
+
+    @Test
+    public void selectExecution() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        try {
+            client.selectOperationbyId("id");
+            fail("Should raized an exception");
+        } catch (final LogbookClientNotFoundException e) {
+
+        }
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        try {
+            client.selectOperation(JsonHandler.createObjectNode());
+            fail("Should raized an exception");
+        } catch (final LogbookClientNotFoundException e) {
+
+        }
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
+        try {
+            client.selectOperationbyId("id");
+            fail("Should raized an exception");
+        } catch (final LogbookClientException e) {
+
+        }
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
+        try {
+            client.selectOperation(JsonHandler.createObjectNode());
+            fail("Should raized an exception");
+        } catch (final LogbookClientException e) {
+
+        }
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        client.createDelegate(logbookParameters);
+        client.updateDelegate(logbookParameters);
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.commitCreateDelegate(eip.getId());
+
+        client.updateDelegate(logbookParameters);
+        client.updateDelegate(logbookParameters);
+        reset(mock);
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
+        client.commitUpdateDelegate(eip.getId());
+
+        final List<LogbookOperationParameters> list = new ArrayList<>();
+        list.add(logbookParameters);
+        list.add(logbookParameters);
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
+        try {
+            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
+            fail("Should raized an exception");
+        } catch (final LogbookClientAlreadyExistsException e) {}
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        try {
+            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
+            fail("Should raized an exception");
+        } catch (final LogbookClientBadRequestException e) {}
+        try {
+            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
+            fail("Should raized an exception");
+        } catch (final LogbookClientBadRequestException e) {}
+        reset(mock);
+        when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        try {
+            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
+            fail("Should raized an exception");
+        } catch (final LogbookClientNotFoundException e) {}
+        reset(mock);
+        when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        try {
+            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
+            fail("Should raized an exception");
+        } catch (final LogbookClientBadRequestException e) {}
+        try {
+            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
+            fail("Should raized an exception");
+        } catch (final LogbookClientBadRequestException e) {}
+
     }
 
     @Test

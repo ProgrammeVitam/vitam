@@ -34,6 +34,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -53,7 +54,7 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      * @param parameters
      * @throws IllegalArgumentException if argument is null
      */
-    public LogbookLifeCycle(LogbookParameters parameters) {        
+    public LogbookLifeCycle(LogbookParameters parameters) {
         ParametersChecker.checkParameter("parameters", parameters);
         // Fill information using LogbookLifeCycleMongoDbName
         final Map<LogbookParameterName, String> map = parameters.getMapParameters();
@@ -80,6 +81,15 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      * @param content
      */
     public LogbookLifeCycle(String content) {
+        super(content);
+    }
+
+    /**
+     * Constructor for Codec
+     *
+     * @param content
+     */
+    public LogbookLifeCycle(JsonNode content) {
         super(content);
     }
 

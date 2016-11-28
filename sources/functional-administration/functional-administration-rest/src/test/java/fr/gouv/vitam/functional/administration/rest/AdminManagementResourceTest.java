@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -59,14 +61,17 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -75,13 +80,12 @@ public class AdminManagementResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-
+    private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
     private static final String CHECK_FORMAT_URI = "/format/check";
     private static final String IMPORT_FORMAT_URI = "/format/import";
-    private static final String DELETE_FORMAT_URI = "/format/delete";
 
     private static final String GET_BYID_FORMAT_URI = "/format";
     private static final String FORMAT_ID_URI = "/{id_format}";
@@ -90,7 +94,6 @@ public class AdminManagementResourceTest {
 
     private static final String CHECK_RULES_URI = "/rules/check";
     private static final String IMPORT_RULES_URI = "/rules/import";
-    private static final String DELETE_RULES_URI = "/rules/delete";
 
     private static final String GET_BYID_RULES_URI = "/rules";
     private static final String RULES_ID_URI = "/{id_rule}";
@@ -123,7 +126,7 @@ public class AdminManagementResourceTest {
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.setDbPort(databasePort);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -134,8 +137,10 @@ public class AdminManagementResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(DATABASE_HOST, databasePort, "vitam-test"));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, "vitam-test"));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -169,10 +174,9 @@ public class AdminManagementResourceTest {
     }
 
     @After
-    public void tearDown() {
-        with()
-            .when().delete(DELETE_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+    public void tearDown() throws DatabaseException {
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
     }
 
     @Test
@@ -212,7 +216,7 @@ public class AdminManagementResourceTest {
     @Test
     public void createAccessionRegister() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
         given().contentType(ContentType.JSON).body(register)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -221,13 +225,6 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.JSON).body(register)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    @Test
-    public void deletePronom() {
-        given()
-            .when().delete(DELETE_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -245,7 +242,7 @@ public class AdminManagementResourceTest {
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
-        final JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
 
         given()
@@ -284,7 +281,7 @@ public class AdminManagementResourceTest {
 
 
     @Test
-    public void getDocument() throws Exception {
+    public void findFormat() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
@@ -323,7 +320,7 @@ public class AdminManagementResourceTest {
 
     /**************************
      * rules Management
-     * 
+     *
      * @throws FileNotFoundException
      ***************************************************/
     @Test
@@ -357,13 +354,6 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void deleteRulesFile() {
-        given()
-            .when().delete(DELETE_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
     public void getRuleByID() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
@@ -378,15 +368,14 @@ public class AdminManagementResourceTest {
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
-        final JsonNode jsonDocument = JsonHandler.getFromString(document);
-
+        final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
             .contentType(ContentType.JSON)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test

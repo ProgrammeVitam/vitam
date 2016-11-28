@@ -1,7 +1,7 @@
 DirectedCycle
 #############
 
-	Vitam utilise DirectedCycle pour verifier la structure des arbres et de s'assurer qu'on n' a pas une cycle dans le graphe.
+	Vitam utilise DirectedCycle pour verifier la structure des arbres et de s'assurer qu'on n' a pas un cycle dans le graphe.
 	
 Initialisation
 **************
@@ -24,7 +24,7 @@ Pour vérifier la présence d'un cycle dans le graphe
 
               graphe..isCyclic() ;
 
-La methode isCyclic return true si on a un cycle.
+La méthode isCyclic return true si on a un cycle.
 
 
 Exemple de fichier json: ingest_acyc.json
@@ -41,14 +41,14 @@ Exemple de fichier json: ingest_acyc.json
 Remarque
 ********
 
-Pour Vitam, fonctionnellement il ne faut pas trouver des cycles au niveau des arbres des units. (au niveau de bordoreau)
+Pour Vitam, fonctionnellement il ne faut pas trouver des cycles au niveau des arbres des units. (au niveau du bordereau)
 
 ====================================================================================
 
 Graph
 #############
 
-	Vitam utilise Graph pour determiner l'order d'indexation en se basant sur la notion de chemin le plus long (longest path)
+	Vitam utilise le Graphe pour determiner l'ordre d'indexation en se basant sur la notion de chemin le plus long (longest path)
 	
 Initialisation
 **************
@@ -64,13 +64,13 @@ Initialisation
 Usage
 *****
 
-Pour determiner l'order il faut avoir le chemin le plus plong par rapport aux différents racines :
+Pour determiner l'ordre il faut avoir le chemin le plus long par rapport aux différentes racines :
 
 .. code-block:: java
 
               graph.getGraphWithLongestPaths()
 
-La methode getGraphWithLongestPaths return un map qui contient l'order on key et la liste (Set) des units id en valeur
+La méthode getGraphWithLongestPaths return un map qui contient l'ordre on key et la liste (Set) des units id en valeur
 
 
 Exemple de resultat:

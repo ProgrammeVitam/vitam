@@ -30,86 +30,58 @@ import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
 /**
  * MetaDataConfiguration contains database access informations
  */
-public final class MetaDataConfiguration extends DbConfigurationImpl {
+public class MetaDataConfiguration extends DbConfigurationImpl {
 
-    private String jettyConfig;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
     /**
      * MetaDataConfiguration constructor
      *
-     * @param host database server IP address
-     * @param port database server port
+     * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName 
+     * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
-     * @param jettyConfig jetty config fiel name
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig) {
-        super(host, port, dbName);
+    public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes) {
+        super(mongoDbNodes, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
-        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
-        this.jettyConfig = jettyConfig;
     }
-    
+
     /**
      * MetaDataConfiguration constructor with authentication
      *
-     * @param host database server IP address
-     * @param port database server port
+     * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName 
+     * @param clusterName
      * @param elasticsearchNodes elasticsearch nodes
-     * @param jettyConfig jetty config fiel name
-     * @param dbAuthentication 
-     * @param dbUserName 
-     * @param dbPassword 
+     * @param dbAuthentication
+     * @param dbUserName
+     * @param dbPassword
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName, String dbPassword) {
-        super(host, port, dbName, dbAuthentication, dbUserName, dbPassword);
+    public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
+        super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
-        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
-        this.jettyConfig = jettyConfig;
     }
 
     /**
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
     public MetaDataConfiguration() {}
-
-    /**
-     * getter jettyConfig
-     *
-     * @return return the jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config
-     * @return return the jettyConfig
-     */
-    public MetaDataConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
 
 
     /**

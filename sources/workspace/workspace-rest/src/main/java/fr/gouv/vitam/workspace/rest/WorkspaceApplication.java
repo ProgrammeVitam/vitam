@@ -31,11 +31,12 @@ import static java.lang.String.format;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server2.VitamServer;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
@@ -45,6 +46,9 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
     private static String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    /**
+     * For Junit
+     */
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.workspace.port";
 
     /**
@@ -70,8 +74,8 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     /**
      * runs the APPLICATION
      *
-     * @param configuration Workspace Configuration
-     * @throws VitamApplicationServerException 
+     * @param args Workspace Configuration
+     * @throws VitamApplicationServerException
      * @throws Exception Thrown if something goes wrong
      */
     public static void main(String[] args) {

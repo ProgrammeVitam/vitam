@@ -26,22 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 public class ProcessManagementApplicationTest {
 
     private ProcessManagementApplication application;
     private static JunitHelper junitHelper;
     private static int port;
+    private static final String CONF = "processing.conf";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -54,44 +53,39 @@ public class ProcessManagementApplicationTest {
         junitHelper.releasePort(port);
     }
 
-    @Before
-    public void setup() throws Exception {
-        application = new ProcessManagementApplication();
-    }
 
-    @After
-    public void end() {
-        try {
-            ProcessManagementApplication.stop();
-        } catch (final Exception e) {
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        ProcessManagementApplication.startApplication(new String[0]);
+        application = new ProcessManagementApplication((String) null);
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IllegalStateException.class)
+    public void givenEmptyArgsConfWhenConfigureApplicationOThenRaiseAnException() throws Exception {
+        application = new ProcessManagementApplication((ServerConfiguration) null);
+    }
+
+    @Test(expected = IllegalStateException.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure(PropertiesUtils.getResourcePath("notFound.conf"));
+        application = new ProcessManagementApplication("notFound.conf");
     }
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure(PropertiesUtils.getResourcePath("processing.conf"));
+        application = new ProcessManagementApplication(CONF);
     }
 
     @Test
     public void givenConfigFileWhenGetConfigThenReturnCorrectConfig() {
-        Assert.assertEquals("processing.conf", application.getConfigFilename());
+        application = new ProcessManagementApplication(CONF);
+        Assert.assertEquals(CONF, application.getConfigFilename());
     }
 
     @Test
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
         SystemPropertyUtil
             .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
-        ProcessManagementApplication.startApplication("processing.conf");
-        ProcessManagementApplication.stop();
+        application = new ProcessManagementApplication(CONF);
+        application.start();
+        application.stop();
     }
 }

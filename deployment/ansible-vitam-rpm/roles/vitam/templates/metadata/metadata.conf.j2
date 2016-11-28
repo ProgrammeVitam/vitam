@@ -1,7 +1,11 @@
+
 # Configuration MongoDB
-dbHost: {{vitam_mongodb_host}}
-dbPort: {{vitam_mongodb_port}}
-dbName: Vitam
+mongoDbNodes:
+{% for server in groups['mongos'] %}
+- dbHost: {{server}}
+  dbPort: {{vitam_mongodb_port}}
+{% endfor %}
+dbName: metadata
 dbAuthentication: {{mongo_authentication}}
 dbUserName: {{mongoMetadataUser}}
 dbPassword: {{mongoMetadataPassword}}
@@ -14,5 +18,4 @@ elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{server}}
   tcpPort: {{elasticsearch_data_tcp_port}}
-
 {% endfor %}

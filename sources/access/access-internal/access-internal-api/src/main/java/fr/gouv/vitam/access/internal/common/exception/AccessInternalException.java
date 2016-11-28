@@ -37,6 +37,7 @@ public class AccessInternalException extends VitamException {
 
     /**
      * constructor with message
+     *
      * @param message message to associate with the exception
      */
     public AccessInternalException(String message) {
@@ -45,6 +46,7 @@ public class AccessInternalException extends VitamException {
 
     /**
      * constructor with throwable
+     *
      * @param cause cause to associate with the exception
      */
     public AccessInternalException(Throwable cause) {
@@ -53,6 +55,7 @@ public class AccessInternalException extends VitamException {
 
     /**
      * constructor with message and throwable
+     *
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
@@ -61,7 +64,8 @@ public class AccessInternalException extends VitamException {
     }
 
     /**
-     * constructor with  message throwable anableSuppression and writableStackTrace
+     * constructor with message throwable anableSuppression and writableStackTrace
+     *
      * @param message associated message
      * @param cause associated cause
      * @param enableSuppression allow suppression or not

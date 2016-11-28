@@ -29,11 +29,11 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client2.VitamClientFactory;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
@@ -114,6 +114,7 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
      *
      * @return the default logbook client
      */
+    @Override
     public LogbookLifeCyclesClient getClient() {
         LogbookLifeCyclesClient client;
         switch (getVitamClientType()) {

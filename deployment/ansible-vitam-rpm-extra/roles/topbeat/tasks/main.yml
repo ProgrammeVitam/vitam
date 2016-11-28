@@ -16,8 +16,8 @@
 # OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
 # OMA added ignore_errors due to stange things sometimes when redeploying
 - name: force use topbeat index
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
-  ignore_errors: true
   notify:
     - restart kibana
   delegate_to: "{{groups['hosts-log-server'][0]}}"
@@ -45,6 +45,7 @@
     state: restarted
     enabled: true
 
+  # TODO: change : virtualization_type is wrong here, we should assert if curator was indeed installed
 - name: apply configuration files for curator
   template:
     src: "{{item}}.j2"
@@ -54,6 +55,9 @@
     - "delete_index_topbeat.yml"
   delegate_to: "{{groups['hosts-log-server'][0]}}"
   run_once: true
+  when:
+    - ansible_virtualization_type != 'docker'
+    - "{{ (groups['hosts-log-server'] | length) > 0}}"
 
 - name: create root crontab entry
   run_once: true
@@ -64,3 +68,7 @@
     hour="0"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_topbeat.yml"
+  when:
+    - ansible_virtualization_type != 'docker'
+    - "{{ (groups['hosts-log-server'] | length) > 0}}"  
+

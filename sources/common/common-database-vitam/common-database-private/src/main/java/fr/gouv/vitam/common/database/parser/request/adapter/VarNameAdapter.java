@@ -51,11 +51,24 @@ public class VarNameAdapter {
 
     /**
      *
+     * @return True if the adapter is a MetadataVarnameAdapter
+     */
+    public boolean metadataAdapter() {
+        return false;
+    }
+
+    /**
+     *
      * @param name String
      * @return null
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public String getVariableName(String name) throws InvalidParseOperationException {
+        if (name.charAt(0) == ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR) {
+            if (!ParserTokens.PROJECTIONARGS.isValid(name)) {
+                throw new InvalidParseOperationException("Illegal variable name found: " + name);
+            }
+        }
         return null;
     }
 

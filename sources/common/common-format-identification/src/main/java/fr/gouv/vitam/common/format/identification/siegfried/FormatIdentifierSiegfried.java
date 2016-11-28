@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.lang.BooleanUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,8 +64,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     /**
      * Unknown namespace
      */
-    public static final String UNKNOW_NAMESPACE = "UNKNOW";
+    public static final String UNKNOW_NAMESPACE = "UNKNOWN";
     private final SiegfriedClient client;
+    // FIXME P1 Unused
     private final Path rootPath;
     private final Path versionPath;
 
@@ -97,7 +100,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             final int port = (Integer) configurationProperties.get("port");
 
             factory.changeConfiguration(host, port);
-            client = factory.getSiegfriedClient();
+            client = factory.getClient();
             rootPath = Paths.get(root);
             versionPath = Paths.get(version);
 
@@ -115,7 +118,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             // Mock configuration
             LOGGER.info("Bad value of client. Use mock");
             factory.changeConfiguration(null, 0);
-            client = factory.getSiegfriedClient();
+            client = factory.getClient();
             rootPath = Paths.get(root);
             versionPath = Paths.get(version);
         }
@@ -153,14 +156,12 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-        final Path filePath = Paths.get(rootPath.toString() + "/" + path.toString());
+        final JsonNode response = client.analysePath(path);
 
-        final JsonNode response = client.analysePath(filePath);
-
-        return extractFormat(response);
+        return extractFormat(response, path);
     }
 
-    private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse)
+    private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse, Path path)
         throws FileFormatNotFoundException, FormatIdentifierBadRequestException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("extract format from siegfried response");
@@ -176,9 +177,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
 
         final ArrayNode matches = (ArrayNode) file.get("matches");
         for (final JsonNode match : matches) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Check match " + match.toString());
-            }
+            LOGGER.debug("Check match {}", match);
             final String formatId = match.get("id").asText();
             final String namespace = match.get("ns").asText();
             if (formatResolved(formatId, namespace)) {
@@ -190,11 +189,43 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                 final FormatIdentifierResponse formatIdentifier =
                     new FormatIdentifierResponse(format, mimetype, formatId, namespace);
                 matchesFormats.add(formatIdentifier);
+            } else if (PRONOM_NAMESPACE.equals(namespace)) {
+                final JsonNode warnNode = match.get("warning");
+                if (warnNode != null) {
+                    final String warn = warnNode.asText();
+                    final int pos = warn.indexOf("fmt/");
+                    final int xpos = warn.indexOf("x-fmt/");
+                    int start = -1;
+                    if (pos > 0 && xpos > 0) {
+                        start = pos < xpos ? pos : xpos;
+                    } else if (pos > 0) {
+                        start = pos;
+                    } else {
+                        start = xpos;
+                    }
+                    if (start > 0) {
+                        int end = warn.indexOf(',', start);
+                        if (end == -1) {
+                            end = warn.length();
+                        }
+                        if (end > start) {
+                            final String newFormatId = warn.substring(start, end);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Find a format " + formatId + " for " + namespace);
+                            }
+                            final String mimetype = MediaType.APPLICATION_OCTET_STREAM;
+                            final String format = "Approximative format: " + newFormatId;
+                            final FormatIdentifierResponse formatIdentifier =
+                                new FormatIdentifierResponse(format, mimetype, newFormatId, namespace);
+                            matchesFormats.add(formatIdentifier);
+                        }
+                    }
+                }
             }
         }
 
         if (matchesFormats.isEmpty()) {
-            LOGGER.warn("No format match found for file");
+            LOGGER.warn("No format match found for file " + path);
             throw new FileFormatNotFoundException("No match found");
         }
 
@@ -206,5 +237,10 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 }

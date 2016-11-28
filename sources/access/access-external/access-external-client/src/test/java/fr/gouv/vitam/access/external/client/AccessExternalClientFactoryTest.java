@@ -1,19 +1,22 @@
 package fr.gouv.vitam.access.external.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
-import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 
 public class AccessExternalClientFactoryTest {
     @Before
     public void initFileConfiguration() {
         AccessExternalClientFactory
-            .changeMode(AccessExternalClientFactory.changeConfigurationFile("access-external-client.conf"));
+            .changeMode(AccessExternalClientFactory.changeConfigurationFile("access-external-client-test.conf"));
 
     }
 
@@ -81,7 +84,7 @@ public class AccessExternalClientFactoryTest {
     public void changeClientTypeAndGetExceptionTest() {
         AccessExternalClientFactory.changeMode(new ClientConfigurationImpl("localhost", 100));
         AccessExternalClientFactory.getInstance().setVitamClientType(VitamClientType.valueOf("BAD"));
-        AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient();
+        AccessExternalClientFactory.getInstance().getClient();
     }
 
     @Test

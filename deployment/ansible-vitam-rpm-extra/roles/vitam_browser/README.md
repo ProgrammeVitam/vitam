@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+this role installs a Apache server that can browse /vitam directory, which is usefull while developping && debugging.
 
 Requirements
 ------------

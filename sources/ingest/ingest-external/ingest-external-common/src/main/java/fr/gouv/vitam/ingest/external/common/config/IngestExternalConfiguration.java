@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.config;
 
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * IngestExternalConfiguration contains access informations of ingest

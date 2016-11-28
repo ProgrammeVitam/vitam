@@ -78,20 +78,20 @@ public class VitamConfiguration {
     /**
      * Default Connection timeout
      */
-    private static final int CONNECT_TIMEOUT = 1000;
+    private static final int CONNECT_TIMEOUT = 2000;
     /**
      * Default Read Timeout
      */
-    private static final int READ_TIMEOUT = 99999999;
+    private static final int READ_TIMEOUT = 86400000;
 
     /**
      * Max total concurrent clients
      */
-    private static final int MAX_TOTAL_CLIENT = 100;
+    private static final int MAX_TOTAL_CLIENT = 500;
     /**
      * Max concurrent clients associated to one host
      */
-    private static final int MAX_CLIENT_PER_HOST = 50;
+    private static final int MAX_CLIENT_PER_HOST = 100;
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
@@ -103,15 +103,15 @@ public class VitamConfiguration {
     /**
      * Max delay to get a client (Apache Only)
      */
-    private static final int DELAY_GET_CLIENT = 2000;
+    private static final int DELAY_GET_CLIENT = 10000;
     /**
      * Specify the delay where connections returned to pool will be checked (Apache Only)
      */
-    private static final int INTERVAL_DELAY_CHECK_IDLE = 30000;
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 5000;
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
      */
-    private static final int MAX_DELAY_UNUSED_CONNECTION = 30000;
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 10000;
     /**
      * General Admin path
      */
@@ -121,9 +121,17 @@ public class VitamConfiguration {
      */
     public static final String STATUS_URL = "/status";
     /**
-     * Default Digest Type
+     * Default Digest Type for SECURITY
      */
     private static final DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
+    /**
+     * Default Digest Type for Vitam
+     */
+    private static final DigestType DEFAULT_DIGEST_TYPE = DigestType.SHA512;
+    /**
+     * Default Digest Type for time stamp generation
+     */
+    private static final DigestType DEFAULT_TIMESTAMP_DIGEST_TYPE = DigestType.SHA512;
     /**
      * Acceptable Request Time
      */
@@ -140,6 +148,10 @@ public class VitamConfiguration {
      * Retry delay
      */
     private static final int RETRY_DELAY = 30000;
+    /**
+     * Waiting delay (for wait(delay) method)
+     */
+    private static final int WAITING_DELAY = 1000;
 
     private String config;
     private String log;
@@ -152,6 +164,7 @@ public class VitamConfiguration {
     static {
         getConfiguration().setDefault();
     }
+
     /**
      * Empty constructor
      */
@@ -183,14 +196,14 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
+     *
      * @param vitamConfiguration
      */
     void setInternalConfiguration(VitamConfiguration vitamConfiguration) {
         setConfig(vitamConfiguration.getConfig())
-        .setData(vitamConfiguration.getData())
-        .setLog(vitamConfiguration.getLog())
-        .setTmp(vitamConfiguration.getTmp()).checkValues();
+            .setData(vitamConfiguration.getData())
+            .setLog(vitamConfiguration.getLog())
+            .setTmp(vitamConfiguration.getTmp()).checkValues();
     }
 
     /**
@@ -416,7 +429,7 @@ public class VitamConfiguration {
 
     /**
      * Junit facility
-     * 
+     *
      * @param timeout
      */
     public static void setConnectTimeout(int timeout) {
@@ -521,6 +534,21 @@ public class VitamConfiguration {
     }
 
     /**
+     * @return the Default DigestType
+     */
+    public static DigestType getDefaultDigestType() {
+        return DEFAULT_DIGEST_TYPE;
+    }
+
+    /**
+     * @return the Default DigestType for time stamp generation
+     */
+    public static DigestType getDefaultTimestampDigestType() {
+        return DEFAULT_TIMESTAMP_DIGEST_TYPE;
+    }
+
+
+    /**
      * @return the threadsAllowedToBlockForConnectionMultipliers for MongoDb Client
      */
     public static int getThreadsAllowedToBlockForConnectionMultipliers() {
@@ -541,4 +569,10 @@ public class VitamConfiguration {
         return RETRY_DELAY;
     }
 
+    /**
+     * @return the waiting Delay (wait)
+     */
+    public static int getWaitingDelay() {
+        return WAITING_DELAY;
+    }
 }

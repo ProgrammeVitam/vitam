@@ -1,4 +1,6 @@
 ---
 # handlers file for storage-offer-default
 - name: restart apache
-  service: name=httpd state=restarted
+  service: 
+    name: httpd 
+    state: restarted

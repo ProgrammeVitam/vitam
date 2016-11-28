@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.configuration;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
@@ -90,5 +91,11 @@ public class ServerIdentityConfigurationImplTest {
         final ServerIdentityConfigurationImpl siConf0 = new ServerIdentityConfigurationImpl();
         final String string0 = siConf0.getIdentityName();
         assertNull(string0);
+        assertNull(siConf0.getIdentityRole());
+        assertEquals(0, siConf0.getIdentityPlatformId());
+        siConf0.setIdentityName("id1").setIdentityPlatformId(1).setIdentityRole("role1");
+        assertEquals("id1", siConf0.getIdentityName());
+        assertEquals(1, siConf0.getIdentityPlatformId());
+        assertEquals("role1", siConf0.getIdentityRole());
     }
 }

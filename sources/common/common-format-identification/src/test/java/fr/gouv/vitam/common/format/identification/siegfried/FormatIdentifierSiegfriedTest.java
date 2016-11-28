@@ -56,12 +56,14 @@ public class FormatIdentifierSiegfriedTest {
 
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";
     private static final String SAMPLE_OK_RESPONSE = "ok-response.json";
-    private static final String SAMPLE_UNKNOW_RESPONSE = "unknow-response.json";
+    private static final String SAMPLE_UNKNOW_RESPONSE = "unknown-response.json";
+    private static final String SAMPLE_UNKNOW_NOWARN_RESPONSE = "unknown-nowarn-response.json";
     private static final String SAMPLE_BAD_REQUEST_RESPONSE = "bad-request-response.json";
 
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_UNKNOW = getJsonNode(SAMPLE_UNKNOW_RESPONSE);
+    private static final JsonNode JSON_NODE_RESPONSE_UNKNOW_NOWARN = getJsonNode(SAMPLE_UNKNOW_NOWARN_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_BAD = getJsonNode(SAMPLE_BAD_REQUEST_RESPONSE);
 
     private static final Path VERSION_PATH = Paths.get("version/path");
@@ -124,10 +126,16 @@ public class FormatIdentifierSiegfriedTest {
         assertEquals("application/zip", format.getMimetype());
     }
 
+    public void testSiegfriedIdentifyUnknownFormatFileButWarnWithFMT() throws Exception {
+        reset(client);
+        when(client.analysePath(anyObject())).thenReturn(JSON_NODE_RESPONSE_UNKNOW);
+        siegfried.analysePath(FILE_PATH);
+    }
+
     @Test(expected = FileFormatNotFoundException.class)
     public void testSiegfriedIdentifyNoFormatFile() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenReturn(JSON_NODE_RESPONSE_UNKNOW);
+        when(client.analysePath(anyObject())).thenReturn(JSON_NODE_RESPONSE_UNKNOW_NOWARN);
         siegfried.analysePath(FILE_PATH);
     }
 

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -86,6 +87,7 @@ public final class DslQueryHelper {
     private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
     private static final String YES = "yes";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String DATEOPERATION = "EvDateTime";
 
 
     // empty constructor
@@ -103,7 +105,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
-    public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
@@ -160,6 +162,8 @@ public final class DslQueryHelper {
                         query.add(eq("RuleType", searchValue));
                     }
 
+                    break;
+
                 case EVENTID:
                     if ("all".equals(searchValue)) {
                         query.add(exists(EVENT_ID_PROCESS));
@@ -177,6 +181,11 @@ public final class DslQueryHelper {
                         }
                     }
                     break;
+                case DATEOPERATION:
+                    if (!searchValue.isEmpty()) {
+                        query.add(gte(EVENT_DATE_TIME, searchValue));
+                    }
+                    break;
 
                 default:
                     if (!searchValue.isEmpty()) {
@@ -188,8 +197,8 @@ public final class DslQueryHelper {
             query.add(queryOr);
         }
         select.setQuery(query);
-        LOGGER.debug(select.getFinalSelect().toString());
-        return select.getFinalSelect().toString();
+        LOGGER.debug("{}", select.getFinalSelect());
+        return select.getFinalSelect();
     }
 
     /**
@@ -199,7 +208,7 @@ public final class DslQueryHelper {
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
-    public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
@@ -241,7 +250,7 @@ public final class DslQueryHelper {
             select.addQueries(booleanQueries);
         }
 
-        return select.getFinalSelect().toString();
+        return select.getFinalSelect();
     }
 
     /**
@@ -250,7 +259,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static String createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
@@ -291,8 +300,8 @@ public final class DslQueryHelper {
                 booleanQueries.add(match(DESCRIPTION, searchValue));
                 continue;
             }
-            if (searchKeys.equalsIgnoreCase(UiConstants.ID.getResultConstantValue())) {
-                andQuery.add(eq(UiConstants.ID.getConstantValue(), searchValue));
+            if (searchKeys.equalsIgnoreCase(UiConstants.ID.getReceivedCriteria())) {
+                andQuery.add(eq(UiConstants.ID.getResultCriteria(), searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
@@ -334,7 +343,7 @@ public final class DslQueryHelper {
                 select.addQueries(booleanQueries);
             }
         }
-        return select.getFinalSelect().toString();
+        return select.getFinalSelect();
     }
 
     /**
@@ -343,7 +352,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static String createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
+    public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Update update = new Update();
@@ -363,7 +372,7 @@ public final class DslQueryHelper {
             // Add Actions
             update.addActions(new SetAction(searchKeys, searchValue));
         }
-        return update.getFinalUpdate().toString();
+        return update.getFinalUpdate();
     }
 
     /**
@@ -375,38 +384,39 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static String createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
+    public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Select selectParentsDetails = new Select();
 
         // Add projections
         // Title
-        selectParentsDetails.addUsedProjection(UiConstants.TITLE.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.TITLE.getResultCriteria());
 
         // id
-        selectParentsDetails.addUsedProjection(UiConstants.ID.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.ID.getResultCriteria());
 
         // _up
-        selectParentsDetails.addUsedProjection(UiConstants.UNITUPS.getConstantValue());
+        selectParentsDetails.addUsedProjection(UiConstants.UNITUPS.getResultCriteria());
 
         // Add query
 
         // Initialize immediateParents if it is null
         if (immediateParents == null) {
-            immediateParents = new ArrayList<String>();
+            immediateParents = new ArrayList<>();
         }
 
         immediateParents.add(unitId);
         final String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
 
         final BooleanQuery inParentsIdListQuery = and();
-        inParentsIdListQuery.add(in(UiConstants.ID.getConstantValue(), allParentsArray)).setDepthLimit(DEPTH_LIMIT);
+        inParentsIdListQuery.add(in(UiConstants.ID.getResultCriteria(), allParentsArray))
+            .setDepthLimit(DEPTH_LIMIT);
 
         if (inParentsIdListQuery.isReady()) {
             selectParentsDetails.addQueries(inParentsIdListQuery);
         }
 
-        return selectParentsDetails.getFinalSelect().toString();
+        return selectParentsDetails.getFinalSelect();
     }
 
 

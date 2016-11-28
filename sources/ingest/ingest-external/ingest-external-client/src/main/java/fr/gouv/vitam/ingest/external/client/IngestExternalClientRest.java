@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client2.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -44,9 +44,9 @@ import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 /**
  * Ingest External client
  */
-public class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
+class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
-    private static final String UPLOAD_URL = "/upload";
+    private static final String UPLOAD_URL = "/ingests";
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -62,24 +62,24 @@ public class IngestExternalClientRest extends DefaultClient implements IngestExt
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
                     LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
                     break;
-                case ACCEPTED:
+                case PARTIAL_CONTENT:
                     LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_WITH_WARNING.getMessage());
                     break;
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-        } catch (VitamClientInternalException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Ingest Extrenal Internal Server Error", e);
             throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode() &&
                 response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
-                response.getStatus() != Status.ACCEPTED.getStatusCode()) {
+                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
             }
         }

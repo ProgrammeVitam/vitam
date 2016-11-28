@@ -22,12 +22,11 @@ Architecture de déploiement
 
 .. seealso:: Se reporter à :doc:`elasticsearch-data` pour les informations générales concernant elasticsearch.
 
-Dans le déploiement actuel, tous les noeuds sont considérés comme des noeuds "master" et "data" ; par conséquent, le nombre de noeuds du cluster doit être impair (i.e. 2n + 1 noeuds, n > 1). 
+Dans le déploiement actuel, tous les noeuds sont considérés comme des noeuds "master" et "data" ; par conséquent, le nombre de noeuds du cluster doit être impair (i.e. 2n + 1 noeuds, n > 1).
 
 .. todo Dans une prochaine version, affiner l'exposition des ports http
 
 .. Monitoring
 .. ==========
 
-.. .. todo:: plugin head / kopf / interfaces REST natives / ...
-
+.. todo plugin kopf / interfaces REST natives / ...

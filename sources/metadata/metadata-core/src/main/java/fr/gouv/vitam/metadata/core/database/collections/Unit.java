@@ -67,10 +67,10 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 /**
  * Unit class:<br>
  *
- * @formatter:off { MD content, _id: UUID, _tenant: tenant, _type: documentType,, _min: depthmin, _max:
- *                depthmax, _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed
- *                and not to be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1,
- *                UUID2, ... ], // limited to immediate parent _og: UUID, _nbc : immediateChildNb }
+ * @formatter:off { MD content, _id: UUID, _tenant: tenant, _type: documentType,, _min: depthmin, _max: depthmax, _mgt.
+ *                Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to be in
+ *                ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
 public class Unit extends MetadataDocument<Unit> {
@@ -85,7 +85,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String UNITDEPTHS = "_uds";
     /**
-     * UNITUPS : [ UUID1, UUID2 }
+     * UNITUPS : [ UUID1, UUID2 ]
      */
     public static final String UNITUPS = "_us";
     /**
@@ -436,6 +436,7 @@ public class Unit extends MetadataDocument<Unit> {
         } else {
             MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_UNIT, false);
             append(NBCHILD, nb);
+            append(UNITUPS, new ArrayList<>());
             nb = 0;
         }
         return false;
@@ -477,7 +478,7 @@ public class Unit extends MetadataDocument<Unit> {
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
 
         // must compute depth from parent
-        final List<Bson> sublist = new ArrayList<Bson>(size);
+        final List<Bson> sublist = new ArrayList<>(size);
         if (vtDomaineLevels != null) {
             for (int i = 0; i < vtDomaineLevels.size(); i++) {
                 final Document currentParent = vtDomaineLevels.get(i);

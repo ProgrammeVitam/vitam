@@ -104,30 +104,46 @@ public final class FileUtil {
         return result;
     }
 
-    private static final void delereRecursiveInternal(File dir) {
+    private static final boolean delereRecursiveInternal(File dir) {
+        boolean status = true;
         for (final File file : dir.listFiles()) {
             if (file.isDirectory()) {
-                delereRecursiveInternal(file);
+                status &= delereRecursiveInternal(file);
             }
             if (!file.delete()) {
-                LOGGER.warn("File could not be deleted");
+                LOGGER.warn("File could not be deleted: " + file);
+                status = false;
             }
         }
+        return status;
     }
 
     /**
-     * CARE: delete all files and directories from this file, this one included
+     * CARE: delete all files and directories from this file or directory, this one included
      *
      * @param file
+     * @return True if all files were deleted
      */
-    public static final void deleteRecursive(File file) {
-        if (file == null || !file.isDirectory()) {
-            return;
+    public static final boolean deleteRecursive(File file) {
+        if (file == null) {
+            return true;
         }
-        delereRecursiveInternal(file);
+        if (!file.exists()) {
+            return true;
+        }
+        if (!file.isDirectory()) {
+            if (!file.delete()) {
+                LOGGER.warn("File could not be deleted: " + file);
+                return false;
+            }
+            return true;
+        }
+        boolean status = delereRecursiveInternal(file);
         if (!file.delete()) {
-            LOGGER.warn("File could not be deleted");
+            LOGGER.warn("File could not be deleted: " + file);
+            status = false;
         }
+        return status;
     }
 
     /**

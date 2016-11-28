@@ -36,9 +36,9 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -53,6 +53,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -79,28 +80,19 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow not exist";
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
+    private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
+
     private final Map<String, WorkFlow> poolWorkflows;
-    // FIXME P0 allocate a new ProcessDistributor for each Step
-    private final ProcessDistributor processDistributor;
-    private Map<String, String> messageIdentifierMap =new HashMap<>();
 
+    private final ProcessDistributor processDistributorMock;
+    private final Map<String, String> messageIdentifierMap = new HashMap<>();
 
-    /**
-     * setWorkflow : populate a workflow to the pool of workflow
-     *
-     * @param workflowId as String
-     * @throws WorkflowNotFoundException throw when workflow not found
-     */
-    public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
-        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
-        poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
-    }
 
     /**
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
     protected ProcessEngineImpl() {
-        processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        processDistributorMock = null;
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -115,8 +107,19 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param processDistributor the wanted process distributor
      */
     ProcessEngineImpl(ProcessDistributor processDistributor) {
-        this.processDistributor = processDistributor;
+        processDistributorMock = processDistributor;
         poolWorkflows = new HashMap<>();
+    }
+
+    /**
+     * setWorkflow : populate a workflow to the pool of workflow
+     *
+     * @param workflowId as String
+     * @throws WorkflowNotFoundException throw when workflow not found
+     */
+    public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
+        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
+        poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
     }
 
     @Override
@@ -127,7 +130,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         final long time = System.currentTimeMillis();
         LOGGER.info(START_MESSAGE);
         // TODO P1 replace with real tenant
-        int tenantId = 0;
+        final int tenantId = 0;
         /**
          * Check if workflow exist in the pool of workflows
          */
@@ -137,7 +140,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
         final ProcessResponse processResponse = new ProcessResponse();
         final GUID processId = GUIDFactory.newGUID();
-        ItemStatus workflowStatus = new ItemStatus(processId.toString());
+        final ItemStatus workflowStatus = new ItemStatus(processId.toString());
 
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
@@ -157,7 +160,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                  * call process distribute to manage steps
                  */
                 boolean finished = true;
-                CompositeItemStatus stepResponse;
+                ItemStatus stepResponse;
                 for (final Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
                     final ProcessStep step = entry.getValue();
                     stepResponse = processStep(processId.getId(), step, entry.getKey(), workParams,
@@ -165,8 +168,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         tenantId, finished);
                     // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                     // then break the process
-                    if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
-                        stepResponse.getGlobalStatus().isGreaterOrEqualToKo()) {
+                    if (stepResponse.shallStop(step.getBehavior().equals(ProcessBehavior.BLOCKING))) {
                         finished = false;
                         break;
                     }
@@ -174,8 +176,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                 // Workflow was break, go last step
                 if (!finished) {
-                    String theLastKey = new ArrayList<>(processSteps.keySet()).get(processSteps.size() - 1);
-                    ProcessStep lastStep = processSteps.get(theLastKey);
+                    final String theLastKey = new ArrayList<>(processSteps.keySet()).get(processSteps.size() - 1);
+                    final ProcessStep lastStep = processSteps.get(theLastKey);
                     // check if it's a final step
                     if (ProcessBehavior.FINALLY.equals(lastStep.getBehavior())) {
                         processStep(processId.getId(), lastStep, theLastKey, workParams,
@@ -200,7 +202,9 @@ public class ProcessEngineImpl implements ProcessEngine {
         return workflowStatus;
     }
 
-    private CompositeItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
+
+
+    private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
         ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier,
         int tenantId, boolean finished)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
@@ -209,7 +213,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         workParams.setStepUniqId(uniqueId);
         LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newGUID(),
+            GUIDFactory.newEventGUID(tenantId),
             step.getStepName(),
             GUIDReader.getGUID(workParams.getContainerName()),
             LogbookTypeProcess.INGEST,
@@ -224,56 +228,115 @@ public class ProcessEngineImpl implements ProcessEngine {
             StatusCode.STARTED);
 
         workParams.setCurrentStep(step.getStepName());
+        ProcessDistributor processDistributor = processDistributorMock;
+        try {
+            if (processDistributor == null) {
+                processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+            }
+            final ItemStatus stepResponse =
+                processDistributor.distribute(workParams, step, workflowId);
 
-        final CompositeItemStatus stepResponse =
-            processDistributor.distribute(workParams, step, workflowId);
+            // update workflow Status
+            workflowStatus.increment(stepResponse.getGlobalStatus());
+            final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+            for (final Action action : step.getActions()) {
+                final String hanlderId = action.getActionDefinition().getActionKey();
+                // Each handler could have a list itself => ItemStatus
+                final ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
+                if (itemStatus != null) {
+                    final LogbookOperationParameters actionParameters =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(tenantId),
+                            hanlderId,
+                            GUIDReader.getGUID(workParams.getContainerName()),
+                            LogbookTypeProcess.INGEST,
+                            StatusCode.STARTED,
+                            VitamLogbookMessages.getCodeOp(hanlderId, StatusCode.STARTED),
+                            GUIDReader.getGUID(workParams.getContainerName()));
+                    helper.updateDelegate(actionParameters);
+                    if (itemStatus instanceof ItemStatus) {
+                        final ItemStatus actionStatus = itemStatus;
+                        for (final ItemStatus sub : actionStatus.getItemsStatus().values()) {
+                            final LogbookOperationParameters sublogbook =
+                                LogbookParametersFactory.newLogbookOperationParameters(
+                                    GUIDFactory.newEventGUID(tenantId),
+                                    actionStatus.getItemId(),
+                                    GUIDReader.getGUID(workParams.getContainerName()),
+                                    LogbookTypeProcess.INGEST,
+                                    sub.getGlobalStatus(),
+                                    sub.getItemId(), " Detail= " + sub.computeStatusMeterMessage(),
+                                    GUIDReader.getGUID(workParams.getContainerName()));
+                            helper.updateDelegate(sublogbook);
+                        }
+                    }
 
-        // update workflow Status
-        workflowStatus.increment(stepResponse.getGlobalStatus());
-
-        LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        for (ItemStatus actionStatus : stepResponse.getItemsStatus().values()) {
-            final LogbookOperationParameters actionParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    GUIDFactory.newEventGUID(tenantId),
-                    actionStatus.getItemId(),
-                    GUIDReader.getGUID(workParams.getContainerName()),
-                    LogbookTypeProcess.INGEST,
-                    actionStatus.getGlobalStatus(),
-                    VitamLogbookMessages.getCodeOp(actionStatus.getItemId(),
-                        actionStatus.getGlobalStatus()) + " Detail= " + actionStatus.computeStatusMeterMessage(),
-                    GUIDReader.getGUID(workParams.getContainerName()));
-            helper.updateDelegate(actionParameters);
-        }
-
-        if (messageIdentifier == null) {
-            if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
-                messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
-                messageIdentifierMap.put(processId, messageIdentifier);
+                    final LogbookOperationParameters sublogbook =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(tenantId),
+                            itemStatus.getItemId(),
+                            GUIDReader.getGUID(workParams.getContainerName()),
+                            LogbookTypeProcess.INGEST,
+                            itemStatus.getGlobalStatus(),
+                            null, " Detail= " + itemStatus.computeStatusMeterMessage(),
+                            GUIDReader.getGUID(workParams.getContainerName()));
+                    helper.updateDelegate(sublogbook);
+                }
             }
 
+            final ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
+            if (itemStatusObjectListEmpty != null) {
+                final LogbookOperationParameters actionParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDFactory.newEventGUID(tenantId),
+                        OBJECTS_LIST_EMPTY,
+                        GUIDReader.getGUID(workParams.getContainerName()),
+                        LogbookTypeProcess.INGEST,
+                        itemStatusObjectListEmpty.getGlobalStatus(),
+                        VitamLogbookMessages.getCodeOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
+                        GUIDReader.getGUID(workParams.getContainerName()));
+                helper.updateDelegate(actionParameters);
+            }
+
+            if (messageIdentifier == null) {
+                if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
+                    messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
+                    messageIdentifierMap.put(processId, messageIdentifier);
+                }
+
+            }
+
+            if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
+                parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
+            }
+
+            parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(tenantId).getId());
+            parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
+            parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
+            helper.updateDelegate(parameters);
+            client.bulkUpdate(workParams.getContainerName(),
+                helper.removeUpdateDelegate(workParams.getContainerName()));
+
+            // update the process monitoring with the final status
+            ProcessMonitoringImpl.getInstance().updateStepStatus(
+                workParams.getProcessId(), uniqueId,
+                stepResponse.getGlobalStatus());
+            LOGGER.info("End Workflow: " + uniqueId + " Step:" + step.getStepName());
+            // TODO P1 : deal with the pause
+            // else if (step.getStepType().equals(StepType.PAUSE)) {
+            // THEN PAUSE
+            // }
+            return stepResponse;
+        } finally {
+            if (processDistributorMock == null && processDistributor != null) {
+                try {
+                    processDistributor.close();
+                } catch (final Exception exc) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+                }
+            }
         }
-
-        if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
-            parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
-        }
-
-        parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
-        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
-        helper.updateDelegate(parameters);
-        client.bulkUpdate(workParams.getContainerName(), helper.removeUpdateDelegate(workParams.getContainerName()));
-
-        // update the process monitoring with the final status
-        ProcessMonitoringImpl.getInstance().updateStepStatus(
-            workParams.getProcessId(), uniqueId,
-            stepResponse.getGlobalStatus());
-        LOGGER.info("End Workflow: " + uniqueId + " Step:" + step.getStepName());
-        // TODO P1 : deal with the pause
-        // else if (step.getStepType().equals(StepType.PAUSE)) {
-        // THEN PAUSE
-        // }
-        return stepResponse;
     }
 
 }
+

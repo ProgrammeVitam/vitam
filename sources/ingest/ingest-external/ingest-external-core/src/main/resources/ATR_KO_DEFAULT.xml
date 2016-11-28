@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransferReply xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd">
+    <Comment>#COMMENT#</Comment>
+    <Date>#MADATE#</Date>
+    <MessageIdentifier>#MESSAGE_IDENTIFIER#</MessageIdentifier>
+    
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+    </CodeListVersions>  
+    
+    <DataObjectPackage>
+        <DescriptiveMetadata></DescriptiveMetadata>
+        <ManagementMetadata>
+           <ReplyOutcome>
+             <Event>
+                <EventTypeCode>#EVENT_TYPE_CODE#</EventTypeCode>
+                <EventType>#EVENT_TYPE#</EventType>
+                <Outcome>#OUTCOME#</Outcome>
+                <OutcomeDetail>#OUTCOME_DETAIL#</OutcomeDetail>
+                <OutcomeDetailMessage>#OUTCOME_DETAIL_MESSAGE#</OutcomeDetailMessage>
+             </Event>
+           </ReplyOutcome>         
+        </ManagementMetadata>
+    </DataObjectPackage>
+    
+    <ReplyCode>#OUTCOME#</ReplyCode>
+    <MessageRequestIdentifier>Unknown</MessageRequestIdentifier>
+    <ArchivalAgency>
+        <Identifier>#ARCHIVAL_AGENCY#</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>#TRANSFERRING_AGENCY#</Identifier>
+    </TransferringAgency>
+</ArchiveTransferReply>

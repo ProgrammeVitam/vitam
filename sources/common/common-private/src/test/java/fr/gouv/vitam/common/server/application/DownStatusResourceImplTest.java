@@ -27,16 +27,13 @@
 package fr.gouv.vitam.common.server.application;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,95 +43,102 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.AdminClient;
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.DefaultAdminClient;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.model.AdminStatusMessage;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
+import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
- * 
+ *
  */
 public class DownStatusResourceImplTest {
 
     // URI
     private static final String ADMIN_RESOURCE_URI = "/";
-    private static final String ADMIN_STATUS_URI = "admin/v1/status";
-    private static final String MODULE_STATUS_URI = "/status";
-    private static final String result = "{'status': [{'Name': 'Vitam07'," +
-        "'Role': 'UnknownRole'," +
-        "'PlatformId': 4231009," +
-        "'LoggerMessagePrepend': '[Vitam07:UnknownRole:4231009]'," +
-        "'JsonIdentity': ''{\'name\':\'Vitam07\',\'role\':\'UnknownRole\',\'pid\':4231009}'}," + "{}]}";
+    private static final String ADMIN_STATUS_URI = "/admin/v1" + BasicClient.STATUS_URL;
+    private static final String TEST_CONF = "test.conf";
+    private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
+    private static final String TEST_STATUS_URI = TEST_RESOURCE_URI + BasicClient.STATUS_URL;
 
-    private static VitamServer vitamServer;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusResourceImplTest.class);
 
-    private static JunitHelper junitHelper;
+    private static TestApplication application;
     private static int port;
+    private static AdminClient client;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        try {
-            vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
+        final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
+            new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-            RestAssured.port = port;
-            RestAssured.basePath = ADMIN_RESOURCE_URI;
+                @Override
+                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    TestApplication.statusService = new VitamStatusService() {
+                        @Override
+                        public boolean getResourcesStatus() {
+                            return false;
+                        }
 
-            LOGGER.debug("Beginning tests");
-        } catch (VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the StatusTest Application Server", e);
-        }
+                        @Override
+                        public ObjectNode getAdminStatus() throws InvalidParseOperationException {
+                            return JsonHandler.createObjectNode();
+                        }
+                    };
+                    final TestApplication application = new TestApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
+
+            };
+        final StartApplicationResponse<TestApplication> response =
+            testFactory.findAvailablePortSetToApplication();
+        port = response.getServerPort();
+        application = response.getApplication();
+        RestAssured.port = port;
+        RestAssured.basePath = ADMIN_RESOURCE_URI;
+        final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(port, TEST_RESOURCE_URI);
+        client = factory.getClient();
+        LOGGER.debug("Beginning tests");
     }
 
-    private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        VitamStatusService service = new VitamStatusService() {
-            @Override
-            public boolean getResourcesStatus() {
-                return false;
-            }
+    private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
-            @Override
-            public ObjectNode getAdminStatus() throws InvalidParseOperationException {
-                return JsonHandler.createObjectNode();
-            }
-        };
-        resourceConfig.register(new AdminStatusResource(service));
-        resourceConfig.register(new ApplicationStatusResource(service));
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        contextHandler.setContextPath("/");
-        contextHandler.addServlet(sh, "/*");
+        public TestVitamAdminClientFactory(int serverPort, String resourcePath) {
+            super(serverPort, resourcePath);
+        }
 
-        HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] {contextHandler});
-        vitamServer.configure(contextHandler);
-        return vitamServer;
+        @Override
+        public DefaultAdminClient getClient() {
+            return new DefaultAdminClient(this);
+        }
+
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
-            junitHelper.releasePort(port);
+            if (application != null) {
+                application.stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        JunitHelper.getInstance().releasePort(port);
+        client.close();
     }
 
     // Status
@@ -145,7 +149,15 @@ public class DownStatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnServiceUnavailable() throws Exception {
-        RestAssured.get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+
+        final Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -157,10 +169,23 @@ public class DownStatusResourceImplTest {
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
         com.jayway.restassured.response.Response response;
-        response = RestAssured.when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+
+        final Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        response = RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+
         jsonAsString = response.asString();
-        JsonNode result = JsonHandler.getFromString(jsonAsString);
-        assertEquals(result.get("status").toString(), "false");
+        final JsonNode result = JsonHandler.getFromString(jsonAsString);
+        assertEquals("false", result.get("status").toString());
+        AdminStatusMessage message = response.as(AdminStatusMessage.class);
+        assertEquals(message.getStatus(), false);
+        message = client.adminStatus();
+        assertEquals(message.getStatus(), false);
     }
 
     // Status
@@ -171,6 +196,19 @@ public class DownStatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnServiceUnavailable() throws Exception {
-        RestAssured.get(MODULE_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        final Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_STATUS_URI);
+
+        RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        try {
+            client.checkStatus();
+            fail("Should raized an exception");
+        } catch (final VitamApplicationServerException e) {
+            // ok
+        }
     }
 }

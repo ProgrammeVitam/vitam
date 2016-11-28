@@ -35,13 +35,13 @@ public class EmptyCloseableIteratorTest {
 
     @Test
     public final void test() {
-        EmptyCloseableIterator<Object> emptyCloseableIterator0 = new EmptyCloseableIterator<Object>();
+        EmptyCloseableIterator<Object> emptyCloseableIterator0 = new EmptyCloseableIterator<>();
         final Object object0 = emptyCloseableIterator0.next();
         assertNull(object0);
-        emptyCloseableIterator0 = new EmptyCloseableIterator<Object>();
+        emptyCloseableIterator0 = new EmptyCloseableIterator<>();
         emptyCloseableIterator0.close();
         assertFalse(emptyCloseableIterator0.hasNext());
-        emptyCloseableIterator0 = new EmptyCloseableIterator<Object>();
+        emptyCloseableIterator0 = new EmptyCloseableIterator<>();
         assertFalse(emptyCloseableIterator0.hasNext());
     }
 

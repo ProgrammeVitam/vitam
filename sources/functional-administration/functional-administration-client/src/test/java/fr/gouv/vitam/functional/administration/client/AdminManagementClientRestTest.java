@@ -52,9 +52,9 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -258,21 +258,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test
-    public void whenDeteleFormatReturnKO() throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
-        client.deleteFormat();
-    }
-
-
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = ReferentialException.class)
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
-        final JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
-        final JsonNode result = client.getFormatByID("HDE");
+        client.getFormats(select.getFinalSelect());
+        client.getFormatByID("HDE");
     }
 
     @Test(expected = ReferentialException.class)
@@ -280,12 +273,12 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final JsonNode result = client.getFormatByID("HDE");
+        client.getFormatByID("HDE");
     }
 
     /***********************************************************************************
      * Rules Manager
-     * 
+     *
      * @throws FileNotFoundException
      ***********************************************************************************/
 
@@ -317,17 +310,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test
-    public void whenDeteleRulesFileReturnKO() throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.deleteRulesFile();
-    }
-
-
     @Test(expected = FileRulesException.class)
     public void givenAnInvalidFileThenKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        final Select select = new Select();
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         client.importRulesFile(stream);
@@ -371,7 +356,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        final JsonNode result = client.getRule(select.getFinalSelect());
+        final JsonNode result = client.getRules(select.getFinalSelect());
     }
 
     @Test
