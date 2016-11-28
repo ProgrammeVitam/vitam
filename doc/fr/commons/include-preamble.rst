@@ -108,3 +108,6 @@ Glossaire
 
    SIA
       Système d'Informations Archivistique
+
+   OAIS
+      `Open Archival Information System`, acronyme anglais pour Systèmes de transfert desinformations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence.

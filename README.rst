@@ -38,10 +38,12 @@ Pré-requis
 
 Pour construire la documentation, il est nécessaire d'avoir les pré-requis suivants installés :
 
-* sphinx-build
+* sphinx-build (et le thème rtd)
 * Pour construire le pdf : latex
 * make
 * raml2html (version minimale : ``raml2html@4.0.0-beta2``)
+
+Remarque : Sur Centos 7, pour l'installation de sphinx, il faut installer les 2 packages  python-sphinx python-sphinx_rtd_theme puis il faut créer un lien symbolique (ln -s /usr/lib/python2.7/site-packages/sphinx_rtd_theme /usr/lib/python2.7/site-packages/sphinx/themes/)
 
 Build de la documentation
 -------------------------

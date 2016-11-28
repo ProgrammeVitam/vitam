@@ -5,9 +5,11 @@ Dépendances aux services d'infrastructures
 Ordonnanceurs techniques / batchs
 =================================
 
-.. note:: Curator permet d'effectuer des opérations périodiques de maintenance sur les index elasticsearch ; cependant, il gère lui-même le déclenchement de ses actions, et ne nécessite donc pas la configuration d'un ordonnanceur externe.
+.. note:: Curator permet d'effectuer des opérations périodiques de maintenance sur les index elasticsearch. Les jobs Curator sont initiés automatiquement au déploiement de VITAM et sont lancés via crontab.
 
 .. note:: Des batchs d'exploitation seront disponibles dans les versions ultérieures de la solution VITAM (ex : validation périodique de la validité des certificats clients)
+
+Job de sécurisation du logbook : lancé toutes les nuits peu après minuit sur une des machines (la dernière) hébergeant le composant vitam-logbook.
 
 .. cas de la sécurisation des journaux ?
 

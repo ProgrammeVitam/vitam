@@ -19,7 +19,6 @@ Les flux réseaux "métier" sont divisés en 3 schémas pour plus de clarté ; t
 
     Architecture technique : flux (1/4 : flux métiers généraux)
 
-.. todo vérifier les flux mongodb notamment
 
 Ensuite, les flux dédiés au dépôt des journaux dans le composant "logbook" :
 
