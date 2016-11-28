@@ -164,6 +164,12 @@ public class IngestInternalIT {
 
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
+    private static String SIP_OK_WITH_MGT_META_DATA_ONLY_RULES = "integration-ingest-internal/SIP-MGTMETADATA-ONLY.zip";
+    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES =
+        "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
+    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
+        "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
+
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -440,4 +446,174 @@ public class IngestInternalIT {
         assertNotNull(response.getEntity());
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithManifestHavingMgtRules() throws Exception {
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+
+            // Warning during format identification (SIP with MD5)
+            assertEquals(206, response.getStatus());
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            Select select = new Select();
+            select.addQueries(QueryHelper.eq("Title", "Unit with Management META DATA rules"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+
+            // Check the added management rules
+            assertEquals(unit.get("#management").size(), 1);
+
+            // Check that only the rule declared in "ManagementMetaData" was added : StorageRule
+            assertTrue(unit.get("#management").has("StorageRule"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRules() throws Exception {
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+
+            // Warning during format identification (SIP with MD5)
+            assertEquals(206, response.getStatus());
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            Select select = new Select();
+            select.addQueries(QueryHelper.eq("Title", "UNIT with both rules"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+
+            // Check the added management rules
+            assertEquals(unit.get("#management").size(), 2);
+
+            // Check that both the rules declared in "ManagementMetaData" and in the unit were added : StorageRule +
+            // AccessRule
+            assertTrue(unit.get("#management").has("StorageRule"));
+            assertTrue(unit.get("#management").has("AccessRule"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    // SHDGR__GR_4_H_3__001_0000
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRulesWithoutObjects() throws Exception {
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+
+            // Warning during format identification (SIP with MD5)
+            assertEquals(206, response.getStatus());
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            Select select = new Select();
+            select.addQueries(QueryHelper.eq("Title", "LEVANT"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+
+            // Check the added management rules
+            assertEquals(unit.get("#management").size(), 1);
+
+            // Check that the rule declared in the unit was added : AccessRule
+            assertTrue(unit.get("#management").has("AccessRule"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
 }

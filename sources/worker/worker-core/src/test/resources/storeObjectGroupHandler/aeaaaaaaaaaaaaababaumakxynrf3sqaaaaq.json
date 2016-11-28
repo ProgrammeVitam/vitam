@@ -97,7 +97,7 @@
         "OtherMetadata" : null,
         "Uri" : "content/fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0.png",
         "MessageDigest" : "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0",
-        "Algorithm" : "SHA512"
+        "Algorithm" : "SHA-512"
       } ]
     },
     "TextContent" : {
@@ -122,8 +122,8 @@
         },
         "OtherMetadata" : null,
         "Uri" : "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
-        "MessageDigest" : "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4",
-        "Algorithm" : "SHA512"
+        "MessageDigest" : "3273aa2ccb0cf4d5d37cef899d1774b9",
+        "Algorithm" : "MD5"
       } ]
     }
   },

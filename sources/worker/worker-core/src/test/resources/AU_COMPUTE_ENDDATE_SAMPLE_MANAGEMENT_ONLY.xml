@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+ <ROOT>
+ <ArchiveUnit id="aeaaaaaaaaaaaaababqaqakx7mxipdqaaaaq">
+     <Work>
+         <RulesToApply>ID420;ID470;ID019</RulesToApply>
+         <_up></_up>
+     </Work>
+     <ArchiveUnitProfile>PresentationType</ArchiveUnitProfile>
+     <Management>
+     </Management>
+     <Content xml:id="ID026">
+         <DescriptionLevel>Item</DescriptionLevel>
+         <Title>Sensibilisation API</Title>
+         <FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+         <OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+         <ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0
+         </ArchivalAgencyArchiveUnitIdentifier>
+         <OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0
+         </OriginatingAgencyArchiveUnitIdentifier>
+         <TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0
+         </TransferringAgencyArchiveUnitIdentifier>
+         <Description>Sensibilisation au Technical Design
+         </Description>
+         <Language>fr-FR</Language>
+         <OriginatingAgency>
+             <Identifier>Identifier0</Identifier>
+         </OriginatingAgency>
+         <SubmissionAgency>
+             <Identifier>Identifier1</Identifier>
+         </SubmissionAgency>
+         <Writer>
+             <FirstName>FirstName0</FirstName>
+             <BirthName>BirthName0</BirthName>
+         </Writer>
+         <CreatedDate>2016-05-05T20:45:20</CreatedDate>
+         <TransactedDate>2016-05-05</TransactedDate>
+     </Content>
+     <DataObjectReference>
+         <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId> <!-- referencement du GO -->
+     </DataObjectReference>
+     <_og>aeaaaaaaaaaaaaababqaqakx7mxioyyaaaaq</_og>
+ </ArchiveUnit>
+</ROOT>

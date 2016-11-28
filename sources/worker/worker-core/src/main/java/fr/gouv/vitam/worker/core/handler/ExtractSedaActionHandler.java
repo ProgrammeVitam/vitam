@@ -540,6 +540,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final String unitGuid = element.getValue();
             final String unitId = element.getKey();
             boolean isRootArchive = true;
+            boolean mgtRulesAdded = false;
 
             // 1- Update created Unit life cycles
             if (guidToLifeCycleParameters.get(unitGuid) != null) {
@@ -632,8 +633,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                         writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
                     } else if (event.isEndElement() &&
-                        SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart())) {
+                        (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart()) ||
+                            ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()))) {
+                        if (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart())) {
+                            mgtRulesAdded = true;
+                        }
 
+                        if (ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !mgtRulesAdded &&
+                            (isRootArchive && globalMgtIdExtra != null)) {
+                            writer.add(eventFactory.createStartElement("", "", SedaConstants.TAG_MANAGEMENT));
+                        }
                         if (isRootArchive && globalMgtIdExtra != null) {
                             final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 
@@ -664,8 +673,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             }
                         }
 
-                        writer.add(event);
-                        continue;
+                        if (ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !mgtRulesAdded &&
+                            (isRootArchive && globalMgtIdExtra != null)) {
+                            writer.add(eventFactory.createEndElement("", "", SedaConstants.TAG_MANAGEMENT));
+                        }
+
+                        if (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart())) {
+                            writer.add(event);
+                            continue;
+                        }
                     }
                     writer.add(event);
                 }
@@ -1339,7 +1355,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createCharacters(idRule));
                     writer.add(
                         eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE));
-
                 } else {
                     writer.add(event);
                 }
