@@ -27,8 +27,9 @@ Afin de récupérer le client ainsi que la bonne classe de paramètre, une facto
 
 .. code-block:: java
 
-    // Récupération du client 
-    LogbookLifeCycleClient client = LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+    // Récupération du client
+    LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration) 
+    LogbookLifeCycleClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
     // Récupération de la classe paramètre pour Object Group
     LogbookParameters parameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
@@ -65,18 +66,18 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
 .. code-block:: java
 
       // Changer la configuration du Factory
-      LogbookLifeCyclesClientFactory.setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null);
+    	LogbookLifeCyclesClientFactory.changeMode(null)
       // Récupération explicite du client mock
-      LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+      LogbookClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
 Pour instancier son client en mode Production :
 
 .. code-block:: java
 
       // Changer la configuration du Factory
-      LogbookLifeCyclesClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.LIFECYCLES, server);
+      LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration) 
       // Récupération explicite du client
-      LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+      LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
 Le client
 *********

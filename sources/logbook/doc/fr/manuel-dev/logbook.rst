@@ -28,7 +28,8 @@ Actuellement, elle ne fonctionne que pour le journal des opérations.
 .. code-block:: java
 
     // Récupération du client
-    LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+    LogbookOperationsClientFactory.changeMode(ClientConfiguration configuration)
+    LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -56,18 +57,18 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
 .. code-block:: java
 
       // Changer la configuration du Factory
-      LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.MOCK_OPERATIONS, null);
+	  LogbookOperationsClientFactory.changeMode(null)
       // Récupération explicite du client mock
-      LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+      LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
 Pour instancier son client en mode Production :
 
 .. code-block:: java
 
       // Changer la configuration du Factory
-      LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, server);
+      LogbookOperationsClientFactory.changeMode(ClientConfiguration configuration);
       // Récupération explicite du client
-      LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+      LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
 Le client
 *********
@@ -87,7 +88,7 @@ Chacune de ces méthodes prend en arguement une requête select en String
 .. code-block:: java
 
     // Récupération du client
-    LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+    LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -112,7 +113,7 @@ Exemple d'usage générique
 .. code-block:: java
 
     // Récupération du client
-    LogbookClient client = LogbookClientFactory.getInstance().getLogbookClient();
+    LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -173,8 +174,8 @@ Exemple Ingest
 
 
         // Récupération du client
-        LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookClient();
+        LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
 
 
 
@@ -269,7 +270,7 @@ Exemple ihm-demo-web-application
         query = CreateDSLClient.createSelectDSLQuery(optionsMap);
         
         // Récupération du client
-        LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
         
         // Sélection des opérations par la requête DSL
         result = logbookClient.selectOperation(query);
