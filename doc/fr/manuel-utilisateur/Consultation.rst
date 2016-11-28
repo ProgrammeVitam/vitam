@@ -134,7 +134,7 @@ Le journal du cycle du vie de l'unité archivistique est disponible depuis le d�
 
 Pour y accéder, l'utilisateur clique sur le bouton "Journal du cycle de vie". Un nouvel onglet s'ouvre avec le journal du cycle de vie, le titre de la page reprenant l'ID de l'unité archivistique.
 
-.. image:: images/JCV_AU.jpg
+.. image:: images/JCV_AU.png
 
 Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affiche les informations suivantes :
 
@@ -235,7 +235,7 @@ La consultation de ce détail s'affiche dans un nouvel onglet, afin de préserve
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
-- Une vue regroupant toutes les unités archivistiques, groupes d'objets et d'objets pour un service producteur
+- Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets pour un service producteur
 - Une vue listant toutes les opérations d'entrées effectuées pour ce service producteur
 
 .. image:: images/registre_detail_service.jpg
