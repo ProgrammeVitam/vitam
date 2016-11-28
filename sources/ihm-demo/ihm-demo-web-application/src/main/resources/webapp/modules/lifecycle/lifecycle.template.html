@@ -38,10 +38,10 @@
         <table class="table">
           <tr>
             <th ng-repeat = "column in $ctrl.columnsToDisplay">
-              {{column.label}}
+              {{column.label | translate}}
             </th>
             <th ng-repeat = "column in $ctrl.selectedObjects">
-              {{column.label}}
+              {{column.label | translate}}
             </th>
           </tr>
           <tbody>

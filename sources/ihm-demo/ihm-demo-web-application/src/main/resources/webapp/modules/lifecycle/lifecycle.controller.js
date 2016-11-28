@@ -33,7 +33,7 @@ angular.module('lifecycle')
       var result = [];
       for (var i = 0, len = fields.length; i<len; i++) {
         var fieldId = fields[i];
-        result.push({id: fieldId, label: $filter('translate')('lifeCycle.logbook.displaySteps.' + fieldId)});
+        result.push({id: fieldId, label: 'lifeCycle.logbook.displaySteps.' + fieldId});
       }
       return result;
     }
