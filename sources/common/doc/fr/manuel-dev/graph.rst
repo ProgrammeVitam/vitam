@@ -1,7 +1,7 @@
 DirectedCycle
 #############
 
-	Vitam utilise DirectedCycle pour vérifier la structure des arbres et de s'assurer qu'on n' a pas une cycle dans le graphe.
+	Vitam utilise DirectedCycle pour verifier la structure des arbres et de s'assurer qu'on n' a pas un cycle dans le graphe.
 	
 Initialisation
 **************
@@ -48,7 +48,7 @@ Pour Vitam, fonctionnellement il ne faut pas trouver des cycles au niveau des ar
 Graph
 #############
 
-	Vitam utilise Graph pour déterminer l'order d'indexation en se basant sur la notion de chemin le plus long (longest path)
+	Vitam utilise le Graphe pour determiner l'ordre d'indexation en se basant sur la notion de chemin le plus long (longest path)
 	
 Initialisation
 **************
@@ -64,13 +64,13 @@ Initialisation
 Usage
 *****
 
-Pour déterminer l'order il faut avoir le chemin le plus long par rapport aux différents racines :
+Pour determiner l'ordre il faut avoir le chemin le plus long par rapport aux différentes racines :
 
 .. code-block:: java
 
               graph.getGraphWithLongestPaths()
 
-La méthode getGraphWithLongestPaths return un map qui contient l'order on key et la liste (Set) des units id en valeur
+La méthode getGraphWithLongestPaths return un map qui contient l'ordre on key et la liste (Set) des units id en valeur
 
 
 Exemple de resultat:

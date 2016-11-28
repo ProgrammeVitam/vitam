@@ -1,7 +1,7 @@
 ingest-external-antivirus
 ######################
 
-Cette section, nous expliquons comment qu'on utilise et configure le script d'antivirus 
+Dans cette section, nous expliquons comment utiliser et configurer le script d'antivirus 
 pour le service ingest-external.
 
 1. Configuration pour ingest-external : ingest-external.conf

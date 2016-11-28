@@ -2,7 +2,7 @@ DAT : module ingest-internal
 ############################
 
 Ce document présente l'ensemble du manuel développement concernant le développment du module 
-ingest-internal qui identifié par la user story #84, qui contient :
+ingest-internal qui est identifié par le user story #84, qui contient :
 
 - modules & packages
 - classes métiers
