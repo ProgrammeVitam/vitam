@@ -88,6 +88,14 @@ angular.module('ihm.demo')
       ctrl.searchOptions.orderby = "evDateTime";
 
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          if (ctrl.searchType && ctrl.searchID) {
+            displayError("Veuillez ne remplir qu'un seul champ");
+          } else {
+            displayError("Il n'y a aucun résultat pour votre recherche");
+          }
+          return;
+        }
         ctrl.operationList = response.data.$results;
         ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
         ctrl.currentPage = 1;

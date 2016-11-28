@@ -48,6 +48,15 @@ angular.module('ihm.demo')
     ctrl.pageActive = [true, false, false, false, false];
     ctrl.client = ihmDemoCLient.getClient('logbook');
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
+    ctrl.noResult = false;
+
+    function displayError(message) {
+      ctrl.noResult = true;
+      ctrl.errorMessage = message;
+      $timeout(function() {
+        ctrl.noResult = false;
+      }, 5000);
+    }
 
     ctrl.getLogbooks = function() {
       ctrl.searchOptions.INGEST = "all";
@@ -56,6 +65,10 @@ angular.module('ihm.demo')
     	  delete ctrl.searchOptions.obIdIn;
       }
       ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          displayError("Il n'y a aucun résultat pour votre recherche");
+          return;
+        }
         ctrl.fileFormatList = response.data.$results;
         ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;

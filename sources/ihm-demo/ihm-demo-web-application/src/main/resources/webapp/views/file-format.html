@@ -26,11 +26,11 @@
             	<i class="material-icons pull-left">search</i>
             	<span>Rechercher</span>
             </button>
+            <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+                {{fileCtrl.errorMessage}}
+            </button>
         </form>
 
-        <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger" type="button" style="margin: 0 0 10px 150px">
-        	{{fileCtrl.errorMessage}}
-        </button>
     </div>
 
     <div class="clearfix"></div>

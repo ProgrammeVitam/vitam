@@ -68,6 +68,10 @@ angular.module('ihm.demo')
       ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
     }
       ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          displayError("Il n'y a aucun résultat pour votre recherche");
+          return;
+        }
         ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
           return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
         });
