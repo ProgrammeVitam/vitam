@@ -63,6 +63,10 @@ angular.module('ihm.demo')
       ctrl.searchOptions.FORMAT = "all";
       ctrl.searchOptions.orderby = "Name";
       ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
+        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          displayError("Il n'y a aucun résultat pour votre recherche");
+          return;
+        }
         ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
         });
