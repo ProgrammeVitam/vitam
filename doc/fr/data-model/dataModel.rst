@@ -4,8 +4,8 @@ Modèle de données Vitam
 Objectif du document
 ====================
 
-Ce document a pour objectif de présenter la struture générale des collections utilisées dans la solution logicielle Vitam.
-Il est destiné principalement aux développeurs, afin de leur présenter la vision cible Vitam, ainsi qu'à tous les autres acteurs du programme pour leur permettre de connaître ce qui existe à l'état actuel.
+Ce document a pour objectif de présenter la structure générale des collections utilisées dans la solution logicielle Vitam.
+Il est destiné principalement aux développeurs, afin de leur présenter la vision cible Vitam, ainsi qu'à tous les autres acteurs du programme pour leur permettre de connaître ce qui existe en l'état actuel.
 
 Il explicite chaque champ, précise la relation avec les sources (manifeste conforme au standard SEDA v.2.0 ou référentiels Pronom et règles de gestions) et la structuration JSON stockée dans MongoDB.
 
@@ -740,13 +740,13 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 "outDetail" (outcome Detail) : code correspondant à l'erreur
     *Ce champ existe pour les structures incluantes et incluses*
     *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
-    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possible pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
 "outMessg" (outcomeDetailMessage) : détail de l'événement.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    La liste des valeurs possible pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -812,12 +812,12 @@ Collection LogbookLifeCycleUnit
 Utilisation de la collection LogbookLifeCycleUnit
 -------------------------------------------------
 
-Le journal de cycle de vie d'une unité archivistique (ArchiveUnit) trace tous les événements qui impactent celle-ci dès sa prise en charge dans le système. Il doit être conservé aussi longtemps qu'elle est gérée par le système.
+Le journal du cycle de vie d'une unité archivistique (ArchiveUnit) trace tous les événements qui impactent celle-ci dès sa prise en charge dans le système. Il doit être conservé aussi longtemps qu'elle est gérée par le système.
 
 - dès la réception de l'entrée, on trace les opérations effectuées sur les ArchiveUnit qui sont dans le SIP
 - les journaux du cycle de vie sont "committés" une fois le stockage des objets OK et l'indexation des métadonnées OK, avant notification au service versant
 
-Chaque Unit possède une et une seule entrée dans sa collection LogbookLifeCycleUnit.
+Chaque unité archivistique possède une et une seule entrée dans sa collection LogbookLifeCycleUnit.
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -887,9 +887,9 @@ Exemple de JSON stocké en base
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères.
-    Cet identifiant constitue la clé primaire du journal de cycle de vie de l'unit.
+    Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
@@ -911,7 +911,7 @@ Détail des champ du JSON stocké en base
     *Ce champ existe pour les structures incluantes et incluses*
 
 "evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
-    Toutes les mêmes entrées du journal de cycle de vie partagent la même valeur, qui est celle du champ "_id"
+    Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -940,7 +940,7 @@ Détail des champ du JSON stocké en base
 
 "outMessg" (outcomeDetailMessage) : détail de l'événement.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    La liste des valeurs possible pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -973,12 +973,12 @@ Collection LogbookLifeCycleObjectGroup
 Utilisation de la collection LogbookLifeCycleObjectGroup
 --------------------------------------------------------
 
-Le journal de cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objet (et les objets associés) dès sa prise en charge dans le système et doit être conservé aussi longtemps que les objets sont gérés dans le système.
+Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objets (et les objets associés) dès sa prise en charge dans le système et doit être conservé aussi longtemps que les objets sont gérés dans le système.
 
 - dès la réception de l'entrée, on trace les opérations effectuées sur les groupes d'objets et objets qui sont dans le SIP
 - les journaux du cycle de vie sont "committés" une fois le stockage des objets OK et l'indexation des MD OK, avant notification au service versant
 
-Chaque groupe d'objet possède une et une seule entrée dans sa collection LogbookLifeCycleObjectGroup.
+Chaque groupe d'objets possède une et une seule entrée dans sa collection LogbookLifeCycleObjectGroup.
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -1196,9 +1196,9 @@ Exemple de JSON stocké en base
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal de cycle de vie.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères.
-    Cet identifiant constitue la clé primaire du journal de cycle de vie du groupe d'objet.
+    Cet identifiant constitue la clé primaire du journal du cycle de vie du groupe d'objet.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
@@ -1208,7 +1208,7 @@ Détail des champ du JSON stocké en base
     *Ce champ existe pour les structures incluantes et incluses*
 
 "evType" (event Type) : nom de la tâche,
-    La liste des valeurs possible pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+    La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -1220,7 +1220,7 @@ Détail des champ du JSON stocké en base
     *Ce champ existe pour les structures incluantes et incluses*
 
 "evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
-    Toutes les mêmes entrées du journal de cycle de vie partagent la même valeur, qui est celle du champ "_id"
+    Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -1243,7 +1243,7 @@ Détail des champ du JSON stocké en base
 "outDetail" (outcome Detail) : code correspondant à l'erreur
     *Ce champ existe pour les structures incluantes et incluses*
     *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
-    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possible pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
+    Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -1353,7 +1353,7 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 
 *A noter: les champs préfixés par un '_' devraient être visibles via les API avec un code utilisant '#' en prefix. Mais il est possible que pour la version Bêta, le '_' reste visible.*
 
-"_id" (#id): Identifiant unique de l'unit.
+"_id" (#id): Identifiant unique de l'unité archivistique.
     Chaîne de 36 caractères.
 
 "DescriptionLevel": La valeur de champ est une chaine de caractères.
@@ -1366,27 +1366,27 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 "Description": La valeur contenue dans ce champ est une chaîne de caractères.
     Ce champ est renseigné avec les informations situées entre les balises <description> de l'archiveUnit concernée dans le manifest.
 
-"XXXXX" : Des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le boredereau SEDA au niveau du Content de chaque archive unit.
+"XXXXX" : Des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le boredereau SEDA au niveau du Content de chaque unité archivistique.
     (CF SEDA 2.0 descriptive pour connaître la liste des métadonnées facultatives)
 
-"_og" (#object): identifiant du groupe d'objets référencé dans cette unit
+"_og" (#object): identifiant du groupe d'objets référencé dans cette unité archivistique
     Chaîne de 36 caractères.
 
 "_ops" (#operations): tableau contenant les identifiants d'opérations auxquelles ce Unit a participé
 
 "_tenant" (#tenant): il s'agit de l'identifiant du tenant
 
-"_max" (ne devrait pas être visible): profondeur maximale de l'unit par rapport à une racine
+"_max" (ne devrait pas être visible): profondeur maximale de l'unité archivistique par rapport à une racine
     Calculé, cette profondeur est le maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles
 
-"_min" (ne devrait pas être visible): profondeur minimum de l'unit par rapport à une racine
+"_min" (ne devrait pas être visible): profondeur minimum de l'unité archivistique par rapport à une racine
     Calculé, symétriquement le minimum des profondeurs, quelles que soient les racines concernées et les chemins possibles ;
 
-"_up" (#unitups): est un tableau qui recense les _id des units parentes (parents immédiats)
+"_up" (#unitups): est un tableau qui recense les _id des unités archivistiques parentes (parents immédiats)
 
-"_nbc" (#nbunits): nombre d'enfants immédiats de l'unit
+"_nbc" (#nbunits): nombre d'enfants immédiats de l'unité archivistique
 
-"_uds" (ne devrait pas être visible): tableau contenant la parentalité, non indexé et pas dans Elasticseatch exemple { GUID1 : depth1, GUID2 : depth2, ... } ; chaque depthN indique la distance relative entre le unit courant et le unit parent dont le GUID est précisé.
+"_uds" (ne devrait pas être visible): tableau contenant la parentalité, non indexé et pas dans Elasticseatch exemple { GUID1 : depth1, GUID2 : depth2, ... } ; chaque depthN indique la distance relative entre l'unité archivistique courante et l'unité archivistique parente dont le GUID est précisé.
 
 "_us" (#allunitups): tableau contenant la parentalité, indexé [ GUID1, GUID2, ... }
 
@@ -1394,7 +1394,7 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 
 _type (#type): Type de document utilisé lors de l'entrée, correspond au ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée
 
-"_mgt" (#management): possède les balises reprises du bloc <Management> du bordereau pour cette unit
+"_mgt" (#management): possède les balises reprises du bloc <Management> du bordereau (règles de gestion) pour cette unité archivistique ainsi que les dates d'échance calculées (endDate)
 
 Collection ObjectGroup
 ======================
@@ -1623,7 +1623,7 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
     - "MessageDigest": empreinte du fichier. La valeur est calculé par Vitam.
     - "Algorithm": ce champ contient le nom de l'algorithme utilisé pour réaliser l'empreinte du document.
 
-- "_up" (#unitup): [] : tableau d'identifiant des units parentes
+- "_up" (#unitup): [] : tableau d'identifiant des unités archivistiques parentes
 - "_tenant" (#tenant): identifiant du tenant
 - "_nbc" (#nbobjects): nombre d'objets dans ce groupe d'objet
 - "_ops" (#operations): [] tableau des identifiants d'opérations pour lesquelles ce GOT a participé
@@ -2098,7 +2098,7 @@ Valeurs possibles pour le champ evType logBook Operation
   ACCESSION_REGISTRATION                  Alimentation du registre des fonds
   CHECK_PROFIL                          Vérification du Profil
   UNIT_METADATA_STORAGE                 Sécurisation des métadonnées des Unités Archivistiques
-  UNIT_LOGBOOK_STORAGE                  Enregistrement du journal de cycle de vie des unités archivistiques
+  UNIT_LOGBOOK_STORAGE                  Enregistrement du journal du cycle de vie des unités archivistiques
   OG_METADATA_STORAGE                     Sécurisation des métadonnées des Objets et Groupes d’Objets
   OG_LOGBOOK_STORAGE                      Enregistrement du journal du cycle de vie des Objets et Groupes d'objets
   ===================================== ========================================================================================== ======================================================================
@@ -2111,7 +2111,7 @@ Valeurs possibles pour le champ evType logBook LifeCycle
   -------------------------------------- ---------------------------------------------------------------------------------------------------------
   STP_SANITY_CHECK_SIP                      Contrôles préalables à l’entrée
   SANITY_CHECK_SIP                          Contrôle sanitaire
-  CHECK_CONTAINER                             Contrôle du format du conteneur du SIP
+  CHECK_CONTAINER                            Contrôle du format du conteneur du SIP
   STP_UPLOAD_SIP                              Réception dans vitam
   UPLOAD_SIP                                  Tache de réception dans Vitam
   STP_INGEST_CONTROL_SIP                      Contrôle du bordereau
@@ -2154,6 +2154,7 @@ Valeurs possibles pour le champ evTypeProc
  Check type process                    CHECK
  Update process                        UPDATE
  Rules Manager process                 MASTERDATA
+ Traceability type process             TRACEABILITY
  =================================== ===================
 
 Prefixes possibles des RulesId
