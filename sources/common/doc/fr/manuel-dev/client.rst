@@ -70,7 +70,7 @@ Configuration
 Une classe de configuration par défaut est fournie : *fr.gouv.vitam.common.clientSSLClientConfiguration* .
 Elle contient les propriétés suivantes :
 
-- **serverHost** : le nom d'hote du serveur distant auquel le client va se connecter (Exemple : localhost)
+- **serverHost** : le nom d'hôte du serveur distant auquel le client va se connecter (Exemple : localhost)
 - **serverPort** : le port du serveur distant auquel le client va se connecter (Exemple : 8082)
 - **serverContextPath** : le context  sur lequel est exposé le serveur distant auquel le client va se connecter (Exemple : / )
 - **useSSL** : booléen permettant de spécifier si le client doit utiliser le protocole HTTP (false) ou HTTPS (true)

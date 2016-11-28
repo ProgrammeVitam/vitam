@@ -46,15 +46,15 @@ Le code 000000 (service 00, domaine 00, item 00) est un code de test. Il ne faut
 Ajout d'élement dans les énums
 ==============================
 
-Au fur et à mesure des développements, chaque développeurs va être amené à ajouter une erreur. Il n'aura
+Au fur et à mesure des développements, chaque développeur va être amené à ajouter une erreur. Il n'aura
 principalement qu'à ajouter une ligne dans VitamCode. Cependant, le triplet service, domain, item est unique.
 
-Pour garantir cette unicitée, un test unitaire se charge de vérifier les trois énums : CodeTest.
+Pour garantir cette unicité, un test unitaire se charge de vérifier les trois énums : CodeTest.
 
 Dans un premier temps sont validés les codes (2 caractères alphanumériques en majuscule) pour chaque énum.
 Ensuite est vérifié l'unicité des codes pour chacune.
 
-Ces tests n'ont pas à être modifié ! S'il ne passe plus après l'ajout d'une entrée c'est que celle ci est incorrecte,
+Ces tests n'ont pas à être modifiés ! S'ils ne passent plus après l'ajout d'une entrée, c'est que celle ci est incorrecte,
  le test ne le sera jamais. Dans les logs de CodeTest vous trouverez la raison de l'erreur (code dupliqué et avec
  lequel ou erreur dans le code).
 

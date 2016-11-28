@@ -94,11 +94,11 @@ getMapParameters et getMandatoriesParameters.
         String getStorageParameterField1();
     }
 
-Possibilité d'avior une classe abstraite
+Possibilité d'avoir une classe abstraite
 ****************************************
 Le but est d'implémenter cette interface. Cependant, il est possible de vouloir plusieurs classes de paramètres en
 fonction des besoins. Il est alors possible de mettre en place une classe abstraite qui implémente les méthodes
-communes aux différentes classe de paramètre (par exemple les getters / setters).
+communes aux différentes classes de paramètre (par exemple les getters / setters).
 
 .. code-block:: java
 
