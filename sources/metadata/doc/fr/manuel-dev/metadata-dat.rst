@@ -12,9 +12,6 @@ metadata qui identifié par la user story #70, qui contient :
 1. Modules et packages
 
 metadata	
-    |--- metadata-builder : contenant des classes pour les fonctionnalités de base 
-    |                     pour construire des query élémentaire DSL  
-    |--- metadata-parser  : parser pour construire des requêtes DSL
     |--- metadata-api     : définir des APIs de traitement des requêtes un utilisant  
     |			   la base de données choisie
     |--- metadata-core    : implémentation des APIs

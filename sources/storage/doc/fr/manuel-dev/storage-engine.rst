@@ -12,8 +12,9 @@ Afin de récupérer le client une factory a été mise en place.
 .. code-block:: java
 
     // Récupération du client
-    StorageClient client = StorageClientFactory.getInstance().getStorageClient();
-
+    StorageClientFactory.changeMode(ClientConfiguration configuration)    
+    StorageClient client = StorageClientFactory.getInstance().getClient();
+	
 A la demande l'instance courante du client, si un fichier de configuration storage-client.conf est présent dans le classpath le client en mode de production est envoyé, sinon il s'agit du mock.
 
 
@@ -25,9 +26,9 @@ En l'absence d'une configuration, le client est en mode Mock. Il est possible de
 .. code-block:: java
 
       // Changer la configuration du Factory
-      StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
+    StorageClientFactory.changeMode(null)
       // Récupération explicite du client mock
-      StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+      StorageClient client = StorageClientFactory.getInstance().getClient();
 
 
 Le mode de production
@@ -38,9 +39,9 @@ Pour instancier son client en mode Production :
 .. code-block:: java
 
       // Changer la configuration du Factory
-      StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.STORAGE, configuration);
+      StorageClientFactory.setConfiguration(StorageConfiguration configuration);
       // Récupération explicite du client
-      StorageClient client = StorageClientFactory.getInstance().getStorageClient();
+      StorageClient client = StorageClientFactory.getInstance().getClient();
 
 Les services
 ************
@@ -56,14 +57,14 @@ Ces fonctionnalités sont :
 
 .. code-block:: java
 
-	JsonNode result = client.getContainerInformation("0", "default");
+	JsonNode result = client.getStorageInformation("0", "default");
 
 - l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
 	- pour les objets contenus dans le workspace (objets binaires) :
 
 .. code-block:: java
 
-	JsonNode result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+	StoredInfoResult result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
    - pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
 
@@ -97,7 +98,7 @@ Ces fonctionnalités sont :
 
 .. code-block:: java
 
-   InputStream stream = client.getContainerObject("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+   Response response = client.getContainerAsync("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
 - La récupération du status est également disponible :
 
