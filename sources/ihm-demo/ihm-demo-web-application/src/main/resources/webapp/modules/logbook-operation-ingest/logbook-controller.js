@@ -79,10 +79,10 @@ angular.module('ihm.demo')
     };
 
     ctrl.getPreviousResults = function() {
-      ctrl.fileFormatList = [];
       if (ctrl.currentPage > 1 ) {
         ctrl.diplayPage -= 1;
         if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
+          ctrl.fileFormatList = [];
           ctrl.currentPage -=5;
           ctrl.diplayPage = 5;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
@@ -101,10 +101,10 @@ angular.module('ihm.demo')
     }
 
     ctrl.getNextResults = function() {
-      ctrl.fileFormatList = [];
       if (ctrl.currentPage+4 < ctrl.resultPages) {
         ctrl.diplayPage +=1;
         if (ctrl.diplayPage > 5) {
+          ctrl.fileFormatList = [];
           ctrl.currentPage += 5;
           ctrl.diplayPage = 1;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
