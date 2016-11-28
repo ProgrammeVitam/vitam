@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Access External Package
+ * Access External Client Package to be used in external application (as IHM Demo)
  */
 package fr.gouv.vitam.access.external.client;

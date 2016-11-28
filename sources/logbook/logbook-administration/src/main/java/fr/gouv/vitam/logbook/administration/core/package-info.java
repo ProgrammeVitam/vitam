@@ -24,8 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 /**
- * Function administration rules core package
- *
+ * Logbook Administration core package
  */
-package fr.gouv.vitam.function.administration.rules.core;
+package fr.gouv.vitam.logbook.administration.core;

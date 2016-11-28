@@ -380,9 +380,29 @@
 						<additionalparam>-Xdoclint:none</additionalparam>
 						<doctitle>Vitam API Reference (${project.version})</doctitle>
 						<windowtitle>Vitam API Reference (${project.version})</windowtitle>
-						<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector</excludePackageNames>
+						<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector:org.owasp.esapi.reference.validation</excludePackageNames>
 						<overview>${basedir}/overview.html</overview>
 						<groups>
+                            <group>
+                                <title>Ihm Demo </title>
+                                <packages>fr.gouv.vitam.ihmdemo.*</packages>
+                            </group>
+                            <group>
+                                <title>Ihm Recette </title>
+                                <packages>fr.gouv.vitam.ihmrecette.*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest External Client </title>
+                                <packages>fr.gouv.vitam.ingest.external.client*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest </title>
+                                <packages>fr.gouv.vitam.ingest.*</packages>
+                            </group>
+                            <group>
+                                <title>Access External Client </title>
+                                <packages>fr.gouv.vitam.access.external.client*</packages>
+                            </group>
 							<group>
 								<title>Access </title>
 								<packages>fr.gouv.vitam.access.*</packages>
@@ -394,14 +414,6 @@
 							<group>
 								<title>Functional administration </title>
 								<packages>fr.gouv.vitam.functional.administration.*</packages>
-							</group>
-							<group>
-								<title>Ihm Demo </title>
-								<packages>fr.gouv.vitam.ihmdemo.*</packages>
-							</group>
-							<group>
-								<title>Ingest </title>
-								<packages>fr.gouv.vitam.ingest.*</packages>
 							</group>
 							<group>
 								<title>Logbook </title>

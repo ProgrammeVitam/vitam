@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest external client package
+ * Ingest External Client Package to be used in external application (as IHM Demo)
  */
 package fr.gouv.vitam.ingest.external.client;

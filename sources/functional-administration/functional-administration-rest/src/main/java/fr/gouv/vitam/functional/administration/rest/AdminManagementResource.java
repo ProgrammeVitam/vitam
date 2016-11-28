@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -73,6 +72,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 
 /**
  * FormatManagementResourceImpl implements AccessResource

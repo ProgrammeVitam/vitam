@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * access external rest package
+ * Access external rest package
  */
 package fr.gouv.vitam.access.external.rest;
