@@ -39,7 +39,6 @@ angular.module('core')
 
     return function(options) {
       var deferred = $q.defer();
-      console.log('OPTIONS: ', options);
 
       /* If multiple languages, options should have a key param for language (exmpl: 'fr')
        * TODO : Check this key and call diferent API point for .properties file
