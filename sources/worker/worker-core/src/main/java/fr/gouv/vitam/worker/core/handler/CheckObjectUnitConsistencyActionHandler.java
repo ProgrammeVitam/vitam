@@ -123,55 +123,61 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         final Map<String, Object> objectGroupToGuidStoredMap =
             (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
 
-        final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
-        while (it.hasNext()) {
-            final Map.Entry<String, Object> objectGroup = it.next();
-            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
-                itemStatus.increment(StatusCode.KO);
-                try {
-                    // Update logbook OG lifecycle
-                    final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        if (objectGroupToGuidStoredMap.size() == 0) {
+            itemStatus.increment(StatusCode.OK);
+        } else {
+            final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
+            while (it.hasNext()) {
+                final Map.Entry<String, Object> objectGroup = it.next();
+                if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                    itemStatus.increment(StatusCode.KO);
+                    try {
+                        // Update logbook OG lifecycle
+                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
-                    LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                        logbookLifecycleObjectGroupParameters,
-                        params, HANDLER_ID, LogbookTypeProcess.INGEST,
-                        objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
-                    logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
-                        null);
-                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                    final String objectID =
-                        logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
-                    handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                        handlerIO.getHelper().removeUpdateDelegate(objectID));
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException | ProcessingException e) {
-                    LOGGER.error("Can not update logbook lifcycle", e);
-                }
-                ogList.add(objectGroup.getKey());
-            } else {
-                itemStatus.increment(StatusCode.OK);
-                try {
-                    // Update logbook OG lifecycle
-                    final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
+                            null);
+                        handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                        final String objectID =
+                            logbookLifecycleObjectGroupParameters
+                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                            handlerIO.getHelper().removeUpdateDelegate(objectID));
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException | ProcessingException e) {
+                        LOGGER.error("Can not update logbook lifcycle", e);
+                    }
+                    ogList.add(objectGroup.getKey());
+                } else {
+                    itemStatus.increment(StatusCode.OK);
+                    try {
+                        // Update logbook OG lifecycle
+                        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
 
-                    LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                        logbookLifecycleObjectGroupParameters,
-                        params, HANDLER_ID, LogbookTypeProcess.INGEST,
-                        objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
-                    logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                        null);
-                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-                    final String objectID =
-                        logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
-                    handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                        handlerIO.getHelper().removeUpdateDelegate(objectID));
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException | ProcessingException e) {
-                    LOGGER.error("Can not update logbook lifcycle", e);
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
+                            null);
+                        handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                        final String objectID =
+                            logbookLifecycleObjectGroupParameters
+                                .getParameterValue(LogbookParameterName.objectIdentifier);
+                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                            handlerIO.getHelper().removeUpdateDelegate(objectID));
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException | ProcessingException e) {
+                        LOGGER.error("Can not update logbook lifcycle", e);
+                    }
                 }
             }
         }
