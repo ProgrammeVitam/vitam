@@ -45,11 +45,11 @@ angular.module('archive.unit')
     'EndDate': 'Date de fin',
     'Event.EventDateTime': 'Date et heure de l\'évènement',
     'ArchiveUnitProfile': 'Profil d\'archivage',
-    'StorageRule.Rule': 'Règle de réutilisation',
+    'StorageRule.Rule': 'Règle d\'utilité courante (DUC)',
     'StorageRule.FinalAction': 'Action finale',
-    'AppraisalRule.Rule': 'Gestion de la DUA',
+    'AppraisalRule.Rule': 'Règle d\'utilité administrative (DUA)',
     'AppraisalRule.FinalAction': 'Action finale',
-    'AccessRule.Rule': 'Règle d\'accessibilité',
+    'AccessRule.Rule': 'Règle de communicabilité',
     'AccessRule.FinalAction': 'Action finale',
     'DisseminationRule.Rule': 'Règle de diffusion',
     'DisseminationRule.FinalAction': 'Action finale',
@@ -66,6 +66,7 @@ angular.module('archive.unit')
     'DataObjectGroupId': 'Identifiant du groupe d\'objets techniques',
     'DataObjectVersion': 'Usage',
     'MessageDigest': 'Empreinte',
+    'OtherMetadata': 'Autres métadonnées',
     'Size': 'Taille (en octets)',
     'Algorithm': 'Algorithme',
     'FormatIdentification.FormatLitteral': 'Nom littéral du format',
@@ -77,5 +78,5 @@ angular.module('archive.unit')
     'FileInfo.CreatingOs': 'Système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.CreatingOsVersion': 'Version du système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.LastModified': 'Date de dernière modification',
-    'Encoding': 'Encodage'
+    'FormatIdentification.Encoding': 'Encodage'
   });
