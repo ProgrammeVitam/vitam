@@ -42,7 +42,7 @@ angular.module('ihm.demo')
 			var result = [];
 			for (var i = 0, len = fields.length; i<len; i++) {
 				var fieldId = fields[i];
-				result.push({id: fieldId, label: $filter('translate')('operation.logbook.displayField.' + fieldId)});
+				result.push({id: fieldId, label: $filter('replaceDoubleQuote')($filter('translate')('operation.logbook.displayField.' + fieldId))});
 			}
 			return result;
 		}

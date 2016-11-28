@@ -36,4 +36,12 @@ angular.module('core').filter('startFrom', function() {
 	return function(input, start) {
 		return input.slice(+start);
 	}
-});
+}).filter('replaceDoubleQuote', function() {
+        return function (input) {
+          if (!!input) {
+            return input.replace(/\'\'/g, '\'');
+          }
+            return input;
+          }
+      })
+;
