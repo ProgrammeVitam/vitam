@@ -57,7 +57,8 @@ public class UnitsRulesComputeHandlerTest {
     private AdminManagementClient adminManagementClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private static final String ARCHIVE_UNIT_RULE = "AU_COMPUTE_ENDDATE_SAMPLE.xml";
-    private final static String FAKE_URL = "localhost:1111";
+    private static final String ARCHIVE_UNIT_RULE_MGT_ONLY = "AU_COMPUTE_ENDDATE_SAMPLE_MANAGEMENT_ONLY.xml";
+    private final static String FAKE_URL = "http://localhost:1111";
     private InputStream archiveUnit;
     private HandlerIOImpl action;
 
@@ -120,6 +121,40 @@ public class UnitsRulesComputeHandlerTest {
     }
 
     @Test
+    public void givenWorkspaceExistWhenExecuteThenReturnResponseKO() throws Exception {
+        reset(workspaceClient);
+
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialPartial());
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
+    public void givenWorkspaceExistAndEmptyRulesButManagementRulesWhenExecuteThenReturnResponseOK() throws Exception {
+        reset(workspaceClient);
+
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY)).build());
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+    }
+
+    @Test
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
         reset(workspaceClient);
 
@@ -127,7 +162,7 @@ public class UnitsRulesComputeHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
@@ -141,7 +176,7 @@ public class UnitsRulesComputeHandlerTest {
         reset(workspaceClient);
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         reset(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
@@ -174,6 +209,31 @@ public class UnitsRulesComputeHandlerTest {
         final ArrayNode root1 = JsonHandler.createArrayNode();
         root1.add(accessRule);
         root1.add(reuseRule);
+        root1.add(reuseRule2);
+
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root1);
+        return rule;
+    }
+
+
+
+    private JsonNode getRulesInReferentialPartial() {
+        final ObjectNode accessRule = JsonHandler.createObjectNode();
+        accessRule.put(FileRules.RULEID, "ID470");
+        accessRule.put(FileRules.RULEDESCRIPTION, "rule content");
+        accessRule.put(FileRules.RULEDURATION, "2");
+        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.JOURS.getType());
+
+
+        final ObjectNode reuseRule2 = JsonHandler.createObjectNode();
+        reuseRule2.put(FileRules.RULEID, "ID019");
+        reuseRule2.put(FileRules.RULEDESCRIPTION, "rule description");
+        reuseRule2.put(FileRules.RULEDURATION, "3");
+        reuseRule2.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+
+        final ArrayNode root1 = JsonHandler.createArrayNode();
+        root1.add(accessRule);
         root1.add(reuseRule2);
 
         final ObjectNode rule = JsonHandler.createObjectNode();

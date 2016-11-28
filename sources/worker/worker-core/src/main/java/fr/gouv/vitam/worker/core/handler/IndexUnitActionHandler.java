@@ -252,6 +252,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                         case TAG_MANAGEMENT:
                             writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
                             eventWritable = false;
+                            contentWritable = true;
                             break;
                         case SedaConstants.PREFIX_OG:
                             writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
