@@ -1,7 +1,7 @@
 
 *L'API d'Entrées* propose les points d'entrées et les méthodes pour créer, requêter et récupérer les informations des **Entrées**.
 
-Cette API contiendra à termes les possibilités de processus d'entrées en mode programmatique, c'est à dire en proposant les mêmes types d'accès à *Units* et *Objects*, mais selon les modes exclusif de création et de mise à jour. La mise à jour est à ce stade non supportée (**UNSUPPORTED**) en mode Ingest.
+Cette API contiendra à termes les possibilités de processus d'entrées en mode programmatique, c'est à dire en proposant les mêmes types d'accès à *Units* et *Objects*, mais selon les modes exclusifs de création et de mise à jour. La mise à jour est à ce stade non supportée (**UNSUPPORTED**) en mode Ingest.
 
 - Il faut noter que les opérations sur des *Units* pré-existantes ne seront autorisées uniquement en mode mise à jour. Toutes les autres opérations s'appliquent uniquement aux *Units* et *Objects* nouvellement créés.
 
@@ -37,7 +37,7 @@ La structuration d'un Statut est la suivante :
   "start_date": "2014-01-10T03:06:17.396Z"
 }
 ```
-Actuellement le mode opératoir est synchrone, aussi le statut de soumission est ignoré et donne lieu directement au rapport final d'une entrée.
+Actuellement le mode opératoire est synchrone, aussi le statut de soumission est ignoré et donne lieu directement au rapport final d'une entrée.
 
 ## Rapport final d'une entrée
 
