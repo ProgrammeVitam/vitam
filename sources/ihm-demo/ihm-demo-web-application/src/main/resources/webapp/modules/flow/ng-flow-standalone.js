@@ -390,15 +390,35 @@
         // Modif on listener to update event on change
         input.addEventListener('change', function (e) {
           if (!!e.target.files && e.target.files.length > 0) {
-            $.selectedFileEvent = e;
-            $.files = [];
-            $.opts.ctrlScope.$apply(function () {
-              $.opts.ctrlScope.disableUpload = false;
-              $.opts.ctrlScope.fileItem.isProcessing = false;
-              $.opts.ctrlScope.fileItem.isSuccess = false;
-              $.opts.ctrlScope.fileItem.isWarning = false;
-              $.opts.ctrlScope.fileItem.isError = false;
-            });
+            var validFile = true;
+            var fileName = e.target.files[0].name;
+            var ext = fileName.substr(fileName.lastIndexOf('.')+1);;
+            var validFormats = ['zip', 'tar'];
+            var index=validFormats.indexOf(ext);
+            if(index== -1){
+              var formats = ['tar.gz','tar.bz2'];
+              var spName=fileName.split(".");
+              var ext1 = spName.pop();
+              var ext2 = spName.pop();
+              var extn = ext2+'.'+ext1;
+              if(formats.indexOf(extn)== -1){
+                validFile = false;
+              }
+            }
+
+            if(validFile){
+              $.selectedFileEvent = e;
+              $.files = [];
+              $.opts.ctrlScope.$apply(function () {
+                $.opts.ctrlScope.disableUpload = false;
+                $.opts.ctrlScope.fileItem.isProcessing = false;
+                $.opts.ctrlScope.fileItem.isSuccess = false;
+                $.opts.ctrlScope.fileItem.isWarning = false;
+                $.opts.ctrlScope.fileItem.isError = false;
+              });
+            }else{
+              $.opts.ctrlScope.showAlert(e, 'Erreur : ' + fileName,'Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.bz2');
+            }
           }
         }, false);
       }, this);
