@@ -4,7 +4,7 @@ Recette
 Principes généraux
 ==================
 
-L'accès à l'IHM de recette s'effectue par un chemin différent. Par déaut, son adresse est :
+L'accès à l'IHM de recette s'effectue par un chemin différent. Par défaut, son adresse est :
 
 **addresse_de_votre_serveur/ihm-recette/#!/login**
 
@@ -17,7 +17,7 @@ Avertissement
 
 L'IHM de recette est développée à des fins de tests uniquement.
 
-**Elle n'a aucunement vocation à être utiisée en production**
+**Elle n'a aucunement vocation à être utilisée en production**
 
 Elle contient des interfaces utilisateurs permettant de :
 
@@ -44,7 +44,7 @@ Le menu de navigation contient les entrées suivantes :
 Administration des collections
 ==============================
 
-L'IHM de recette permet de supprimer certains ou tous les référentiels / journaux / objets dans le but de recetter VITAM ou de faire des tests variés pour éprouver la stabiliter du système.
+L'IHM de recette permet de supprimer certains ou tous les référentiels / journaux / objets dans le but de recetter VITAM ou de faire des tests variés pour éprouver la stabilité du système.
 
 .. image:: images/RECETTE_admin_collections.png
 
@@ -95,12 +95,12 @@ Tous les journaux du cycle de vie des unités archivistiques sont supprimés de 
 
 **Journal du Cycle de Vie** (objets)
 
-Tous les journaux du cycle de vie des objets sont supprimés de VITAM. L'IHM de chaque "Journal de Cycle de Vie" d'un objet est vide de contenu.
+Tous les journaux du cycle de vie des objets sont supprimés de VITAM. L'IHM de chaque "Journal de Cycle du Vie" d'un objet est vide de contenu.
 
 
-**Jounral des Opérations**
+**Journal des Opérations**
 
-Tous les journaux des opérations sont supprimés de VITAM. Les IHM "Journal des Opérations" et "Jounral des Opérations d'entrées" sont vides de contenu.
+Tous les journaux des opérations sont supprimés de VITAM. Les IHM "Journal des Opérations" et "Journal des Opérations d'entrées" sont vides de contenu.
 
 Purge des Groupes d'Objets et Unités Archivistiques
 ---------------------------------------------------
@@ -139,7 +139,7 @@ Chaque SIP à utiliser pour valider un cas fonctionnel sera donc déclaré dans 
 Structuration du fichier de configuration
 -----------------------------------------
 
-Le fichier de configuration contient un champ "params" dont la valeur est un tableau. Ce tableau contient l'ensemble des jeux de tests à exécuter, chanque ligne rerésentant un test.
+Le fichier de configuration contient un champ "params" dont la valeur est un tableau. Ce tableau contient l'ensemble des jeux de tests à exécuter, chaque ligne rerésentant un test.
 
 ::
 
@@ -167,7 +167,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il conti
 
 La localisation du fichier est une URI relative par rapport à la racine des tests SOAPUI déterminée par votre exploitant.
 
-On a donc par défaut l'arborescence suivante (le schéma suivant ne tient pas compte des autres dossiers et fichiers du repertoire SOAP UI)
+On a donc par défaut l'arborescence suivante (le schéma suivant ne tient pas compte des autres dossiers et fichiers du repertoire SOAPUI)
 
 ::
 
@@ -175,7 +175,7 @@ On a donc par défaut l'arborescence suivante (le schéma suivant ne tient pas c
     |------- data.json
     \------- test.zip
 
-Pour un fichier *test.zip* placé dans le dossier racinne, on entrera alors :
+Pour un fichier *test.zip* placé dans le dossier racine, on entrera alors :
 
 ::
 
@@ -236,7 +236,7 @@ Par exemple :
 
 voici l'exemple d'une configuration pour *un jeu de test*
 
-*NB :* l'exemple de configuration d'un jeu de test ci-dessous a été indenté pour une meilleure conpréhension. Par défaut, dans le fichier de configuration global, la configuration d'un test est placée sur une ligne seulement.
+*NB :* l'exemple de configuration d'un jeu de test ci-dessous a été indenté pour une meilleure compréhension. Par défaut, dans le fichier de configuration global, la configuration d'un test est placée sur une ligne seulement.
 
 ::
 
@@ -251,7 +251,7 @@ voici l'exemple d'une configuration pour *un jeu de test*
 Exemple de configuration
 ------------------------
 
-Ci après une configuration exemple contenant 4 jeux de tests
+Ci-après une configuration exemple contenant 4 jeux de tests
 
 ::
 
@@ -267,7 +267,7 @@ Ci après une configuration exemple contenant 4 jeux de tests
 Lancement des tests
 -------------------
 
-Une fois le fichier data.json, ainsi que le SIP déposés sur le serveur Vitam par l'exploitant, les tests peuvent être lancées via l'IHM en cliquant sur le bouton "lancer les tests"
+Une fois le fichier data.json, ainsi que le SIP déposés sur le serveur Vitam par l'exploitant, les tests peuvent être lancés via l'IHM en cliquant sur le bouton "lancer les tests"
 
 .. image:: images/RECETTE_lancer_test_SOAPUI.png
 
@@ -280,12 +280,12 @@ Pour afficher le rapport, cliquer sur le bouton "afficher résultats".
 
 Le tableau de rapport apparait alors en bas de l'écran.
 
-Il est contient les informations suivatnes :
+Il contient les informations suivantes :
 
   * Nombre de tests réalisé
   * Nombre de test en succès
   * Nombre de tests en échec
-  * Un taleau contenant
+  * Un taleau contenant la liste des tests
 
 .. image:: images/RECETTE_resultat_tableau_SOAPUI.png
 
@@ -302,10 +302,10 @@ Les colonnes du rapport sont les suivantes :
 Les lignes pour lesquelles le résultat attendu est égal au résultat constaté apparaissent sur fond vert.
 Les lignes pour lesquelles le résultat attendu est différent du résultat constaté apparaissent sur fond rouge
 
-Resultat au format JSON
+Résultat au format JSON
 -----------------------
 
-Il est également possible d'afficher le JSON de résultat en cliquant sur le lien nommé "Lien vers les résulstats Json". Le fichier apparait en plein écran et il est possile de l'enregistrer.
+Il est également possible d'afficher le JSON de résultat en cliquant sur le lien nommé "Lien vers les résultats Json". Le fichier apparait en plein écran et il est possile de l'enregistrer.
 
 .. image:: images/RECETTE_recupererJSON_resultat.png
 
@@ -335,7 +335,7 @@ Un fichier .zip est créé et placé dans le l'offre de stockage de Vitam dans l
 
 Il contient les fichiers suivants :
 
-  * operation.json : liste des opérations sécurisées, la première étant l'opération tracability
+  * operation.json : liste des opérations sécurisées, la première étant l'opération "tracability"
   * merkleTree.json : contient une sérialisation json de l'arbre de merkle
   * token.tsp : timestamp de la combinaison de la racine de l'arbre de merkle, des empreintes des opérations de sécurisation antérieures : la dernière réalisée, celle du mois précédent et celle de l'année précédente.
   * computing_information.txt : reprend les différents empreintes qui ont permis de réaliser l'horodatage
@@ -363,7 +363,7 @@ Le champ date permet d'afficher les journaux de type sécurisation créés aprè
 
 Pour lancer une recherche en prenant en compte cette date, cliquer sur le bouton rechercher après l'avoir sélectionnée.
 
-Si l'utilisateur clique sur le bouton rechercher sans sélectionner de date, alors tous les journauux disponibles s'affiche.
+Si l'utilisateur clique sur le bouton rechercher sans sélectionner de date, alors tous les journauux disponibles s'affichent.
 
 **Zone de résultats**
 

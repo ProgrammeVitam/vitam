@@ -18,7 +18,7 @@ Le transfert d'un SIP dans Vitam s'effectue depuis l'écran "Transfert", accessi
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Choisissez un fichier », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP", Une fois le SIP sélectionné, le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP". Une fois le SIP sélectionné, le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
@@ -36,20 +36,20 @@ NB : Suite au téléchargement du SIP, un temps d'attente est necessaire pour tr
 
 .. image:: images/upload_sip.jpg
 
-Si l'utilisateur tente d'importer un SIP au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.GZ2) alors le système empêche le téléchargement.
+Si l'utilisateur tente d'importer un SIP au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
 Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
 .. image:: images/upload_sip_KO.jpg
 
-Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et la génération d'un accusé de réception qui est proposé en téléchargement à l'utilisateur.
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
 Journal des opérations d'entrée
 ===============================
 
 
-Le journal des opérations d'entrée est un extrait du journal des opérations global du sytème.
+Le journal des opérations d'entrée est un extrait du journal des opérations global du système.
 
-Il propose deux visions, une vision globale des transferts effectués dans Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entré.
+Il propose deux visions, une vision globale des transferts effectués dans Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entrée.
 Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP sont enregistrés dans Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs expliquant l'échec du transfert.
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur clique sur le menu "Entrée" dans la barre de menu, puis clique sur le sous-menu "Suivi des opérations d'entrée" (Entrée/Suivi des opérations d'entrée).
@@ -65,7 +65,7 @@ Pour effectuer une recherche précise, on utilise le champ "Lot d'archive" corre
 
 Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le bouton "Rechercher".
 
-La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera retourné. La recherche porte sur toutes les opérations d'entrées quel que soit leur statut (En cours, succès,avertissement et échec)
+La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera retourné. La recherche porte sur toutes les opérations d'entrées quel que soit leur statut (En cours, succès, avertissement et échec)
 
 .. image:: images/op_entree.jpg
 
