@@ -54,6 +54,8 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - FormatIdentificationActionHandler
 - AccessionRegisterActionHandler
 - TransferNotificationActionHandler
+- UnitsRulesCompteHandler
+- DummyHandler
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
@@ -283,10 +285,10 @@ Si l'algorithme est différent que celui dans le manifest, il calcul l'empreinte
 
 .. code-block:: java
 			DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput().get(ALGO_RANK));
-            InputStream inputStream =
-                workspaceClient.getObject(containerId,
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
-            Digest vitamDigest = new Digest(digestTypeInput);
+            response = handlerIO.getInputStreamNoCachedFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + binaryObject.getUri());
+            InputStream inputStream = (InputStream) response.getEntity();
+            final Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
             boolean isVitamDigest = false;
             if (!binaryObject.getAlgo().equals(digestTypeInput)) {
@@ -412,28 +414,34 @@ L'exécution de l'algorithme est présenté dans le code suivant :*
         while (it.hasNext()) {
             final Map.Entry<String, Object> objectGroup = it.next();
             if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
-
-                // Update logbook OG lifecycle
-                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
-                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                        GUIDReader.getGUID(params.getContainerName()),
-                        HANDLER_ID,
-                        GUIDFactory.newEventGUID(TENANT),
-                        LogbookTypeProcess.CHECK,
-                        StatusCode.WARNING,
-                        StatusCode.WARNING.toString(),
-                        // TODO P0 WORKFLOW
-                        VitamLogbookMessages.getCodeLfc(HANDLER_ID, StatusCode.WARNING) + ":" + objectGroup.getKey(),
-                        GUIDReader.getGUID(objectGroup.getValue().toString()));
+                itemStatus.increment(StatusCode.KO);
                 try {
-                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
+                    // Update logbook OG lifecycle
+                    final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+                        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+
+                    LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
+                        logbookLifecycleObjectGroupParameters,
+                        params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                        objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+
+                    logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
+                        null);
+                    handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
+                    final String objectID =
+                        logbookLifecycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
+                    handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
+                        handlerIO.getHelper().removeUpdateDelegate(objectID));
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e) {
+                    LogbookClientServerException | ProcessingException e) {
                     LOGGER.error("Can not update logbook lifcycle", e);
                 }
                 ogList.add(objectGroup.getKey());
+            } else {
+                itemStatus.increment(StatusCode.OK);
+                // Update logbook OG lifecycle
+                ....
             }
-
         }
 
 ........................................................................................

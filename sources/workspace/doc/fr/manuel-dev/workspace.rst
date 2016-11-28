@@ -56,21 +56,22 @@ Dans le cas echéant (uncompress KO) la methode génère une exception avec un m
 
 <groupId>fr.gouv.vitam</groupId>
 
-<artifactId>workspace-Client<artifactId>
+<artifactId>workspace-client<artifactId>
 
 <version>x.x.x</version>
 
 </dependencies>
 
 
-Supposans que nous avons besoins d'extracter un SIP de format zip dans le workspace.
+Supposons que nous avons besoins d'extraire un SIP de format zip dans le workspace.
 
 .. code-block:: java
     
      InputStream inputStream=new InputStream(zippedFile);
 	
-	 WorkspaceClient workspaceClient =
-                    new WorkspaceClientFactory().create("localhost:8082");
+	 WorkspaceClientFactory.changeMode(WORKSPACE_URL);
+	 WorkspaceClientFactory.changeMode(FileConfiguration);	
+	 WorkspaceClient workspaceClient = WorkspaceClientFactory().getInstance().getClient();
 
       workspaceClient.createContainer(containerName);
       workspaceClient.uncompressObject(containerName,"SIP","application/zip" inputStream);

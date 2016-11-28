@@ -8,8 +8,10 @@ Afin de récupérer le client une factory a été mise en place.
 
 .. code-block:: java
 
+    WorkerClientFactory.changeMode(WorkerClientConfiguration configuration)
+     
     // Récupération du client
-    WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+    WorkerClient client = WorkerClientFactory.getInstance().getClient();
 
 A la demande l'instance courante du client, si un fichier de configuration worker-client.conf est présent dans le classpath le client en mode de production est envoyé, sinon il s'agit du mock.
 
@@ -21,9 +23,9 @@ En l'absence d'une configuration, le client est en mode Mock. Il est possible de
 .. code-block:: java
 
       // Changer la configuration du Factory
-      WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.MOCK_WORKER, null);
+      WorkerClientFactory.changeMode(null);
       // Récupération explicite du client mock
-      WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+      WorkerClient client = WorkerClientFactory.getInstance().geClient();
 
 
 Le mode de production
@@ -34,9 +36,9 @@ Pour instancier son client en mode Production :
 .. code-block:: java
 
       // Changer la configuration du Factory
-      WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, configuration);
+      WorkerClientFactory.changeMode(WorkerClientConfiguration configuration);
       // Récupération explicite du client
-      WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+      WorkerClient client = WorkerClientFactory.getInstance().getClient();
       
       
 Les services
