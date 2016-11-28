@@ -120,7 +120,7 @@ angular.module('lifecycle')
             angular.forEach(currentEvent, function(value, key) {
               var uppercaseKey = key.toUpperCase();
               if (uppercaseKey === 'EVTYPE') {
-                newEvent[uppercaseKey] = $filter('translate')(value);
+                newEvent[uppercaseKey] = $filter('replaceDoubleQuote')($filter('translate')(value));
               } else {
                 newEvent[uppercaseKey] = value;
               }

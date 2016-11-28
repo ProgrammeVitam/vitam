@@ -66,8 +66,8 @@ angular.module('admin.home')
 
       var locals = {
         errorList: response.data,
-        title: $filter('translate')(CODE_PREFIX + 'all.title.error'),
-        message: $filter('translate')(CODE_PREFIX + 'all.message.error')
+        title: $filter('replaceDoubleQuote')($filter('translate')(CODE_PREFIX + 'all.title.error')),
+        message: $filter('replaceDoubleQuote')($filter('translate')(CODE_PREFIX + 'all.message.error'))
       };
 
       var controller = function($scope, $mdDialog, errorList, message, title) {

@@ -82,8 +82,8 @@ angular.module('core')
     MessageService.typedMessageAlert = function(codePrefix, type, isSuccess) {
       return function() {
         var successSuffix = (isSuccess !== undefined? (isSuccess? '.success': '.error'): '');
-        var title = $filter('translate')(codePrefix + type + '.title' + successSuffix);
-        var message = $filter('translate')(codePrefix + type + '.message' + successSuffix);
+        var title = $filter('replaceDoubleQuote')($filter('translate')(codePrefix + type + '.title' + successSuffix));
+        var message = $filter('replaceDoubleQuote')($filter('translate')(codePrefix + type + '.message' + successSuffix));
         MessageService.specificMessageAlert(title, message);
       };
     };
@@ -111,8 +111,8 @@ angular.module('core')
      * @param okCallback {Function} The function called if the user confirm the action
      */
     MessageService.typedMessageConfirm = function(codePrefix, type, okCallback) {
-      var title = $filter('translate')(codePrefix + type + '.title');
-      var message = $filter('translate')(codePrefix + type + '.message');
+      var title = $filter('replaceDoubleQuote')($filter('translate')(codePrefix + type + '.title'));
+      var message = $filter('replaceDoubleQuote')($filter('translate')(codePrefix + type + '.message'));
       var ok = 'Vider';
       var cancel = 'Annuler';
       MessageService.specificMessageConfirm(title, message, ok, cancel, okCallback);

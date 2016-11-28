@@ -60,7 +60,7 @@ angular.module('core')
       }
       buildedKey = buildedKey + '.' + key;
 
-      return $filter('translate')(buildedKey);
+      return $filter('replaceDoubleQuote')($filter('translate')(buildedKey));
     };
 
     /**

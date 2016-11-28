@@ -1,7 +1,7 @@
 <div ng-controller="DynamicTableController">
 
   <a class="btn" ng-click="selectUnselectAll()">
-    {{'directive.dynamicTable.' + selectUnselectId | translate}}
+    {{'directive.dynamicTable.' + selectUnselectId | translate | replaceDoubleQuote}}
   </a>
 
   <multiselect ng-model="multiSelectValue" options="(c.label | translate) for c in customFields" data-multiple="true"

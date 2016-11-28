@@ -17,7 +17,7 @@
             </thead>
             <tbody>
             <tr class="logbookProcess">
-                <td>{{entryCtrl.detail.evType | translate}}</td>
+                <td>{{entryCtrl.detail.evType | translate| replaceDoubleQuote}}</td>
                 <td>{{entryCtrl.detail.evDateTime}}</td>
                 <td>{{entryCtrl.detail.outcome}}</td>
                 <td>{{entryCtrl.detail.outMessg}}</td>

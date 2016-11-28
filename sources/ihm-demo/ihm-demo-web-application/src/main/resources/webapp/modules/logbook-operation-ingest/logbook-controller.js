@@ -36,6 +36,14 @@ angular.module('ihm.demo')
       return input.slice(start);
     }
   })
+  .filter('replaceDoubleQuote', function() {
+      return function (input) {
+        if (!!input) {
+          return input.replace(/\'\'/g, '\'');
+    	}
+        return input;
+      }
+    })
   .controller('logbookController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
