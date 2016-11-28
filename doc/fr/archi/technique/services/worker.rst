@@ -13,7 +13,7 @@ Typologie de consommation de resources :
 	* Réseau : fort (entrant et sortant)
 	* Disque : faible (logs)
 
-.. todo : à confirmer l'usage de disque faible (cache local des fichiers de travail ?)
+.. todo à confirmer l'usage de disque faible (cache local des fichiers de travail ?)
 
 .. seealso:: Ce composant fait également appel :doc:`au composant Siegfried <Siegfried>` pour l'identification des formats de fichier.
 

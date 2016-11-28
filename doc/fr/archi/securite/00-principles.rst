@@ -1,7 +1,7 @@
 Principes
 #########
 
-Les principes de sécurité de VITAM, dans cette version, suivent les directives suivantes :
+Les principes de sécurité de VITAM suivent les directives suivantes :
 
 * Authentification et authorisation systématique des systèmes clients de VITAM basé sur une authentification TLS mutuelle utilisant des certificats (pour les composants de la couche accès) ;
 * Validation systématique des entrées du système :
@@ -10,8 +10,6 @@ Les principes de sécurité de VITAM, dans cette version, suivent les directives
     - Robustesse contre les failles du Top Ten OWASP pour toutes les interfaces REST ;
 
 * Validation périodique des listes de CRL pour toutes les CA trustées par VITAM.
-
-.. Architectes VITAM : d'autres principes de sécurité ?
 
 
 Principes de cloisonnement
@@ -45,7 +43,27 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
 .. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment  les filtres appliquées) ; cette possibilité sera néanmoins ouverte dans une version ultérieure.
 
-.. todo Parle-t-on de l'authentification des utisliateurs à l'ihm demo
+
+Principes de sécurisation des communications internes au système
+================================================================
+
+Le secret de plateforme permet de se protéger contre des erreurs de manipulation et de configuration en séparant les environnements de manière logique (secret partagé par l'ensemble de la plateforme mais différent entre plateforme). Ce secret (chaîne de caractères) est positionné dans la configuration des composants lors de l'installation du système.
+
+Dans chaque requête, les deux headers suivants sont positionnés :
+
+* ``X-Request-Timestamp`` : il contient le timestamp de la requête sous forme epoch (secondes depuis 1970)
+* ``X-Platform-ID`` : il contient la valeur suivante : SHA256("<methode>;<URL>;<Valeur du header X-Request-Timestamp>;<Secret partagé de plateforme>")
+
+Du côté du composant cible de la requête, le contrôle est alors le suivant :
+
+* Existance des deux headers précédents ;
+* Vérification que timestamp envoyé est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( |Timestamp - temps local| < 10 s )
+* Validation du hash transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
+
+En cas d'échec d'une de ces validations, la requête est refusée.
+
+.. note:: Les headers et le body de la requête ne sont pas inclus dans le calcul du X-Platform-ID pour des raisons de performance.
+
 
 Principes de sécurisation des bases de données
 ==============================================
@@ -68,7 +86,5 @@ Elasticsearch
 -------------
 
 Dans le cas d'Elasticsearch, le cloisonnement est principalement physique, dans le sens où le cluster hébergeant les données métier est disjoint du cluster hébergeant les données techniques.
-
-.. todo Peut-on dire des trucs en plus ???
 
 .. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; ceci est dû à une limitation de la version OpenSource d'Elasticsearch, et pourra être réévalué dans les futures versions du système VITAM.

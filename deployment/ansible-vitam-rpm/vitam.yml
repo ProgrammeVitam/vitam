@@ -74,6 +74,7 @@
 - hosts: hosts-mongoclient
   roles:
    - role: mongoclient
+     # define mongoclient_user & mongoclient_pwd to enable http authentication
 #     mongoclient_user: "{{mongoClientUser}}"
 #     mongoclient_pwd: "{{mongoClientPassword}}"
      mongoclient_root_url: "http://{{ansible_hostname}}{{ mongoclientbaseUrl }}"

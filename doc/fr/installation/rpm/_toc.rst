@@ -17,4 +17,3 @@ Procédures
    pki
    fresh_install
    update
-   nightly_deploy

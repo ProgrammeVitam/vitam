@@ -31,7 +31,7 @@ Génération des autorités de certification
 Cas d'une PKI inexistante
 --------------------------
 
-Dans le répertoire de déploiement, lancer le script : 
+Dans le répertoire de déploiement, lancer le script :
 
 .. code-block:: bash
 
@@ -153,7 +153,6 @@ Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term
 - client
 - client_intermediate
 
-.. todo:: droits Unix à vérifier
 
 Génération des certificats
 ==========================
@@ -165,7 +164,7 @@ Cas de certificats inexistants
 
 Editer complètement le fichier ``environnements-rpm/<inventaire>``  pour indiquer les serveurs associés à chaque service.
 
-Puis, dans le répertoire de déploiement, lancer le script : 
+Puis, dans le répertoire de déploiement, lancer le script :
 
 
 .. code-block:: bash
@@ -294,12 +293,21 @@ Ce script génère sous ``PKI/certificats`` les certificats (format p12) nécess
 Cas de certificats déjà créés par le client
 --------------------------------------------
 
-.. todo:: procédure à écrire
+Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term:`PKI` fournie par VITAM, il convient de positionner les certificats sous ``PKI/certificats/<usage>``, où usage est :
+
+- client/ihm-recette/ihm-recette.p12
+- client/ihm-demo/ihm-recette.crt
+- client/ihm-demo/ihm-demo.p12
+- client/ihm-demo/ihm-demo.crt
+- server/hosts/<hostname défini dans l'inventaire>/<nom composant vitam>.p12 pour
+	- ingest-external
+	- access-external
+
 
 Génération des stores
 =====================
 
-Lancer le script : 
+Lancer le script :
 
 .. code-block:: bash
 
@@ -396,7 +404,7 @@ Ce script génère sous ``PKI/certificats`` les stores (jks) associés pour un b
 Recopie des bons fichiers dans l'ansiblerie
 ============================================
 
-Lancer le script : 
+Lancer le script :
 
 .. code-block:: bash
 
@@ -429,5 +437,6 @@ Ce script recopie les fichiers nécessaires (certificats, stores) aux bons endro
 Cas des SIA
 -----------
 
-Pour le moment, la prise en charge des certificats des SIA n'est pas effective.
+Pour le moment, la prise en charge des certificats des SIA n'est pas effective ; seuls les certificats d'ihm-demo et ihm-recette sont aujourd'hui intégrés dans l'installation.
 
+.. hint:: Pour connecter un client externe à une instance de test Vitam, utiliser donc l'un des certificats cités (ihm-demo ou ihm-recette).

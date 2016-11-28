@@ -27,7 +27,7 @@ Architecture 1 noeud
 
 * 1 serveur mongodb:
 
-    - 1 noeud mongod    
+    - 1 noeud mongod
 
 
 Architecture distribuée
@@ -73,11 +73,11 @@ Ainsi, avec n shards et r noeuds par replica set (cluster), on obtient le déplo
     - 1 noeud mongos (service)
     - 1 noeud mongoc (Replica Set de configuration)
 
-* n x r serveurs, chacun hébergeant: 
+* n x r serveurs, chacun hébergeant:
 
     - 1 noeud mongod
 
-.. note:: Dans le cadre de cette version du système VITAM, seul un shard sera configuré, mais de telle manière à pouvoir instancier d'autres shards sans modification conséquente du déploiement et de la configuration. 
+.. note:: Dans le cadre de cette version du système VITAM, seul un shard sera configuré, mais de telle manière à pouvoir instancier d'autres shards sans modification conséquente du déploiement et de la configuration.
 
 Ports utilisés
 --------------
@@ -91,5 +91,3 @@ Les ports utilisés par mongodb sont les suivants:
 .. Monitoring
 .. ==========
 .. 
-.. .. todo:: ???
-

@@ -20,6 +20,7 @@
    rpm/_toc
    validation_deploiement
    troubleshooting
+   extras
    contacts
 
 .. only:: latex

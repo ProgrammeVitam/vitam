@@ -24,9 +24,9 @@ Fiche-type VITAM
    "Consul servers","implémentation de Consul pour un DNS applicatif (nécessite 3 serveurs minimum ; règle (2*n+1) )","vitam-prod-app-1.internet.agri, vitam-prod-app-2.internet.agri, vitam-prod-app-3.internet.agri","",""
    "elasticsearch data machine(s)","Cluster ElasticSearch de données VITAM (3 machines)","vitam-prod-ela-1.internet.agri,vitam-prod-ela-2.internet.agri,vitam-prod-ela-3.internet.agri","",""
    "elasticsearch log machine(s)","Cluster ElasticSearch de log VITAM (3 machines)","vitam-prod-log-1.internet.agri,vitam-prod-log-2.internet.agri,vitam-prod-log-3.internet.agri","",""
-   "mongo-s machine(s)","Cluster MongoDB de routage de data VITAM (3 machines)","vitam-prod-ms-1.internet.agri,vitam-prod-ms-2.internet.agri,vitam-prod-ms-3.internet.agri","",""  
+   "mongo-s machine(s)","Cluster MongoDB de routage de data VITAM (3 machines)","vitam-prod-ms-1.internet.agri,vitam-prod-ms-2.internet.agri,vitam-prod-ms-3.internet.agri","",""
    "mongo-c machine(s)","Cluster MongoDB de configuration des données VITAM (3 machines)","vitam-prod-mc-1.internet.agri,vitam-prod-mc-2.internet.agri,vitam-prod-mc-3.internet.agri","",""
    "mongo-d machine(s)","Cluster Mongo de données VITAM (3 machines)","vitam-prod-md-1.internet.agri,vitam-prod-md-2.internet.agri,vitam-prod-md-3.internet.agri","",""
    "log central machine(s)","Centralisation des logs","vitam-prod-log-1.internet.agri","",""
 
-.. todo:: ajouter section issue du DAT sur les préconisations de colocalisation, ... et nombre de machines pour chaque composant.
+.. include:: ../archi/technique/30-deployment-guidelines.rst

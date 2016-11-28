@@ -12,18 +12,19 @@ Validation par ansible
 
 Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
-``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
+``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --ask-vault-pass --check``
 
 .. note:: A l'issue du passage du playbook, les étapes doivent toutes passer en vert.
 
 Validation manuelle
 ===================
 
-Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : 
-``<protocole web https ou https>://<host>:<port>/<composant>/v1/status``
+Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web https ou https>://<host>:<port>/<composant>/v1/status``
 Cette URL doit retourner une réponse HTTP 200 (sans body) sur une requête HTTP GET.
 
 ``<protocole web https ou https>://<host>:<port>/admin/v1/status`` => renvoie un statut HTTP 204 si OK
+
+Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
 
 Validation via Consul
 ======================
@@ -39,12 +40,12 @@ Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test
 Validation via SoapUI
 =====================
 
-.. TODO:: penser à ajouter la partie liée à SoapUI. Définition du formalisme.
+Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface (menu > tests SOAP-UI).
 
 .. Validation via IHM technique
 .. ============================
 
-.. .. TODO:: pour le moment, cette IHM n'existe pas. Penser aux copies écran quand...
+.. TODO pour le moment, cette IHM n'existe pas. Penser aux copies écran quand...
 
 Post-installation : administration fonctionnelle
 ================================================

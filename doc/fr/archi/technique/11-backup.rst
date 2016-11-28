@@ -5,7 +5,8 @@ Sauvegarde
 .. caution:: actuellement, la procédure de sauvegarde s'applique "à froid" durant la phase de bêta.
 
 
-.. todo:: rédiger mieux. Cette procédure s'insère entre 20h et 8h.
+Cette procédure devrait être effectuée durant la nuit.
+Les horaire indicatif de cette procédure sont compris entre 20h et 8h.
 
 .. KWA : la procédure aussi détaillé n'irait-elle pas au final dans le DEX ? A voir également, elle est décrite rapidement dans la partie "data management" de l'architecture d'exploitation
 
@@ -52,7 +53,6 @@ Sauvegarde MongoDB de base dite "Shardée"
 #. Ré-activer la répartition de charge **mongos**.
 #. S'assurer que la répartition de charge est bien active.
 
-.. todo:: finaliser cette partie quand les scripts seront écrits.
 
 A 8h du matin, redémarrage de tous les services.
 
@@ -60,7 +60,7 @@ A 8h du matin, redémarrage de tous les services.
     :align: center
     :height: 20 cm
 
-    Procédure de sauvegarde
+    Procédure de sauvegarde complète
 
 
 Ci-dessous un script shell reprenant la procédure de sauvegarde décrite ci-dessus.
