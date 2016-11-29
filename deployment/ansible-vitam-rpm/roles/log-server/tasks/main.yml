@@ -194,6 +194,11 @@
     - "metrics_index.yml"
   when: ansible_virtualization_type != 'docker'
 
+- name: ensure cronie (for crontab) is installed
+  yum:
+    name: cronie
+    state: present
+
 - name: create root crontab entry for curator for deleting old indexes
   cron:
     name: "curator delete index "
