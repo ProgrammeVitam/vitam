@@ -40,6 +40,6 @@
     state: present
 
 - name: Update yum cache
-  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
+  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, {{vitam_repo}}' makecache"
   tags:
     - update_package_vitam
