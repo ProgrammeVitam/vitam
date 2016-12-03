@@ -1,5 +1,9 @@
 ---
 # tasks file for engine-external
+- name: ensure cronie (for crontab) is installed
+  yum:
+    name: cronie
+    state: present
 
 - name: create cron entry for secure logbook operations
   cron:
