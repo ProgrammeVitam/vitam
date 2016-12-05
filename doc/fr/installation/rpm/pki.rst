@@ -6,6 +6,8 @@ Les commandes sont à passer dans le sous-répertoire ``deployment`` de la livra
 Valorisation des variables propres à l'environnement
 ====================================================
 
+.. note:: Afin de réaliser l'étape ci-dessous, le mot de passe par défaut se situe dans le fichier ``deployment/vault_pass.txt``. Après avoir changé ce mot de passe, ne pas oublier de le remplacer dans le fichier ``deployment/vault_pass.txt``.
+
 Le fichier ``environments-rpm/group_vars/all/vault.yml`` a été généré avec un mot de passe ; le changer par la commande :
 
 .. code-block:: bash
