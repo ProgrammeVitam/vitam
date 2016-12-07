@@ -42,11 +42,11 @@
 
 	<!-- Pagination -->
 	<div style="text-align: center">
-		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
+		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=+logctrl.currentPage-1">
             Précédent
     	</button>
     	<input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
-    	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=logctrl.currentPage+1">
+    	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=+logctrl.currentPage+1">
             Suivant
     	</button>		
 	</div>
