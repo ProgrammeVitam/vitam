@@ -26,12 +26,18 @@
  */
 package fr.gouv.vitam.ihmrecette.soapui;
 
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class SoapUiClientCommandTest {
@@ -39,30 +45,29 @@ public class SoapUiClientCommandTest {
     private SoapUiClient client;
 
     @Before
-    public void initTests() {
-        SoapUiClientFactory.getInstance().changeConfiguration(SOAP_UI_CONF);
+    public void initTests() throws Exception {
+
+        final File conf = PropertiesUtils.findFile(SOAP_UI_CONF);
+        final SoapUiConfig config = PropertiesUtils.readYaml(conf, SoapUiConfig.class);
+        config.setReportingDir(
+            PropertiesUtils.getResourcePath(SOAP_UI_CONF).getParent().toString() + "/" + config.getReportingDir());
+        config.setConfigDir(
+            PropertiesUtils.getResourcePath(SOAP_UI_CONF).getParent().toString() + "/" + config.getConfigDir());
+        final File newConf = File.createTempFile("test", SOAP_UI_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, config);
+
+        SoapUiClientFactory.getInstance().changeConfiguration(newConf.getAbsolutePath());
         client = SoapUiClientFactory.getInstance().getClient();
     }
 
     @Test
-    // FIXME - Can we test Soap UI locally ? Should Soap-UI be installed ? How to test without it ?
-    @Ignore
-    // TODO - Must be tested in Tests IT ?
-    public void testLaunchTest() {
-        try {
-            client.launchTests();
-        } catch (IOException | InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    // FIXME - File is resolved with absolute path. Can't check with PropertiesUtils.findFile() => How to test it ?
-    @Ignore
-    // TODO - Must be tested in Tests IT ?
     public void testGetReport() throws InvalidParseOperationException {
-        client.getLastTestReport();
+        JsonNode node = client.getLastTestReport();
+        final JsonNode params = node.get("params");
+        assertTrue(params.isArray());
+
+        final ArrayNode array = (ArrayNode) params;
+        assertEquals(2, array.size());
     }
 
 }

@@ -49,12 +49,8 @@ public class SoapUiClientMockTest {
     }
 
     @Test
-    public void testLaunchTest() {
-        try {
-            client.launchTests();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void testLaunchTest() throws IOException, InterruptedException {
+        client.launchTests();
     }
 
     @Test
