@@ -6,27 +6,35 @@ Les commandes sont à passer dans le sous-répertoire ``deployment`` de la livra
 Valorisation des variables propres à l'environnement
 ====================================================
 
+.. note:: Afin de réaliser l'étape ci-dessous, le mot de passe par défaut se situe dans le fichier ``vault_pass.txt``. Après avoir changé ce mot de passe, ne pas oublier de le remplacer dans le fichier ``vault_pass.txt``.
+
+.. warning:: Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments-rpm/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
+
 Le fichier ``environments-rpm/group_vars/all/vault.yml`` a été généré avec un mot de passe ; le changer par la commande :
 
 .. code-block:: bash
 
    ansible-vault rekey environments-rpm/group_vars/all/vault.yml
 
-
-Puis éditer le fichier ``environments-rpm/<votre fichier d'inventaire>`` et le mettre en conformité de l'environnement souhaité avec la commande :
+Pour modifier et adapter au besoin le "vault" (qui, pour rappel, contient les mots de passe sensibles de la plate-forme), éditer le fichier avec la commande :
 
 .. code-block:: bash
 
    ansible-vault edit environments-rpm/group_vars/all/vault.yml
 
 
-.. note:: les scripts des étapes suivantes utilisent ``environments-rpm/group_vars/all/vault.yml`` et, s'il existe, le fichier ``./vault_pass.txt`` qui contient le mot de passe du fichier ``vault``. Si ``vault_pass.txt`` n'existe pas, le mot de passe de ``environments-rpm/group_vars/all/vault.yml`` sera demandé.
+Puis, éditer le fichier ``environments-rpm/hosts.<environnement>`` et le mettre en conformité de l'environnement souhaité. Ce fichier est l'inventaire associé au playbook de déploiement VITAM et il est décrit dans le paragraphe :ref:`inventaire`
+
+
+.. note:: les scripts des étapes suivantes utilisent ``environments-rpm/group_vars/all/vault.yml`` et, s'il existe, le fichier ``vault_pass.txt`` qui contient le mot de passe du fichier ``vault``. Si ``vault_pass.txt`` n'existe pas, le mot de passe de ``environments-rpm/group_vars/all/vault.yml`` sera demandé.
 
 .. caution:: par la suite, le terme <environnement> correspond à l'extension du fichier d'inventaire.
 
 
 Génération des autorités de certification
 =========================================
+
+
 
 Cas d'une PKI inexistante
 --------------------------

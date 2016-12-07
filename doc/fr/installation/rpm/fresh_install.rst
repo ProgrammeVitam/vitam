@@ -15,10 +15,12 @@ Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans
 Configuration du déploiement
 ============================
 
+.. _inventaire:
+
 Informations "plate-forme"
 --------------------------
 
-Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire |repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
+Pour configurer le déploiement, il est nécessaire de créer dans le répertoire |repertoire_inventory| un nouveau fichier d'inventaire à nommer ``hosts.<environnement>`` ( où <environnement> sera utilisé par la suite ) comportant les informations suivantes :
 
 .. literalinclude:: ../../../../deployment/environments-rpm/hosts.example
    :language: ini
@@ -65,11 +67,13 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
    :linenos:
 
 
-Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
+Le fichier ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
 
 .. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/vault.txt
    :language: ini
    :linenos:
+
+.. note:: Si le mot de passe du fichier ``vault.yml`` est changé, ne pas oublier de le répercuter dans le fichier ``vault_pass.txt`` (et le séuriser à l'issue de l'installation).
 
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
@@ -80,9 +84,11 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 Paramétrage de mongoclient (aministration mongoclient)
 ======================================================
 
-Le package rpm Vitam-mongoclient necessite une bases de donnée mongoDB pour stocker sa configuration.
-cette base de donnée est créée dans vitam durant la première installation.
+Le package rpm vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
+Cette base de données est créée dans :term:`VITAM` durant la première installation.
 La configuration est également générée en fonction des paramètres de l'inventaire.
+
+Mongoclient permet de se connecter aux différentes bases de données mongoDB utilisées par VITAM.
 
 
 Première utilisation de mongoclient
