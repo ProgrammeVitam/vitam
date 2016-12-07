@@ -178,6 +178,7 @@ public class DefaultOfferServiceTest {
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
     }
 
+    // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
     @Test
     @Ignore
     public void createObjectChunkTest() throws Exception {
@@ -229,6 +230,7 @@ public class DefaultOfferServiceTest {
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
+
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());

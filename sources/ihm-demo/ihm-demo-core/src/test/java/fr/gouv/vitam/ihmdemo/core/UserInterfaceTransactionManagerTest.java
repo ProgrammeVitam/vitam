@@ -31,7 +31,6 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -39,7 +38,6 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -60,6 +58,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 
 /**
  * Tests UserInterfaceTransactionManager class
@@ -74,7 +73,8 @@ public class UserInterfaceTransactionManagerTest {
         "{ \"$queries\": [{$eq : { #id : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
     private static String ID_UNIT = "1";
-    private static String UNIT_DETAILS = "{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
+    private static String UNIT_DETAILS =
+        "{$hits: {'total':'1'}, $results:[{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}]}";
     private static String SEARCH_RESULT =
         "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_FIELD_IMPACTED_RESULT =
@@ -97,6 +97,8 @@ public class UserInterfaceTransactionManagerTest {
     private static RequestResponse searchResult;
     private static RequestResponse updateResult;
     private static JsonNode allParents;
+
+    private static AsyncResponseJunitTest asynResponse = new AsyncResponseJunitTest();
 
     private static AccessExternalClientFactory accessClientFactory;
     private static AccessExternalClient accessClient;
@@ -129,7 +131,6 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(result.getHits().getTotal() == 1);
     }
 
-    @Ignore
     @Test
     public void testSuccessGetArchiveUnitDetails()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
@@ -154,13 +155,14 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(results.getHits().getTotal() == 1);
     }
 
-    @Ignore
     @Test
     public void testSuccessSelectObjectbyId()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException {
         final RequestResponse result =
-            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
+                "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
+                    SEARCH_UNIT_DSL_QUERY + "}"));
         when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
             .thenReturn(result);
         // Test method
@@ -168,10 +170,9 @@ public class UserInterfaceTransactionManagerTest {
             (RequestResponseOK) UserInterfaceTransactionManager
                 .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
         assertTrue(
-            objectGroup.getResults().get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
+            objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
 
-    @Ignore
     @Test
     public void testSuccessGetObjectAsInputStream()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
@@ -179,12 +180,8 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1))
             .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
-        // Test method
-        // TODO: comment due to async mode, review this call (but test already ignored)
-        // assertTrue(IOUtils.contentEquals(streamToTest,
-        // UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
-        // );
+        assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
+            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test"));
     }
 
     @Test
