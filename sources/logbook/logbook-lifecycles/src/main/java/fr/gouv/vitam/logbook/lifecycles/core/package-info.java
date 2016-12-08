@@ -26,7 +26,7 @@
  *******************************************************************************/
 
 /**
- * Logbook Lifecycles core package
+ * Provides core implementation for the Logbook Lifecycles module. 
  *
  */
 package fr.gouv.vitam.logbook.lifecycles.core;

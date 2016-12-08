@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Driver exception package
+ * Provides Exception classes for the Storage driver module
  */
 package fr.gouv.vitam.storage.driver.exception;

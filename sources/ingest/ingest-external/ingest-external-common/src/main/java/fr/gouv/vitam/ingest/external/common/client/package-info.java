@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest external common client package
+ * Provides Ingest external common client classes
  */
 package fr.gouv.vitam.ingest.external.common.client;

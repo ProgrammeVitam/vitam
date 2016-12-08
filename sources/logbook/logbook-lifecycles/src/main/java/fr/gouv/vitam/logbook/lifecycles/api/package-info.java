@@ -26,7 +26,7 @@
  *******************************************************************************/
 
 /**
- * Logbook Lifecycles API package
+ * Provides API classes for the Logbook Lifecycles module
  *
  */
 package fr.gouv.vitam.logbook.lifecycles.api;

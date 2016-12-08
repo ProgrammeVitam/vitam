@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Rest Server Package
+ * Provides the web server application for the Worker Server module and the rest resources it uses.
  */
 package fr.gouv.vitam.worker.server.rest;

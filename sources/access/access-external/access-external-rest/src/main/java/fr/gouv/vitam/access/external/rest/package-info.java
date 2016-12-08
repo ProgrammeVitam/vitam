@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Access external rest package
+ * Provides the web server application for the Access External module and the rest resources it uses.
  */
 package fr.gouv.vitam.access.external.rest;

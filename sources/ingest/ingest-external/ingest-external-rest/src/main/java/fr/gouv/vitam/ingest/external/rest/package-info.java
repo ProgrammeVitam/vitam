@@ -24,8 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
 /**
- * Ingest external rest package
+ * Provides the web server application for the Ingest External module and the rest resources it uses.
  */
 package fr.gouv.vitam.ingest.external.rest;

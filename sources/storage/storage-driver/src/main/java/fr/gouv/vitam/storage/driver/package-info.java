@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Driver Storage Package including interface describing how drivers should be implemented
+ * Provides interface describing how drivers should be implemented for the Storage driver module
  */
 package fr.gouv.vitam.storage.driver;

@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Basic Vitam Client Common interface
+ * Basic Vitam Client Common interfaces
  */
 package fr.gouv.vitam.common.client;

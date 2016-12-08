@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage Engine Client package
+ * Provides Storage Engine client interface, factory and implementations.
  */
 package fr.gouv.vitam.storage.engine.client;

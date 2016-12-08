@@ -24,8 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
 /**
- * Common object for storage exchanges
+ * Provides common Model classes for the Storage Engine module.
  */
 package fr.gouv.vitam.storage.engine.common.model;

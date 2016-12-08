@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Query Parser
+ * Provides queries to be used within the Vitam DSL
  *
  */
 package fr.gouv.vitam.common.database.parser.query;

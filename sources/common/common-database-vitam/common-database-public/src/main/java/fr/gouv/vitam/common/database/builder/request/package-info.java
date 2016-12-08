@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Common request package
+ * Provides an abstract request class
  */
 package fr.gouv.vitam.common.database.builder.request;

@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Access api package
+ * Provides module and resource interfaces and a binary data POJO for the Access Internal module.
  *
  */
 package fr.gouv.vitam.access.internal.api;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage Engine Server Distribution implementation
+ * Provides a Distribution implementation for the Storage Engine Server module
  */
 package fr.gouv.vitam.storage.engine.server.distribution.impl;

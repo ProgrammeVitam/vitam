@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace Rest Client
+ * Provides Workspace client factory and implementations.
  */
 package fr.gouv.vitam.workspace.client;

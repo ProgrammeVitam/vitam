@@ -26,7 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest Internal client package
- *
+ * Provides Ingest Internal Client interface, configuration, factory and implementations.
  */
 package fr.gouv.vitam.ingest.internal.client;

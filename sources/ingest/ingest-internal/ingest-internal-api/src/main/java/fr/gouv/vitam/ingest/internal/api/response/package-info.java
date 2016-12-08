@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Response model of internal ingest package
+ * Provides Internal Ingest Response model classes
  */
 package fr.gouv.vitam.ingest.internal.api.response;

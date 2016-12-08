@@ -25,7 +25,7 @@
  * accept its terms.
  */
 /**
- * Common Format Identification Package
+ * Provides common interface, factory and implementations for the Format Identification module 
  */
 package fr.gouv.vitam.common.format.identification;
 

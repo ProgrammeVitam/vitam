@@ -25,8 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Configuration package containing GlobalDatas and ParserTokens
- *
- *
+ * Provides configuration classes containing GlobalDatas and ParserTokens
+ * 
  */
 package fr.gouv.vitam.common.database.builder.request.configuration;

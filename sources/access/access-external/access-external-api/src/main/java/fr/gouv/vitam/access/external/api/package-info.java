@@ -25,7 +25,12 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Access external api package
- *
+ * Provides :
+ * <p>
+ * <ul>
+ * <li>Classes describing the different collections used for the Access.
+ * <li>Configuration class for the Access External module.
+ * </ul>
+ * <p>
  */
 package fr.gouv.vitam.access.external.api;

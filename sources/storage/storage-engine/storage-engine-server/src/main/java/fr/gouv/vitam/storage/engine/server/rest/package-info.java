@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage Engine Server Rest Package - package dealing with Rest resources and Storage Application
+ * Provides the web server application and configuration for the Storage Engine Server module and the rest resources it uses.
  */
 package fr.gouv.vitam.storage.engine.server.rest;

@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace implementation
+ * Provides an abstract core implementation and configuration for the Workspace module. 
+ *
  */
 package fr.gouv.vitam.workspace.core;

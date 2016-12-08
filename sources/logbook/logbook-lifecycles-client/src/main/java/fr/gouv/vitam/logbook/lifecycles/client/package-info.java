@@ -26,7 +26,6 @@
  *******************************************************************************/
 
 /**
- * Logbook Lifecycles client package
- *
+ * Provides Logbook Lifecycles client interface, factory and implementations.
  */
 package fr.gouv.vitam.logbook.lifecycles.client;

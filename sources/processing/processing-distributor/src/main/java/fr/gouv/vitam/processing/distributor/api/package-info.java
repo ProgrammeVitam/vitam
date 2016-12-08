@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Distributor API Package
+ * Provides API classes for the Processing Distributor module
+ *
  */
 package fr.gouv.vitam.processing.distributor.api;

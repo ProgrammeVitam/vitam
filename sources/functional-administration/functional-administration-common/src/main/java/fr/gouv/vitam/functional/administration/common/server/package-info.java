@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Administration common server package
+ * Provides common server classes for the Functional Administration module 
  */
 package fr.gouv.vitam.functional.administration.common.server;

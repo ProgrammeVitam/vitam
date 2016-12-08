@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Translator for MongoDB
+ * Provides translators for MongoDB
  *
  */
 package fr.gouv.vitam.common.database.translators.mongodb;

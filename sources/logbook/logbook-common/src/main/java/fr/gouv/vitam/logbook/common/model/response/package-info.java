@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Model of response from server
+ * Provides common response Model classes for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.model.response;

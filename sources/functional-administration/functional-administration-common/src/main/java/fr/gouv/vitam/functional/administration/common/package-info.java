@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Functional administration common package
+ * Provides common classes for the Functional Administration module.
  */
 package fr.gouv.vitam.functional.administration.common;

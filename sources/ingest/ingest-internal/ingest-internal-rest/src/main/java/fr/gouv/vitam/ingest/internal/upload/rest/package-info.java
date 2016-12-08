@@ -24,7 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 /**
- * Upload SIP rest services of internal ingest module package
+ * Provides the web server application and configuration for the Ingest Internal module and the rest resources it uses.
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;

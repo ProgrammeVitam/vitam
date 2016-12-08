@@ -24,8 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
 /**
- * Ingest External Client Package to be used in external application (as IHM Demo)
+ * Provides Ingest External Client interface, factory and implementations.
  */
 package fr.gouv.vitam.ingest.external.client;

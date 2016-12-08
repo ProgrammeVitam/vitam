@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Management Rest package
+ * Provides the web server application and configuration for the Processing Management module and the rest resource it uses
  *
  */
 package fr.gouv.vitam.processing.management.rest;

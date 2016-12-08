@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Core Package : APIs
+ * Provides API definition for the Worker Core module. 
  */
 package fr.gouv.vitam.worker.core.api;
