@@ -68,10 +68,10 @@ hosts-access-external
 
 # Group definition ; DO NOT MODIFY
 [zone-applicative:children]
-hosts-ingest
+hosts-ingest-internal
 hosts-processing
 hosts-worker
-hosts-access
+hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
@@ -86,11 +86,11 @@ hosts-storage-engine
 # TODO: Put here servers where this service will be deployed : workspace
 
 
-[hosts-ingest]
+[hosts-ingest-internal]
 # TODO: Put here servers where this service will be deployed : ingest-internal
 
 
-[hosts-access]
+[hosts-access-internal]
 # TODO: Put here servers where this service will be deployed : access-internal
 
 
