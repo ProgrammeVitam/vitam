@@ -1,11 +1,9 @@
 <div id="global" class="container-fluid" >
   <ol class="breadcrumb">
-    <li><a href="#">Page d'accueil</a></li>
-    <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+    <li>Page d'accueil</li>
+    <li ng-if="$ctrl.lifeCycleType === 'unit'">Journal du cycle de vie de l'unité archivistique {{$ctrl.lifeCycleId}}</li>
+    <li ng-if="$ctrl.lifeCycleType === 'objectgroup'">Journal du cycle de vie du groupe d'objet {{$ctrl.lifeCycleId}}</li>
   </ol>
-
-  <!-- <pre>{{ $ctrl.lifeCycleDetails }}</pre> -->
-  <!-- <pre>{{$ctrl.columnsToDisplay}}</pre> -->
 
   <div class="panel panel-default col-md-12  dynamic-table-box">
     <a class="panel-header"  data-target="#boxLifeCycle" data-toggle="collapse">
