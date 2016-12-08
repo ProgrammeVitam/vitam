@@ -69,6 +69,7 @@
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
   with_items:
+    - "java.security"
     - "logbook-client.conf"
     - "server-identity.conf"
     - "logback.xml"
