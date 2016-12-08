@@ -241,8 +241,8 @@ public class CheckConformityActionHandler extends ActionHandler {
             // define eventDetailData
             eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
                 "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
-                "\", \"SystemMessageDigest\": \"" + (String) handlerIO.getInput(ALGO_RANK) +
-                "\", \"SystemAlgorithm\": \"" + vitamDigestString + "\"} ";
+                "\", \"SystemMessageDigest\": \"" + vitamDigestString +
+                "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
 
             // check digest
             if (manifestDigestString.equals(binaryObject.getMessageDigest())) {
