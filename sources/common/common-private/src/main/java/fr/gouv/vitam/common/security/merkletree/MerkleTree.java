@@ -26,36 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.security.merkletree;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * MerkleTree
  */
 public class MerkleTree {
 
-    private byte[] root = new byte[0];
-    private MerkleTree l;
-    private MerkleTree r;
+    public static final MerkleTree EMPTY_LEAF = new MerkleTree();
 
+    private byte[] root = new byte[0];
+
+    @JsonProperty("l")
+    private MerkleTree leftLeaf;
+
+    @JsonProperty("r")
+    private MerkleTree rightLeaf;
 
     /**
      * MerkleTree empty constructor
      */
-    public MerkleTree() {}
+    public MerkleTree() {
+    }
 
     /**
      * Initialize the needed parameters for MerkleTree constructor
      *
-     * @param root : the root of the MerkleTree
-     * @param l : the left sheet of the MerkleTree
-     * @param r : the right sheet of the MerkleTree
+     * @param root      : the root of the MerkleTree
+     * @param leftLeaf  : the left leaf of the MerkleTree
+     * @param rightLeaf : the right leaf of the MerkleTree
      */
-    public MerkleTree(byte[] root, MerkleTree l, MerkleTree r) {
+    public MerkleTree(byte[] root, MerkleTree leftLeaf, MerkleTree rightLeaf) {
         this.root = root;
-        this.l = l;
-        this.r = r;
+        this.leftLeaf = leftLeaf;
+        this.rightLeaf = rightLeaf;
     }
 
     /**
-     *
      * @return root for type byte[]
      */
     public byte[] getRoot() {
@@ -63,46 +70,18 @@ public class MerkleTree {
     }
 
     /**
-     * setter root
-     *
-     * @param root
-     */
-    public void setRoot(byte[] root) {
-        this.root = root;
-    }
-
-    /**
-     *
      * @return left sheet for type MerkleTree
      */
-    public MerkleTree getL() {
-        return l;
+    public MerkleTree getLeftLeaf() {
+        return leftLeaf;
     }
 
     /**
-     * setter left sheet
-     *
-     * @param l
-     */
-    public void setL(MerkleTree l) {
-        this.l = l;
-    }
-
-    /**
-     *
      * @return right sheet for type MerkleTree
      */
-    public MerkleTree getR() {
-        return r;
+    public MerkleTree getRightLeaf() {
+        return rightLeaf;
     }
 
-    /**
-     * setter right sheet
-     *
-     * @param r
-     */
-    public void setR(MerkleTree r) {
-        this.r = r;
-    }
 }
 
