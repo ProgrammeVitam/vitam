@@ -26,9 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.security.merkletree;
 
+import static fr.gouv.vitam.common.security.merkletree.MerkleTree.EMPTY_LEAF;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.digest.Digest;
@@ -40,10 +43,9 @@ import fr.gouv.vitam.common.digest.DigestType;
 public class MerkleTreeAlgo {
 
     private final DigestType digestType;
-    private List<MerkleTree> currentList = new ArrayList<>();
+    private List<MerkleTree> leaves = new ArrayList<>();
 
     /**
-     *
      * @param digestType
      */
     public MerkleTreeAlgo(DigestType digestType) {
@@ -55,69 +57,61 @@ public class MerkleTreeAlgo {
      *
      * @param str
      */
-    public void addSheet(String str) {
-        final MerkleTree tree = new MerkleTree();
-        final Digest digest = new Digest(digestType);
-        tree.setRoot(digest.update(str.getBytes()).digest());
-        tree.setL(null);
-        tree.setR(null);
-        currentList.add(tree);
+    public void addLeaf(String str) {
+        Digest digest = new Digest(digestType);
+        MerkleTree tree = new MerkleTree(digest.update(str.getBytes()).digest(), null, null);
+        leaves.add(tree);
+    }
+
+    @VisibleForTesting
+    int numberOfLeaves() {
+        return leaves.size();
     }
 
     /**
+     * concat two hash to compute another one.
      *
-     * @param operations
-     */
-    private boolean isPowerOfTwo(List<MerkleTree> operations) {
-        if (Long.bitCount(operations.size()) == 1) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * aggregates two args to generate their Hash
-     *
-     * @param arg0
-     * @param arg1
+     * @param left
+     * @param right
      * @return byte[] generated Hash
      */
-    private byte[] compute(byte[] arg0, byte[] arg1) {
+    private byte[] concat(byte[] left, byte[] right) {
         final Digest digest = new Digest(digestType);
-        digest.update(arg0);
-        digest.update(arg1);
+        digest.update(left);
+        digest.update(right);
         return digest.digest();
     }
 
     /**
      * adds padding when sheet number isn't 2^n
-     *
      */
-    private void addPadding() {
-        if (!isPowerOfTwo(currentList)) {
-            while (!isPowerOfTwo(currentList)) {
-                currentList.add(new MerkleTree());
-            }
+    @VisibleForTesting
+    void addPadding() {
+        int numberOfLeaf = leaves.size();
+        if (Long.bitCount(numberOfLeaf) == 1) {
+            return;
+        }
+
+        long l = Long.highestOneBit(2 * numberOfLeaf);
+        for (int j = 0; j < l - numberOfLeaf; j++) {
+            leaves.add(EMPTY_LEAF);
         }
     }
 
     /**
-     *
      * @return MerkleTree
      */
     public MerkleTree generateMerkle() {
         addPadding();
-        MerkleTree tree = Iterables.getFirst(currentList, null);
-        while (currentList.size() > 1) {
+        MerkleTree tree = Iterables.getFirst(leaves, null);
+        while (leaves.size() > 1) {
             final List<MerkleTree> nextList = new ArrayList<>();
-            for (int i = 0; i < currentList.size(); i = i + 2) {
-                tree = new MerkleTree();
-                tree.setRoot(compute(currentList.get(i).getRoot(), currentList.get(i + 1).getRoot()));
-                tree.setR(currentList.get(i + 1));
-                tree.setL(currentList.get(i));
+            for (int i = 0; i < leaves.size(); i = i + 2) {
+                byte[] hash = concat(leaves.get(i).getRoot(), leaves.get(i + 1).getRoot());
+                tree = new MerkleTree(hash, leaves.get(i), leaves.get(i + 1));
                 nextList.add(tree);
             }
-            currentList = nextList;
+            leaves = nextList;
         }
         return tree;
     }

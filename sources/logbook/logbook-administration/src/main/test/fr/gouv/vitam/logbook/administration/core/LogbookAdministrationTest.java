@@ -171,16 +171,16 @@ public class LogbookAdministrationTest {
         select.setQuery(findById);
         select.setLimitFilter(0, 1);
 
-        String lastHash = extractLastHash(logbookOperations, select);
+        String lastTimestampToken = extractLastTimestampToken(logbookOperations, select);
         // When
         logbookAdministration.generateSecureLogbook();
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 2, lastHash);
+        validateFile(archive, 2, lastTimestampToken);
     }
 
-    private String extractLastHash(LogbookOperationsImpl logbookOperations, Select select)
+    private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         List<LogbookOperation> logbookOperationList = logbookOperations.select(select.getFinalSelect());
         LogbookOperation traceabilityOperation = Iterables.getOnlyElement(logbookOperationList);
@@ -190,7 +190,7 @@ public class LogbookAdministrationTest {
 
         // a recuperer du dernier event et non pas sur l'event parent
         TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-        return traceabilityEvent.getHash();
+        return new String(traceabilityEvent.getTimeStampToken());
 
     }
 
@@ -223,7 +223,7 @@ public class LogbookAdministrationTest {
             properties = new Properties();
             properties.load(archiveInputStream);
             assertThat(properties.getProperty("currentHash")).isNotNull();
-            assertThat(properties.getProperty("previousHash")).isEqualTo(previousHash);
+            assertThat(properties.getProperty("previousTimestampToken")).isEqualTo(previousHash);
         }
     }
 
