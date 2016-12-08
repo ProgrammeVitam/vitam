@@ -42,11 +42,11 @@
         <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
         	<div class="table-responsive">
         		<div class="col-md-9" style="float: right">
-            		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=fileCtrl.currentPage-1">
+            		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage-1">
                 		Précédent
             		</button>
             		<input ng-model="fileCtrl.currentPage" style="max-width: 40px">/{{fileCtrl.resultPages}}
-            		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=fileCtrl.currentPage+1">
+            		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage+1">
                 		Suivant
             		</button>
         		</div>
