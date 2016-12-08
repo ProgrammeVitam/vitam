@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Logbook collections package
+ * Provides Logbook collection classes
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;

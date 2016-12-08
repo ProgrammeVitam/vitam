@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Common Package
+ * Provides common classes for the Worker module.
  */
 package fr.gouv.vitam.worker.common;

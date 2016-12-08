@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Functional administration rest package
+ * Provides the web server application and configuration for the Functional administration module and the rest resource it uses
  *
  */
 package fr.gouv.vitam.functional.administration.rest;

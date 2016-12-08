@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Workspace Offer Rest package - package dealing with Rest resources and Workspace Offer Application
+ * Provides the web server application and configuration for the for the Storage Offer Default module and the rest resources it uses.
  */
 package fr.gouv.vitam.storage.offers.workspace.rest;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Model of internal ingest module package
+ * Provides Ingest Internal model classes
  */
 package fr.gouv.vitam.ingest.internal.model;

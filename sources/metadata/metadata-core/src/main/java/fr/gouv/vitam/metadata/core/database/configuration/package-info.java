@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database configuration package
+ * Provides Database configuration class for Metadata module
  *
  */
 package fr.gouv.vitam.metadata.core.database.configuration;

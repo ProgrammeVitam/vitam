@@ -25,6 +25,12 @@
  * accept its terms.
  */
 /**
- * Access External Client Package to be used in external application (as IHM Demo)
+ * Provides 
+ * <p>
+ * <ul>
+ * <li>Access external client interface, factory and implementations.
+ * <li>Admin external client interface, factory and implementations.
+ * </ul>
+ * <p> 
  */
 package fr.gouv.vitam.access.external.client;

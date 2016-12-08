@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Internal Upload Sip API package
+ * Provides Ingest Internal upload service interface
  */
 package fr.gouv.vitam.ingest.internal.api.upload;

@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Engine Core Package
+ * Provides core implementation for the Processing Engine module. 
+ *
  */
 package fr.gouv.vitam.processing.engine.core;

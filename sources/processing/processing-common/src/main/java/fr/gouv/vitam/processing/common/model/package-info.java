@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Model Package
+ * Provides common Model classes for the Processing module.
  */
 package fr.gouv.vitam.processing.common.model;

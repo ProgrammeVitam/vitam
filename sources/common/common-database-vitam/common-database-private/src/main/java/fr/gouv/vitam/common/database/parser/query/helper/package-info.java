@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database parser helper
+ * Provides a query helper 
  */
 package fr.gouv.vitam.common.database.parser.query.helper;

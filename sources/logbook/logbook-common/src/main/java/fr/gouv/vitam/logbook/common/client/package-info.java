@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Generic logbook client
+ * Provides client common classes for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.client;

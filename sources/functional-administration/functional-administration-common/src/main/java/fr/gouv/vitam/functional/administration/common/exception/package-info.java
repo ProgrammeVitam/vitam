@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Exception package of functional administration common module
+ * Provides Exception classes for the Functional Administration module.
  */
 package fr.gouv.vitam.functional.administration.common.exception;

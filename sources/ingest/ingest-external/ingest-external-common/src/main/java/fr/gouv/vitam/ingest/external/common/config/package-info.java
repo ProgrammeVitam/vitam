@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest external common config package
+ * Provides Ingest external common configuration classes
  */
 package fr.gouv.vitam.ingest.external.common.config;

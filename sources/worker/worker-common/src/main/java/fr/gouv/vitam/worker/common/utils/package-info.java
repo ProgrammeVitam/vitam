@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Common Package : utils
+ * Provides common utility classes for the Worker module.
  */
 package fr.gouv.vitam.worker.common.utils;

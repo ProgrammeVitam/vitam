@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Operations API Package
+ * Provides API classes for the Logbook Operations module
+ *
  */
 package fr.gouv.vitam.logbook.operations.api;

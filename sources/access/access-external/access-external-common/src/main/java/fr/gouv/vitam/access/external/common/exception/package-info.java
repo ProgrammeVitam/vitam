@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Package Access Exception
+ * Provides exception classes used for the Access External module. 
  */
 package fr.gouv.vitam.access.external.common.exception;

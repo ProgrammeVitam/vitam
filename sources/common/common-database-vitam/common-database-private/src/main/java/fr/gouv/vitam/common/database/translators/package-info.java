@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Package containing translators from Vitam DSL to native DSL
+ * Provides translators from Vitam DSL to native DSL
  */
 package fr.gouv.vitam.common.database.translators;

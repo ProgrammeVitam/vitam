@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Accession register core module
+ * Provides core for the Accession register module
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;

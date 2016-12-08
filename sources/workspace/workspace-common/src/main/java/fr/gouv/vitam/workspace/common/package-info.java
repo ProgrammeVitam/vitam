@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace common
+ * Provides common classes for the Workspace module.
  */
 package fr.gouv.vitam.workspace.common;

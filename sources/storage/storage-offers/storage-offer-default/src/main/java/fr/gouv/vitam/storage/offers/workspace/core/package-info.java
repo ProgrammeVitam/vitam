@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Workspace Offer Core package - the core for the workspace offer
+ * Provides core implementation (Workspace based) for the Storage Offer Default module 
+ *
  */
 package fr.gouv.vitam.storage.offers.workspace.core;

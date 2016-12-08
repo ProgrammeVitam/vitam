@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Metadata rest package
- *
+ * Provides the web server application for the Metadata module and the rest resources it uses.
  */
 package fr.gouv.vitam.metadata.rest;

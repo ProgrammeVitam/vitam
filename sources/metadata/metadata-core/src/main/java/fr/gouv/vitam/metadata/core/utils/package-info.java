@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Metadata core utils package
+ * Provides utility classes for the Metadata module
  *
  */
 package fr.gouv.vitam.metadata.core.utils;

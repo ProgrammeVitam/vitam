@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Builder for single query request
+ * Provides database builders for single query requests
  */
 package fr.gouv.vitam.common.database.builder.request.single;

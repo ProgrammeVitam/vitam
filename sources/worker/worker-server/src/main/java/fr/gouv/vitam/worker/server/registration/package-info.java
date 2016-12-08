@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Server Package : classes for registration of the current worker to the processing
+ * Provides classes used for registration of current worker to the processing. 
  */
 package fr.gouv.vitam.worker.server.registration;

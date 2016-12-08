@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Package Access Rest
+ * Provides the web server application for the Access Internal module and the rest resources it uses.
  */
 package fr.gouv.vitam.access.internal.rest;

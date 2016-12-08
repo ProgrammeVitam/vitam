@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Server Logbook Exception
+ * Provides Server Exception classes for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.server.exception;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage engine common package
+ * Provides common constants classes for the Storage Engine module
  */
 package fr.gouv.vitam.storage.engine.common;

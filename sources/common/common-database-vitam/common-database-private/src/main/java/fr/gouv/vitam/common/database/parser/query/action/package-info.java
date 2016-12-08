@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Action Parser
+ * Provides actions to be used within the Vitam DSL
  *
  */
 package fr.gouv.vitam.common.database.parser.query.action;

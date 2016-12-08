@@ -26,7 +26,7 @@
  */
 
 /**
- * App server package for ihm recette
+ * Provides the web server application and configuration for the IHM Recette module and the rest resource it uses
  *
  */
 package fr.gouv.vitam.ihmrecette.appserver;
