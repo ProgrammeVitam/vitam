@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,19 +23,20 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+ */
+
+package fr.gouv.vitam.common.model;
 
 /**
- * ContainerExtractionUtilsFactory Factory to create ContainerExtractionUtils
+ * Constants class for Vitam internal features
  */
-public class ContainerExtractionUtilsFactory {
-    /**
-     * Create a workspace client
-     *
-     * @return ContainerExtractionUtils
-     */
-    public ContainerExtractionUtils create() {
-        return new ContainerExtractionUtils();
+public class VitamConstants {
+
+    private VitamConstants() {
+        // Nothing
     }
+
+    public static final String SIP_FOLDER = "SIP";
+
+    public static final String CONTENT_SIP_FOLDER = SIP_FOLDER + "/Content";
 }
