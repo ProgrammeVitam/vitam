@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Functional administration client package
+ * Provides Functional administration client interface, factory and implementations.
  */
 package fr.gouv.vitam.functional.administration.client;

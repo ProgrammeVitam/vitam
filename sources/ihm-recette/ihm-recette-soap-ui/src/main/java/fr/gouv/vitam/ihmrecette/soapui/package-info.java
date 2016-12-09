@@ -26,7 +26,7 @@
  */
 
 /**
- * SoapUI tools for launch tests and get results
- *
+ * Provides SoapUI tools in order to launch tests and get results.<br>
+ * Contains client interface, factory and implementations.
  */
 package fr.gouv.vitam.ihmrecette.soapui;

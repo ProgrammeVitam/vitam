@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Package Access Exception
+ * Provides exception classes used for the Access Internal module.
  */
 package fr.gouv.vitam.access.internal.common.exception;

@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Access client package
- *
+ * Provides access internal client interface, factory and implementations.
  */
 package fr.gouv.vitam.access.internal.client;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Rest implementation Application and Resource
+ * Provides the web server application for the Workspace module and the rest resources it uses.
  */
 package fr.gouv.vitam.workspace.rest;

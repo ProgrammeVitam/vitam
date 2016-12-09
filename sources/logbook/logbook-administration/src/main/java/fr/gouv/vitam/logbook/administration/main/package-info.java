@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Logbook Administration for command line (main) to control Traceability process on Logbooks
+ * Povides command line (main) to control Traceability process for the Logbook Administration module
  */
 package fr.gouv.vitam.logbook.administration.main;

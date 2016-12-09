@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Operation client package
+ * Provides Logbook Operations client interface, factory and implementations.
  */
 package fr.gouv.vitam.logbook.operations.client;

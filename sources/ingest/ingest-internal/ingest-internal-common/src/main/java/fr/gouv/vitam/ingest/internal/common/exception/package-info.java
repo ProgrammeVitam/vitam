@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest Internal Common Exception package
+ * Provides Ingest Internal common exception classes
  */
 package fr.gouv.vitam.ingest.internal.common.exception;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage engine common referential model package
+ * Provides common Referential Model classes for the Storage Engine module.
  */
 package fr.gouv.vitam.storage.engine.common.referential.model;

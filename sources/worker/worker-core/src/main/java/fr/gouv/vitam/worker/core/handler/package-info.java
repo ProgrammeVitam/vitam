@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Core Package : Handlers
+ * Provides Handler classes for the Worker Core module 
  */
 package fr.gouv.vitam.worker.core.handler;

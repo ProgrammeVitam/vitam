@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace exceptions
+ * Provides Exception classes for the Workspace module
  */
 package fr.gouv.vitam.workspace.api.exception;

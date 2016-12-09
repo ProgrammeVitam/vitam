@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Common database collection
+ * Provides common database collection
  */
 package fr.gouv.vitam.common.database.collections;

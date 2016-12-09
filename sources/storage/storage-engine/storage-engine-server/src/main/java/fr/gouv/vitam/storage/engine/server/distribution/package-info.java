@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage Engine Server Distribution Package - package dealing with the distribution part
+ * Provides a Distribution interface for the Storage Engine Server module
  */
 package fr.gouv.vitam.storage.engine.server.distribution;

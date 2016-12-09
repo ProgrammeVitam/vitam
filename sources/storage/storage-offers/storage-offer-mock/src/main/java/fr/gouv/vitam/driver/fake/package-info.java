@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Fake Drive Implementation package for tests purpose
+ * Provides a fake Driver implementation for tests purpose
  */
 package fr.gouv.vitam.driver.fake;

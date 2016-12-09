@@ -25,9 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Request exception
- *
- *
+ * Provides exception classes that could be thrown during Requests construction
  *
  */
 package fr.gouv.vitam.common.database.builder.request.exception;

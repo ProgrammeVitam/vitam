@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Exception Package
+ * Provides common Exception classes for the Processing module.
  */
 package fr.gouv.vitam.processing.common.exception;

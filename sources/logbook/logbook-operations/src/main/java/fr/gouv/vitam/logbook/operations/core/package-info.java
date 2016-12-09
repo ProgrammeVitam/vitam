@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Operations Core Package
+ * Provides core implementation for the Logbook Operations module. 
+ *
  */
 package fr.gouv.vitam.logbook.operations.core;

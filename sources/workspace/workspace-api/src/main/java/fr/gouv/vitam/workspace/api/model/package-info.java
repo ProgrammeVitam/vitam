@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace models
+ * Provides Model classes for the Workspace module
  */
 package fr.gouv.vitam.workspace.api.model;

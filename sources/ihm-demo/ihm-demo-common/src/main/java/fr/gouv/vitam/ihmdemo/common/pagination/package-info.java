@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Common pagination package
+ * Provides IHM Demo Pagination Common classes
  */
 package fr.gouv.vitam.ihmdemo.common.pagination;

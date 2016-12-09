@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Siegfried implementation of Format Identification Package
+ * Provides the Siegfried implementation for the Format Identification module 
  */
 package fr.gouv.vitam.common.format.identification.siegfried;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Contains storage common responses model
+ * Provides common Response classes for the Storage Engine module.
  */
 package fr.gouv.vitam.storage.engine.common.model.response;

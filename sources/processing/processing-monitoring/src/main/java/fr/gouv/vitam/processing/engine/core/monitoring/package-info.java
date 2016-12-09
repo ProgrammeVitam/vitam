@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Engine Core Monitoring Package
+ * Provides core interface and implementation for the Processing Monitoring module. 
+ *
  */
 package fr.gouv.vitam.processing.engine.core.monitoring;
