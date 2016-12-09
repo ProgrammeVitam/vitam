@@ -118,7 +118,7 @@ public class FileSystemTest {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException()
         throws ContentAddressableStorageNotFoundException {
-        workspace.deleteContainer(CONTAINER_NAME);
+        workspace.deleteContainer(CONTAINER_NAME, false);
     }
 
     @Test
@@ -133,7 +133,7 @@ public class FileSystemTest {
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
         workspace.createContainer(CONTAINER_NAME);
 
-        workspace.deleteContainer(CONTAINER_NAME);
+        workspace.deleteContainer(CONTAINER_NAME, true);
         assertFalse(workspace.isExistingContainer(CONTAINER_NAME));
     }
 

@@ -76,16 +76,6 @@ public interface ContentAddressableStorage {
 
     public void purgeContainer(String containerName) throws ContentAddressableStorageNotFoundException;
 
-    /**
-     * Deletes a container if it is empty.
-     *
-     * @param containerName name of the container to delete
-     *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     */
-    public void deleteContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Deletes everything inside a container recursively.

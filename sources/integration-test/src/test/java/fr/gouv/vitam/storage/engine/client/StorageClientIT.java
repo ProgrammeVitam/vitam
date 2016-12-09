@@ -178,9 +178,9 @@ public class StorageClientIT {
             LOGGER.error("Error deleting object : " + e);
         }
         try {
-            workspaceClient.deleteContainer(CONTAINER_1);
-            workspaceClient.deleteContainer(CONTAINER_2);
-            workspaceClient.deleteContainer(CONTAINER_3);
+            workspaceClient.deleteContainer(CONTAINER_1, true);
+            workspaceClient.deleteContainer(CONTAINER_2, true);
+            workspaceClient.deleteContainer(CONTAINER_3, true);
         } catch (final Exception e) {
             LOGGER.error("Error deleting container : " + e);
         }

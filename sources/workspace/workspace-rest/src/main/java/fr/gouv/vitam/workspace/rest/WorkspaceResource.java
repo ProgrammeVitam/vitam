@@ -142,14 +142,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteContainer(@PathParam(CONTAINER_NAME) String containerName) {
-        // FIXME P1 REVIEW true by default ? SHould not be! need to test if container is empty
-
+    public Response deleteContainer(@PathParam(CONTAINER_NAME) String containerName,
+        @HeaderParam(GlobalDataRest.X_RECURSIVE) boolean recursive) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
             SanityChecker.checkParameter(containerName);
-            workspace.deleteContainer(containerName, true);
+            workspace.deleteContainer(containerName, recursive);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();

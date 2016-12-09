@@ -354,7 +354,7 @@ public class WorkerIT {
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
-            workspaceClient.deleteContainer(CONTAINER_NAME);
+            workspaceClient.deleteContainer(CONTAINER_NAME, true);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -407,7 +407,7 @@ public class WorkerIT {
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
 
-            workspaceClient.deleteContainer(CONTAINER_NAME);
+            workspaceClient.deleteContainer(CONTAINER_NAME, true);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -442,7 +442,7 @@ public class WorkerIT {
             assertNotNull(retStepControl);
             assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
-            workspaceClient.deleteContainer(CONTAINER_NAME);
+            workspaceClient.deleteContainer(CONTAINER_NAME, true);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -477,7 +477,7 @@ public class WorkerIT {
             assertEquals(5, retStepControl.getItemsStatus().size());
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
-            workspaceClient.deleteContainer(CONTAINER_NAME);
+            workspaceClient.deleteContainer(CONTAINER_NAME, true);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
