@@ -106,23 +106,7 @@ public class AccessResourceMock implements AccessInternalResource {
     }
 
     @Override
-    @POST
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-        @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
-        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
-    }
-
-    @Override
     public void getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, JsonNode query,
-        AsyncResponse asyncResponse) {
-        asyncResponse.resume(Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build());
-    }
-
-    @Override
-    public void getObjectStreamPostAsync(HttpHeaders headers, String idObjectGroup, JsonNode query,
         AsyncResponse asyncResponse) {
         asyncResponse.resume(Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build());
     }

@@ -73,6 +73,8 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
+    
+    
     public LogbookOperationsClientRestTest() {
         super(LogbookOperationsClientFactory.getInstance());
     }
@@ -125,6 +127,14 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             this.expectedResponse = expectedResponse;
         }
 
+        @GET
+        @Path("/operations/{id_op}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getLogbookOperation(LogbookOperationParameters parameters) {
+            return expectedResponse.get();
+        }
+
         @POST
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -132,7 +142,6 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         public Response createLogbookOperation(LogbookOperationParameters parameters) {
             return expectedResponse.post();
         }
-
         @PUT
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -141,6 +150,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             return expectedResponse.put();
         }
 
+        
         @POST
         @Path("/operations/traceability")
         @Produces(MediaType.APPLICATION_JSON)
@@ -156,6 +166,13 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @GET
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectLogbookOperation(String parameters) {
+            return expectedResponse.get();
+        }
         @PUT
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -294,7 +311,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
 
     @Test
     public void selectExecution() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.selectOperationbyId("id");
             fail("Should raized an exception");
@@ -302,7 +319,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
 
         }
         reset(mock);
-        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");
@@ -310,7 +327,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
 
         }
         reset(mock);
-        when(mock.post()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectOperationbyId("id");
             fail("Should raized an exception");
@@ -318,7 +335,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
 
         }
         reset(mock);
-        when(mock.post()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectOperation(JsonHandler.createObjectNode());
             fail("Should raized an exception");

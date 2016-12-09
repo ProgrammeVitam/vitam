@@ -28,8 +28,6 @@ package fr.gouv.vitam.access.internal.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -39,7 +37,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -98,33 +95,12 @@ public class LogbookInternalResourceImpl {
         }
     }
 
-    /**
-     *
-     * @param operationId path param, the operation id
-     * @param xhttpOverride header param as String indicate the use of POST method as GET
-     * @return the response with a specific HTTP status
-     */
-    @POST
-    @Path("/operations/{id_op}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationByPost(@PathParam("id_op") String operationId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            ParametersChecker.checkParameter("Operation id is required", operationId);
-            return getOperationById(operationId);
-        } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
 
     /**
      * GET with request in body
      *
      * @param query DSL as String
-     * @return Response containt the list of loglook operation
+     * @return Response contains a list of logbook operation
      */
     @GET
     @Path("/operations")
@@ -152,32 +128,9 @@ public class LogbookInternalResourceImpl {
         }
     }
 
-    /**
-     * @param query as JsonNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method
-     */
-    @POST
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverride(JsonNode query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            return selectOperation(query);
-        } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-
-    }
 
     /*****
-     * OPERATION - END *****
-     *
-     *
-     * /***** LOGBOOK LIFE CYCLES
+     * LOGBOOK LIFE CYCLES
      *****/
 
     /**

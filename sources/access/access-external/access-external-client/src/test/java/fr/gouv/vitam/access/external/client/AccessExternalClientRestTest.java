@@ -115,13 +115,12 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             this.expectedResponse = expectedResponse;
         }
 
-        @POST
+        @GET
         @Path("units")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnits(String queryDsl,
-            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-            return expectedResponse.post();
+        public Response getUnits(String queryDsl) {
+            return expectedResponse.get();
         }
 
         @POST
@@ -266,7 +265,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test(expected = AccessExternalClientServerException.class)
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
                 " $filter : { $orderby : '#id' }," +
@@ -279,7 +278,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenRessourceNotFound_whenSelectUnit_ThenRaiseAnException()
         throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
         InvalidParseOperationException {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
                 " $filter : { $orderby : '#id' }," +
@@ -293,7 +292,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectUnits(JsonHandler.getFromString(queryDsql))).isNotNull();
     }
 
@@ -498,13 +497,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test(expected = LogbookClientNotFoundException.class)
     public void givenSelectLogbookNotFoundThenNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.selectOperation(JsonHandler.getFromString(queryDsql));
     }
 
     @Test(expected = LogbookClientException.class)
     public void givenSelectLogbookBadQueryThenPreconditionFailed() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectOperation(JsonHandler.getFromString(queryDsql));
     }
 
@@ -522,13 +521,13 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test(expected = LogbookClientNotFoundException.class)
     public void givenSelectLogbookOperationByIDNotFoundThenNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.selectOperationbyId(ID);
     }
 
     @Test(expected = LogbookClientException.class)
     public void givenSelectLogbookOperationByIDBadQueryThenPreconditionFailed() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectOperationbyId(ID);
     }
 

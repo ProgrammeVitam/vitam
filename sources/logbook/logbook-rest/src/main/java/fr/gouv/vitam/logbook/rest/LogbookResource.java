@@ -210,13 +210,8 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectOperation(@PathParam("id_op") String operationId,
-        LogbookOperationParameters operation,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            ParametersChecker.checkParameter("Operation id is required", operationId);
-            return getOperation(operationId);
-        } else {
+    public Response createOperation(@PathParam("id_op") String operationId,
+        LogbookOperationParameters operation) {
             Response finalResponse;
             finalResponse = Response.status(Response.Status.CREATED).build();
             try {
@@ -246,7 +241,6 @@ public class LogbookResource extends ApplicationStatusResource {
                 finalResponse = Response.status(Response.Status.BAD_REQUEST).build();
             }
             return finalResponse;
-        }
     }
 
 
@@ -315,55 +309,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         }
     }
-
-    /**
-     * Select a list of operations
-     *
-     * @param query DSL as JsonNode
-     * @return Response containt the list of loglook operation
-     */
-    @GET
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query) {
-        Status status;
-        try {
-            final List<LogbookOperation> result = logbookOperation.select(query);
-            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
-            for (final LogbookOperation logbook : result) {
-                resultAsJson.add(JsonHandler.toJsonNode(logbook));
-            }
-            return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(result.size(), 0, 1)
-                    .setQuery(query)
-                    .addAllResults(resultAsJson))
-                .build();
-        } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("logbook")
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
-            LOGGER.error(exc);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext("logbook")
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
-        }
-    }
-
-
+    
     /**
      * select Operation With Post Override Or Bulk Create
      *
@@ -411,6 +357,54 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Response.Status.CREATED).build();
         }
 
+    }
+
+
+    /**
+     * Select a list of operations
+     *
+     * @param query DSL as JsonNode
+     * @return Response containt the list of loglook operation
+     */
+    @GET
+    @Path("/operations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectOperation(JsonNode query) {
+        Status status;
+        try {
+            final List<LogbookOperation> result = logbookOperation.select(query);
+            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+            for (final LogbookOperation logbook : result) {
+                resultAsJson.add(JsonHandler.toJsonNode(logbook));
+            }
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(result.size(), 0, 1)
+                    .setQuery(query)
+                    .addAllResults(resultAsJson))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
     }
 
     /**

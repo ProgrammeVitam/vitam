@@ -360,35 +360,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testErrorSelect() throws Exception {
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(JsonHandler.getFromString(BODY_TEST))
-            .when()
-            .post(OPERATIONS_URI)
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(JsonHandler.getFromString(BODY_TEST))
-            .when()
-            .post(OPERATIONS_URI)
-            .then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI, "abc")
-            .then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
-
-    }
-
-    @Test
     public void testOperationSelect() throws Exception {
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -433,11 +404,10 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(logbookParametersSelectId.toString())
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .pathParam("id_op",
                 logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
+            .get(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
                 LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.OK.getStatusCode());

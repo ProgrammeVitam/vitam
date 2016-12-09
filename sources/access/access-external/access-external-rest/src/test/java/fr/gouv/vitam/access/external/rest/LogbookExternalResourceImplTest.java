@@ -19,6 +19,7 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -210,6 +211,26 @@ public class LogbookExternalResourceImplTest {
     }
 
     @Test
+    public void testGetSelectOperations() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
     public void testSelectOperations() throws Exception {
         given()
             .contentType(ContentType.JSON)
@@ -233,7 +254,6 @@ public class LogbookExternalResourceImplTest {
     public void testSelectOperationsById() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
@@ -242,14 +262,32 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(bad_request)
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testPostSelectOperationsById() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(bad_request)
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
-
+    
     @Test
     public void testLifeCycleSelect() throws Exception {
         given()

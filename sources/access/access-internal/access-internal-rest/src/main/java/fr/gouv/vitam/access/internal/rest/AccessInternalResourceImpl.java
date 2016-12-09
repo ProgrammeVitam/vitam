@@ -72,6 +72,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
+
+
+    private static final String GET = HttpMethod.GET;
     private static final String THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER =
         "There is no 'X-Http-Method-Override:GET' as a header";
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
@@ -80,7 +85,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
+    private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
+
 
 
     private final AccessInternalModule accessModule;
@@ -91,7 +97,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
         accessModule = new AccessInternalModuleImpl(configuration);
-        LOGGER.debug("AccessResource initialized");
+        LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
     }
 
     /**
@@ -101,7 +107,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     AccessInternalResourceImpl(AccessInternalModule accessModule) {
         this.accessModule = accessModule;
-        LOGGER.debug("AccessResource initialized");
+        LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
     }
 
     /**
@@ -118,7 +124,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         Status status;
         JsonNode result = null;
         try {
-            if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+            if (xhttpOverride != null && GET.equalsIgnoreCase(xhttpOverride)) {
                 SanityChecker.checkJsonAll(queryDsl);
                 result = accessModule.selectUnit(queryDsl);
             } else {
@@ -154,7 +160,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         Status status;
         JsonNode result = null;
         try {
-            if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+            if (xhttpOverride != null && GET.equalsIgnoreCase(xhttpOverride)) {
                 SanityChecker.checkJsonAll(queryDsl);
                 SanityChecker.checkParameter(idUnit);
                 result = accessModule.selectUnitbyId(queryDsl, idUnit);
@@ -235,20 +241,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return Response.status(Status.OK).entity(result).build();
     }
 
-    @Override
-    @POST
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-        @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
-        if (!"GET".equalsIgnoreCase(xHttpOverride)) {
-            final Status status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-        return getObjectGroup(idObjectGroup, query);
-    }
-
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query,
         boolean post) {
@@ -319,23 +311,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             @Override
             public void run() {
                 asyncObjectStream(asyncResponse, headers, idObjectGroup, query, false);
-            }
-        });
-    }
-
-    @Override
-    @POST
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectStreamPostAsync(@Context HttpHeaders headers,
-        @PathParam("id_object_group") String idObjectGroup, JsonNode query,
-        @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                asyncObjectStream(asyncResponse, headers, idObjectGroup, query, true);
             }
         });
     }
