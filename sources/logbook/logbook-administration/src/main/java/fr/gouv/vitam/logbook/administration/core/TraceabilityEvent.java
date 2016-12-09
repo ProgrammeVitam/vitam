@@ -40,9 +40,17 @@ public class TraceabilityEvent {
      */
     private String hash;
 
+    /**
+     * time stamp token (base64 encoded)
+     */
+    private byte[] timeStampToken;
+
     private long numberOfElement;
 
-    private String workspaceId;
+    /**
+     * name of the secure archive in the storage
+     */
+    private String fileName;
 
     /**
      * Empty constructor for Jackson
@@ -52,22 +60,24 @@ public class TraceabilityEvent {
     }
 
     /**
-     * @param startDate
-     * @param endDate
-     * @param hash hash of the mekle tree
-     * @param numberOfElement
-     * @param workspaceId path on the archive in workspace
+     * @param startDate       date of the first document
+     * @param endDate         date of the last document
+     * @param hash            hash of the mekle tree
+     * @param timeStampToken  timestamp token
+     * @param numberOfElement number of document to secure
+     * @param fileName        path on the archive in workspace
      */
-    public TraceabilityEvent(String startDate, String endDate, String hash, long numberOfElement, String workspaceId) {
+    public TraceabilityEvent(String startDate, String endDate, String hash, byte[] timeStampToken, long numberOfElement,
+        String fileName) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.hash = hash;
+        this.timeStampToken = timeStampToken;
         this.numberOfElement = numberOfElement;
-        this.workspaceId = workspaceId;
+        this.fileName = fileName;
     }
 
     /**
-     *
      * @return startDate
      */
     public String getStartDate() {
@@ -75,7 +85,6 @@ public class TraceabilityEvent {
     }
 
     /**
-     *
      * @return endDate
      */
     public String getEndDate() {
@@ -83,7 +92,6 @@ public class TraceabilityEvent {
     }
 
     /**
-     *
      * @return hash
      */
     public String getHash() {
@@ -91,7 +99,6 @@ public class TraceabilityEvent {
     }
 
     /**
-     *
      * @return numberOfElement
      */
     public long getNumberOfElement() {
@@ -99,10 +106,16 @@ public class TraceabilityEvent {
     }
 
     /**
-     *
-     * @return worspaceId
+     * @return file name
      */
-    public String getWorkspaceId() {
-        return workspaceId;
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * @return timestamp token
+     */
+    public byte[] getTimeStampToken() {
+        return timeStampToken;
     }
 }
