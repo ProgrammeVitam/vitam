@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Distributor Core Package
+ * Provides core implementation for the Processing Distributor module. 
+ *
  */
 package fr.gouv.vitam.processing.distributor.core;

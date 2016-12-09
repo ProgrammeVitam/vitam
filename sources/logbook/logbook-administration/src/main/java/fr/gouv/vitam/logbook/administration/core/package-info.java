@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Logbook Administration core package
+ * Provides the core classes for the Logbook Administration module
  */
 package fr.gouv.vitam.logbook.administration.core;

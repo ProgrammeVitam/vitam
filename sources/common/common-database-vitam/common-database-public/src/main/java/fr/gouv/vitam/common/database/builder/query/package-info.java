@@ -25,9 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * General Query classes
- *
- *
+ * Provides query classes
  *
  */
 package fr.gouv.vitam.common.database.builder.query;

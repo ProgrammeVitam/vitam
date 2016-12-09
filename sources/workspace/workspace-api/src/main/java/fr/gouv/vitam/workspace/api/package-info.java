@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package contains Workspace interfaces
+ * Provides API classes for the Workspace module
  */
 package fr.gouv.vitam.workspace.api;

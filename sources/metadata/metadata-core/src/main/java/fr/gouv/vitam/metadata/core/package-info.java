@@ -25,7 +25,14 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Metadata core package
- *
+ * Provides 
+ * <p>
+ * <ul>
+ * <li>core interface and implementation for the Metadata module
+ * <li>a factory class to get access to MongoDB
+ * <li>a factory class to get access to ElasticSearch
+ * <li>a factory class in order to use a DbRequest object
+ * </ul>
+ * </p>
  */
 package fr.gouv.vitam.metadata.core;

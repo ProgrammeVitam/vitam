@@ -26,7 +26,6 @@
  *******************************************************************************/
 
 /**
- * Logbook rest package containing REST resources and Logbook Application
- *
+ * Provides the web server application for the Logbook module and the rest resources it uses.
  */
 package fr.gouv.vitam.logbook.rest;

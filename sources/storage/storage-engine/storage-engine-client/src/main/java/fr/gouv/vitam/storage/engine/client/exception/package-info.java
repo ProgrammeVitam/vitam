@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage Engine Client Exception package
+ * Provides Storage Engine client Exception classes.
  */
 package fr.gouv.vitam.storage.engine.client.exception;

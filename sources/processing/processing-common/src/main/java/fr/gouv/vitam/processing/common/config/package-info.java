@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Configuration Package
+ * Provides common Configuration classes for the Processing module.
  */
 package fr.gouv.vitam.processing.common.config;

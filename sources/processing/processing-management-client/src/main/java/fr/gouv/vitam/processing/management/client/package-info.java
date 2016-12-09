@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Management Client package
- *
+ * Provides Processing Management client interface, factory and implementations.
  */
 package fr.gouv.vitam.processing.management.client;

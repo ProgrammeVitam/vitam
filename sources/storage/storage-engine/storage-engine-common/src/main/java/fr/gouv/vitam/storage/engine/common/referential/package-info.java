@@ -27,4 +27,13 @@
 /**
  * Storage engine common referential package
  */
+/**
+ * Provides common Referential interfaces and factories for the Storage Engine module : 
+ * <p> 
+ * <ul>
+ * <li>A factory in order to get a StorageOffer
+ * <li>A factory in order to get a StorageStrategy 
+ * </ul>
+ * </p>
+ */
 package fr.gouv.vitam.storage.engine.common.referential;

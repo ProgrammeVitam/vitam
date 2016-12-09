@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Client Logbook Exception
+ * Provides Client common Exception classes for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.exception;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Utils Package
+ * Provides common utility classes for the Processing module.
  */
 package fr.gouv.vitam.processing.common.utils;

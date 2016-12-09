@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Contains all API in ingest extern
+ * Provides the API interface and an exception class for the Ingest External module
  */
 package fr.gouv.vitam.ingest.external.api;

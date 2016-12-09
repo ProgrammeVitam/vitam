@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Package used for workflow parameters definitions and implementations
+ * Provides common Parameters classes and utility classes for the Processing module.
  */
 package fr.gouv.vitam.processing.common.parameter;

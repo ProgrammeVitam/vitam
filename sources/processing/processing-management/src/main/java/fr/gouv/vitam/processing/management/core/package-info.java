@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Management core package
+ * Provides core implementation for the Processing Management module. 
  *
  */
 package fr.gouv.vitam.processing.management.core;

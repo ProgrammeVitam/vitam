@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Storage engine common exception package
+ * Provides common Exception classes for the Storage Engine module.
  */
 package fr.gouv.vitam.storage.engine.common.exception;

@@ -25,9 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * DSL operations package
- *
- *
+ * Provides classes for DSL operations
  *
  */
 package fr.gouv.vitam.common.database.builder.query.action;

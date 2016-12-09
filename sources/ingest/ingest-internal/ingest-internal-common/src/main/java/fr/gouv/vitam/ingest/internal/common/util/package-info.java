@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Util function for internal ingest package
- *
+ * Provides Ingest Internal common utility classes
  */
 package fr.gouv.vitam.ingest.internal.common.util;
