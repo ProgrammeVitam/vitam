@@ -17,7 +17,6 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -254,8 +253,6 @@ public class FormatIdentificationActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
-    // TODO : CORRECT THIS TEST
-    @Ignore
     @Test
     public void formatIdentificationReferentialException() throws Exception {
         final FormatIdentifierSiegfried siegfried =
@@ -263,20 +260,24 @@ public class FormatIdentificationActionHandlerTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
+            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
-        when(adminManagementClient.getFormats(anyObject())).thenThrow(new ReferentialException(""));
-
-        when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
-            .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        when(adminManagementClient.getFormats(anyObject()))
+            .thenThrow(new ReferentialException("Test Referential Exception"));
 
         handler = new FormatIdentificationActionHandler();
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
@@ -380,4 +381,5 @@ public class FormatIdentificationActionHandlerTest {
         }
         handlerIO.partialClose();
     }
+
 }

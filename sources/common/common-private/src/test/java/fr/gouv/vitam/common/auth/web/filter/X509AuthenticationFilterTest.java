@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.auth.web.filter;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,12 +36,15 @@ import java.security.cert.X509Certificate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.subject.Subject;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
-public class X509AuthenticationFilterTest {
-    // X509AuthenticationFilter filter;
+import fr.gouv.vitam.common.shiro.junit.AbstractShiroTest;
+
+public class X509AuthenticationFilterTest extends AbstractShiroTest {
     private X509Certificate cert;
 
     byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
@@ -63,9 +67,18 @@ public class X509AuthenticationFilterTest {
         when(requestNull.getRemoteHost()).thenReturn("127.0.0.1");
     }
 
-    @Ignore
+    @After
+    public void tearDownSubject() {
+        clearSubject();
+    }
+
     @Test
     public void givenFilterAccessDenied() throws Exception {
+        // Needs mock subject for login call
+        Subject subjectUnderTest = mock(Subject.class);
+        Mockito.doNothing().when(subjectUnderTest).login(anyObject());
+        setSubject(subjectUnderTest);
+
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.onAccessDenied(request, response);
     }

@@ -44,7 +44,6 @@ import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -318,13 +317,7 @@ public class AdminManagementResourceTest {
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-    /**************************
-     * rules Management
-     *
-     * @throws FileNotFoundException
-     ***************************************************/
     @Test
-    @Ignore
     public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)

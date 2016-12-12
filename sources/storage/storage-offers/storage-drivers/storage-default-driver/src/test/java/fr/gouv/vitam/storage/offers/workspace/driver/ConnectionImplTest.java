@@ -305,6 +305,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         assertNotNull(result.getDigestHashBase16());
     }
 
+    // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
     @Ignore // chunk management
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithRequestInternalError() throws Exception {
@@ -316,6 +317,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         connection.putObject(request);
     }
 
+    // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
     @Ignore // chunk management
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithBadRequestDuringTransfert() throws Exception {
