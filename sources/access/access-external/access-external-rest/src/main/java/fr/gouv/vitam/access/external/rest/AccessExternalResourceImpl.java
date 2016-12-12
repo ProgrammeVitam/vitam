@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -237,7 +238,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson null not allowed
-     * @param idUnit units identifier
+     * @param idUnit    units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -317,7 +318,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * @param headers
      * @param idObjectGroup
@@ -392,7 +392,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
-
 
     /**
      * @param xhttpOverride
@@ -503,7 +502,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(status).build();
         }
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.getAccessionRegister(select);
+            final RequestResponse result = client.getAccessionRegister(select);
             return Response.status(Status.OK).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -563,8 +562,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(select);
             parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
-            final JsonNode result = client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
-            return Response.status(Status.OK).entity(result).build();
+            RequestResponse accessionRegisterDetail =
+                client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
+            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
         } catch (final ReferentialNotFoundException e) {
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status)).build();

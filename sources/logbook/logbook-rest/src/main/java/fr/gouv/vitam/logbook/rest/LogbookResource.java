@@ -33,6 +33,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -52,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -203,7 +205,6 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param operationId path param, the operation id
      * @param operation the json serialized as a LogbookOperationParameters.
-     * @param xhttpOverride header param as String indicate the use of POST method as GET
      * @return the response with a specific HTTP status
      */
     @POST
@@ -293,10 +294,12 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response traceability() {
         try {
             final GUID guid = logbookAdministration.generateSecureLogbook();
-            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+
+            final List<String> resultAsJson = new ArrayList<>();
+
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<String>()
                     .setHits(1, 0, 1)
                     .addAllResults(resultAsJson))
                 .build();
@@ -314,7 +317,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Bulk Create Operation
      *
      * @param query as JsonNode or Operations Logbooks as ArrayNode
-     * @return Response of SELECT query with POST method or CREATED 
+     * @return Response of SELECT query with POST method or CREATED
      */
     @POST
     @Path("/operations")
@@ -350,7 +353,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .build();
             }
             return Response.status(Response.Status.CREATED).build();
-       
+
     }
 
 
@@ -368,15 +371,12 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             final List<LogbookOperation> result = logbookOperation.select(query);
-            final ArrayNode resultAsJson = JsonHandler.createArrayNode();
-            for (final LogbookOperation logbook : result) {
-                resultAsJson.add(JsonHandler.toJsonNode(logbook));
-            }
+
             return Response.status(Status.OK)
-                    .entity(new RequestResponseOK()
+                    .entity(new RequestResponseOK<LogbookOperation>()
                         .setHits(result.size(), 0, 1)
                         .setQuery(query)
-                        .addAllResults(resultAsJson))
+                        .addAllResults(result))
                     .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);

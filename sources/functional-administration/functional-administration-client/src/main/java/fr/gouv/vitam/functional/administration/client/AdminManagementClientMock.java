@@ -42,12 +42,18 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModelBuilder;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 /**
  * Mock client implementation for AdminManagement
@@ -79,12 +85,13 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getFormats(JsonNode query)
+    public RequestResponse<FileFormatModel> getFormats(JsonNode query)
         throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException,
         IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document format request:");
-        return ClientMockResultHelper.getFormatList().toJsonNode();
+
+        return ClientMockResultHelper.getFormatList();
     }
 
     @Override
@@ -110,16 +117,16 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getRules(JsonNode query)
-        throws FileRulesException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
-        IOException {
+    public JsonNode getRules(JsonNode query) throws FileRulesException, InvalidParseOperationException,
+        JsonGenerationException, JsonMappingException, IOException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
         LOGGER.debug("get document rules request:");
         return ClientMockResultHelper.getRule().toJsonNode();
     }
 
     @Override
-    public void createorUpdateAccessionRegister(AccessionRegisterDetail register) throws DatabaseConflictException {
+    public void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+        throws DatabaseConflictException {
         String result;
         try {
             result = JsonHandler.writeAsString(register);
@@ -131,18 +138,68 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getAccessionRegister(JsonNode query)
+    public RequestResponse getAccessionRegister(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
+        AccessionRegisterSummaryModel model = new AccessionRegisterSummaryModel();
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
+        String modelJson = "";
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Register Fund request:");
-        return ClientMockResultHelper.getAccessionRegisterSummary().toJsonNode();
+
+        model.setId("aefaaaaaaaaam7mxaa2gyakygejizayaaaaq");
+        model.setTenant(0);
+        model.setOriginatingAgency("FRAN_NP_005568");
+
+        totalObjects.setTotal(12);
+        totalObjects.setDeleted(0);
+        totalObjects.setRemained(12);
+        model.setTotalObjects(totalObjects);
+
+        totalObjectsGroups.setTotal(3);
+        totalObjectsGroups.setDeleted(0);
+        totalObjectsGroups.setRemained(3);
+        model.setTotalObjectsGroups(totalObjectsGroups);
+
+        totalUnits.setTotal(3);
+        totalUnits.setDeleted(0);
+        totalUnits.setRemained(3);
+        model.setTotalUnits(totalUnits);
+
+        objectSize.setTotal(1035126);
+        objectSize.setDeleted(0);
+        objectSize.setRemained(1035126);
+        model.setObjectSize(objectSize);
+        model.setCreationDate("2016-11-04T20:40:49.030");
+        modelJson = JsonHandler.writeAsString(model);
+        return ClientMockResultHelper.createReponse(modelJson);
     }
 
     @Override
-    public JsonNode getAccessionRegisterDetail(JsonNode query)
+    public RequestResponse getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1, null);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1, null);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4, null);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042, null);
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Accession Register request:");
-        return ClientMockResultHelper.getAccessionRegisterDetail().toJsonNode();
+
+        AccessionRegisterDetailModelBuilder detailBuider = new AccessionRegisterDetailModelBuilder();
+        detailBuider.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq")
+            .setTenant(0)
+            .setOriginatingAgency("FRAN_NP_005568")
+            .setSubmissionAgency("FRAN_NP_005061")
+            .setEndDate("2016-11-04T21:40:47.912+01:00")
+            .setStartDate("2016-11-04T21:40:47.912+01:00")
+            .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
+            .setTotalObjects(totalObjects)
+            .setTotalObjectsGroups(totalObjectsGroups)
+            .setTotalUnits(totalUnits)
+            .setObjectSize(objectSize);
+        return ClientMockResultHelper.createReponse(detailBuider.createAccessionRegisterDetailModel());
     }
+
 }

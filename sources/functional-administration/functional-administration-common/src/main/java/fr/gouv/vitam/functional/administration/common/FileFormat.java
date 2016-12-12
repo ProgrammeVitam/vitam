@@ -283,7 +283,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
             append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, new ArrayList<String>());
         }
         if (get(MIME_TYPE) == null) {
-            append(MIME_TYPE, new ArrayList<String>());
+            append(MIME_TYPE, EMPTY_STRING);
         }
         if (get(NAME) == null) {
             append(NAME, EMPTY_STRING);

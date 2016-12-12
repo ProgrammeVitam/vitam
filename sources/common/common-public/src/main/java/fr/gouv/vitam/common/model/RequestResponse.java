@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Abstract RequestResponse for all request response in Vitam
  *
  */
-public abstract class RequestResponse {
+public abstract class RequestResponse<T> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestResponse.class);
 
     /**

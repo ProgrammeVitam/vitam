@@ -415,9 +415,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * 
+     *
      * Post used because Angular not support Get with body
-     * 
+     *
      * @param headers
      * @param sessionId
      * @param options
@@ -426,7 +426,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultByBrowser(@Context HttpHeaders headers, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride, @CookieParam("JSESSIONID") String sessionId,
+    public Response getLogbookResultByBrowser(@Context HttpHeaders headers,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+        @CookieParam("JSESSIONID") String sessionId,
         String options) {
         if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
@@ -509,7 +511,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * 
+     *
      * @param operationId id of operation
      * @return Response
      */
@@ -518,7 +520,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResultById(@PathParam("idOperation") String operationId) {
         try {
-            final RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse<JsonNode> result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -561,32 +563,36 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * download object for LOGBOOKS type
-     * 
+     *
      * @param asyncResponse
      * @param operationId
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            final RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
-                RequestResponseOK responseOK = (RequestResponseOK) result;
-                ArrayNode arrayNode = responseOK.getResults();
-                JsonNode operation = arrayNode.get(0);
-                ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
-                JsonNode lastEvent = Iterables.getLast(events);
-                String evDetData = lastEvent.get("evDetData").textValue();
-                JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
-                String fileName = traceabilityEvent.get("FileName").textValue();
-                StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
-                final Response response = storageClient.getContainerAsync("0", "default", fileName, documentType);
-                final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-                if (response.getStatus() == Status.OK.getStatusCode()) {
-                    helper.writeResponse(Response
-                        .ok()
-                        .header("Content-Disposition", "filename=" + fileName)
-                        .header("Content-Type", "application/octet-stream"));
-                } else {
-                    helper.writeResponse(Response.status(response.getStatus()));
-                }
+
+            final RequestResponse<JsonNode> result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+
+            RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
+            List<JsonNode> results = responseOK.getResults();
+            JsonNode operation = results.get(0);
+
+            ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
+            JsonNode lastEvent = Iterables.getLast(events);
+            String evDetData = lastEvent.get("evDetData").textValue();
+            JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
+            String fileName = traceabilityEvent.get("FileName").textValue();
+            StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
+
+            final Response response = storageClient.getContainerAsync("0", "default", fileName, documentType);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                helper.writeResponse(Response
+                    .ok()
+                    .header("Content-Disposition", "filename=" + fileName)
+                    .header("Content-Type", "application/octet-stream"));
+            } else {
+                helper.writeResponse(Response.status(response.getStatus()));
+            }
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());

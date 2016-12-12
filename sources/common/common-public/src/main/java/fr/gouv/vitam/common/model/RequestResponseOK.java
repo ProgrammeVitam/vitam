@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -42,14 +44,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * default results : is an empty list (immutable)
  *
  */
-public final class RequestResponseOK extends RequestResponse {
+public final class RequestResponseOK<T> extends RequestResponse<T> {
     @JsonProperty("$hits")
     private DatabaseCursor hits = new DatabaseCursor(0, 0, 0);
     @JsonProperty("$results")
-    private final ArrayNode results = JsonHandler.createArrayNode();
+    private final List<T> results = new ArrayList<T>();
     @JsonProperty("$context")
     private JsonNode query = JsonHandler.createObjectNode();
-
 
     /**
      * Empty RequestResponseOK constructor
@@ -59,14 +60,13 @@ public final class RequestResponseOK extends RequestResponse {
         // Empty
     }
 
-
     /**
      * Add one result
      *
      * @param result
      * @return this
      */
-    public RequestResponseOK addResult(JsonNode result) {
+    public RequestResponseOK<T> addResult(T result) {
         ParametersChecker.checkParameter("Result is a mandatory parameter", result);
         results.add(result);
         return this;
@@ -79,7 +79,7 @@ public final class RequestResponseOK extends RequestResponse {
      * @return RequestResponseOK with mutable results list of String
      */
     @JsonSetter("$results")
-    public RequestResponseOK addAllResults(ArrayNode resultList) {
+    public RequestResponseOK<T> addAllResults(List<T> resultList) {
         ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
         results.addAll(resultList);
         return this;
@@ -125,7 +125,7 @@ public final class RequestResponseOK extends RequestResponse {
      * @return the RequestReponseOK with the hits are setted
      */
     @JsonSetter("$hits")
-    public RequestResponseOK setHits(int total, int offset, int limit, int size) {
+    public RequestResponseOK<T> setHits(int total, int offset, int limit, int size) {
         hits = new DatabaseCursor(total, offset, limit, size);
         return this;
     }
@@ -134,7 +134,7 @@ public final class RequestResponseOK extends RequestResponse {
      * @return the result of RequestResponse as a list of String
      */
     @JsonGetter("$results")
-    public ArrayNode getResults() {
+    public List<T> getResults() {
         return results;
     }
 
@@ -149,7 +149,7 @@ public final class RequestResponseOK extends RequestResponse {
      * @param query
      * @return this
      */
-    public RequestResponseOK setQuery(JsonNode query) {
+    public RequestResponseOK<T> setQuery(JsonNode query) {
         if (query != null) {
             this.query = query;
         }
@@ -157,12 +157,13 @@ public final class RequestResponseOK extends RequestResponse {
     }
 
     /**
-     *
      * @param node
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException
      */
     public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
+        return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, JsonNode.class);
+        //return JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
     }
+
 }

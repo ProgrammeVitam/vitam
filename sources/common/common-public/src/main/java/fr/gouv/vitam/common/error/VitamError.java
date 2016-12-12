@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,6 +61,7 @@ public class VitamError extends RequestResponse {
     @JsonProperty("description")
     private String description;
     @JsonProperty("errors")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<VitamError> errors;
 
     protected VitamError() {

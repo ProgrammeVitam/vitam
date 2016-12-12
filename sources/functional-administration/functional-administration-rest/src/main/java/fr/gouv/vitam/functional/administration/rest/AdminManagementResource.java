@@ -44,7 +44,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -507,15 +506,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
-        final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
-        for (final AccessionRegisterSummary register : fileFundRegisters) {
-            resultArrayNode.add(JsonHandler.toJsonNode(register));
-        }
+
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
                 .setQuery(select)
-                .addAllResults(resultArrayNode))
+                .addAllResults(fileFundRegisters))
             .build();
     }
 
@@ -553,16 +549,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(status).build();
         }
-        final ArrayNode resultArrayNode = JsonHandler.createArrayNode();
-        for (final AccessionRegisterDetail register : fileAccessionRegistersDetail) {
-            resultArrayNode.add(JsonHandler.toJsonNode(register));
-        }
 
         return Response.status(Status.OK)
             .entity(new RequestResponseOK()
                 .setHits(fileAccessionRegistersDetail.size(), 0, fileAccessionRegistersDetail.size())
                 .setQuery(select)
-                .addAllResults(resultArrayNode))
+                .addAllResults(fileAccessionRegistersDetail))
             .build();
     }
 
