@@ -35,10 +35,11 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
 /**
@@ -46,7 +47,9 @@ import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
  */
 class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
-    private static final String UPLOAD_URL = "/ingests";
+    private static final String INGEST_URL = "/ingests";
+    private static final String BLANK_OBJECT_ID = "object identifier should be filled";
+    private static final String BLANK_TYPE = "Type should be filled";
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -57,7 +60,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, UPLOAD_URL, null,
+            response = performRequest(HttpMethod.POST, INGEST_URL, null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -84,6 +87,28 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             }
         }
 
+        return response;
+    }
+
+    @Override
+    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
+
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
+        ParametersChecker.checkParameter(BLANK_TYPE, type);
+
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(), 
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
         return response;
     }
 }

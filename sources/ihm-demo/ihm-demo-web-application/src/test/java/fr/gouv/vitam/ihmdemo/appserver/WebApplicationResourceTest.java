@@ -38,7 +38,6 @@ import static org.mockito.Mockito.doThrow;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -68,7 +67,6 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.ResponseBody;
 
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -78,6 +76,7 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -88,7 +87,7 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -97,7 +96,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
     IngestExternalClientFactory.class, AdminExternalClientFactory.class,
-    JsonTransformer.class, WebApplicationConfig.class, AccessExternalClientFactory.class})
+    JsonTransformer.class, WebApplicationConfig.class})
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
@@ -115,10 +114,10 @@ public class WebApplicationResourceTest {
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String FAKE_UNIT_LF_ID = "1";
     private static final String FAKE_OBG_LF_ID = "1";
-    private static final String FAKE_OPERATION_ID = "1";
     private static JsonNode sampleLogbookOperation;
     private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
     private static final String SIP_DIRECTORY = "sip";
+    private static final String INGEST_URI = "/ingests";
     private static JunitHelper junitHelper;
     private static int port;
     private static ServerApplication application;
@@ -1165,5 +1164,29 @@ public class WebApplicationResourceTest {
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/accession-register/1/accession-register-detail");
+    }
+
+    @Test
+    public void downloadObjects()
+        throws Exception {
+        final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
+        final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
+        PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
+        PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
+        Mockito.doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(anyObject(), anyObject());
+
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        Mockito.doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(anyObject(), anyObject());
+
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/unknown")
+        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 }

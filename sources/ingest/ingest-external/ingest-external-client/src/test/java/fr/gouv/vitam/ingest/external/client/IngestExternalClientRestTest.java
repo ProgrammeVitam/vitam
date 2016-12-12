@@ -35,8 +35,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -50,12 +52,14 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 @SuppressWarnings("rawtypes")
 public class IngestExternalClientRestTest extends VitamJerseyTest {
@@ -130,6 +134,13 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response upload(InputStream stream) {
             return expectedResponse.post();
         }
+        
+        @GET
+        @Path("/ingests/{objectId}/{type}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
+            return expectedResponse.get();
+        }
     }
 
     @Test
@@ -178,6 +189,24 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+    
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenReturnOK()
+        throws IngestExternalException, XMLStreamException, IOException {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        final InputStream fakeUploadResponseInputStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
+        try {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                IOUtils.toInputStream("test")));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();

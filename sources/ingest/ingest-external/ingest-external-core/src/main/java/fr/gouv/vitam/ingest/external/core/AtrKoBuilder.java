@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
  * Archive Transfer Reply KO from primary Ingest external steps

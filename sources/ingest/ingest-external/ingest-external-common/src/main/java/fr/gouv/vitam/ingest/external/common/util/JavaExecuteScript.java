@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
  * Class JavaExecuteScript used to execute the shell script in java

@@ -24,36 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.api;
-
-import fr.gouv.vitam.common.exception.VitamException;
-
 /**
- * IngestExtern Exception
+ * Package Ingest External Exception
  */
-public class IngestExternalException extends VitamException {
-
-    private static final long serialVersionUID = -1544020102525153094L;
-
-    /**
-     * @param message of exception
-     */
-    public IngestExternalException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param exception of other module
-     */
-    public IngestExternalException(Throwable exception) {
-        super(exception);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public IngestExternalException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+package fr.gouv.vitam.ingest.external.api.exception;
