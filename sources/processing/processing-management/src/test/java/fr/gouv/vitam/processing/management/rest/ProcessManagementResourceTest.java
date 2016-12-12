@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,7 +50,7 @@ public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
-    private static final String EXITS_WORKFLOW_ID = "workflowJSONv2";
+    private static final String EXITS_WORKFLOW_ID = "DefaultIngestWorkflow";
     private static final String URL_METADATA = "http://localhost:8086";
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
@@ -103,14 +102,13 @@ public class ProcessManagementResourceTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-    @Ignore
     @Test
     public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .body(new ProcessingEntry(CONTAINER_NAME, EXITS_WORKFLOW_ID)).when()
             .post("/operations").then()
-            .statusCode(Status.CREATED.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
