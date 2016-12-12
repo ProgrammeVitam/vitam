@@ -25,51 +25,35 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for accession register
-angular.module('core')
-  .service('accessionRegisterService', function(accessionRegisterResource) {
+var loginLogoutUtils = function(){
+  var loginLogoutUtilsService = {};
 
-    var self = this;
+  /**
+   * Process the login steps
+   *
+   * @param browser provide browser information and tools, from protractor test
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   */
+  loginLogoutUtilsService.doLogin = function(browser, element, by) {
+    browser.get(browser.baseUrl + '/login');
+    element(by.model('credentials.username')).sendKeys(browser.params.userName);
+    element(by.model('credentials.password')).sendKeys(browser.params.password);
+    element(by.css('[type="submit"]')).click();
+  };
 
-    /**
-     * Get and process the promise for accession register details
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getDetails(accessionRegisterId, options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results);
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  /**
+   * Process logout steps
+   *
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   */
+  loginLogoutUtilsService.doLogout = function(element, by) {
+    var rightDiv = element(by.id('navbar')).element(by.css('[class="nav navbar-nav navbar-right"]'));
+    rightDiv.element(by.css('[class="block dropdown-toggle"]')).click();
+    rightDiv.element(by.css('[ng-click="logoutUser()"]')).click();
+  };
 
-    /**
-     * Get and process the promise for accession register summary
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getSummary(options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results[0]);
-          // TODO Add checks
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
-
-  });
+  return loginLogoutUtilsService;
+};
+module.exports = new loginLogoutUtils();

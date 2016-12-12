@@ -25,51 +25,22 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for accession register
-angular.module('core')
-  .service('accessionRegisterService', function(accessionRegisterResource) {
+'use strict';
 
-    var self = this;
+describe('ArchiveUnitSearchController', function() {
+  beforeEach(module('archiveSearch'));
 
-    /**
-     * Get and process the promise for accession register details
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getDetails(accessionRegisterId, options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results);
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  /*beforeEach(inject(function($controller){
+    // The injector unwraps the underscores (_) from around the parameter names when matching
+  }));*/
 
-    /**
-     * Get and process the promise for accession register summary
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getSummary(options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results[0]);
-          // TODO Add checks
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
-
+  it('should sort searchResults by some property, when clicking on the column header', function() {
+    // FIXME P0 Controller should have all required parametters.
+    // FIXME In this case some parameters ($http for exemple) should be provided by a service layer.
+    // TODO Fix this before fix test.
+    /*var $scope = {};
+     var controller = $controller('OrderSearchResultController', { $scope: $scope });
+     $scope.sortBy('id');
+     expect($scope.reverse).toEqual(false); */
   });
+});

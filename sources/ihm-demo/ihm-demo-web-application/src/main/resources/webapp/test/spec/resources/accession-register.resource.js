@@ -25,51 +25,36 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for accession register
-angular.module('core')
-  .service('accessionRegisterService', function(accessionRegisterResource) {
+'use strict';
 
-    var self = this;
+describe('accessionRegisterResource', function() {
+  beforeEach(module('ihm.demo'));
 
-    /**
-     * Get and process the promise for accession register details
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getDetails(accessionRegisterId, options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results);
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  var AccessionRegisterResource;
+  var $http;
+  beforeEach(inject(function (_accessionRegisterResource_, _$http_) {
+    AccessionRegisterResource = _accessionRegisterResource_;
+    $http = _$http_;
+  }));
 
-    /**
-     * Get and process the promise for accession register summary
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getSummary(options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results[0]);
-          // TODO Add checks
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  it('should call the good API point for accession register detail', function() {
+    // Init a spy on $http.get
+    spyOn($http, 'post');
 
+    var criteria = {OriginatingAgency: '001'};
+    AccessionRegisterResource.getDetails('001', criteria);
+    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/001/accession-register-detail/', criteria);
+    expect($http.post).toHaveBeenCalledTimes(1);
   });
+
+  it('should call the good API point for accession register summary', function() {
+    // Init a spy on $http.get
+    spyOn($http, 'post');
+
+    var criteria = {OriginatingAgency: '002'};
+    AccessionRegisterResource.getSummary(criteria);
+    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/', criteria);
+    expect($http.post).toHaveBeenCalledTimes(1);
+  });
+
+});
