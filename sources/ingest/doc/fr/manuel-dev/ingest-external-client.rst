@@ -45,9 +45,11 @@ Pour instancier son client en mode Production :
      IngestExternalClient client = IngestExternalClientFactory.getInstance().getIngestExternalClient();
      
 
-Le client propose actuellement deux méthodes : 
+Le client propose actuellement trois méthodes : 
 
 .. code-block:: java
 
 	  Status status();
 	  void upload(InputStream stream)
+	  // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type 
+	  Response downloadObjectAsync(String objectId, IngestCollection type)

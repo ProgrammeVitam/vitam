@@ -46,12 +46,14 @@ Pour instancier son client en mode Production :
       IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
      
 
-Le client propose deux méthodes : 
+Le client propose trois méthodes : 
 
 .. code-block:: java
 
 	  Status status();
 	  UploadResponseDTO upload(String archiveMimeType,List<LogbookParameters> logbookParametersList, InputStream inputStream);
+	  // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type 
+	  Response downloadObjectAsync(String objectId, IngestCollection type)
 
 
 
