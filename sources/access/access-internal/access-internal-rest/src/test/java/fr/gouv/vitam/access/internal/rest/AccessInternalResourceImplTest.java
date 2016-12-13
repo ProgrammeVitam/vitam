@@ -426,30 +426,10 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void getObjectGroupPostOK() throws Exception {
-        reset(mock);
-        when(mock.selectObjectGroupById(anyObject(), anyObject())).thenReturn(JsonHandler
-            .getFromString(DATA));
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-                "GET")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
-    }
-
-    @Test
     public void getObjectGroupPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).when().get(OBJECTS_URI +
             OBJECT_ID).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    @Test
-    public void getObjectGroupPostMethodNotAllowed() throws InvalidParseOperationException {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(buildDSLWithRoots(null))
-            .when().post(OBJECTS_URI + OBJECT_ID)
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -497,7 +477,7 @@ public class AccessInternalResourceImplTest {
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .when().post(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())

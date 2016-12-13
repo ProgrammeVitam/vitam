@@ -92,6 +92,7 @@ public class AccessExternalResourceImplTest {
     // URI
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
+    private static final String ACCESS_OBJECTS_ID_URI= "/objects/xyz";
     private static AccessExternalApplication application;
     private static VitamServer vitamServer;
 
@@ -219,6 +220,53 @@ public class AccessExternalResourceImplTest {
         headers.put(GlobalDataRest.X_VERSION, 1);
         return headers;
     }
+    
+    /**
+     * Checks if the send parameter doesn't have Json format
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServerHtpOverride_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
+        given()
+            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    /**
+     * 
+     * GET : test Request OK return Ok 
+     * 
+     * Checks if the send parameter doesn't have Json format
+     *
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenRequestNotJson_ThenReturnOK() throws Exception {
+        given()
+            .contentType(ContentType.XML)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }   
+    
+    /**
+     * 
+    * POST : test Request OK return UnsupportedMediaType
+    *  
+    * Checks if the send parameter doesn't have Json format
+    *
+    * @throws Exception
+    */
+   @Test
+   public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
+       given()
+           .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+           .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+           .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+   }
+    
+    
 
     /**
      * Checks if the send parameter doesn't have Json format
@@ -226,11 +274,12 @@ public class AccessExternalResourceImplTest {
      * @throws Exception
      */
     @Test
-    public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
+    public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectObjectById_UnsupportedMediaType()
+        throws Exception {
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .body(buildDSLWithRoots("\"" + ID + "\"").asText())
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -244,9 +293,9 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
-            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when().post(ACCESS_OBJECTS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
-
+    
     @Test
     public void given_queryThatThrowException_when_updateByID() throws InvalidParseOperationException {
 
@@ -372,10 +421,10 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
-            .post("/objects/" + ID_UNIT)
+            .get("/objects/" + ID_UNIT)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -397,12 +446,33 @@ public class AccessExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testHttpOverrideAccessUnits() throws Exception {
+
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
+            .thenReturn(JsonHandler.getFromString(DATA_TEST));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(QUERY_TEST)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when()
             .post(ACCESS_UNITS_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
-
     @Test
     public void testErrorSelectUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
@@ -494,6 +564,44 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(BODY_TEST)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnits(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+    }
+    
+    @Test
+    public void testhttpOverrideErrorsSelectUnits()
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("{BAD_QUERY_TEST_UNITS}")
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnits(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when()
             .post(ACCESS_UNITS_URI)
@@ -515,6 +623,7 @@ public class AccessExternalResourceImplTest {
     }
 
 
+
     @Test
     public void getObjectGroupPost() throws Exception {
         reset(clientAccessInternal);
@@ -527,16 +636,27 @@ public class AccessExternalResourceImplTest {
             .body(JsonHandler.getFromString(BODY_TEST))
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "GET")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
+            .when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode());
 
 
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenThrow(new AccessInternalClientServerException(""));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+                "GET")
+            .when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        
         reset(clientAccessInternal);
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))

@@ -132,24 +132,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
-
-    /**
-     * update units list by query
-     *
-     * @param queryDsl
-     * @return Response
-     */
-    @PUT
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnits(JsonNode queryDsl) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-
+    
     /**
      * get units list by query with POST method
      *
@@ -179,6 +162,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
+    }
+
+    /**
+     * update units list by query
+     *
+     * @param queryDsl
+     * @return Response
+     */
+    @PUT
+    @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnits(JsonNode queryDsl) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -339,7 +338,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
-
+    
+    
     /**
      * @param headers
      * @param idObjectGroup
@@ -424,6 +424,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
+    
     /**
      * @param xhttpOverride
      * @param query
@@ -438,7 +439,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
-    }
+   }
 
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)

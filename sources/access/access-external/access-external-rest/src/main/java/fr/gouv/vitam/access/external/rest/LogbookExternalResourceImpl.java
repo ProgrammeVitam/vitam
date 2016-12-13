@@ -100,31 +100,31 @@ public class LogbookExternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
-
+    
     /**
-     *
-     * @param operationId path param, the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
-     * @param xhttpOverride header param as String indicate the use of POST method as GET
-     * @return the response with a specific HTTP status
-     */
-    @POST
-    @Path("/operations/{id_op}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationByPost(@PathParam("id_op") String operationId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+    *
+    * @param operationId path param, the operation id
+    * @param operation the json serialized as a LogbookOperationParameters.
+    * @param xhttpOverride header param as String indicate the use of POST method as GET
+    * @return the response with a specific HTTP status
+    */
+   @POST
+   @Path("/operations/{id_op}")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response selectOperationByPost(@PathParam("id_op") String operationId,
+       @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+       VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            ParametersChecker.checkParameter("Operation id is required", operationId);
-            return getOperationById(operationId);
-        } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
+       Status status;
+       if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
+           ParametersChecker.checkParameter("Operation id is required", operationId);
+           return getOperationById(operationId);
+       } else {
+           status = Status.PRECONDITION_FAILED;
+           return Response.status(status).entity(getErrorEntity(status)).build();
+       }
+   }
 
     /**
      * GET with request in body
@@ -183,14 +183,7 @@ public class LogbookExternalResourceImpl {
         }
 
     }
-
-    /*****
-     * OPERATION - END *****
-     *
-     *
-     * /***** LOGBOOK LIFE CYCLES
-     *****/
-
+    
     /**
      * gets the unit life cycle based on its id
      *

@@ -31,13 +31,11 @@ import java.util.Queue;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -139,9 +137,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, OPERATIONS_URL, headers,
+            response = performRequest(HttpMethod.GET, OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -166,9 +162,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, OPERATIONS_URL + "/" + processId, headers,
+            response = performRequest(HttpMethod.GET, OPERATIONS_URL + "/" + processId, null,
                 LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 

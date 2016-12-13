@@ -186,10 +186,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
             response =
-                performRequest(HttpMethod.POST, "objects/" + objectId, headers,
+                performRequest(HttpMethod.GET, "objects/" + objectId, headers,
                     selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -227,12 +226,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Status status = Status.BAD_REQUEST;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
             response =
-                performRequest(HttpMethod.POST, "objects/" + objectGroupId, headers,
+                performRequest(HttpMethod.GET, "objects/" + objectGroupId, headers,
                     selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -269,9 +267,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -297,8 +293,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 

@@ -61,8 +61,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
 
         SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
@@ -70,7 +68,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
 
         try {
-            response = performRequest(HttpMethod.POST, "/units", headers,
+            response = performRequest(HttpMethod.GET, "/units", null,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -249,9 +247,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL, headers,
+  
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
@@ -276,9 +273,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-            response = performRequest(HttpMethod.POST, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
+         
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, null,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 

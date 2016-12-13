@@ -137,7 +137,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
 
     private final WebApplicationConfig webApplicationConfig;
-
     /**
      * Constructor
      *
