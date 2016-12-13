@@ -219,7 +219,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param folderName path param of folder
      * @return Response
      */
-    @Path("/containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName:.*}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFolder(@PathParam(CONTAINER_NAME) String containerName,
@@ -250,7 +250,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param folderName path param for folder name
      * @return Response
      */
-    @Path("/containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFolder(@PathParam(CONTAINER_NAME) String containerName,
@@ -279,7 +279,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param folderName path param for folder name
      * @return Response
      */
-    @Path("/containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
     public Response isExistingFolder(@PathParam(CONTAINER_NAME) String containerName,
@@ -310,7 +310,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param archiveType
      * @return Response
      */
-    @Path("/containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName:.*}")
     @PUT
     @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
@@ -364,7 +364,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param folderName name of folder
      * @return Response
      */
-    @Path("/containers/{containerName}/folders/{folderName}")
+    @Path("/containers/{containerName}/folders/{folderName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUriDigitalObjectListByFolder(@PathParam(CONTAINER_NAME) String containerName,
