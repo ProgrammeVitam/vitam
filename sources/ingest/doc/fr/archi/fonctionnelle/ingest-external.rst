@@ -1,6 +1,7 @@
 Généralités
 ***********
-Le rôle de l'ingest-external est de réaliser un upload d'un SIP provenant d'une application externe à vitam.
+Le rôle de l'ingest-external est de réaliser un upload d'un SIP provenant d'une application externe à vitam et 
+de télécharger les fichiers sauvegardé au serveur après l'opération ingest (accusé de réception et seda).
 
 La procédure de upload d'un SIP via ingest-externe est le suivant :  
 

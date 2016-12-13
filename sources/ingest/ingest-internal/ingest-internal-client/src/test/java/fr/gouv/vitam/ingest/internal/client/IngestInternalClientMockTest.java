@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -45,6 +46,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -102,6 +104,26 @@ public class IngestInternalClientMockTest {
 
         try {
             assertTrue(IOUtils.contentEquals(inputstreamMockATR, response2.readEntity(InputStream.class)));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+    
+    @Test
+    public void givenNonEmptyStreamWhenDownloadSuccess() throws Exception {
+        IngestInternalClientFactory.changeMode(null);
+
+        final IngestInternalClient client =
+            IngestInternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        final InputStream firstStream = IOUtils.toInputStream("test");
+        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+
+        assertNotNull(responseStream);
+        try {
+            assertTrue(IOUtils.contentEquals(responseStream, firstStream));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();

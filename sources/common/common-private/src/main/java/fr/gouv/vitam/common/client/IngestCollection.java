@@ -24,40 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
-
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+package fr.gouv.vitam.common.client;
 
 /**
- * Ingest external interface
+ * Ingest collection types with collection names.
  */
-public interface IngestExternalClient extends MockOrRestClient {
+public enum IngestCollection {
     /**
-     * ingest upload file in local
-     *
-     * @param stream
-     * @return response
-     *
-     * @throws IngestExternalException
+     * Reports collection
      */
-    // TODO P0 : add file name
-    Response upload(InputStream stream) throws IngestExternalException;
-    
+    REPORTS("reports"),
     /**
-     * Download object stored by ingest operation 
-     * 
-     * @param objectId
-     * @param type
-     * @return object as stream
-     * @throws VitamClientException
+     * Manifests collection
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws IngestExternalException;
+    MANIFESTS("manifests");
+
+    /**
+     * Name
+     */
+    private String collectionName;
+
+    private IngestCollection(String collectionName) {
+        this.collectionName = collectionName;
+    }
+
+    /**
+     *
+     * @return the Collection name
+     */
+    public String getCollectionName() {
+        return collectionName;
+    }
+
 }

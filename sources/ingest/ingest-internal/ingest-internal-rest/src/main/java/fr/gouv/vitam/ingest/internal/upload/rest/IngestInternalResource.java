@@ -30,10 +30,12 @@ import java.io.InputStream;
 import java.util.Queue;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -80,6 +82,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -213,6 +216,53 @@ public class IngestInternalResource extends ApplicationStatusResource {
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> ingestAsync(asyncResponse, contentType, uploadedInputStream));
+    }
+
+    /**
+     * Download object stored by Ingest operation (currently ATR and manifest) 
+     * 
+     * Return the object as stream asynchronously 
+     * @param objectId
+     * @param type
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/ingests/{objectId}/{type}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadObjectAsStream(@PathParam("objectId") String objectId, @PathParam("type") String type,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+        .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
+    }
+
+    private void downloadObjectAsync(final AsyncResponse asyncResponse, String objectId,
+        String type) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            StorageCollectionType documentType = StorageCollectionType.valueOf(type.toUpperCase());
+            if (documentType == StorageCollectionType.MANIFESTS || documentType == StorageCollectionType.REPORTS) {
+                objectId += XML;
+            } else {
+                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    Response.status(Status.METHOD_NOT_ALLOWED).build()); 
+                return;
+            }
+            final Response response = storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
+                objectId, documentType);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            helper.writeResponse(Response.status(Status.OK));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("IllegalArgumentException was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.BAD_REQUEST).build());
+        } catch (StorageNotFoundException e) {
+            LOGGER.error("Storage error was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.NOT_FOUND).build());
+        } catch (StorageServerClientException e) {
+            LOGGER.error("Storage error was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
     }
 
     private void ingestAsync(final AsyncResponse asyncResponse, String contentType,

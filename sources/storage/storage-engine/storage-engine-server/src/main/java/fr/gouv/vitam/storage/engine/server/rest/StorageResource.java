@@ -934,6 +934,29 @@ public class StorageResource extends ApplicationStatusResource {
             return getObjectInformationWithPost(headers, manifestId);
         }
     }
+    
+    /**
+     * getManifest stored by ingest operation
+     *  
+     * @param headers
+     * @param objectId
+     * @param asyncResponse
+     * @throws IOException
+     */
+    @Path("/manifests/{id_manifest}")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getManifest(@Context HttpHeaders headers, @PathParam("id_manifest") String objectId,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                getByCategoryAsync(objectId, headers, DataCategory.MANIFEST, asyncResponse);
+            }
+        });
+
+    }
 
 
 

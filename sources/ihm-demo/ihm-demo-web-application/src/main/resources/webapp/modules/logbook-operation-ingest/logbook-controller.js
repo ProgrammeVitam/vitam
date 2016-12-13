@@ -90,6 +90,23 @@ angular.module('ihm.demo')
       });
     };
 
+      ctrl.downloadATR = function(objectId, type) {
+          ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
+              var a = document.createElement("a");
+              document.body.appendChild(a);
+
+              var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+              a.href = url;
+
+              if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+                a.download = response.headers('content-disposition').split('filename=')[1];
+                a.click();
+              }
+          }, function(response) {
+            alert('Téléchargement erreur');
+          });
+        };
+
     ctrl.clearSearchOptions = function() {
       ctrl.searchOptions = {};
     };

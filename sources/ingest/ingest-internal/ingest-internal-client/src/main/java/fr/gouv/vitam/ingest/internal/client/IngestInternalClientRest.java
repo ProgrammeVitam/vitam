@@ -36,7 +36,9 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,6 +53,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
     private static final String LOGBOOK_URL = "/logbooks";
     private static final String INGEST_URL = "/ingests";
+    private static final String BLANK_OBJECT_ID = "object identifier should be filled";
+    private static final String BLANK_TYPE = "Type should be filled";
 
     IngestInternalClientRest(IngestInternalClientFactory factory) {
         super(factory);
@@ -94,6 +98,28 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             MediaType.APPLICATION_JSON_TYPE, false);
         if (response.getStatus() != Status.OK.getStatusCode()) {
             throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        }
+    }
+
+    @Override
+    public Response downloadObjectAsync(String objectId, IngestCollection type) throws VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
+        ParametersChecker.checkParameter(BLANK_TYPE, type);
+
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(), 
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 }

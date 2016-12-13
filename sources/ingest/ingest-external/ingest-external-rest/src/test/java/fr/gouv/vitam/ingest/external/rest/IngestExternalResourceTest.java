@@ -50,6 +50,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -72,7 +73,7 @@ public class IngestExternalResourceTest {
 
     private static final String RESOURCE_URI = "/ingest-external/v1";
     private static final String STATUS_URI = "/status";
-    private static final String UPLOAD_URI = "/ingests";
+    private static final String INGEST_URI = "/ingests";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
 
     // private static VitamServer vitamServer;
@@ -126,7 +127,7 @@ public class IngestExternalResourceTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
-            .when().post(UPLOAD_URI)
+            .when().post(INGEST_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -138,7 +139,7 @@ public class IngestExternalResourceTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
-            .when().post(UPLOAD_URI)
+            .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -150,7 +151,7 @@ public class IngestExternalResourceTest {
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
 
         given().contentType(ContentType.BINARY).body(stream)
-            .when().post(UPLOAD_URI)
+            .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -170,7 +171,7 @@ public class IngestExternalResourceTest {
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 
         given().contentType(ContentType.BINARY)
-            .when().post(UPLOAD_URI)
+            .when().post(INGEST_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -189,6 +190,22 @@ public class IngestExternalResourceTest {
         list.add(new FormatIdentifierResponse("ZIP Format", "application/zip",
             "x-fmt/263", "pronom"));
         return list;
+    }
+
+    @Test
+    public void downloadObjects()
+        throws Exception {
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URI + "/1/unknown")
+        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

@@ -73,20 +73,36 @@
           <th>Identifiant de l'entrée</th>
           <th>Début opération</th>
           <th>Fin opération</th>
-          <th>Statut</th>
+            <th>Statut</th>
+            <th>AR</th>
+            <th>Bordereau</th>
         </tr>
 
         <tbody ng-repeat="log in logctrl.fileFormatList | startFrom:(logctrl.diplayPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
-          <tr ng-click="logctrl.openDialog($event, log.evIdProc)" >
-            <td>{{log.events[0].obIdIn}}</td>
-            <td>{{log.evIdProc}}</td>
-            <td>{{log.evDateTime}}</td>
-            <td>{{log.events[1].evDateTime}}</td>
-            <td ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
-            <td ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
-            <td ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
-            <td ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
+          <tr>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.events[0].obIdIn}}</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.evIdProc}}</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.evDateTime}}</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.events[1].evDateTime}}</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+            <td ng-click="logctrl.openDialog($event, log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
                         && log.events[1].outcome.toUpperCase() != 'STARTED'">Avertissement</td>
+              <td>
+                  <a href=""
+                     ng-click="logctrl.downloadATR(log.evIdProc, 'reports')"
+                     target="_blank">
+                      <i class="material-icons">file_download</i>
+                  </a>
+              </td>
+              <td>
+                  <a href=""
+                     ng-click="logctrl.downloadATR(log.evIdProc, 'manifests')"
+                     target="_blank">
+                      <i class="material-icons">file_download</i>
+                  </a>
+              </td>
           </tr>
         </tbody>
 

@@ -24,40 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
+package fr.gouv.vitam.ingest.external.api.exception;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Ingest external interface
+ * IngestInternalException ingest error
  */
-public interface IngestExternalClient extends MockOrRestClient {
+public class IngestExternalException extends VitamException {
+
+    private static final long serialVersionUID = 5412138701285198642L;
+
     /**
-     * ingest upload file in local
+     * constructor with message
      *
-     * @param stream
-     * @return response
-     *
-     * @throws IngestExternalException
+     * @param message message to associate with the exception
      */
-    // TODO P0 : add file name
-    Response upload(InputStream stream) throws IngestExternalException;
-    
+    public IngestExternalException(String message) {
+        super(message);
+    }
+
     /**
-     * Download object stored by ingest operation 
-     * 
-     * @param objectId
-     * @param type
-     * @return object as stream
-     * @throws VitamClientException
+     * constructor with throwable
+     *
+     * @param cause cause to associate with the exception
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws IngestExternalException;
+    public IngestExternalException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * constructor with message and throwable
+     *
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public IngestExternalException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -76,6 +76,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -391,6 +392,26 @@ public class IngestInternalResourceTest {
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void downloadObjects()
+        throws Exception {
+        RestAssured.given()
+        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.REPORTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.MANIFESTS.getCollectionName())
+        .then().statusCode(Status.OK.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.LOGBOOKS.getCollectionName())
+        .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        RestAssured.given()
+        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
+        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

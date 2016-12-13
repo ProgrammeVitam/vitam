@@ -37,9 +37,11 @@ import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
  * Mock client implementation for IngestExternal
@@ -71,5 +73,10 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
         return headers;
+    }
+
+    @Override
+    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
+        return ClientMockResultHelper.getObjectStream();
     }
 }

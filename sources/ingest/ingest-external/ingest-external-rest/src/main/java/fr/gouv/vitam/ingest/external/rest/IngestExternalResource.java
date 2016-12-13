@@ -29,8 +29,10 @@ package fr.gouv.vitam.ingest.external.rest;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -38,6 +40,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,10 +50,12 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
 /**
  * The Ingest External Resource
@@ -108,6 +114,41 @@ public class IngestExternalResource extends ApplicationStatusResource {
             }
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
+        }
+    }
+    
+    /**
+     * Download object stored by Ingest operation (currently ATR and manifest) 
+     * 
+     * Return the object as stream asynchronously 
+     * @param objectId
+     * @param type
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/ingests/{objectId}/{type}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadObjectAsStream(@PathParam("objectId") String objectId, @PathParam("type") String type,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+        .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
+    }
+
+    private void downloadObjectAsync(final AsyncResponse asyncResponse, String objectId,
+        String type) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
+            final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            helper.writeResponse(Response.status(response.getStatus()));
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("IllegalArgumentException was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.BAD_REQUEST).build());
+        } catch (VitamClientException e) {
+            LOGGER.error("VitamClientException was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
 

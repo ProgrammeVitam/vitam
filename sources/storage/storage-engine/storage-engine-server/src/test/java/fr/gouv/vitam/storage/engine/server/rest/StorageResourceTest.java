@@ -563,6 +563,25 @@ public class StorageResourceTest {
             .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
+    
+    @Test
+    public void getManifestOk() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(MANIFESTS_URI + MANIFEST_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .when().get(MANIFESTS_URI + MANIFEST_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(MANIFESTS_URI + MANIFEST_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(MANIFESTS_URI + MANIFEST_ID_URI, "id0").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 
     @Test
     public final void testUnits() {
