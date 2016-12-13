@@ -79,6 +79,7 @@ RUN chmod a+x /usr/bin/vitam-*
 
 COPY install-meteor.sh /usr/bin
 RUN chmod a+x /usr/bin/install-meteor.sh && \
+   sleep 1 && \
    /usr/bin/install-meteor.sh && \
    mv /root/.meteor /devhome && \
    chmod -R o+wX /devhome/.meteor
@@ -93,6 +94,9 @@ COPY wheel-nopwd /etc/sudoers.d
 COPY fastestmirror.conf /etc/yum/pluginconf.d
 
 ENV TERM xterm
+
+# FIX to solve problems with glibc-common update (locales are missing)
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 ##################################  CONTAINER SETTINGS  #################################
 
