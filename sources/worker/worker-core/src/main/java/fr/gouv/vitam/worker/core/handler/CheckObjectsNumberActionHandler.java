@@ -34,15 +34,16 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
-import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Handler checking that digital objects number in workspace matches with manifest.xml.
@@ -50,37 +51,21 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  */
 public class CheckObjectsNumberActionHandler extends ActionHandler {
 
-    /**
-     * Use to log vitam
-     */
-    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectsNumberActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectsNumberActionHandler.class);
 
     /**
      * Handler's ID
      */
     private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
-    private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
     private HandlerIO handlerIO;
 
     /**
      * Default Constructor
      */
     public CheckObjectsNumberActionHandler() {
-        containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
+        // Nothing
     }
-
-    /**
-     * Constructor for Junit Tests
-     *
-     * @param containerExtractionUtilsFactory container Extraction utils factory
-     */
-    protected CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
-        ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter",
-            containerExtractionUtilsFactory);
-        this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
-    }
-
 
     /**
      * @return HANDLER_ID
@@ -145,8 +130,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      */
     private List<URI> getUriListFromWorkspace(WorkerParameters params)
         throws ProcessingException, ContentAddressableStorageServerException {
-        final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
-        return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
+        return getDigitalObjectUriListFromWorkspace(params);
     }
 
     /**
@@ -154,7 +138,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      *
      * @param uriListManifest list of uri from manifest
      * @param uriListWorkspace list of uri from workspace
-     * @param ItemStatus itemStatus of handler
+     * @param itemStatus itemStatus of handler
      * @throws ProcessingException will be throwed when one or all arguments is null
      */
     private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
@@ -221,11 +205,38 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.KO, countCompare);
             }
         }
-
         itemStatus.setData("errorNumber", countCompare);
-
     }
 
+    /**
+     * get the uri list of digital object from a container into the workspace *
+     *
+     * @param workParams parameters of workspace server
+     * @return List of Uri
+     * @throws ProcessingException - throw when workspace is unavailable.
+     * @throws ContentAddressableStorageServerException
+     *
+     */
+    private List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
+        throws ProcessingException, ContentAddressableStorageServerException {
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+
+            // FIXME P1: We have to count here from SIP/Content and not from SIP
+            // Remove one element is actually, with our SIP correct but not really true because it is not necessary
+            // the manifest.xml and it is possible to have more than one file on the root SIP folder (it was removed
+            // without check).
+            // Cannot fix this now because, actually we have SIP archive with "Content" or "content" and the file system
+            // is case sensitive (theoretically it's "Content" with upper 'c').
+            // To fix this, uncomment the next line and remove what is comming next.
+            // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
+            //    .CONTENT_SIP_FOLDER);
+
+            final List<URI> uriListWorkspace =
+                workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER);
+            uriListWorkspace.remove(uriListWorkspace.size() - 1);
+            return uriListWorkspace;
+        }
+    }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
