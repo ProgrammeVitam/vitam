@@ -110,6 +110,11 @@ public class GlobalDataRest {
      * Digest algorithm
      */
     public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    /**
+     * Recursive deletion
+     */
+    public static final String X_RECURSIVE = "X-Recursive";
+        
 
     private GlobalDataRest() {
         // empty

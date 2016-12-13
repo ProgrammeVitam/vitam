@@ -409,7 +409,7 @@ public class IngestExternalImpl implements IngestExternal {
                 }
                 try {
                     if (containerName != null) {
-                        workspaceFileSystem.deleteContainer(containerName.getId());
+                        workspaceFileSystem.deleteContainer(containerName.getId(), true);
                     }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);

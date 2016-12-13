@@ -143,14 +143,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     @Override
-    public void deleteContainer(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
-        deleteContainer(containerName, false);
-
-    }
-
-    @Override
     public void deleteContainer(String containerName, boolean recursive)
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),

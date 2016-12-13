@@ -121,30 +121,30 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
     // delete
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenDeleteContainerThenRaiseAnException() throws Exception {
-        client.deleteContainer(null);
+        client.deleteContainer(null, false);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenDeleteContainerThenRaiseAnException() throws Exception {
-        client.deleteContainer("");
+        client.deleteContainer("", false);
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
     public void givenServerErrorWhenDeleteContainerThenRaiseAnException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.deleteContainer(CONTAINER_NAME);
+        client.deleteContainer(CONTAINER_NAME, false);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.deleteContainer(CONTAINER_NAME);
+        client.deleteContainer(CONTAINER_NAME, false);
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenDeleteContainerThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        client.deleteContainer(CONTAINER_NAME);
+        client.deleteContainer(CONTAINER_NAME, true);
         assertTrue(true);
     }
 

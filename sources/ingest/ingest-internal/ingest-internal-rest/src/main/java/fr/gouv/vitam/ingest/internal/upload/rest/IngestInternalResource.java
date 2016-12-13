@@ -406,8 +406,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             }
             if (workspaceClient.isExistingContainer(containerName)) {
-                // FIXME P1: should explicitely call recursive delete
-                workspaceClient.deleteContainer(containerName);
+                workspaceClient.deleteContainer(containerName, true);
             }
         } finally {
             if (workspaceClientMock == null && workspaceClient != null) {
