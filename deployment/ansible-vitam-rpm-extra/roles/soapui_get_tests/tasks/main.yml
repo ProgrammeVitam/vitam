@@ -18,6 +18,9 @@
     method: GET
     validate_certs: no
     return_content: yes
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_conf_permission}}"
   register: response
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
