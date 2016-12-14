@@ -90,7 +90,7 @@ angular.module('ihm.demo')
       });
     };
 
-      ctrl.downloadATR = function(objectId, type) {
+      ctrl.downloadObject = function(objectId, type) {
           ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
               var a = document.createElement("a");
               document.body.appendChild(a);
@@ -103,7 +103,10 @@ angular.module('ihm.demo')
                 a.click();
               }
           }, function(response) {
-            alert('Téléchargement erreur');
+            $mdDialog.show($mdDialog.alert().parent(
+              angular.element(document.querySelector('#popupContainer')))
+              .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
+              .ariaLabel('Alert Dialog Demo').ok('OK'));
           });
         };
 
