@@ -157,3 +157,8 @@
   service:
     name: "vitam-{{cluster_name}}"
     state: started
+
+- name: install vitam-elasticsearch-kopf rpm
+  yum:
+    name: vitam-elasticsearch-kopf
+    state: latest
