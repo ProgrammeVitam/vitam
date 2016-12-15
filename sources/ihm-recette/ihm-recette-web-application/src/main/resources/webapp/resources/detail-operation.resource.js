@@ -32,23 +32,23 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-// Define resources in order to call WebApp http endpoints for search operation
+// Define resources in order to call WebApp http endpoints for operation's details
 angular.module('core').factory(
-		'searchOperationResource',
+		'detailOperationResource',
 		function($http, IHM_URLS) {
 
-			var Search_operation_ROOT = '/logbooks';
-			var searchOperationResource = {};
+			var detail_operation_ROOT = '/logbooks';
+			var detailOperationResource = {};
 
 			/**
 			 * launch search-operations  (POST method)
 			 * 
 			 * @returns {HttpPromise} The promise returned by the http call
 			 */
-			searchOperationResource.result = function(options) {
-				return $http.post(IHM_URLS.IHM_BASE_URL
-					+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET'}});
+			detailOperationResource.result = function(operationId) {
+				return $http.get(IHM_URLS.IHM_BASE_URL
+						+detail_operation_ROOT + '/' + operationId , {'headers' : {'Accept' : 'application/json'}});
 			};
-			return searchOperationResource;
+			return detailOperationResource;
 
 		});

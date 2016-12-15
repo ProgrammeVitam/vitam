@@ -40,10 +40,13 @@ import java.util.regex.Pattern;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -58,10 +61,12 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -72,6 +77,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
@@ -89,8 +95,14 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 /**
  * Web Application Resource class
@@ -106,8 +118,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ZIP_EXTENSION = ".ZIP";
     private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
+    public static final String IHM_RECETTE = "IHM_RECETTE";
     private final WebApplicationConfig webApplicationConfig;
-    // FIXME : replace the boolean by a static timestamp updated by the soap ui thread
+    // FIXME : replace the boolean by a static timestamp updated by the soap ui
+    // thread
     private static volatile boolean soapUiRunning = false;
 
     protected static boolean isSoapUiRunning() {
@@ -117,7 +131,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static void setSoapUiRunning(boolean soapUiRunning) {
         WebApplicationResource.soapUiRunning = soapUiRunning;
     }
-
 
     // TODO FIX_TENANT_ID
     private static final Integer TENANT_ID = 0;
@@ -129,6 +142,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         super(new BasicVitamStatusServiceImpl());
+
         LOGGER.debug("init Admin Management Resource server");
         this.webApplicationConfig = webApplicationConfig;
     }
@@ -143,7 +157,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookMessages() {
-        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per
+        // TODO P0 : If translation key could be the same in different
+        // .properties file, MUST add an unique prefix per
         // file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
     }
@@ -191,17 +206,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
             LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured").build();
         }
 
         final File fileDirectory = new File(webApplicationConfig.getSipDirectory());
 
         if (!fileDirectory.isDirectory()) {
-            LOGGER.error("SIP directory <{}> is not a directory.",
-                webApplicationConfig.getSipDirectory());
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
-                "SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
+            LOGGER.error("SIP directory <{}> is not a directory.", webApplicationConfig.getSipDirectory());
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity("SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
                 .build();
         }
         final File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
@@ -243,14 +256,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
-            final RequestResponse logbookOperationResult =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
+                .selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
-                final JsonNode logbookOperation =
-                    ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD)).get(0);
+                final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD))
+                    .get(0);
                 // Create csv file
-                final ByteArrayOutputStream csvOutputStream =
-                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
+                final ByteArrayOutputStream csvOutputStream = JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
                 final ResponseBuilder response = Response.ok(csvOutArray);
                 response.header("Content-Disposition", "attachment;filename=rapport.csv");
@@ -282,8 +294,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
         if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
             LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured").build();
         }
 
         if (!FILENAME_PATTERN.matcher(fileName).matches()) {
@@ -300,8 +311,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(response.getStatus()).entity(ingestOperationId).build();
         } catch (final VitamException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         } catch (final FileNotFoundException e) {
             LOGGER.error("The selected file is not found", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -328,7 +338,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * FIXME : use a better way to launch SOAP UI in another thread to manager responses
      */
@@ -345,7 +354,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         WebApplicationResource.setSoapUiRunning(false);
     }
-
 
     /**
      * Check if soap UI test is running
@@ -376,11 +384,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             result = soapUi.getLastTestReport();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be create", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
+
+
 
     /**
      *
@@ -391,31 +400,54 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceability() throws LogbookClientServerException {
-        final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponseOK result;
-        try {
-            result = logbookOperationsClient.traceability();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("The reporting json can't be created", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+        try (final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            RequestResponseOK result;
+            try {
+                result = logbookOperationsClient.traceability();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error("The reporting json can't be created", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
+     * 
+     * Post used because Angular not support Get with body
+     * 
      * @param headers
      * @param sessionId
      * @param options
      * @return Response
      */
     @POST
-    @Path("/logbook/operations")
+    @Path("/logbooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLogbookResultByBrowser(@Context HttpHeaders headers, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride, @CookieParam("JSESSIONID") String sessionId,
+        String options) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(
+                IHM_RECETTE).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            return Response.status(status).entity(vitamError).build();
+        }
+
+        return findLogbookBy(headers, sessionId, options);
+    }
+
+    @GET
+    @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
+        return findLogbookBy(headers, sessionId, options);
+    }
 
+    private Response findLogbookBy(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+        String options) {
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
         String requestId = null;
         RequestResponse result = null;
@@ -434,15 +466,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
 
-                return Response.status(Status.OK).entity(result)
-                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
-                    .build();
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
             } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             }
         } else {
             requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
@@ -464,37 +493,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             } catch (final LogbookClientException e) {
                 LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             } catch (final Exception e) {
                 LOGGER.error("Internal server error", e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .build();
             }
-            return Response.status(Status.OK).entity(result)
-                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+            return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                 .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                .header(IhmDataRest.X_LIMIT, pagination.getLimit())
-                .build();
+                .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
         }
     }
 
     /**
+     * 
      * @param operationId id of operation
-     * @param options
      * @return Response
      */
-    @POST
-    @Path("/logbook/operations/{idOperation}")
+    @GET
+    @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId) {
         try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -508,4 +531,81 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     *
+     * @param operationId
+     * @param asyncResponse
+     */
+
+    @GET
+    @Path("/logbooks/{idOperation}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadObjectAsStream(@PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
+    }
+
+    /**
+     * This method exist only to download a file with a browser
+     * @param operationId
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/logbooks/{idOperation}/content")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadObjectAsStreamForBrowser(@PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
+    }
+
+    /**
+     * download object for LOGBOOKS type
+     * 
+     * @param asyncResponse
+     * @param operationId
+     */
+    private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            final RequestResponse result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+                RequestResponseOK responseOK = (RequestResponseOK) result;
+                ArrayNode arrayNode = responseOK.getResults();
+                JsonNode operation = arrayNode.get(0);
+                ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
+                JsonNode lastEvent = Iterables.getLast(events);
+                String evDetData = lastEvent.get("evDetData").textValue();
+                JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
+                String fileName = traceabilityEvent.get("FileName").textValue();
+                StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
+                final Response response = storageClient.getContainerAsync("0", "default", fileName, documentType);
+                final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+                if (response.getStatus() == Status.OK.getStatusCode()) {
+                    helper.writeResponse(Response
+                        .ok()
+                        .header("Content-Disposition", "filename=" + fileName)
+                        .header("Content-Type", "application/octet-stream"));
+                } else {
+                    helper.writeResponse(Response.status(response.getStatus()));
+                }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("IllegalArgumentException was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (StorageNotFoundException e) {
+            LOGGER.error("Storage error was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+        } catch (StorageServerClientException e) {
+            LOGGER.error("Storage error was thrown : ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (LogbookClientException e) {
+            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
+    }
+
 }
+
