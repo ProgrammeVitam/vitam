@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -139,13 +138,6 @@ public class LogbookExternalResourceImpl {
     public Response selectOperation(JsonNode query) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        try {
-            SanityChecker.checkJsonAll(query);
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectOperation(query);

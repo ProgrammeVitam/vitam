@@ -158,7 +158,7 @@ public class IngestExternalResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
@@ -170,7 +170,7 @@ public class IngestExternalResourceTest {
         PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 
-        given().contentType(ContentType.BINARY)
+        given().contentType(ContentType.BINARY).body(stream)
             .when().post(INGEST_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }

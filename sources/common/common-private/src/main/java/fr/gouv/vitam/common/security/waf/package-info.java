@@ -26,5 +26,6 @@
  *******************************************************************************/
 /**
  * Web application firewall package which uses owasp esapi
+ * Filter for header, body (json and inputstream) and parameter 
  */
 package fr.gouv.vitam.common.security.waf;

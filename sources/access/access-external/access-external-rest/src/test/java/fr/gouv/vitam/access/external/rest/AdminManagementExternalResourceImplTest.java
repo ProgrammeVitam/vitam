@@ -138,7 +138,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given().contentType(ContentType.BINARY)
             .when().post(WRONG_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 

@@ -72,6 +72,14 @@ public class SanityChecker {
     private static final int DEFAULT_LIMIT_JSON_SIZE = 16000000;
     private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
 
+    private static final String HTTP_PARAMETER_VALUE = "HTTPParameterValue";
+    private static final String HTTP_PARAMETER_NAME = "HTTPParameterName";
+    private static final String HTTP_HEADER_NAME = "HTTPHeaderName";
+    private static final String HTTP_HEADER_VALUE = "HTTPHeaderValue";
+
+    // TODO : verify the difference between this defined limit and the previous ones
+    private static final int REQUEST_LIMIT = 10000;
+
     /**
      * max size of xml file
      */
@@ -156,7 +164,7 @@ public class SanityChecker {
      * @param json as JsonNode
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
+    public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {        
         if (json == null) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
         }
@@ -192,6 +200,7 @@ public class SanityChecker {
         checkJsonSanity(JsonHandler.getFromString(json));
     }
 
+
     /**
      * checkParameter : Check sanity of String: no javascript/xml tag, neither html tag
      *
@@ -210,19 +219,76 @@ public class SanityChecker {
      * @param headers
      * @throws InvalidParseOperationException
      */
+    // TODO : this control is used only in AccessInternal, is it worth to use it or shall we remove it?
     public static final void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
         if (headers == null) {
             return;
         }
-        final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+
+        checkHeadersMap(headers.getRequestHeaders());
+    }
+
+    /**
+     * Checks sanity of Headers: no javascript/xml tag, neither html tag
+     * 
+     * @param requestHeaders
+     * @throws InvalidParseOperationException
+     */
+    public static final void checkHeadersMap(MultivaluedMap<String, String> requestHeaders)
+        throws InvalidParseOperationException {
+
         if (requestHeaders != null && !requestHeaders.isEmpty()) {
             for (final String header : requestHeaders.keySet()) {
+                // Validate Header's name
+                if (isStringInfected(header, HTTP_HEADER_NAME)) {
+                    throw new InvalidParseOperationException(String.format("%s header has wrong name", header));
+                }
+
+                // Validate Header's values
                 final List<String> values = requestHeaders.get(header);
-                if (values != null && values.stream().anyMatch(value -> isIssueOnParam(value))) {
+                if (values != null && values.stream()
+                    .anyMatch(value -> isStringInfected(value, HTTP_HEADER_VALUE) | isIssueOnParam(value))) {
                     throw new InvalidParseOperationException(String.format("%s header has wrong value", header));
                 }
             }
         }
+    }
+
+    /**
+     * Checks sanity of Headers: no javascript/xml tag, neither html tag
+     * 
+     * @param requestHeaders
+     * @throws InvalidParseOperationException
+     */
+    public static final void checkUriParametersMap(MultivaluedMap<String, String> uriParameters)
+        throws InvalidParseOperationException {
+
+        if (uriParameters != null && !uriParameters.isEmpty()) {
+            for (final String parameter : uriParameters.keySet()) {
+                // Validate Parameter's name
+                if (isStringInfected(parameter, HTTP_PARAMETER_NAME)) {
+                    throw new InvalidParseOperationException(String.format("%s parameter has wrong name", parameter));
+                }
+
+                // Validate Parameter's values
+                final List<String> values = uriParameters.get(parameter);
+                if (values != null && values.stream()
+                    .anyMatch(value -> isStringInfected(value, HTTP_PARAMETER_VALUE) | isIssueOnParam(value))) {
+                    throw new InvalidParseOperationException(String.format("%s parameter has wrong value", parameter));
+                }
+            }
+        }
+    }
+
+    /**
+     * Find out XSS by ESAPI validator
+     *
+     * @param value of string
+     * @param validator name declared in ESAPI.properties
+     * @return boolean
+     */
+    private static boolean isStringInfected(String value, String validator) {
+        return !ESAPI.isValidInput(validator, value, validator, REQUEST_LIMIT, true);
     }
 
     private static final boolean isIssueOnParam(String param) {

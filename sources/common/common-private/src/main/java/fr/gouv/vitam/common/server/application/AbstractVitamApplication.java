@@ -66,7 +66,6 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
-
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
  *
@@ -281,6 +280,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             .register(new GenericExceptionMapper())
             // Register a container filter to copy the header's parameters
             .register(RequestIdContainerFilter.class);
+
         // Register Jersey Metrics Listener
         clearAndconfigureMetrics();
         checkJerseyMetrics(resourceConfig);
