@@ -196,25 +196,6 @@ public class DbRequest {
             final Result newResult = lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
-                // index Metadata
-                final Set<String> ids = result.getCurrentIds();
-
-                final FILTERARGS model = requestToMongodb.model();
-                // index Unit
-                if (model == FILTERARGS.UNITS) {
-                    final Bson finalQuery = in(MetadataDocument.ID, ids);
-                    @SuppressWarnings("unchecked")
-                    final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-                        .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
-                    try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                        while (cursor.hasNext()) {
-                            final Unit unit = cursor.next();
-                            // TODO P0 use Bulk
-                            MetadataCollections.C_UNIT.getEsClient().addEntryIndex(unit);
-                        }
-                    }
-                }
-                // TODO P1 index ObjectGroup
             }
             if (GlobalDatasDb.PRINT_REQUEST) {
                 LOGGER.debug("Results: " + result);
@@ -816,7 +797,8 @@ public class DbRequest {
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_UNIT, finalQuery, null);
+            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+        // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor);
         }
@@ -864,11 +846,13 @@ public class DbRequest {
                 if (!notFound.isEmpty()) {
                     // FIXME P1 some Junit failed on this
                     LOGGER.error("Cannot find parent: " + notFound);
-                    // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
+                    throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
                 }
                 last.clear();
                 last.addId(unit.getId());
                 last.setNbResult(1);
+                insertBulk(requestToMongodb, last);
+                // FIXME P1 should handle micro update on parents in ES
                 return last;
             }
             // OBJECTGROUPS:
@@ -900,16 +884,42 @@ public class DbRequest {
             if (!notFound.isEmpty()) {
                 // FIXME P1 some Junit failed on this
                 LOGGER.error("Cannot find parent: " + notFound);
-                // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
+                throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
             }
             last.clear();
             last.addId(og.getId());
             last.setNbResult(1);
+            // TODO P1 index ObjectGroup
             return last;
         } catch (final MongoWriteException e) {
             throw e;
         } catch (final MongoException e) {
             throw new MetaDataExecutionException("Insert concern", e);
+        }
+    }
+    
+    /**
+     * Bulk insert in ES
+     * 
+     * @param requestToMongodb
+     * @param result
+     * @throws MetaDataExecutionException
+     */
+    private void insertBulk(InsertToMongodb requestToMongodb, Result result) throws MetaDataExecutionException {
+        // index Metadata
+        final Set<String> ids = result.getCurrentIds();
+
+        final FILTERARGS model = requestToMongodb.model();
+        // index Unit
+        if (model == FILTERARGS.UNITS) {
+            final Bson finalQuery = in(MetadataDocument.ID, ids);
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+                .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+            // TODO maybe retry once if in error ?
+            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
+                MetadataCollections.C_UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor);
+            }
         }
     }
 
@@ -932,6 +942,7 @@ public class DbRequest {
                 final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.C_UNIT,
                     roots, last.getCurrentIds().size());
                 last.setNbResult(result.getDeletedCount());
+                // TODO add ES delete
                 return last;
             }
             // TODO P1 add unit tests
