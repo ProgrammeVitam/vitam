@@ -95,7 +95,7 @@
                   </a>
               </td>
               <td >
-                  <a ng-if="log.events[1].outcome.toUpperCase() == 'OK'"  href="" ng-click="logctrl.downloadObject(log.evIdProc, 'manifests')">
+                  <a ng-if="log.events[1].outcome.toUpperCase() == 'OK' || log.events[1].outcome.toUpperCase() == 'WARNING'"  href="" ng-click="logctrl.downloadObject(log.evIdProc, 'manifests')">
                       <i class="material-icons">file_download</i>
                   </a>
               </td>
