@@ -216,7 +216,7 @@ public class SelectUnitResourceTest {
             .when()
             .get("/units")
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 
@@ -229,7 +229,7 @@ public class SelectUnitResourceTest {
             .when()
             .get("/units")
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -252,7 +252,7 @@ public class SelectUnitResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
             .post("/units/").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 

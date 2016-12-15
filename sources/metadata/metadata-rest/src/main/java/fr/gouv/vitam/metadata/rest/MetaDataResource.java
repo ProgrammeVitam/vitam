@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
@@ -103,7 +102,6 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
 
         try {
-            SanityChecker.checkJsonAll(insertRequest);
             metaDataImpl.insertUnit(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -187,7 +185,6 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
-            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectUnitsByQuery(selectRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -254,7 +251,6 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
-            SanityChecker.checkJsonAll(updateRequest);
             arrayNodeResults = metaDataImpl.updateUnitbyId(updateRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -293,7 +289,6 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
-            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectUnitsById(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -354,7 +349,6 @@ public class MetaDataResource extends ApplicationStatusResource {
     public Response insertObjectGroup(JsonNode insertRequest) throws InvalidParseOperationException {
         Status status;
         try {
-            SanityChecker.checkJsonAll(insertRequest);
             metaDataImpl.insertObjectGroup(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -452,7 +446,6 @@ public class MetaDataResource extends ApplicationStatusResource {
         Status status;
         ArrayNode arrayNodeResults;
         try {
-            SanityChecker.checkJsonAll(selectRequest);
             arrayNodeResults = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

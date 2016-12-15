@@ -253,7 +253,7 @@ public class UpdateUnitResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 

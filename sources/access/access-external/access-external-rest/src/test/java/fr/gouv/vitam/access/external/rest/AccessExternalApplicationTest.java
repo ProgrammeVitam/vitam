@@ -75,7 +75,7 @@ public class AccessExternalApplicationTest {
             .when()
             .put("/units/1")
             .then()
-            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -84,7 +84,7 @@ public class AccessExternalApplicationTest {
             .when()
             .put("/units/1")
             .then()
-            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 

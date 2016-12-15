@@ -484,7 +484,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().get("units/goodId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
 
 
@@ -494,7 +494,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().get("units/badId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
 
         try {
@@ -504,7 +504,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body("INTERAL_SEVER_ERROR").when().get("units/badId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
     }
 
@@ -520,7 +520,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().put("units/goodId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
 
         try {
@@ -529,7 +529,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body(BAD_QUERY_TEST).when().put("units/badId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
 
         try {
@@ -539,7 +539,7 @@ public class AccessExternalResourceImplTest {
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
                 .body("INTERAL_SEVER_ERROR").when().put("units/badId").then()
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
     }
 
@@ -556,7 +556,7 @@ public class AccessExternalResourceImplTest {
             .when()
             .get(ACCESS_UNITS_URI)
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         PowerMockito.doThrow(new AccessInternalClientServerException(""))
             .when(clientAccessInternal).selectUnits(anyObject());
@@ -594,7 +594,7 @@ public class AccessExternalResourceImplTest {
             .when()
             .get(ACCESS_UNITS_URI)
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         PowerMockito.doThrow(new AccessInternalClientServerException(""))
             .when(clientAccessInternal).selectUnits(anyObject());

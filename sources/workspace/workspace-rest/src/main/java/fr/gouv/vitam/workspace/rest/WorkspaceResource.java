@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -119,10 +118,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
-            SanityChecker.checkParameter(containerName);
-
             workspace.createContainer(containerName);
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -147,12 +144,11 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
-            SanityChecker.checkParameter(containerName);
             workspace.deleteContainer(containerName, recursive);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -173,14 +169,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
-            SanityChecker.checkParameter(containerName);
             final boolean exists = workspace.isExistingContainer(containerName);
             if (exists) {
                 return Response.status(Status.OK).entity(containerName).build();
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -199,10 +194,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
-            SanityChecker.checkParameter(containerName);
             final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -226,9 +220,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-            SanityChecker.checkParameter(containerName, folderName);
             workspace.createFolder(containerName, folderName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -258,9 +251,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-            SanityChecker.checkParameter(containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final  IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -286,15 +278,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-            SanityChecker.checkParameter(containerName, folderName);
-
             final boolean exists = workspace.isExistingFolder(containerName, folderName);
             if (exists) {
                 return Response.status(Status.OK).entity(containerName + "/" + folderName).build();
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -320,7 +310,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-            SanityChecker.checkParameter(containerName, folderName);
             try {
                 workspace.uncompressObject(containerName, folderName, archiveType, stream);
             } catch (final ContentAddressableStorageNotFoundException e) {
@@ -347,7 +336,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
             }
             return Response.status(Status.CREATED).entity(containerName).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } finally {
@@ -373,7 +362,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-            SanityChecker.checkParameter(containerName, folderName);
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
 
         } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
@@ -382,7 +370,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageException eAddressableStorageException) {
             LOGGER.error(eAddressableStorageException);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -413,10 +401,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
             workspace.putObject(containerName, objectName, stream);
             return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -446,9 +433,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
             workspace.deleteObject(containerName, objectName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -499,9 +485,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
             jsonResultNode = workspace.getObjectInformation(containerName, objectName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -532,8 +517,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -575,14 +559,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            SanityChecker.checkParameter(containerName, objectName);
             stream = (InputStream) workspace.getObject(containerName, objectName).getEntity();
 
             helper = new AsyncInputStreamHelper(asyncResponse, stream);
             final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
 
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                 Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
