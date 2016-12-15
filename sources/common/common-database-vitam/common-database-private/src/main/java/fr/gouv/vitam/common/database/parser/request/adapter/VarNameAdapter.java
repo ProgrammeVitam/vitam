@@ -65,7 +65,15 @@ public class VarNameAdapter {
      */
     public String getVariableName(String name) throws InvalidParseOperationException {
         if (name.charAt(0) == ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR) {
-            if (!ParserTokens.PROJECTIONARGS.isValid(name)) {
+            // Check on prefix (preceding '.')
+            int pos = name.indexOf('.');
+            final String realname;
+            if (pos > 1) {
+                realname = name.substring(1, pos);
+            } else {
+                realname = name.substring(1);
+            }
+            if (!ParserTokens.PROJECTIONARGS.isValid(realname)) {
                 throw new InvalidParseOperationException("Illegal variable name found: " + name);
             }
         }

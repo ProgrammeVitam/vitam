@@ -67,7 +67,7 @@ import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 /**
  * Unit class:<br>
  *
- * @formatter:off { MD content, _id: UUID, _tenant: tenant, _type: documentType,, _min: depthmin, _max: depthmax, _mgt.
+ * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax, _mgt.
  *                Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to be in
  *                ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
  *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
@@ -123,8 +123,8 @@ public class Unit extends MetadataDocument<Unit> {
         VitamLinks.UNIT_TO_UNIT.field1to2 + " : { type : \"object\", enabled : false }, " +
         VitamLinks.UNIT_TO_OBJECTGROUP.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " +
 
-        "Title : { type : \"string\", index : \"analyzed\" , analyzer :  \"french\"  }, " +
-        "Description : { type : \"string\", index : \"analyzed\", analyzer :  \"french\"  }, " +
+        "Title : { type : \"string\", index : \"analyzed\" }, " +
+        "Description : { type : \"string\", index : \"analyzed\" }, " +
         "DescriptionLevel : { type : \"string\", index : \"not_analyzed\" }, " +
         "TransactedDate : { type : \"date\", index : \"analyzed\" } " +
 

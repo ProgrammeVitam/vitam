@@ -170,14 +170,11 @@ public class ParserTokens extends BuilderToken {
             if (name == null || name.isEmpty()) {
                 throw new IllegalArgumentException(NOT_FOUND);
             }
-            if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
-                try {
-                    return PROJECTIONARGS.valueOf(name.substring(1).toUpperCase());
-                } catch (final Exception e) {
-                    throw new IllegalArgumentException(NOT_FOUND, e);
-                }
+            try {
+                return PROJECTIONARGS.valueOf(name.toUpperCase());
+            } catch (final Exception e) {
+                throw new IllegalArgumentException(NOT_FOUND, e);
             }
-            throw new IllegalArgumentException(NOT_FOUND);
         }
 
         /**
@@ -190,8 +187,16 @@ public class ParserTokens extends BuilderToken {
                 return false;
             }
             if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+                // Check on prefix (preceding '.')
+                int pos = name.indexOf('.');
+                final String realname;
+                if (pos > 1) {
+                    realname = name.substring(1, pos);
+                } else {
+                    realname = name.substring(1);
+                }
                 try {
-                    final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1).toUpperCase());
+                    final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(realname.toUpperCase());
                     switch (proj) {
                         case ALL:
                         case FORMAT:

@@ -160,7 +160,7 @@ public class SedaConstants {
     /**
      * Prefix of type
      */
-    public static final String PREFIX_TYPE = "_type";
+    public static final String PREFIX_TYPE = "_profil";
 
     /**
      * Prefix of management
