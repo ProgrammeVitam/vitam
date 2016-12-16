@@ -78,6 +78,7 @@ public class LogbookExternalResourceImpl {
      * @param operationId the operation id
      * @return the response with a specific HTTP status
      */
+    
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -88,7 +89,8 @@ public class LogbookExternalResourceImpl {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectOperationbyId(operationId);
-            return Response.status(Status.OK).entity(result).build();
+                return Response.status(Status.OK)
+                    .entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;

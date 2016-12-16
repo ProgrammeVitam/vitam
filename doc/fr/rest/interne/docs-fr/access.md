@@ -4,6 +4,14 @@ API d'Accès
 *L'API d'Accès* propose les points d'entrées et les méthodes pour atteindre, requêter et récupérer les informations depuis les **Units** et les **Objects**.
 
 Cette API est globalement reproduite dans tous les autres points d'accès lorsque l'accès à des _Units_ et _Objects_ est nécessaire. Les fonctionnalités offertent peuvent par contre varier (droit en modification, effacement, ... selon le contexte).
+-------------------------------------------------
+Alert API interne : tester l'ajout de RequestResponseOk
+-------------------------------------------------
+
+Il faut éviter l'ajout de RequestResponseOk avec le hints , le query  dans les EndPoints de Module Access Externe et interne parce qu'il 
+engendre une encapsulation supplémentaire au niveau de réponse retournée à l'application Front-Office.
+Exemple :{"$hits":{"total":3,"offset":0,"limit":125,"size":3},"$results":[{"$hits":{"total":3 
+Ainsi la réponse devient inexploitable au niveau de l'application Front-Office.
 
 -------------
 **Units**
