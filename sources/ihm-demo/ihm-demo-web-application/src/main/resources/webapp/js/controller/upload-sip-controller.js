@@ -179,5 +179,9 @@ angular.module('ihm.demo')
     $scope.disableUpload = true;
     $scope.disableSelect = false;
     $scope.ctrl = $scope;
+    $scope.uploadHandlerError = function(file, message, flow) {
+      console.log(message);
+      $location.path('/login');
+    }
 
   });
