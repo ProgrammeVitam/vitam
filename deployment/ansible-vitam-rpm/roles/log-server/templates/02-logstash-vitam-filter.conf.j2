@@ -108,7 +108,7 @@ filter
         }
         mutate { add_field => { "type" => "consul" } }
         date {
-            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss" ]
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
         }
     }
