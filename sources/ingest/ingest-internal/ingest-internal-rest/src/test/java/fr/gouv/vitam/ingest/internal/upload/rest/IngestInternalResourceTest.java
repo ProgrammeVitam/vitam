@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -99,6 +101,7 @@ public class IngestInternalResourceTest {
 
     private List<LogbookParameters> operationList = new ArrayList<>();
     private List<LogbookParameters> operationList2 = new ArrayList<>();
+    private InputStream inputStream;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -137,6 +140,7 @@ public class IngestInternalResourceTest {
     public void setUp() throws Exception {
 
         ingestGuid = GUIDFactory.newManifestGUID(0);
+        inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
@@ -203,6 +207,11 @@ public class IngestInternalResourceTest {
         operationList2.add(externalOperationParameters5);
         operationList2.add(externalOperationParameters6);
     }
+    
+    @After
+    public void afterTest() throws Exception {
+        inputStream.close();
+    }
 
 
     // TODO P1: It would be better to use the test server / application here.
@@ -261,8 +270,6 @@ public class IngestInternalResourceTest {
         Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
 
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .then().statusCode(Status.OK.getStatusCode())
@@ -317,8 +324,6 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
             .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
@@ -333,9 +338,6 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Matchers.anyObject());
-
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
@@ -352,8 +354,6 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ProcessingBadRequestException("Test")).when(processingClient).executeVitamProcess(
             Matchers.anyObject(),
             Matchers.anyObject());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
@@ -369,8 +369,6 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ProcessingInternalServerException("Test1")).when(processingClient).executeVitamProcess(
             Matchers.anyObject(),
             Matchers.anyObject());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
@@ -385,8 +383,6 @@ public class IngestInternalResourceTest {
         reset(processingClient);
         Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .body(inputStream).contentType(CommonMediaType.ZIP)
