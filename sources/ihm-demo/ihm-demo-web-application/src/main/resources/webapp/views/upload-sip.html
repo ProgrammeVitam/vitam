@@ -10,6 +10,7 @@
   				testChunks:false, method:'octet', simultaneousUploads: 1, ctrlScope: ctrl,
   				requiredParams:['x-request-id']}"
   			 flow-file-success="startUpload($flow.files[0].chunks[0].savedParams)"
+                 flow-error="uploadHandlerError( $file, $message, $flow )"
   			 flow-files-submitted="$flow.upload()">
 
     			<table class="table upload">

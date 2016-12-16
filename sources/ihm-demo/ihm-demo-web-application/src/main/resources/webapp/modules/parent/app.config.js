@@ -110,7 +110,7 @@ module('ihm.demo').
   .config(['flowFactoryProvider', function (flowFactoryProvider) {
   flowFactoryProvider.defaults = {
     target: '/ihm-demo/v1/api/ingest/upload2',
-    permanentErrors: [404, 500, 501],
+    permanentErrors: [404, 500, 501, 502],
     maxChunkRetries: 1,
     chunkRetryInterval: 5000,
     simultaneousUploads: 4
