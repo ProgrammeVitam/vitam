@@ -241,10 +241,10 @@ public class Select extends RequestMultiple {
         throws InvalidParseOperationException {
         // FIXME P1 : it would be nice to be able to handle $slice in projection via builder
         String projection =
-            "{\"$fields\":{\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
-                ",1]},\"#id\":0," + "\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
+            "{\"$fields\":{\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions\": { $slice: [" + version +
+                ",1]},\"#id\":0," + "\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions._id\":1";
         for (final String field : additionalFields) {
-            projection += ",\"_qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
+            projection += ",\"#qualifiers." + qualifier.trim().split("_")[0] + ".versions." + field + "\":1";
         }
         projection += "}}";
 

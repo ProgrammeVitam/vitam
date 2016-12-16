@@ -35,7 +35,8 @@ import java.util.Set;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
@@ -44,6 +45,7 @@ import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -116,24 +118,26 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final boolean addIndex(final MetadataCollections collection) {
         LOGGER.debug("addIndex: " + collection.getName().toLowerCase());
         if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-            LOGGER.debug("createIndex");
-            client.admin().indices().prepareCreate(collection.getName().toLowerCase()).get();
+            try {
+                LOGGER.debug("createIndex");
+                final String mapping = collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
+                final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
+                LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
+                final CreateIndexResponse response =
+                    client.admin().indices().prepareCreate(collection.getName().toLowerCase())
+                        .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                        .addMapping(type, mapping)
+                        .get();
+                if (!response.isAcknowledged()) {
+                    LOGGER.error(type + ":" + response.isAcknowledged());
+                    return false;
+                }
+            } catch (final Exception e) {
+                LOGGER.error("Error while set Mapping", e);
+                return false;
+            }
         }
-        final String mapping = collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
-        final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-
-        LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
-        try {
-            final PutMappingResponse response =
-                client.admin().indices().preparePutMapping().setIndices(collection.getName().toLowerCase())
-                    .setType(type)
-                    .setSource(mapping).get();
-            LOGGER.debug(type + ":" + response.isAcknowledged());
-            return response.isAcknowledged();
-        } catch (final Exception e) {
-            LOGGER.error("Error while set Mapping", e);
-            return false;
-        }
+        return true;
     }
 
     /**
@@ -287,7 +291,50 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
         return client.prepareUpdate(collection.getName().toLowerCase(), type, id)
             .setDoc(json).setRefresh(true).execute()
-            .actionGet().getVersion() > 0;
+            .actionGet().getVersion() > 1;
+    }
+
+    /**
+     * Insert in bulk mode from cursor<br>
+     * <br>
+     * Insert a set of entries in the ElasticSearch index based in Cursor Result. <br>
+     *
+     * @param cursor :containing all Units to be indexed
+     * @throws MetaDataExecutionException if the bulk insert failed
+     */
+    final void insertBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES insert in error since no results to insert");
+            throw new MetaDataExecutionException("No result to insert");
+        }
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final Unit unit = getFiltered(cursor.next());
+            final String id = unit.getId();
+            unit.remove(VitamDocument.ID);
+
+            final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            // TODO Empty variable (null) might be ignore here 
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            final String toInsert = dbObject.toString().trim();
+            if (toInsert.isEmpty()) {
+                LOGGER.error("ES insert in error since result to insert is empty");
+                throw new MetaDataExecutionException("Result to insert is empty");
+            }
+            bulkRequest.add(client.prepareIndex(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
+                id).setSource(toInsert));
+        }
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            int duplicates = 0;
+            for (BulkItemResponse bulkItemResponse : bulkResponse) {
+                if (bulkItemResponse.getVersion() > 1)
+                    duplicates++;
+            }
+            LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
     }
 
     /**
@@ -296,8 +343,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
      *
      * @param cursor :containing all Units to be indexed
+     * @throws MetaDataExecutionException if the bulk update failed
      */
-    final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) {
+    final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES update in error since no results to update");
+            throw new MetaDataExecutionException("No result to update");
+        }
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         while (cursor.hasNext()) {
             final Unit unit = getFiltered(cursor.next());
@@ -305,14 +357,21 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             unit.remove(VitamDocument.ID);
 
             final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            // TODO Empty variable (null) might be ignore here 
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            final String toUpdate = dbObject.toString().trim();
+            if (toUpdate.isEmpty()) {
+                LOGGER.error("ES update in error since result to update is empty");
+                throw new MetaDataExecutionException("Result to update is empty");
+            }
 
             bulkRequest.add(client.prepareUpdate(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
-                id).setDoc(dbObject.toString()));
+                id).setDoc(toUpdate));
         }
         final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
         if (bulkResponse.hasFailures()) {
-            LOGGER.error("ES previous update in error: " + bulkResponse.buildFailureMessage());
+            LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
         }
     }
 

@@ -56,28 +56,39 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
-        final String newname = null;
         // FIXME P1 INSERT should generate #id, #mgt, ...
         /*
+         * final String newname = null;
          * newname = super.getVariableName(name); if (newname != null) { return newname; }
          */
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+            // Check on prefix (preceding '.')
+            int pos = name.indexOf('.');
+            final String realname;
+            final String extension;
+            if (pos > 1) {
+                realname = name.substring(1, pos);
+                extension = name.substring(pos);
+            } else {
+                realname = name.substring(1);
+                extension = "";
+            }
             try {
-                final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
+                final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(realname);
                 switch (proj) {
                     case DUA:
                         // Valid for Unit
-                        return Unit.APPRAISALRULES;
+                        return Unit.APPRAISALRULES + extension;
                     case FORMAT:
                         // Valid for OG
                         // FIXME P2 not valid
-                        return ObjectGroup.OBJECTFORMAT;
+                        return ObjectGroup.OBJECTFORMAT + extension;
                     case ID:
                         // Valid for Unit and OG
                         return MetadataDocument.ID;
                     case QUALIFIERS:
                         // Valid for OG
-                        return MetadataDocument.QUALIFIERS;
+                        return MetadataDocument.QUALIFIERS + extension;
                     case NBUNITS:
                         // Valid for Unit
                         return Unit.NBCHILD;
@@ -111,7 +122,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.UNITUPS;
                     case MANAGEMENT:
                         // Valid for Unit
-                        return Unit.MANAGEMENT;
+                        return Unit.MANAGEMENT + extension;
                     case OPERATIONS:
                         // Valid for Unit and OG
                         return MetadataDocument.OPS;

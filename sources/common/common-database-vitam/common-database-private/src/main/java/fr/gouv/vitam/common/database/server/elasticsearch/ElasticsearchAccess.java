@@ -52,6 +52,40 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
 
+    private static final String DEFAULT_FRENCH_STOP_WORDS = "\"_french_\"";
+    
+    private static final String FRENCH_STOP_WORDS = "[\"vers\", \"a\", \"à\", \"afin\", \"ai\", \"ainsi\", \"après\", \"au\", \"auquel\", \"aussi\", " +
+        "\"autre\", \"autres\", \"aux\", \"auxquelles\", \"auxquels\", \"avait\", \"c\", \"ça\", \"ce\", \"ceci\", \"cela\", \"celle\", \"celles\", " +
+        "\"celui\", \"cependant\", \"certain\", \"certaine\", \"certaines\", \"certains\", \"ces\", \"cet\", \"cette\", \"ceux\", \"chez\", \"ci\", " +
+        "\"combien\", \"comme\", \"comment\", \"concernant\", \"contre\", \"d\", \"dans\", \"de\", \"dedans\", \"dehors\", \"delà\", \"depuis\", " +
+        "\"des\", \"dès\", \"désormais\", \"desquelles\", \"desquels\", \"dessous\", \"dessus\", \"devant\", \"devers\", \"devra\", \"divers\", " +
+        "\"diverse\", \"diverses\", \"doit\", \"donc\", \"dont\", \"du\", \"duquel\", \"durant\", \"elle\", \"elles\", \"en\", \"entre\", " +
+        "\"environ\", \"et\", \"etc\", \"etre\", \"être\", \"eu\", \"eux\", \"hélas\", \"hormis\", \"hors\", \"hui\", \"il\", \"ils\", \"j\", \"je\", " +
+        "\"jusqu\", \"jusque\", \"l\", \"la\", \"là\", \"laquelle\", \"le\", \"lequel\", \"les\", \"lesquelles\", \"lesquels\", \"leur\", \"leurs\", " +
+        "\"lorsque\", \"lui\", \"ma\", \"mais\", \"malgré\", \"me\", \"même\", \"mêmes\", \"mes\", \"mien\", \"mienne\", \"miennes\", \"miens\", " +
+        "\"moi\", \"moins\", \"mon\", \"moyennant\", \"n\", \"ne\", \"néanmoins\", \"ni\", \"non\", \"nos\", \"notre\", \"nôtre\", \"nôtres\", " +
+        "\"nous\", \"ô\", \"on\", \"ont\", \"ou\", \"où\", \"outre\", \"par\", \"parmi\", \"pas\", \"pendant\", \"plein\", \"plus\", \"plusieurs\", " +
+        "\"pour\", \"pourquoi\", \"près\", \"proche\", \"puisque\", \"qu\", \"quand\", \"que\", \"quel\", \"quelle\", \"quelles\", \"quels\", \"qui\", " +
+        "\"quoi\", \"quoique\", \"revoici\", \"revoilà\", \"s\", \"sa\", \"sauf\", \"se\", \"selon\", \"seront\", \"ses\", \"si\", \"sien\", \"sienne\", " +
+        "\"siennes\", \"siens\", \"sinon\", \"soi\", \"soit\", \"son\", \"sont\", \"sous\", \"suivant\", \"sur\", \"ta\", \"te\", \"tes\", \"tien\", " +
+        "\"tienne\", \"tiennes\", \"tiens\", \"toi\", \"ton\", \"tous\", \"tout\", \"toute\", \"toutes\", \"tu\", \"un\", \"une\", \"va\", \"voici\", " +
+        "\"voilà\", \"vos\", \"votre\", \"vôtre\", \"vôtres\", \"vous\", \"vu\", \"y\"]";
+    /**
+     * Default Index Configuration
+     */
+    public static final String DEFAULT_INDEX_CONFIGURATION = "{\"analysis\":{" +
+        "\"analyzer\":{" +
+        "\"custom_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"nGram\"," +
+        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]}," +
+        "\"custom_search_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"standard\"," +
+        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]}}," +
+        "\"tokenizer\":{\"nGram\":{\"type\":\"nGram\",\"min_gram\":2,\"max_gram\":20}}," +
+        "\"filter\":{" +
+        "\"snowball\":{\"type\":\"snowball\",\"language\":\"French\"}," +
+        "\"elision\":{\"type\":\"elision\",\"articles\":[\"l\",\"m\",\"t\",\"qu\",\"n\",\"s\",\"j\",\"d\"]}," +
+        "\"stopwords\":{\"type\":\"stop\",\"stopwords\":" + DEFAULT_FRENCH_STOP_WORDS + ",\"ignore_case\":true}," +
+        "\"worddelimiter\":{\"type\":\"word_delimiter\"}}}}";
+
     protected final TransportClient client;
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;

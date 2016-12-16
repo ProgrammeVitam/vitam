@@ -47,7 +47,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 /**
  * ObjectGroup:<br>
  *
- * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _tenant : tenant, _type:
+ * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _tenant : tenant, _profil:
  *                audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nbc : nb objects, _uses : [
  *                { strategy : conservationId, versions : [ { // Object _version : rank, _creadate : date, _id:
  *                UUIDObject, digest : { val : val, typ : type }, size: size, fmt: fmt, MD techniques, _copies : [ { sid

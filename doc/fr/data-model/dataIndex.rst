@@ -54,7 +54,7 @@ Collection Unit
 Les champs suivants sont indexés nativement dans MongoDB:
 
 - \_tenant qui stocke l'identifiant du tenant concerné
-- ArchiveUnitProfile (devrait être nommé \_type) qui stocke le type d'archive
+- ArchiveUnitProfile (devrait être nommé \_profil) qui stocke le type d'archive
 - \_up qui stocke les parents immédiats de l'archive
 - \_og qui stocke l'object group lié s'il existe
 - \_us qui stocke la liste de tous les parents (jusqu'à la racine) de l'archive
@@ -71,7 +71,7 @@ Collection ObjectGroup
 Les champs suivants sont indexés nativement dans MongoDB:
 
 - \_tenantId (devrait être nommé \_tenant)  qui stocke l'identifiant du tenant concerné
-- \_type qui stocke le type d'objet numérique
+- \_profil qui stocke le type d'objet numérique
 - \_up qui stocke les parents immédiats de l'objet numérique
 - \_ops qui stocke l'ensemble des opérations auxquelles a participé l'objet numérique
 - \_qualifiers.Xxxx.versions.\_id qui stocke les identifiants des sous-objets pour les qualifiers PhysicalMaster, BinaryMaster, Dissemination, Thumbnail et TextContent
