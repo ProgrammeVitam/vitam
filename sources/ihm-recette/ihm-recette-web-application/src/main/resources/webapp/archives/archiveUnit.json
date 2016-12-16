@@ -83,7 +83,7 @@
     "_og": "ObjectGroupGuid",
     "_nb": "nb_fils_immediat",
     "_dom": "tenantId",
-    "_type": "DocumentType",
+    "_profil": "DocumentType",
     "_entry": "entryId"
   }
     ]
