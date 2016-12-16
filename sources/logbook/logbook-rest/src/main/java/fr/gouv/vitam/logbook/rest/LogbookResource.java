@@ -379,11 +379,11 @@ public class LogbookResource extends ApplicationStatusResource {
                 resultAsJson.add(JsonHandler.toJsonNode(logbook));
             }
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(result.size(), 0, 1)
-                    .setQuery(query)
-                    .addAllResults(resultAsJson))
-                .build();
+                    .entity(new RequestResponseOK()
+                        .setHits(result.size(), 0, 1)
+                        .setQuery(query)
+                        .addAllResults(resultAsJson))
+                    .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;
