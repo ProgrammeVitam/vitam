@@ -29,95 +29,95 @@
 
 angular.
 module('ihm.demo').
-  config(['$locationProvider' ,'$routeProvider',
-    function config($locationProvider, $routeProvider) {
-      $locationProvider.hashPrefix('!');
+config(['$locationProvider' ,'$routeProvider',
+  function config($locationProvider, $routeProvider) {
+    $locationProvider.hashPrefix('!');
 
-      $routeProvider.
-      when('/login', {
-        templateUrl: 'views/login.html'
-      }).
-      when('/archiveSearch', {
-        template: '<archive-search></archive-search>'
-      }).
-      when('/admin', {
-        templateUrl: "views/admin.html"
-      }).
-      when('/archiveGestion', {
-        templateUrl: "views/in-progress.html"
-      }).
-      when('/uploadSIP', {
-        templateUrl: "views/upload-sip.html",
-        controller: "uploadController"
-      }).
-      when('/uploadSIP2', {
-        templateUrl: "views/upload-sip-2.html",
-        controller: "uploadController"
-      }).
-      when('/archiveunit/:archiveId', {
-        template: '<archive-unit></archive-unit>'
-      }).
-      when('/admin/logbookOperations', {
-        template: '<logbook-operations></logbook-operations>'
-      }).
-      when('/admin/formats', {
-        template: '<file-format></file-format>'
-      }).
-      when('/admin/rules', {
-        template: '<file-rules></file-rules>'
-      }).
-      when('/admin/logbookLifecycle', {
-        templateUrl:  "views/in-progress.html"
-      }).
-      when('/admin/managementrules', {
-        templateUrl:  "views/in-progress.html"
-      }).
-      when('/admin/importPronoun', {
-        templateUrl: "views/import-Pronoun.html"
-      }).
-      when('/admin/importFileRules', {
-        templateUrl: "views/import-FileRules.html"
-      }).
-      when('/admin/journalOperations', {
-        template: '<all-logbook-operation></all-logbook-operation>'
-      }).
-      when('/admin/detailOperation/:entryId', {
-        templateUrl: 'views/logbookEntryFull.html',
-        controller: 'OperationLogbookEntryController'
-      }).
-      when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
-        template: '<lifecycle></lifecycle>'
-      }).
-      when('/uploadperf', {
-        template: '<upload-sip-perf></upload-sip-perf>'
-      }).
-      when('/accessionRegister/search', {
-        template: '<accession-register-search></accession-register-search>'
-      }).
-      when('/accessionRegister/detail/:accessionRegisterId', {
-        template: '<accession-register-details></accession-register-details>'
-      }).
-      otherwise('/uploadSIP');
-    }
-  ])
+    $routeProvider.
+    when('/login', {
+      templateUrl: 'views/login.html'
+    }).
+    when('/archiveSearch', {
+      template: '<archive-search></archive-search>'
+    }).
+    when('/admin', {
+      templateUrl: "views/admin.html"
+    }).
+    when('/archiveGestion', {
+      templateUrl: "views/in-progress.html"
+    }).
+    when('/uploadSIP', {
+      templateUrl: "views/upload-sip.html",
+      controller: "uploadController"
+    }).
+    when('/uploadSIP2', {
+      templateUrl: "views/upload-sip-2.html",
+      controller: "uploadController"
+    }).
+    when('/archiveunit/:archiveId', {
+      template: '<archive-unit></archive-unit>'
+    }).
+    when('/admin/logbookOperations', {
+      template: '<logbook-operations></logbook-operations>'
+    }).
+    when('/admin/formats', {
+      template: '<file-format></file-format>'
+    }).
+    when('/admin/rules', {
+      template: '<file-rules></file-rules>'
+    }).
+    when('/admin/logbookLifecycle', {
+      templateUrl:  "views/in-progress.html"
+    }).
+    when('/admin/managementrules', {
+      templateUrl:  "views/in-progress.html"
+    }).
+    when('/admin/importPronoun', {
+      templateUrl: "views/import-Pronoun.html"
+    }).
+    when('/admin/importFileRules', {
+      templateUrl: "views/import-FileRules.html"
+    }).
+    when('/admin/journalOperations', {
+      template: '<all-logbook-operation></all-logbook-operation>'
+    }).
+    when('/admin/detailOperation/:entryId', {
+      templateUrl: 'views/logbookEntryFull.html',
+      controller: 'OperationLogbookEntryController'
+    }).
+    when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
+      template: '<lifecycle></lifecycle>'
+    }).
+    when('/uploadperf', {
+      template: '<upload-sip-perf></upload-sip-perf>'
+    }).
+    when('/accessionRegister/search', {
+      template: '<accession-register-search></accession-register-search>'
+    }).
+    when('/accessionRegister/detail/:accessionRegisterId', {
+      template: '<accession-register-details></accession-register-details>'
+    }).
+    otherwise('/uploadSIP');
+  }
+])
   .config(function($translateProvider) {
-    $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
-    $translateProvider.useLoader('MessagesResource', {});
-    // prefered language set options for useLoader
-    $translateProvider.preferredLanguage('fr');
-   }
+      $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
+      $translateProvider.useLoader('MessagesResource', {});
+      // prefered language set options for useLoader
+      $translateProvider.preferredLanguage('fr');
+    }
   )
   .config(['flowFactoryProvider', function (flowFactoryProvider) {
-  flowFactoryProvider.defaults = {
-    target: '/ihm-demo/v1/api/ingest/upload2',
-    permanentErrors: [404, 500, 501, 502],
-    maxChunkRetries: 1,
-    chunkRetryInterval: 5000,
-    simultaneousUploads: 4
-  };
-  flowFactoryProvider.on('catchAll', function (event) {
-    console.log('catchAll', arguments);
-  });
-  // Can be used with different implementations of Flow.js
-  // flowFactoryProvider.factory = fustyFlowFactory;
-}]);
+    flowFactoryProvider.defaults = {
+      target: '/ihm-demo/v1/api/ingest/upload2',
+      permanentErrors: [404, 500, 501, 502],
+      maxChunkRetries: 1,
+      chunkRetryInterval: 5000,
+      simultaneousUploads: 4
+    };
+    flowFactoryProvider.on('catchAll', function (event) {
+      console.log('catchAll', arguments);
+    });
+    // Can be used with different implementations of Flow.js
+    // flowFactoryProvider.factory = fustyFlowFactory;
+  }]);

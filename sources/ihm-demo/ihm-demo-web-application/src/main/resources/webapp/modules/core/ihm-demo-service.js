@@ -64,7 +64,7 @@ angular.module('core')
 
   self.loadFromFile = function() {
     // File loaded only on the first call (change page or refresh page (F5) will fire another HTTP call
-    if (!promise) {
+    if (promise === null) {
       promise = $http.get(filePath);
     }
     return promise;

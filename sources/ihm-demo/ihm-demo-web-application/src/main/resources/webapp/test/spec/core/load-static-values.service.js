@@ -25,51 +25,31 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for accession register
-angular.module('core')
-  .service('accessionRegisterService', function(accessionRegisterResource) {
+'use strict';
 
-    var self = this;
+describe('loadStaticValues', function() {
+    beforeEach(module('ihm.demo'));
 
-    /**
-     * Get and process the promise for accession register details
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getDetails(accessionRegisterId, options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results);
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+    var LoadStaticValuesService;
+    var $http;
 
-    /**
-     * Get and process the promise for accession register summary
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getSummary(options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results[0]);
-          // TODO Add checks
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+    beforeEach(inject(function(_loadStaticValues_, _$http_) {
+        LoadStaticValuesService = _loadStaticValues_;
+        $http = _$http_;
+    }));
 
-  });
+    it('should do only one http call to get the promise', function() {
+        // Init a spy on $http.get
+        spyOn($http, 'get');
+
+        // Make the first request that trigg an http call and check that the call is done
+        expect($http.get).toHaveBeenCalledTimes(0);
+        LoadStaticValuesService.loadFromFile();
+        expect($http.get).toHaveBeenCalledTimes(1);
+
+        // Make the second request that don't trigg an http call and check that the call isn't done
+        LoadStaticValuesService.loadFromFile();
+        expect($http.get).toHaveBeenCalledTimes(1);
+    });
+
+});

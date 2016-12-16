@@ -25,51 +25,51 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for accession register
-angular.module('core')
-  .service('accessionRegisterService', function(accessionRegisterResource) {
+'use strict';
 
-    var self = this;
+describe('responseValidator', function() {
+  beforeEach(module('ihm.demo'));
 
-    /**
-     * Get and process the promise for accession register details
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getDetails(accessionRegisterId, options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results);
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  var ResponseValidatorService;
+  beforeEach(inject(function(_responseValidator_) {
+    ResponseValidatorService = _responseValidator_;
+  }));
 
-    /**
-     * Get and process the promise for accession register summary
-     *
-     * @param {String} accessionRegisterId - Service provider ID of the required accession register
-     * @param {Function} successCallbackFunction - Specific callback for success case
-     * @returns {*}
-     */
-    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
-      var options = {
-        OriginatingAgency: accessionRegisterId
-      };
-      return accessionRegisterResource.getSummary(options)
-        .then(function(response) {
-          successCallbackFunction(response.data.$results[0]);
-          // TODO Add checks
-          return response;
-        }, function (error) {
-          return error;
-        })
-    };
+  var responseNoData = {
+    '$results': [], '$hits': []
+  };
 
+  var responseNoHits = {
+    'data': {'$results': []}
+  };
+
+  var responseNoResults = {
+    'data': {'$hits': []}
+  };
+
+  var responseNullHits = {
+    'data': {'$hits': null, '$results': []}
+  };
+
+  var responseNullResults = {
+    'data': {'$hits': [], '$results': null}
+  };
+
+  var responseGoodResults = {
+    'data': {'$hits': [], '$results': ['response']}
+  };
+
+  it('should return false for error in response structure', function() {
+    expect(ResponseValidatorService.validateReceivedResponse(responseNoData)).toEqual(false);
+
+    expect(ResponseValidatorService.validateReceivedResponse(responseNoHits)).toEqual(false);
+    expect(ResponseValidatorService.validateReceivedResponse(responseNullHits)).toEqual(false);
+
+    expect(ResponseValidatorService.validateReceivedResponse(responseNoResults)).toEqual(false);
+    expect(ResponseValidatorService.validateReceivedResponse(responseNullResults)).toEqual(false);
   });
+
+  it('should return true if the response structure is good', function() {
+    expect(ResponseValidatorService.validateReceivedResponse(responseGoodResults)).toEqual(true);
+  })
+});

@@ -27,22 +27,51 @@
 
 'use strict';
 
-describe('ArchiveUnitSearchController', function() {
-beforeEach(module('archiveSearch'));
+describe('accessionRegisterService', function() {
+  beforeEach(module('ihm.demo'));
 
-var $controller;
+  var AccessionRegisterService, $httpBackend;
 
-beforeEach(inject(function(_$controller_){
-  // The injector unwraps the underscores (_) from around the parameter names when matching
-  $controller = _$controller_;
-}));
+  var identifier = '001';
+  var criteria = {OriginatingAgency: identifier};
+  var $scope = {};
+  var callback = function(response) {
+    $scope.response = response;
+  };
 
-describe('$scope.searchResults', function() {
-  it('should sort searchResults by some property, when clicking on the column header', function() {
-    var $scope = {};
-    var controller = $controller('OrderSearchResultController', { $scope: $scope });
-    $scope.sortBy('id');
-    expect($scope.reverse).toEqual(false);
+  beforeEach(inject(function ($injector) {
+    AccessionRegisterService = $injector.get('accessionRegisterService');
+    $httpBackend = $injector.get('$httpBackend');
+
+    // FIXME Expect languages because this request is always send
+    $httpBackend.when('GET', 'static/languages_fr.json').respond('test');
+  }));
+
+  afterEach(function() {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
   });
-});
+
+
+  it('should transfer the response from resource to service callback for getDetails', function() {
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/' + identifier + '/accession-register-detail/', criteria)
+      .respond({$hints: [], $results: [{id: identifier}]});
+
+    AccessionRegisterService.getDetails(identifier, callback);
+    $httpBackend.flush();
+    expect($scope.response.length).toEqual(1);
+    expect($scope.response[0].id).toEqual(identifier);
+  });
+
+  it('should transfer the response from resource to service callback for getSummary', function() {
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/', criteria)
+      .respond({$hints: [], $results: [{item: 'value'}]});
+
+    AccessionRegisterService.getSummary(identifier, callback);
+    $httpBackend.flush();
+    expect($scope.response.item).toEqual('value');
+  });
+
 });
