@@ -49,11 +49,11 @@
                 </a>
             </li>
             <li ng-class="logctrl.pageActive[0] ? 'active' : ''" ng-click="logctrl.diplayFromCurrentPage(0)"><a href=''>{{logctrl.currentPage}}</a></li>
-            <li ng-class="logctrl.pageActive[1] ? 'active' : ''" ng-if="logctrl.resultPages > logctrl.currentPage + 1" ng-click="logctrl.diplayFromCurrentPage(1)"><a href=''>{{logctrl.currentPage+1}}</a></li>
-            <li ng-class="logctrl.pageActive[2] ? 'active' : ''" ng-if="logctrl.resultPages > logctrl.currentPage + 2" ng-click="logctrl.diplayFromCurrentPage(2)"><a href=''>{{logctrl.currentPage+2}}</a></li>
-            <li ng-class="logctrl.pageActive[3] ? 'active' : ''" ng-if="logctrl.resultPages > logctrl.currentPage + 3" ng-click="logctrl.diplayFromCurrentPage(3)"><a href=''>{{logctrl.currentPage+3}}</a></li>
-            <li ng-class="logctrl.pageActive[4] ? 'active' : ''" ng-if="logctrl.resultPages > logctrl.currentPage + 4" ng-click="logctrl.diplayFromCurrentPage(4)"><a href=''>{{logctrl.currentPage+4}}</a></li>
-            <li ng-if="logctrl.resultPages > logctrl.currentPage + 4">
+            <li ng-class="logctrl.pageActive[1] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 1" ng-click="logctrl.diplayFromCurrentPage(1)"><a href=''>{{logctrl.currentPage+1}}</a></li>
+            <li ng-class="logctrl.pageActive[2] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 2" ng-click="logctrl.diplayFromCurrentPage(2)"><a href=''>{{logctrl.currentPage+2}}</a></li>
+            <li ng-class="logctrl.pageActive[3] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 3" ng-click="logctrl.diplayFromCurrentPage(3)"><a href=''>{{logctrl.currentPage+3}}</a></li>
+            <li ng-class="logctrl.pageActive[4] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 4" ng-click="logctrl.diplayFromCurrentPage(4)"><a href=''>{{logctrl.currentPage+4}}</a></li>
+            <li ng-if="logctrl.resultPages >= logctrl.currentPage + 4">
                 <a href='' aria-label="Next" ng-click="logctrl.getNextResults()">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
