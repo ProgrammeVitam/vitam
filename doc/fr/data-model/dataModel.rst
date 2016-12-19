@@ -713,6 +713,13 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.
     Donne plus de détail sur l'évènement.
+    Dans le cas d'un évènement final d'une opération de type traceability, ce champ contient un objet composé des champs suivants :
+      - startDate
+      - endDate
+      - hash
+      - timestampToken
+      - nbOfElement
+      - fileName
 
     *Ce champ existe pour les structures incluantes et incluses*
 
