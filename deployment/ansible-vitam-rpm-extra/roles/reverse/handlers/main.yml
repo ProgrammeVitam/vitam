@@ -1,4 +1,17 @@
 ---
+
+# TODO: try replace sed by: |openssl rsa -inform PEM -outform PEM [-pubout]
+# Best way to do that is to use openssl rsa but after it the certificate headers are missing
+# We should investigate more on this subject as sed should not be used for that...
+- name: extract certificate
+  shell: "openssl pkcs12 -nodes -in /etc/httpd/certs/keystore_client_{{environnement}}.p12 -passin pass:'{{p12_reverse_password}}' -out /etc/httpd/certs/keystore_client_{{environnement}}.pem && sed -i 's/ PRIVATE KEY/ RSA PRIVATE KEY/g' /etc/httpd/certs/keystore_client_{{environnement}}.pem"
+
+- name: set certificate attributes
+  file:
+    path: "/etc/httpd/certs/keystore_client_{{environnement}}.pem"
+    owner: apache
+    mode: 0400
+
 - name: reload apache httpd
   service:
     name: "httpd"

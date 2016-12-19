@@ -59,6 +59,10 @@ ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 # for sudo in automatic deployment ; note : ansible needs epel repo
 RUN yum install -y sudo ansible which
 
+################################  Install openssl  ###############################
+
+RUN yum install -y openssl
+
 ##################################  Declare local rpm repo  #################################
 
 # Note : declare at the end ; else other yum commandes will fail. Ideally, we would need a "createrepo" here, but it wouldn't work, as the volume /code is normally mounter externally.

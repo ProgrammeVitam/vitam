@@ -5,28 +5,40 @@
     name: httpd
     state: latest
 
+- name: Ensure mod_ssl is installed
+  yum:
+    name: mod_ssl
+    state: present
+
 - name: create DocumentRoot directory
   file:
-    path: /var/www/html-{{environnement}}
+    path: "/var/www/html-{{environnement}}"
     state: directory
     owner: root
     mode: 0755
   notify:
      - reload apache httpd
 
-# FIXME - which group do we have to set ?
-- name: create logs-nightly-builds subdirectory
+- name: create nightly-deploy subdirectory
   file:
-    path: /var/www/html-{{environnement}}/logs-nightly-deploy
+    path: "/var/www/html-{{environnement}}/logs-nightly-deploy"
     state: directory
     owner: root
     group: "{{ansible_user_id}}"
     mode: 0775
 
+- name: create certificates directory
+  file:
+    path: "/etc/httpd/certs"
+    state: directory
+    owner: root
+    group: apache
+    mode: 0550
+
 - name: copy index resources
   copy:
     src: "{{item}}"
-    dest: /var/www/html-{{environnement}}/
+    dest: "/var/www/html-{{environnement}}/"
     owner: root
     mode: 0644
   with_items:
@@ -39,7 +51,7 @@
 - name: copy index default page
   template:
     src: index.html.j2
-    dest: /var/www/html-{{environnement}}/index.html
+    dest: "/var/www/html-{{environnement}}/index.html"
     owner: root
     mode: 0644
   tags:
@@ -47,13 +59,30 @@
   notify:
      - reload apache httpd
 
+- name: copy certificate
+  copy:
+    src: "keystore_client.p12"
+    dest: "/etc/httpd/certs/keystore_client_{{environnement}}.p12"
+    owner: apache
+    mode: 0400
+  notify:
+    - extract certificate
+    - set certificate attributes
+
+- name: Copy the CA
+  copy:
+    src: ca_client.crt
+    dest: "/etc/httpd/certs/ca_client_{{environnement}}.crt"
+    owner: apache
+    mode: 0400
+
 - name: copy httpd configuration template
   template:
     src: httpd_config
-    dest: /etc/httpd/conf.d/zz_{{vitam_reverse_external_dns}}.conf
+    dest: "/etc/httpd/conf.d/zz_{{vitam_reverse_external_dns}}.conf"
     owner: root
     mode: 0644
   tags:
     - update_package_vitam
   notify:
-     - reload apache httpd
+    - reload apache httpd

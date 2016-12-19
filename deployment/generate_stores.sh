@@ -57,7 +57,7 @@ for j in ingest access; do
 		echo "Génération du keystore de access-external"
 		echo "	Génération pour ${i}..."
 		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_ingest-external.jks keystore_ingest-external ${KeyStorePassword_ingest_external}
-		
+
 		# Importer les clés de ingest-external
 		echo "	Import du p12 de ${j}-external dans le keystore"
 		#addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_ingest-external.jks ${KeyStorePassword_ingest_external} ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/ingest-external.p12 ${p12_ihm_demo_password} ingest-external
@@ -89,10 +89,11 @@ for j in ingest access; do
 
 	#	generatetruststore ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihmdemotototiti ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_ingest-external.jks grantedstore_ingest-external ${grantedKeyStorePassphrase_ingest_external}
 	#	generatetruststore ${REPERTOIRE_CA}/server_intermediate/ca.crt azerty ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-		echo "	Import certificat IHM-demo & ihm-recette du grantedstore de ${j}-external..."	
+		echo "	Import certificat IHM-demo, ihm-recette & reverse dans le grantedstore de ${j}-external..."
 		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
 		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihm-demo
 		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ihm-recette.crt ihm-recette
+        addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/reverse/reverse.crt reverse
 		echo "------------------------------------------------"
 	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
 	done
