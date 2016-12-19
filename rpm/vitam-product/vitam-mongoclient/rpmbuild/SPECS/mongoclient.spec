@@ -1,16 +1,17 @@
-Name:          vitam-mongoclient
-Version:       1.4.0
-Release:       1%{?dist}
-Summary:       Mongoclient is a completely free and open-source mongodb management tool. It’s written in MeteorJS. Additionally it’s fully responsive and have a nice look and feel. Available on most platforms including Mac, Linux, Windows with portable distributions, as an advantage of responsive design and MeteorJS, it’s easier to use Mongoclient on most mobile platforms.
-Group:         Applications/Databases
-License:       MIT
-BuildArch:     x86_64
-URL:           http://www.mongoclient.com/
-Source0:       https://github.com/rsercano/mongoclient/archive/%{version}.zip
-Source1:       vitam-mongoclient.service
-Source2:       vitam-mongoclient.conf
-%global        vitam_service_name mongoclient
-%global        debug_package %{nil}
+Name:           vitam-mongoclient
+Version:        1.4.0
+Release:        2%{?dist}
+Summary:        Mongoclient is a completely free and open-source mongodb management tool. It’s written in MeteorJS. Additionally it’s fully responsive and have a nice look and feel. Available on most platforms including Mac, Linux, Windows with portable distributions, as an advantage of responsive design and MeteorJS, it’s easier to use Mongoclient on most mobile platforms.
+Group:          Applications/Databases
+License:        MIT
+BuildArch:      x86_64
+URL:            http://www.mongoclient.com/
+Source0:        https://github.com/rsercano/mongoclient/archive/%{version}.zip
+Source1:        vitam-mongoclient.service
+Source2:        vitam-mongoclient.conf
+%global         vitam_service_name mongoclient
+%global         debug_package %{nil}
+%global         meteor_version 1.4.2
 
 BuildRequires: systemd-units
 Requires:      systemd
@@ -42,6 +43,8 @@ mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}/
 mkdir -p %{buildroot}/vitam/conf/%{vitam_service_name}/
 cp %{SOURCE2} %{buildroot}/vitam/conf/%{vitam_service_name}/
 cp -r %{_builddir}/bundle/* %{buildroot}/vitam/bin/%{vitam_service_name}/
+cp %{_topdir}/../.meteor/packages/meteor-tool/%{meteor_version}/mt-os.linux.x86_64/dev_bundle/bin/node %{buildroot}/vitam/bin/%{vitam_service_name}
+
 %pre
 
 %post
@@ -58,8 +61,9 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%attr(700, root, root) %{_unitdir}/vitam-mongoclient.service
+%attr(700, root, root)   %{_unitdir}/vitam-mongoclient.service
 %attr(750, vitam, vitam) /vitam/bin/%{vitam_service_name}
+%config(noreplace)       /vitam/conf/%{vitam_service_name}
 %attr(750, vitam, vitam) /vitam/conf/%{vitam_service_name}
 
 %doc
