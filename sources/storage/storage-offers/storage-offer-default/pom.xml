@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-offers</artifactId>
-		<version>0.11.0</version>
+		<version>0.11.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-offer-default</artifactId>
 	<name>Storage Offer Default (workspace based)</name>
