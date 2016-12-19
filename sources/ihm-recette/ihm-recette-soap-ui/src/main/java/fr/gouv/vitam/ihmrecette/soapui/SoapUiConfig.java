@@ -42,6 +42,10 @@ public class SoapUiConfig {
     private String accessExternalHost;
 
     private String certfile;
+    private String certPass;
+    private String trustFile;
+    private String trustPass;
+
     private String dataDir;
     private String reportingDir;
     private String configDir;
@@ -216,6 +220,46 @@ public class SoapUiConfig {
         ParametersChecker.checkParameter("configDir is mandatory", configDir);
         this.configDir = configDir;
         return this;
+    }
+
+    /**
+     * @return certPass
+     */
+    public String getCertPass() {
+        return certPass;
+    }
+    /**
+     * @param certPass trustore that need to be used
+     * @return SoapUiConfig
+     */
+    public void setCertPass(String certPass) {
+        this.certPass = certPass;
+    }
+    /**
+     * @return trustore
+     */
+    public String getTrustFile() {
+        return trustFile;
+    }
+    /**
+     * @param truststore trustore that need to be used
+     * @return SoapUiConfig
+     */
+    public void setTrustore(String truststore) {
+        this.trustFile = truststore;
+    }
+    /**
+     * @return trustPass
+     */
+    public String getTrustPass() {
+        return trustPass;
+    }
+    /**
+     * @param trustPass trustPass that need to be used
+     * @return SoapUiConfig
+     */
+    public void setTrustPass(String trustPass) {
+        this.trustPass = trustPass;
     }
 
     /**

@@ -72,6 +72,11 @@ public class SoapUiClientCommand implements SoapUiClient {
         final String ingestHost = ingestProtocol + "://" + ingestHostName + ":" + ingestPort + "/";
 
         final String certfile = clientConfiguration.getCertfile();
+        final String certpass = clientConfiguration.getCertPass();
+
+        final String truststore = clientConfiguration.getTrustFile();
+        final String trustpass = clientConfiguration.getTrustPass();
+
         final String dataDir = clientConfiguration.getDataDir();
         final String reportingDir = clientConfiguration.getReportingDir();
         final String configDir = clientConfiguration.getConfigDir();
@@ -82,6 +87,9 @@ public class SoapUiClientCommand implements SoapUiClient {
         cmdBuilder.append(" -P ingestHost=").append(ingestHost);
         cmdBuilder.append(" -P logbookHost=").append(logbookHost);
         cmdBuilder.append(" -P certfile=").append(certfile);
+        cmdBuilder.append(" -P certPass=").append(certpass);
+        cmdBuilder.append(" -P truststore=").append(truststore);
+        cmdBuilder.append(" -P trustPass=").append(trustpass);
         cmdBuilder.append(" -P dataDir=").append(dataDir);
         cmdBuilder.append(" -P reportingDir=").append(reportingDir);
         cmdBuilder.append(" -P configDir=").append(configDir);
