@@ -6,7 +6,11 @@ accessExternalProtocol: https
 accessExternalPort: {{vitam_accessexternal_port_https}}
 accessExternalHost: {{vitam_accessexternal_host}}
 
-certfile: {{vitam_folder_conf}}/keystore_ihm-recette.pem
+certfile: {{vitam_folder_conf}}/keystore_{{ vitam_component }}.p12
+certPass: {{ p12_ihm_recette_password }}
+trustFile: {{vitam_folder_conf}}/truststore_ihm-recette.jks
+trustPass: {{ TrustStore_ihm_recette_password }}
+
 dataDir: {{vitam_folder_data}}/
 reportingDir: {{vitam_folder_app}}/
 configDir: {{vitam_folder_data}}/
