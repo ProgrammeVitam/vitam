@@ -274,19 +274,6 @@ public class DslQueryHelperTest {
         assertTrue(updateParser.getRequest().getActions().size() == 1);
     }
 
-    /**
-     * Tests CreateUpdateDSLQuery with invalid input parameter (empty value)
-     *
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
-     */
-    @Test(expected = InvalidParseOperationException.class)
-    public void testUpdateQueryInvalidParseOperationExceptionWithEmptyValue()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
-        queryMap.put("title", "");
-        DslQueryHelper.createUpdateDSLQuery(queryMap);
-    }
 
     /**
      * Tests CreateUpdateDSLQuery with invalid input parameter (empty key)
