@@ -129,10 +129,6 @@ log.info 'Cert: ' + cert
 log.info 'File uploaded: ' + context.dataDir+context.sipName
 
 def ope_id = null
-
-// TODO : Certificat + Default Chunk (see why?)
-//http.headers = ["Transfer-Encoding":"chunked"]
-
 def http = new HTTPBuilder( url )
 
 if (url.startsWith('https')) {
@@ -255,7 +251,7 @@ if (reponse !=null )
 				currentEventOutCome = result.$results[0].events[j].outcome
 				if (currentAction == currentEventType &amp;&amp; currentEventOutCome != 'STARTED') {
 					log.info 'outIteration : ' + context.outIteration
-					context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
+					context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].actions[a].expected
 					context.outputJson.params[context.outIteration].observed = result.$results[0].events[j].outcome
 					context.outputJson.params[context.outIteration].result = context.outputJson.params[context.outIteration].expected == context.outputJson.params[context.outIteration].observed
 					break;
