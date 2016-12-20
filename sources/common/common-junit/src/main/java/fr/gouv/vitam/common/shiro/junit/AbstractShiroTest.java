@@ -93,6 +93,9 @@ public abstract class AbstractShiroTest {
         return SecurityUtils.getSecurityManager();
     }
 
+    /**
+     * Clear shiro configuration and dependencies after all tests of the class.
+     */
     @AfterClass
     public static void tearDownShiro() {
         doClearSubject();
