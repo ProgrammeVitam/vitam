@@ -1,5 +1,5 @@
-Mise à niveau
-#############
+Procédure de mise à niveau
+##########################
 
 
 Cette section décrit globalement le processus de mise à niveau d'une solution VITAM déjà en place et ne peut se substituer aux recommandations effectuées dans la "release note" associée à la fourniture des composants mis à niveau.

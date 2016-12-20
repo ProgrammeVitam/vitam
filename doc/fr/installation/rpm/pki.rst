@@ -1,16 +1,15 @@
-PKI
-###
+Explications relatives à la PKI
+###############################
 
 Les commandes sont à passer dans le sous-répertoire ``deployment`` de la livraison.
 
 Valorisation des variables propres à l'environnement
 ====================================================
 
-.. note:: Afin de réaliser l'étape ci-dessous, le mot de passe par défaut se situe dans le fichier ``vault_pass.txt``. Après avoir changé ce mot de passe, ne pas oublier de le remplacer dans le fichier ``vault_pass.txt``.
+.. note:: Afin de réaliser l'étape ci-dessous, le mot de passe par défaut du fichier ``vault.yml`` se situe dans le fichier ``vault_pass.txt``. Après avoir changé ce mot de passe, ne pas oublier de le mettre à jour dans le fichier ``vault_pass.txt``.
 
-.. warning:: Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments-rpm/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
 
-Le fichier ``environments-rpm/group_vars/all/vault.yml`` a été généré avec un mot de passe ; le changer par la commande :
+Le fichier ``environments-rpm/group_vars/all/vault.yml`` a été généré avec un mot de passe (change_it) ; le changer par la commande :
 
 .. code-block:: bash
 
@@ -28,7 +27,7 @@ Puis, éditer le fichier ``environments-rpm/hosts.<environnement>`` et le mettre
 
 .. note:: les scripts des étapes suivantes utilisent ``environments-rpm/group_vars/all/vault.yml`` et, s'il existe, le fichier ``vault_pass.txt`` qui contient le mot de passe du fichier ``vault``. Si ``vault_pass.txt`` n'existe pas, le mot de passe de ``environments-rpm/group_vars/all/vault.yml`` sera demandé.
 
-.. caution:: par la suite, le terme <environnement> correspond à l'extension du fichier d'inventaire.
+.. caution:: par la suite, le terme <environnement> correspond à l'extension du nom de fichier d'inventaire.
 
 
 Génération des autorités de certification
