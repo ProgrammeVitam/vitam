@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>vitam-all</artifactId>
-	<version>0.11.1-RC1</version>
+	<version>0.11.1-RC2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-all</name>
 	<description>${project.artifactId}</description>

@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>processing</artifactId>
-    <version>0.11.1-RC1</version>
+    <version>0.11.1-RC2-SNAPSHOT</version>
   </parent>
   <artifactId>processing-distributor-client</artifactId>
   <name>Processing Distributor Client</name>
