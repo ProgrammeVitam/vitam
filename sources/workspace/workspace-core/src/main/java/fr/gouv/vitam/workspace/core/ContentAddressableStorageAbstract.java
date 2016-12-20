@@ -428,9 +428,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
-                    // TODO P1 REVIEW the UriUtils does not what is specified: it
-                    // only removes the first folder, not the
-                    // extension and only for uri with "." in it
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }
