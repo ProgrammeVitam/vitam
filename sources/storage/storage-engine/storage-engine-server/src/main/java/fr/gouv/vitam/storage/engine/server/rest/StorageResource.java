@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -933,6 +934,29 @@ public class StorageResource extends ApplicationStatusResource {
         } else {
             return getObjectInformationWithPost(headers, manifestId);
         }
+    }
+    
+    /**
+     * getManifest stored by ingest operation
+     *  
+     * @param headers
+     * @param objectId
+     * @param asyncResponse
+     * @throws IOException
+     */
+    @Path("/manifests/{id_manifest}")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getManifest(@Context HttpHeaders headers, @PathParam("id_manifest") String objectId,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                getByCategoryAsync(objectId, headers, DataCategory.MANIFEST, asyncResponse);
+            }
+        });
+
     }
 
 

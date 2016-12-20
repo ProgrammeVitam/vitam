@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Management API package
+ * Provides API classes for the Processing Management module
  *
  */
 package fr.gouv.vitam.processing.management.api;

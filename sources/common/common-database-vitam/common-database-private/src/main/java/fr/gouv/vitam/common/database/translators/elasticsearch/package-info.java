@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Translator for Elasticsearch
+ * Provides translators for Elasticsearch
  *
  */
 package fr.gouv.vitam.common.database.translators.elasticsearch;

@@ -1,8 +1,7 @@
 <div id="global" class="container-fluid">
 	<ol class="breadcrumb">
-		<li><a href="#">Page d'accueil</a></li>
-		<li><a href="#">Administration</a></li>
-		<li><a href="#">Journal des Opérations</a></li>
+		<li>Page d'accueil</li>
+		<li>Journal des Opérations</li>
 	</ol>
 
 	<div class="panel panel-default col-md-12">
@@ -42,11 +41,11 @@
 
 	<!-- Pagination -->
 	<div style="text-align: center">
-		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
+		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=+logctrl.currentPage-1">
             Précédent
     	</button>
     	<input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
-    	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=logctrl.currentPage+1">
+    	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=+logctrl.currentPage+1">
             Suivant
     	</button>		
 	</div>

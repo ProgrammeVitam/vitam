@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Ingest extern core module
+ * Provides core implementation for the Ingest External module. 
+ *
  */
 package fr.gouv.vitam.ingest.external.core;

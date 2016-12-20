@@ -118,16 +118,17 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         // FIXME P1
     }
 
+    
     @Override
-    public void deleteContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-
+    public void deleteContainer(String containerName, boolean recursive)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {        
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-
         Response response = null;
         try {
-            response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, null,
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();                
+            headers.add(GlobalDataRest.X_RECURSIVE, recursive);
+            response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, headers,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
@@ -145,14 +146,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
-    }
-
-    @Override
-    public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        // FIXME P1 since both methods right now to the same thing
-        deleteContainer(containerName);
     }
 
     @Override

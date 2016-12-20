@@ -3,6 +3,10 @@
 
 *Notes: actuellement la base URI est **access-external/{version}**, cependant, il pourra être envisagé de séparer les ressources dans un autre service. On pourrait envisager par exemple un point d'entrée logbooks-external/{version} en plus du access-externak/{version}, afin de faciliter les accès.*
 
+# API LogBook externe
+
+les API externe dans le projet Vitam supportent le POST-X-HTTP-OVERRIDE=GET par contre au niveau des API interne ils supportent seulement le GET .
+
 # Operations
 
 **operations** est le point d'entrée pour tous les journaux des opérations réalisées dans Vitam (Journal du Service d'Archivage Electronique).

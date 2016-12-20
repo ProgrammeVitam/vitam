@@ -28,30 +28,38 @@ package fr.gouv.vitam.ingest.internal.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -137,6 +145,13 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             InputStream uploadedInputStream) {
             return expectedResponse.post();
+        }
+        
+        @GET
+        @Path("/ingests/{objectId}/{type}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
+            return expectedResponse.get();
         }
 
         @Path("/logbooks")
@@ -313,5 +328,23 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
         assertEquals(500, response.getStatus());
         assertNotNull(response.readEntity(String.class));
+    }
+    
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenReturnOK()
+        throws Exception {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        final InputStream fakeUploadResponseInputStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
+        try {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                IOUtils.toInputStream("test")));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 }

@@ -27,21 +27,8 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-
-import org.apache.commons.lang.BooleanUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -52,6 +39,16 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang.BooleanUtils;
+
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Siegfried implementation of format identifier
@@ -66,8 +63,6 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
      */
     public static final String UNKNOW_NAMESPACE = "UNKNOWN";
     private final SiegfriedClient client;
-    // FIXME P1 Unused
-    private final Path rootPath;
     private final Path versionPath;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentifierSiegfried.class);
@@ -101,7 +96,6 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
 
             factory.changeConfiguration(host, port);
             client = factory.getClient();
-            rootPath = Paths.get(root);
             versionPath = Paths.get(version);
 
             final Boolean createVersionPath = (Boolean) configurationProperties.get("createVersionPath");
@@ -119,7 +113,6 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             LOGGER.info("Bad value of client. Use mock");
             factory.changeConfiguration(null, 0);
             client = factory.getClient();
-            rootPath = Paths.get(root);
             versionPath = Paths.get(version);
         }
     }
@@ -128,12 +121,10 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
      * For JUnit ONLY
      *
      * @param mockedClient a custom instance of siegfried client
-     * @param rootPath the siegfried data root path
      * @param versionPath the version request path
      */
-    FormatIdentifierSiegfried(SiegfriedClient mockedClient, Path rootPath, Path versionPath) {
+    FormatIdentifierSiegfried(SiegfriedClient mockedClient, Path versionPath) {
         client = mockedClient;
-        this.rootPath = rootPath;
         this.versionPath = versionPath;
     }
 

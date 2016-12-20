@@ -45,7 +45,7 @@ public class UriUtilsTest {
     }
 
 
-    @Test
+    @Test(expected=IllegalArgumentException.class)
     public void givenNullUriWhenSplitThenRaiseAnException() {
         final String splitedString = UriUtils.splitUri(uriNull);
         assertNotNull(splitedString);

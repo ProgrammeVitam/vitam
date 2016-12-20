@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 
 /**
- * Logbook client interface
+ * Siegfried client interface
  */
 public interface SiegfriedClient extends MockOrRestClient {
 

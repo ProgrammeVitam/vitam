@@ -230,7 +230,7 @@ public class SelectObjectGroupResourceTest {
             .when()
             .post(OBJECT_GROUPS_URI)
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -242,7 +242,7 @@ public class SelectObjectGroupResourceTest {
             .when()
             .post(OBJECT_GROUPS_URI)
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -253,7 +253,7 @@ public class SelectObjectGroupResourceTest {
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
             .post("/units/").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 

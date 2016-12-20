@@ -713,6 +713,13 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.
     Donne plus de détail sur l'évènement.
+    Dans le cas d'un évènement final d'une opération de type traceability, ce champ contient un objet composé des champs suivants :
+      - startDate
+      - endDate
+      - hash
+      - timestampToken
+      - nbOfElement
+      - fileName
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -1392,7 +1399,7 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 
 "OriginatingAgency": { "OrganizationDescriptiveMetadata": Métadonnées de description concernant le service producteur }
 
-_type (#type): Type de document utilisé lors de l'entrée, correspond au ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée
+_profil (#type): Type de document utilisé lors de l'entrée, correspond au ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée
 
 "_mgt" (#management): possède les balises reprises du bloc <Management> du bordereau (règles de gestion) pour cette unité archivistique ainsi que les dates d'échance calculées (endDate)
 
@@ -1412,7 +1419,7 @@ Exemple de Json stocké en base
    {
      "_id": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
      "_tenant": 0,
-     "_type": "",
+     "_profil": "",
      "FileInfo": {},
      "_qualifiers": {
          "Thumbnail": {
@@ -1588,7 +1595,7 @@ Cet id est ensuite reporté dans chaque structure inculse
 
 "_tenant" (#tenant): identifiant du tenant
 
-"_type" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du manifeste qui concerne le BinaryMaster.
+"_profil" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du manifeste qui concerne le BinaryMaster.
 Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
 Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...)
 
@@ -2064,7 +2071,7 @@ Annexes
 =======
 
 Valeurs possibles pour le champ evType logBook Operation
----------------------------------------------------------
+--------------------------------------------------------
 
   ===================================== ========================================================================================== ======================================================================
   Code evtType                          Fr EventType Label                                                                         EN EventType Label
@@ -2104,7 +2111,7 @@ Valeurs possibles pour le champ evType logBook Operation
   ===================================== ========================================================================================== ======================================================================
 
 Valeurs possibles pour le champ evType logBook LifeCycle
----------------------------------------------------------
+--------------------------------------------------------
 
   ====================================== =========================================================================================================
   Code evtType                              Label de evtType
@@ -2158,7 +2165,7 @@ Valeurs possibles pour le champ evTypeProc
  =================================== ===================
 
 Prefixes possibles des RulesId
--------------------------------
+------------------------------
 
  ========= ============================== ===================================================================================
  Prefixe    Type de règle correspondante   Description du type de règle

@@ -90,6 +90,26 @@ angular.module('ihm.demo')
       });
     };
 
+      ctrl.downloadObject = function(objectId, type) {
+          ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
+              var a = document.createElement("a");
+              document.body.appendChild(a);
+
+              var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+              a.href = url;
+
+              if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+                a.download = response.headers('content-disposition').split('filename=')[1];
+                a.click();
+              }
+          }, function(response) {
+            $mdDialog.show($mdDialog.alert().parent(
+              angular.element(document.querySelector('#popupContainer')))
+              .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
+              .ariaLabel('Alert Dialog Demo').ok('OK'));
+          });
+        };
+
     ctrl.clearSearchOptions = function() {
       ctrl.searchOptions = {};
     };

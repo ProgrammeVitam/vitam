@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Vitam Server Commons
+ * Provides a Common Vitam Server Interface 
  */
 package fr.gouv.vitam.common.server;

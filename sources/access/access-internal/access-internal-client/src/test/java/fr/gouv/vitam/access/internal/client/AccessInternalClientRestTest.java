@@ -194,16 +194,6 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        @POST
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-            @PathParam("id_object_group") String idObjectGroup, JsonNode query) {
-            return expectedResponse.post();
-        }
-
-        @Override
         @GET
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -213,18 +203,6 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             JsonNode query, @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.get());
         }
-
-        @Override
-        @POST
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public void getObjectStreamPostAsync(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup, JsonNode query,
-            @Suspended final AsyncResponse asyncResponse) {
-            asyncResponse.resume(expectedResponse.post());
-        }
-
     }
 
     @RunWithCustomExecutor
@@ -409,7 +387,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
@@ -418,7 +396,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
@@ -427,7 +405,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
@@ -436,7 +414,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.selectObjectbyId(queryJson, ID);
     }
@@ -445,7 +423,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectObjectbyId(queryJson, ID)).isNotNull();
     }
@@ -461,7 +439,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
@@ -470,7 +448,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
@@ -479,7 +457,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
@@ -488,7 +466,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessInternalClientNotFoundException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         client.getObject(queryJson, ID, USAGE, VERSION);
     }
@@ -497,7 +475,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         final InputStream stream = client.getObject(queryJson, ID, USAGE, VERSION).readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");

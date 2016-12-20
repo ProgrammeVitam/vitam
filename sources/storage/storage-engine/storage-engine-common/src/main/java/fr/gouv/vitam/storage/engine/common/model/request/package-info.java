@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Common object holding data used to retrieve an Object from the workspace
+ * Provides common Request classes for the Storage Engine module.
  */
 package fr.gouv.vitam.storage.engine.common.model.request;

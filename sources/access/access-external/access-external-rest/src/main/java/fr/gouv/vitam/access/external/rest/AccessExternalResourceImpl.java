@@ -67,7 +67,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -77,6 +76,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -115,7 +115,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryJson);
             result = client.selectUnits(queryJson);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
@@ -129,6 +128,30 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits ", e);
             status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+    }
+
+    /**
+     * get units list by query with POST method
+     *
+     * @param queryJson
+     * @param xhttpOverride
+     * @return Response
+     */
+    @POST
+    @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createOrSelectUnits(JsonNode queryJson,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
+        Status status;
+        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+            return getUnits(queryJson);
+        } else {
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -149,38 +172,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
-
-    /**
-     * get units list by query with POST method
-     *
-     * @param queryJson
-     * @param xhttpOverride
-     * @return Response
-     */
-    @POST
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnits(JsonNode queryJson,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
-        Status status;
-        try {
-            if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(queryJson);
-                return getUnits(queryJson);
-            } else {
-                status = Status.UNAUTHORIZED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Predicate Failed Exception ", e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
-
     /**
      * get units list by query based on identifier
      *
@@ -198,8 +189,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryJson);
-            SanityChecker.checkParameter(idUnit);
             result = client.selectUnitbyId(queryJson, idUnit);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
@@ -236,18 +225,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         ParametersChecker.checkParameter("unit id is required", idUnit);
         Status status;
-        try {
-            if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(queryJson);
-                SanityChecker.checkParameter(idUnit);
-                return getUnitById(queryJson, idUnit);
-            } else {
-                status = Status.UNAUTHORIZED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
+        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+            return getUnitById(queryJson, idUnit);
+        } else {
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -268,8 +249,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryJson);
-            SanityChecker.checkParameter(idUnit);
             result = client.updateUnitbyId(queryJson, idUnit);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
@@ -319,8 +298,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode result;
         Status status;
         try {
-            SanityChecker.checkJsonAll(queryJson);
-            SanityChecker.checkParameter(idObjectGroup);
             try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
                 result = client.selectObjectbyId(queryJson, idObjectGroup);
                 return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
@@ -340,6 +317,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
+
     /**
      * @param headers
      * @param idObjectGroup
@@ -354,21 +332,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
-        try {
-            SanityChecker.checkHeaders(headers);
-            final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-            if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
-                status = Status.PRECONDITION_FAILED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            } else {
-                SanityChecker.checkJsonAll(queryJson);
-                SanityChecker.checkParameter(idObjectGroup);
-                return getObjectGroup(idObjectGroup, queryJson);
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } else {
+            return getObjectGroup(idObjectGroup, queryJson);
         }
     }
 
@@ -423,6 +392,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
+
 
     /**
      * @param xhttpOverride
@@ -484,15 +454,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        // FIXME P1 To be passed to client
-        @SuppressWarnings("unused")
-        final String xTenantId = "0";
-        AsyncInputStreamHelper helper = null;
+        AsyncInputStreamHelper helper;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
-            SanityChecker.checkJsonAll(query);
-            SanityChecker.checkParameter(idObjectGroup);
             final Response response =
                 client.getObject(query, idObjectGroup, xQualifier,
                     Integer.valueOf(xVersion));
@@ -538,23 +502,20 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(status).build();
         }
-        try {
-            SanityChecker.checkJsonAll(select);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                final JsonNode result = client.getAccessionRegister(select);
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            }
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final JsonNode result = client.getAccessionRegister(select);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -597,28 +558,24 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
-        try {
-            ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
-            SanityChecker.checkJsonAll(select);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                final SelectParserSingle parser = new SelectParserSingle();
-                parser.parse(select);
-                parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
-                final JsonNode result = client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            } catch (InvalidParseOperationException | UnsupportedEncodingException |
-                InvalidCreateOperationException e) {
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            }
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+            final JsonNode result = client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final ReferentialNotFoundException e) {
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidParseOperationException | UnsupportedEncodingException |
+            InvalidCreateOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }

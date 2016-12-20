@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest external common util package
+ * Provides Ingest external common utility classes
  */
 package fr.gouv.vitam.ingest.external.common.util;

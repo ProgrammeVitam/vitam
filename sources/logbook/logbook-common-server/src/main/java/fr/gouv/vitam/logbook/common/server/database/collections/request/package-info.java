@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Request specific package
+ * Provides specific Request classes for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.server.database.collections.request;

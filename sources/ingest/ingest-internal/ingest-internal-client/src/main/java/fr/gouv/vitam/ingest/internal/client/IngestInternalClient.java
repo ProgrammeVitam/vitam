@@ -32,6 +32,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -72,5 +73,17 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+        throws VitamClientException;
+    
+
+    /**
+     * Download object stored by ingest operation 
+     * 
+     * @param objectId
+     * @param type
+     * @return object as stream
+     * @throws VitamClientException
+     */
+    Response downloadObjectAsync(String objectId, IngestCollection type)
         throws VitamClientException;
 }

@@ -140,11 +140,11 @@ public class TraceabilityFile implements AutoCloseable {
         archive.putArchiveEntry(entry);
         archive.write(String.format("currentHash=%s", currentHash).getBytes());
         archive.write(LINE_SEPARATOR.getBytes());
-        archive.write(String.format("previousHash=%s", previousHash).getBytes());
+        archive.write(String.format("previousTimestampToken=%s", previousHash).getBytes());
         archive.write(LINE_SEPARATOR.getBytes());
-        archive.write(String.format("previousHashMinusOneMonth=%s", currentHashMinusOneMonth).getBytes());
+        archive.write(String.format("previousTimestampTokenMinusOneMonth=%s", currentHashMinusOneMonth).getBytes());
         archive.write(LINE_SEPARATOR.getBytes());
-        archive.write(String.format("previousHashMinusOneYear=%s", currentHashMinusOneYear).getBytes());
+        archive.write(String.format("previousTimestampTokenMinusOneYear=%s", currentHashMinusOneYear).getBytes());
         archive.write(LINE_SEPARATOR.getBytes());
         archive.closeArchiveEntry();
     }

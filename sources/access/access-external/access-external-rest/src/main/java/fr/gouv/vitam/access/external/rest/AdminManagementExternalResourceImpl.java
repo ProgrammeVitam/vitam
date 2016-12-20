@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -178,7 +177,6 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
-            SanityChecker.checkJsonAll(select);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     final JsonNode result = client.getFormats(select);
@@ -199,7 +197,7 @@ public class AdminManagementExternalResourceImpl {
                 final Status status = Status.BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status)).build();
             }
-        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();

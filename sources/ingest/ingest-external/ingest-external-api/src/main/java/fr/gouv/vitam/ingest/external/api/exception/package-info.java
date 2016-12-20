@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,26 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+/**
+ * Package Ingest External Exception
  */
-
-'use strict';
-
-describe('ArchiveUnitSearchController', function() {
-beforeEach(module('archiveSearch'));
-
-var $controller;
-
-beforeEach(inject(function(_$controller_){
-  // The injector unwraps the underscores (_) from around the parameter names when matching
-  $controller = _$controller_;
-}));
-
-describe('$scope.searchResults', function() {
-  it('should sort searchResults by some property, when clicking on the column header', function() {
-    var $scope = {};
-    var controller = $controller('OrderSearchResultController', { $scope: $scope });
-    $scope.sortBy('id');
-    expect($scope.reverse).toEqual(false);
-  });
-});
-});
+package fr.gouv.vitam.ingest.external.api.exception;

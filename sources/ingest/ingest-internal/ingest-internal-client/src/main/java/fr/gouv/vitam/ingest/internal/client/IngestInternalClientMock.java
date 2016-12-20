@@ -36,6 +36,8 @@ import org.apache.commons.io.IOUtils;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -76,5 +78,10 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         throws VitamClientException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
         // Nothing
+    }
+
+    @Override
+    public Response downloadObjectAsync(String objectId, IngestCollection type) {
+        return ClientMockResultHelper.getObjectStream();
     }
 }

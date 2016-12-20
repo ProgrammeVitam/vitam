@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides a unified API and factories for dealing with archives in different formats.
- *
+ * Provides a factory dealing with archives in different formats for the Workspace module.
  */
 package fr.gouv.vitam.workspace.common.compress;

@@ -44,7 +44,6 @@ angular.module('core')
       };
       return accessionRegisterResource.getDetails(accessionRegisterId, options)
         .then(function(response) {
-          // TODO Add checks
           successCallbackFunction(response.data.$results);
           return response;
         }, function (error) {

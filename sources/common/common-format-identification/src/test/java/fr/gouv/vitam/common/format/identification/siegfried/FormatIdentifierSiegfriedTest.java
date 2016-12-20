@@ -27,22 +27,7 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
@@ -51,6 +36,20 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTech
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 public class FormatIdentifierSiegfriedTest {
 
@@ -67,7 +66,6 @@ public class FormatIdentifierSiegfriedTest {
     private static final JsonNode JSON_NODE_RESPONSE_BAD = getJsonNode(SAMPLE_BAD_REQUEST_RESPONSE);
 
     private static final Path VERSION_PATH = Paths.get("version/path");
-    private static final Path ROOT_PATH = Paths.get("root/path/");
     private static final Path FILE_PATH = Paths.get("file/path");
     private static SiegfriedClientRest client;
     private static FormatIdentifierSiegfried siegfried;
@@ -83,7 +81,7 @@ public class FormatIdentifierSiegfriedTest {
     @BeforeClass
     public static void initStatic() {
         client = Mockito.mock(SiegfriedClientRest.class);
-        siegfried = new FormatIdentifierSiegfried(client, ROOT_PATH, VERSION_PATH);
+        siegfried = new FormatIdentifierSiegfried(client, VERSION_PATH);
     }
 
     @Test
@@ -126,10 +124,14 @@ public class FormatIdentifierSiegfriedTest {
         assertEquals("application/zip", format.getMimetype());
     }
 
+    @Test
     public void testSiegfriedIdentifyUnknownFormatFileButWarnWithFMT() throws Exception {
         reset(client);
         when(client.analysePath(anyObject())).thenReturn(JSON_NODE_RESPONSE_UNKNOW);
-        siegfried.analysePath(FILE_PATH);
+        List<FormatIdentifierResponse> result = siegfried.analysePath(FILE_PATH);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
     }
 
     @Test(expected = FileFormatNotFoundException.class)

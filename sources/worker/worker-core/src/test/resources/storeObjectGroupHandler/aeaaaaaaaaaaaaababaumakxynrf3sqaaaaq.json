@@ -3,7 +3,7 @@
 {
   "_id" : "aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq",
   "_tenantId" : 0,
-  "_type" : "Document",
+  "_profil" : "Document",
   "FileInfo" : {
     "Filename" : "Vitam-Sensibilisation-API-V1.0.odp",
     "CreatingApplicationName" : "LibreOffice/Impress",

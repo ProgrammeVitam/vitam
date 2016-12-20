@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * Ingest external common model response package
+ * Provides Ingest external common model response classes
  */
 package fr.gouv.vitam.ingest.external.common.model.response;

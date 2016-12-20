@@ -53,7 +53,7 @@ filter
             keep_empty_captures => true
             match => [ "message", "(?:%{GREEDYDATA:msg_info})" ]
             # "timestamp" => "Aug 19 20:09:00",
-            match => [ "timestamp", "(%{MONTH:mois} %{MONTHDAY:jour} %{HOUR:hr}:%{MINUTE:mn}:%{SECOND:sec})" ]
+            match => [ "timestamp", "(%{MONTH:mois}%{SPACE}%{MONTHDAY:jour}%{SPACE}%{HOUR:hr}:%{MINUTE:mn}:%{SECOND:sec})" ]
         }
         # Here, we apparently need to do that in 2 steps, instead the correct date is not set in the timestamp variable.
         mutate { add_field => [ "date_msg", "%{+YYYY}-%{+MM}-%{jour} %{hr}:%{mn}:%{sec}" ] }
@@ -108,7 +108,7 @@ filter
         }
         mutate { add_field => { "type" => "consul" } }
         date {
-            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss" ]
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
         }
     }

@@ -15,3 +15,18 @@ if (! db.getUser("{{mongoFunctionalAdminUser}}")) {
         }
     )
 }
+
+// Create admin user
+
+if (! db.getUser("{{mongoAdminUser}}")) {
+    db.createUser(
+        {
+            user: "{{mongoAdminUser}}",
+            pwd: "{{mongoAdminPassword}}",
+            roles: [
+                { role: "readWrite", db: "masterdata" },
+                { role: "dbAdmin", db: "masterdata" }
+            ]
+        }
+    )
+}

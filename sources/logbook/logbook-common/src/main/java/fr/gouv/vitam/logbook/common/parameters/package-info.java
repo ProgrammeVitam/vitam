@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Package use for logbook parameters objects
+ * Provides common parameters, helpers and factory classes used for the Logbook module
  */
 package fr.gouv.vitam.logbook.common.parameters;

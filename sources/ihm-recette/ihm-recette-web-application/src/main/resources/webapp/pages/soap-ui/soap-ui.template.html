@@ -1,4 +1,9 @@
 <div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Page d'accueil</li>
+    <li>Tests SOAP-UI</li>
+  </ol>
+
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
       <h2>Tests SOAP-UI</h2>
@@ -82,9 +87,11 @@
             <table class="w3-table w3-centered w3-xlarge  w3-bordered">
               <tr>
                 <th></th>
+                <th>ID Opération</th>
                 <th>Nom</th>
                 <th>Sip</th>
                 <th>Catégorie</th>
+                <th>Action</th>
                 <th>Attendu</th>
                 <th>Observé</th>
               </tr>
@@ -93,9 +100,11 @@
                 <td  class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >
                   <img src='images/icon_error_sml.gif' alt='' />
                 </td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.ope_id}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.testName}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.sipName}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.category}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.curentAction}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.expected}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-red w3-pale-red' >{{item.observed}}</td>
               </tr>
@@ -104,9 +113,11 @@
                 <td  class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >
                   <img src='images/icon_success_sml.gif' alt='' />
                 </td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.ope_id}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.testName}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.sipName}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.category}}</td>
+                <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.curentAction}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.expected}}</td>
                 <td class='w3-large w3-topbar w3-bottombar w3-border-green w3-pale-green' >{{item.observed}}</td>
               </tr>

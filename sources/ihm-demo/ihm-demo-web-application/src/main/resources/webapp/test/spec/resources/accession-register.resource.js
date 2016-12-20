@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,13 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.workspace.api.strategy;
-
-// FIXME P2 REVIEW is not used in the release
-/**
- * Describes the strategy of storage data into the workspace
  */
-public class StorageStrategy {
-    // FIXME P2
-}
+
+'use strict';
+
+describe('accessionRegisterResource', function() {
+  beforeEach(module('ihm.demo'));
+
+  var AccessionRegisterResource;
+  var $http;
+  beforeEach(inject(function (_accessionRegisterResource_, _$http_) {
+    AccessionRegisterResource = _accessionRegisterResource_;
+    $http = _$http_;
+  }));
+
+  it('should call the good API point for accession register detail', function() {
+    // Init a spy on $http.get
+    spyOn($http, 'post');
+
+    var criteria = {OriginatingAgency: '001'};
+    AccessionRegisterResource.getDetails('001', criteria);
+    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/001/accession-register-detail/', criteria);
+    expect($http.post).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call the good API point for accession register summary', function() {
+    // Init a spy on $http.get
+    spyOn($http, 'post');
+
+    var criteria = {OriginatingAgency: '002'};
+    AccessionRegisterResource.getSummary(criteria);
+    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/', criteria);
+    expect($http.post).toHaveBeenCalledTimes(1);
+  });
+
+});

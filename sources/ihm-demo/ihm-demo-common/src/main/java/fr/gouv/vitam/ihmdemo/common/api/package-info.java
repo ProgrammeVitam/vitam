@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * Common api package
+ * Provides IHM Demo API Common classes
  */
 package fr.gouv.vitam.ihmdemo.common.api;

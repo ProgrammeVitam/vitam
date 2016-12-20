@@ -202,7 +202,7 @@ public class LogbookAdministration {
                 final LogbookOperation logbookOperation = traceabilityIterator.next();
                 final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
-                merkleTreeAlgo.addSheet(logbookOperationStr);
+                merkleTreeAlgo.addLeaf(logbookOperationStr);
             }
 
             traceabilityFile.closeStoreOperationLog();
@@ -212,20 +212,21 @@ public class LogbookAdministration {
 
             final String rootHash = BaseXx.getBase64(merkleTree.getRoot());
 
-            final String hash1 = extractHash(lastTraceabilityOperation);
-            final String hash2 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
-            final String hash3 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
+            final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
+            final String timestampToken2 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
+            final String timestampToken3 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
 
-            final byte[] timeStampToken = generateTimeStampToken(eip, rootHash, hash1, hash2, hash3);
+            final byte[] timeStampToken = generateTimeStampToken(eip, rootHash, timestampToken1, timestampToken2, timestampToken3);
             traceabilityFile.storeTimeStampToken(timeStampToken);
 
             final long numberOfLine = traceabilityIterator.getNumberOfLine();
             final String endDate = traceabilityIterator.endDate();
 
             traceabilityFile.storeAdditionalInformation(numberOfLine, getString(startDate), endDate);
-            traceabilityFile.storeHashCalculationInformation(rootHash, hash1, hash2, hash3);
+            traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1, timestampToken2, timestampToken3);
 
-            traceabilityEvent = new TraceabilityEvent(getString(startDate), endDate, rootHash, numberOfLine, uri);
+            traceabilityEvent = new TraceabilityEvent(getString(startDate), endDate, rootHash, timeStampToken,
+                numberOfLine, fileName);
 
         } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
             ArchiveException | InvalidParseOperationException e) {
@@ -275,8 +276,7 @@ public class LogbookAdministration {
         return eip;
     }
 
-    @VisibleForTesting
-    String findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
+    private String findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException {
 
@@ -286,10 +286,10 @@ public class LogbookAdministration {
             return null;
         }
         expectIds.add(logbookOperation.getString(eventIdentifier));
-        return extractHash(logbookOperation);
+        return extractTimestampToken(logbookOperation);
     }
 
-    private String extractHash(LogbookOperation logbookOperation) throws InvalidParseOperationException {
+    private String extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
         if (logbookOperation == null) {
             return null;
         }
@@ -300,7 +300,7 @@ public class LogbookAdministration {
         final String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
 
         final TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-        return traceabilityEvent.getHash();
+        return new String (traceabilityEvent.getTimeStampToken());
     }
 
     @VisibleForTesting

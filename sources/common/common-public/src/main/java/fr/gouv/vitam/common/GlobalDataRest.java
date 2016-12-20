@@ -110,6 +110,26 @@ public class GlobalDataRest {
      * Digest algorithm
      */
     public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    /**
+     * Recursive deletion
+     */
+    public static final String X_RECURSIVE = "X-Recursive";
+    
+    /**
+     * Transfer Encoding Header
+     */
+    public static final String TRANSFER_ENCODING_HEADER = "Transfer-Encoding";
+
+    /**
+     * FIRST_PRIORITY_FILTER
+     */
+    public static final int FIRST_PRIORITY_FILTER = 1000;
+
+    /**
+     * SECOND_PRIORITY_FILTER
+     */
+    public static final int SECOND_PRIORITY_FILTER = 2000;
+        
 
     private GlobalDataRest() {
         // empty

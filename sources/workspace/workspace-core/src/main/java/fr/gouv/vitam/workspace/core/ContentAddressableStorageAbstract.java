@@ -143,14 +143,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     @Override
-    public void deleteContainer(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
-        deleteContainer(containerName, false);
-
-    }
-
-    @Override
     public void deleteContainer(String containerName, boolean recursive)
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -428,9 +420,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
-                    // TODO P1 REVIEW the UriUtils does not what is specified: it
-                    // only removes the first folder, not the
-                    // extension and only for uri with "." in it
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }

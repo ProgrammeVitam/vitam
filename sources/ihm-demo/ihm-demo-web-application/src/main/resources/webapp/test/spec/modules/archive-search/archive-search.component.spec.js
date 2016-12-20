@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,10 +23,24 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-/**
- * Workspace Strategies
- *
  */
-// FIXME P2 there is no strategy for Workspace
-package fr.gouv.vitam.workspace.api.strategy;
+
+'use strict';
+
+describe('ArchiveUnitSearchController', function() {
+  beforeEach(module('archiveSearch'));
+
+  /*beforeEach(inject(function($controller){
+    // The injector unwraps the underscores (_) from around the parameter names when matching
+  }));*/
+
+  it('should sort searchResults by some property, when clicking on the column header', function() {
+    // FIXME P0 Controller should have all required parametters.
+    // FIXME In this case some parameters ($http for exemple) should be provided by a service layer.
+    // TODO Fix this before fix test.
+    /*var $scope = {};
+     var controller = $controller('OrderSearchResultController', { $scope: $scope });
+     $scope.sortBy('id');
+     expect($scope.reverse).toEqual(false); */
+  });
+});

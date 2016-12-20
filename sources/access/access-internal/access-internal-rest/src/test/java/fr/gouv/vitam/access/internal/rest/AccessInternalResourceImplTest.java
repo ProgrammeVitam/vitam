@@ -35,25 +35,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -64,7 +60,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -115,8 +110,6 @@ public class AccessInternalResourceImplTest {
 
     private static AccessInternalModule mock;
 
-    private static int step = 0;
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -150,12 +143,18 @@ public class AccessInternalResourceImplTest {
 
     // Error cases
     /**
-     * Test if the request is inconsistent
+     * Test if the update is in error the 500
      *
      * @throws Exception
      */
-    @Ignore("To implement")
-    public void givenStartedServer_WhenRequestNotCorrect_ThenReturnError() throws Exception {
+    @Test
+    public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
+        reset(mock);
+        when(mock.updateUnitbyId(anyObject(), anyObject()))
+            .thenThrow(new AccessInternalExecutionException("Wanted exception"));
+
+        given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+            .when().put("/units/" + ID).then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
 
@@ -300,22 +299,21 @@ public class AccessInternalResourceImplTest {
         return sb.toString();
     }
 
-    @Ignore
     @Test
-    public void given_units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
+    public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions("", DATA2)).when()
             .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(BODY_TEST).when()
             .post("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
 
     }
 
@@ -379,15 +377,15 @@ public class AccessInternalResourceImplTest {
             .statusCode(Status.OK.getStatusCode());
     }
 
-    @Ignore
     @Test
-    public void given_bad_header_when_updateByID_thenReturn_Not_allowed() throws InvalidParseOperationException {
+    public void given_bad_header_when_getUnitByID_in_post_thenReturn_Not_allowed()
+        throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST))
             .when()
-            .put("/units/" + ID_UNIT)
+            .post("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
@@ -428,30 +426,10 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void getObjectGroupPostOK() throws Exception {
-        reset(mock);
-        when(mock.selectObjectGroupById(anyObject(), anyObject())).thenReturn(JsonHandler
-            .getFromString(DATA));
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-                "GET")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
-    }
-
-    @Test
     public void getObjectGroupPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).when().get(OBJECTS_URI +
             OBJECT_ID).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    @Test
-    public void getObjectGroupPostMethodNotAllowed() throws InvalidParseOperationException {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(buildDSLWithRoots(null))
-            .when().post(OBJECTS_URI + OBJECT_ID)
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -483,58 +461,6 @@ public class AccessInternalResourceImplTest {
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
-    // Stream
-    @Ignore // Need to check how to test async
-    @Test
-    public void getObjectStreamOk() throws Exception {
-        reset(mock);
-        final Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Length", "4");
-        Response response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM, headers);
-        AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
-                .thenReturn(abd);
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
-
-        reset(mock);
-        headers.put("Content-Length", "");
-        response = ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM, headers);
-        abd = new AccessBinaryData("test.pdf", "application/pdf", response);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
-                .thenReturn(abd);
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
-    }
-
-    @Ignore // Need to check how to test async
-    @Test
-    public void getObjectStreamPostOK() throws Exception {
-        reset(mock);
-        final Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Length", "4");
-        final Response response =
-            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM, headers);
-        final AccessBinaryData abd = new AccessBinaryData("test.pdf", "application/pdf", response);
-        when(
-            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
-                .thenReturn(abd);
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(BODY_TEST)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-                "GET")
-            .when().post(OBJECTS_URI + OBJECT_ID).then()
-            .statusCode(Status.OK.getStatusCode()).contentType("application/pdf");
-    }
 
     @Test
     public void getObjectStreamPreconditionFailed() {
@@ -551,7 +477,7 @@ public class AccessInternalResourceImplTest {
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .when().post(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
@@ -566,12 +492,10 @@ public class AccessInternalResourceImplTest {
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
-    @Ignore
     @Test
-    // Data needed in body
-    public void getObjectStreamBadRequest() throws InvalidParseOperationException {
+    public void getObjectStreamDataRequiredThenPreconditionFailed() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).body(JsonHandler.getFromString(DATA)).when().get(OBJECTS_URI + OBJECT_ID)
+            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }

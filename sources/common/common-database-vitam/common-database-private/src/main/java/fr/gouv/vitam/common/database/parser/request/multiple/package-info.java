@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database parser for multi query request
+ * Provides database parsers for multiple query requests
  */
 package fr.gouv.vitam.common.database.parser.request.multiple;

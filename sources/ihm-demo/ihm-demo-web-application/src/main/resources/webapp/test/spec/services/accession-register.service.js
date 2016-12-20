@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,50 +23,55 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.security.waf;
+ */
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+'use strict';
 
-import java.util.Enumeration;
-import java.util.Vector;
+describe('accessionRegisterService', function() {
+  beforeEach(module('ihm.demo'));
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
+  var AccessionRegisterService, $httpBackend;
 
-import org.junit.Before;
-import org.junit.Test;
+  var identifier = '001';
+  var criteria = {OriginatingAgency: identifier};
+  var $scope = {};
+  var callback = function(response) {
+    $scope.response = response;
+  };
 
-public class XSSWrapperTest {
+  beforeEach(inject(function ($injector) {
+    AccessionRegisterService = $injector.get('accessionRegisterService');
+    $httpBackend = $injector.get('$httpBackend');
 
-    private static HttpServletRequest httpServletRequest;
-    private static XSSWrapper wrapper;
+    // FIXME Expect languages because this request is always send
+    $httpBackend.when('GET', 'static/languages_fr.json').respond('test');
+  }));
 
-    @Before
-    public void before() throws ServletException {
-        httpServletRequest = mock(HttpServletRequest.class);
-    }
+  afterEach(function() {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
 
-    @Test
-    public void testSanitize() throws Exception {
-        Enumeration<String> headers;
-        final Vector<String> header = new Vector<>();
-        header.add("test");
-        headers = header.elements();
 
-        wrapper = new XSSWrapper(httpServletRequest);
-        assertFalse(wrapper.sanitize());
+  it('should transfer the response from resource to service callback for getDetails', function() {
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/' + identifier + '/accession-register-detail/', criteria)
+      .respond({$hints: [], $results: [{id: identifier}]});
 
-        when(httpServletRequest.getHeaderNames()).thenReturn(headers);
-        when(httpServletRequest.getHeader("test")).thenReturn("<?php echo\" Hello \" ?>");
+    AccessionRegisterService.getDetails(identifier, callback);
+    $httpBackend.flush();
+    expect($scope.response.length).toEqual(1);
+    expect($scope.response[0].id).toEqual(identifier);
+  });
 
-        when(httpServletRequest.getParameterNames()).thenReturn(headers);
-        when(httpServletRequest.getParameter("test")).thenReturn("<script>(.*?)</script>");
+  it('should transfer the response from resource to service callback for getSummary', function() {
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/', criteria)
+      .respond({$hints: [], $results: [{item: 'value'}]});
 
-        wrapper = new XSSWrapper(httpServletRequest);
-        assertTrue(wrapper.sanitize());
-    }
-}
+    AccessionRegisterService.getSummary(identifier, callback);
+    $httpBackend.flush();
+    expect($scope.response.item).toEqual('value');
+  });
+
+});

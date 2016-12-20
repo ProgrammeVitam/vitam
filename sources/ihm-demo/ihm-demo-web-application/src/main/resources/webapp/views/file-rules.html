@@ -1,8 +1,7 @@
 <div id="global" class="container-fluid" >
 	<ol class="breadcrumb">
-		<li><a href="#">Page d'accueil</a></li>
-        <li><a href="#">Administration</a></li>
-        <li><a href="#">Référentiel des Règles de gestion</a></li>
+		<li>Page d'accueil</li>
+        <li>Référentiel des Règles de gestion</li>
     </ol>
 
     <div class="boxSearchWrapper panel panel-default col-md-12">
@@ -43,11 +42,11 @@
         <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
         	<div class="table-responsive">
         		<div class="col-md-9" style="float: right">
-            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage <= 1" ng-click="filerulesCtrl.currentPage=filerulesCtrl.currentPage-1">
+            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage <= 1" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage-1">
                 		Précédent
             		</button>
             		<input ng-model="filerulesCtrl.currentPage" style="max-width: 40px">/{{filerulesCtrl.resultPages}}
-            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage >= filerulesCtrl.resultPages" ng-click="filerulesCtrl.currentPage=filerulesCtrl.currentPage+1">
+            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage >= filerulesCtrl.resultPages" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage+1">
                 		Suivant
             		</button>
         		</div>

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Package Access model
+ * Provides common configuration classes for the Access Internal module.
  */
 package fr.gouv.vitam.access.internal.common.model;

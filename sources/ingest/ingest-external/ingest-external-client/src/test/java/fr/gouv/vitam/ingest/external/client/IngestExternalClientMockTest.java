@@ -38,7 +38,8 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class IngestExternalClientMockTest {
 
@@ -71,6 +72,26 @@ public class IngestExternalClientMockTest {
         assertNotNull(responseStream);
         try {
             assertTrue(IOUtils.contentEquals(responseStream, inputstreamMockATR));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+    
+    @Test
+    public void givenNonEmptyStreamWhenDownloadSuccess() throws IngestExternalException, XMLStreamException {
+        IngestExternalClientFactory.changeMode(null);
+
+        final IngestExternalClient client =
+            IngestExternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        final InputStream firstStream = IOUtils.toInputStream("test");
+        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+
+        assertNotNull(responseStream);
+        try {
+            assertTrue(IOUtils.contentEquals(responseStream, firstStream));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();

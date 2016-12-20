@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * MetaData client Rest package
+ * Provides Metadata client interface, factory and implementations.
  */
 package fr.gouv.vitam.metadata.client;

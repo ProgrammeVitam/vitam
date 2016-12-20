@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.security.filter;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -121,7 +125,13 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
      */
     private boolean checkPlatformId(String platformId, String timestamp) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, platformId, timestamp);
-        final String uri = getRequestURI();
+        String uri = getRequestURI();
+        try {
+            uri = URLDecoder.decode(uri, CharsetUtils.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("UnsupportedEncodingException ", e);
+            return false;
+        }
         final String httpMethod = getMethod();
         final String code = URLCodec.encodeURL(httpMethod, uri, timestamp, VitamConfiguration.getSecret(),
             VitamConfiguration.getSecurityDigestType());

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Client Package
+ * Provides Worker client interface, configuration, factory and implementations.
  */
 package fr.gouv.vitam.worker.client;

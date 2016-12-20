@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Metadata api exception package
- *
+ * Provides exception classes used for the Metadata module.
  */
 package fr.gouv.vitam.metadata.api.exception;

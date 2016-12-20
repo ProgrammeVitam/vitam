@@ -32,6 +32,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -41,12 +42,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -156,6 +157,38 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateLogbookLifecycleObjectGroupParameters(LogbookLifeCycleObjectGroupParameters parameters) {
             return expectedResponse.put();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}/commit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response commitUnitLifeCyclesByOperation(LogbookLifeCycleUnitParameters parameters) {
+            return expectedResponse.put();
+        }
+
+        @PUT
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response commitObjectGroupLifeCyclesByOperation(LogbookLifeCycleObjectGroupParameters parameters) {
+            return expectedResponse.put();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response deleteUnitLifeCyclesByOperation(LogbookLifeCycleUnitParameters parameters) {
+            return expectedResponse.delete();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response deleteObjectGroupLifeCyclesByOperation(LogbookLifeCycleObjectGroupParameters parameters) {
+            return expectedResponse.delete();
         }
 
         @GET
@@ -289,20 +322,58 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         client.update(log);
     }
 
-    // TODO P0
-    @Ignore
     @Test
     public void commitExecutionUnitLifeCycle() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         client.commit(log);
     }
 
-    // TODO P0
-    @Ignore
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void commitExecutionUnitLifeCycle_ThenThrow_LogbookClientBadRequestException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.commit(log);
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void commitExecutionUnitLifeCycle_ThenThrow_LogbookClientNotFoundException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.commit(log);
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void commitExecutionUnitLifeCycle_ThenThrow_LogbookClientServerException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.commit(log);
+    }
+
     @Test
     public void rollbacktExecutionUnitLifeCycle() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.rollback(log);
+    }
+
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void rollbacktExecutionUnitLifeCycle_ThenThrow_LogbookClientBadRequestException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.rollback(log);
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void rollbacktExecutionUnitLifeCycle_ThenThrow_LogbookClientNotFoundException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.rollback(log);
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void rollbacktExecutionUnitLifeCycle_ThenThrow_LogbookClientServerException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
         client.rollback(log);
     }
@@ -385,30 +456,65 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         client.update(log);
     }
 
-    @Test(expected = LogbookClientNotFoundException.class)
+    @Test
     public void commitExecutionObjectGroupLifeCycle() throws Exception {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         client.commit(log);
     }
 
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void commitExecutionObjectGroupLifeCycle_ThenThrow_LogbookClientBadRequestException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
+        client.commit(log);
+    }
+
     @Test(expected = LogbookClientNotFoundException.class)
-    public void commitExecutionObjectGroupLifeCycle_ThrowLogBookNotFound() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
+    public void commitExecutionObjectGroupLifeCycle_ThenThrow_LogbookClientNotFoundException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         client.commit(log);
     }
 
     @Test(expected = LogbookClientServerException.class)
+    public void commitExecutionObjectGroupLifeCycle_ThenThrow_LogbookClientServerException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
+        client.commit(log);
+    }
+
+    @Test
     public void rollbacktExecutionObjectGroup() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         client.rollback(log);
     }
 
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void rollbacktExecutionObjectGroup_ThenThrow_LogbookClientBadRequestException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
+        client.rollback(log);
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void rollbacktExecutionObjectGroup_ThenThrow_LogbookClientNotFoundException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
+        client.rollback(log);
+    }
+
     @Test(expected = LogbookClientServerException.class)
-    public void rollbacktExecutionObjectGroup_ThrowLogbookClientServerException() throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
+    public void rollbacktExecutionObjectGroup_ThenThrow_LogbookClientServerException() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
+        client.rollback(log);
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void rollbacktExecutionObjectGroup_ThenThrow_VitamClientInternalException() throws Exception {
+        when(mock.delete()).thenThrow(VitamClientInternalException.class);
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         client.rollback(log);
     }

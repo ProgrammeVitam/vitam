@@ -26,6 +26,13 @@
  */
 package fr.gouv.vitam.common.client;
 
+import java.io.ByteArrayInputStream;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -274,5 +281,16 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
         return createReponse(UNIT);
+    }
+    
+    /**
+     * @return a default ArchiveUnit result
+     * @throws InvalidParseOperationException
+     */
+    public static Response getObjectStream() {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add("Content-Disposition", "filename=\"test.txt\"");
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
     }
 }

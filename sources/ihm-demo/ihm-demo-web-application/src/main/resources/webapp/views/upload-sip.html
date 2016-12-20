@@ -1,8 +1,7 @@
    <div id="global" class="container-fluid" >
     		<ol class="breadcrumb">
-                <li><a href="#">Page d'accueil</a></li>
-                <li><a href="#">Entrées</a></li>
-                <li><a href="#">Transfert</a></li>
+                <li>Page d'accueil</li>
+                <li>Transfert</li>
             </ol>
 
 	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
@@ -11,6 +10,7 @@
   				testChunks:false, method:'octet', simultaneousUploads: 1, ctrlScope: ctrl,
   				requiredParams:['x-request-id']}"
   			 flow-file-success="startUpload($flow.files[0].chunks[0].savedParams)"
+                 flow-error="uploadHandlerError( $file, $message, $flow )"
   			 flow-files-submitted="$flow.upload()">
 
     			<table class="table upload">

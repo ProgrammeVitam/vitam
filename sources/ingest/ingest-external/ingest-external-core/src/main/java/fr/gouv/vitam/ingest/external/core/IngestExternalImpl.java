@@ -58,8 +58,8 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
@@ -409,7 +409,7 @@ public class IngestExternalImpl implements IngestExternal {
                 }
                 try {
                     if (containerName != null) {
-                        workspaceFileSystem.deleteContainer(containerName.getId());
+                        workspaceFileSystem.deleteContainer(containerName.getId(), true);
                     }
                 } catch (final ContentAddressableStorageNotFoundException e) {
                     LOGGER.warn(e);

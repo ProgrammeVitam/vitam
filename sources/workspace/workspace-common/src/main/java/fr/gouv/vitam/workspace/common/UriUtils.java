@@ -26,13 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.common;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * Class Utils that extracts a uri from a path
  *
  */
 public final class UriUtils {
 
-    private static final String POINT = ".";
     private static final String SLASH = "/";
 
     private UriUtils() {
@@ -49,7 +50,8 @@ public final class UriUtils {
     // TODO P1 REVIEW does not what it says
     public static String splitUri(String uriString) {
         String splitedString;
-        if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {
+        ParametersChecker.checkParameter("Uri string is a mandatory parameter", uriString);
+        if (uriString.contains(SLASH)) {
             final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
             splitedString = uriWithoutRootFolderTable[1];
         } else {

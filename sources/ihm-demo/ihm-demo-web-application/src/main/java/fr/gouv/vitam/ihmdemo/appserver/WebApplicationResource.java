@@ -58,7 +58,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -77,6 +76,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -104,7 +104,7 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -137,7 +137,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
 
     private final WebApplicationConfig webApplicationConfig;
-
     /**
      * Constructor
      *
@@ -768,7 +767,45 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId,
             usage, version, filename));
     }
+    
+    /**
+     * Retrieve an Object data stored by ingest operation as an input stream
+     * 
+     * @param objectId
+     * @param type
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/ingests/{idObject}/{type}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectFromStorageAsInputStreamAsync(@PathParam("idObject") String objectId, @PathParam("type") String type,
+        @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type));
+    }
 
+    private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type) {
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
+            Response response = client.downloadObjectAsync(objectId, collection);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                helper.writeResponse(Response
+                    .ok()
+                    .header("Content-Disposition", "filename=" + objectId +  ".xml"));
+            } else {
+                helper.writeResponse(Response.status(response.getStatus()));
+            }
+        } catch (IllegalArgumentException exc) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (final IngestExternalException exc) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
+    }
+    
     private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String version,
         String filename) {
         try {

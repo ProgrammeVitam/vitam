@@ -2,6 +2,10 @@
 
 Cette API est globalement reproduite dans tous les autres points d'accès lorsque l'accès à des _Units_ et _Objects_ est nécessaire. Les fonctionnalités offertes peuvent par contre varier (droit en modification, effacement, ... selon le contexte).
 
+# API Access externe
+
+les API externe dans le projet Vitam supportent le POST-X-HTTP-OVERRIDE=GET par contre au niveau des API interne ils supportent seulement le GET . 
+
 # Units
 
 **Units** est le point d'entrée pour toutes les descriptions d'archives. Celles-ci contiennent les métadonnées de description et les métadonnées archivistiques (métadonnées de gestion).

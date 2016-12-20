@@ -74,7 +74,7 @@ if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
 
 } 
 
-</script></con:config></con:testStep><con:testStep type="groovy" name="upload" id="e6ef1659-0600-4375-9d3b-747d9cbc40bc"><con:settings/><con:config><script>/*******************************************************************************
+</script></con:config></con:testStep><con:testStep type="groovy" name="upload-http-builder" id="c54e8486-2efa-41d1-b080-bf72baaed437"><con:settings/><con:config><script>/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -103,116 +103,187 @@ if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
 /**
  * Upload File 
  **/
+import java.security.KeyStore
+import groovyx.net.http.HTTPBuilder
+import groovy.json.JsonSlurper 
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier
+
+import static groovyx.net.http.Method.POST
+import static groovyx.net.http.ContentType.BINARY
+
 
 def url  = context.ingest+"ingest-external/v1/ingests/"
 log.info 'Url for ingest' + url
-def cert = context.certfile 
-def file =context.dataDir+context.sipName
-log.info 'File uploaded: ' + context.dataDir+context.sipName
-//log.info  'upload file '+cert
-def header1 =  "--header Transfer-Encoding:chunked "
-def header2 =  "--header Content-Type:application/octet-stream "
-def upload =  "-X POST --data-binary "+ " @"+  file  
-def activateStatutCodes = "-o /dev/null  -w %{http_code}"
-def options =activateStatutCodes+ " " +header1 +  " " + header2
-def curl  = "curl -k -E " + cert + " " + url + " " + upload + " " +options 
-log.info 'curl executed for ingest: ' + curl
-proc = curl.execute();
-// starting 
-Thread.start { System.err &lt;&lt; proc.err } 
-proc.waitFor()
-//log.info proc
-def result = proc.text 
-def statusOk = context.httpStatusCode+"" ==result+""  
 
-log.info ' statusOK  ='+ statusOk+ ' result =  ' + result + ' expected = '  + context.httpStatusCode
-log.info statusOk
-
-
-if (statusOk ){
-	
-}
-else {
-//	context.nbFail = context.nbFail +1
-}
-
-if (!statusOk  ){
-	//testRunner.gotoStep(4)
-}
-//assert statusOk</script></con:config></con:testStep><con:testStep type="groovy" name="find" id="6a107074-b274-44d8-b933-c4003dba2ac9"><con:settings/><con:config><script>//curl -X POST -H "X-HTTP-Method-Override: GET" -H "Content-Type: application/json" -H "Cache-Control: no-cache"  -d '
-import groovy.json.JsonSlurper
-log.info 'Enter in find'
-def url  = context.logbook+"access-external/v1/operations"
-//Content-Type:application/octet-stream
-def header1 =  "--header X-HTTP-Method-Override:GET"
-def header2 =  "--header Content-Type:application/json"
-def header3 =  "--header Cache-Control:no-cache "
-def header4 =  "--header Transfer-Encoding:chunked "
-def activateStatutCodes = "-o /dev/null  -w '%{http_code}'"
-//activateStatutCode =" "
-
-log.info 'After set header: ' + header1 + ' ' + header2 + ' ' + header3 + ' ' + activateStatutCodes
 def cert = context.certfile
-def json =('{"$query":{},"$filter":{"$limit":1,"$orderby":{"evDateTime":-1}},"$projection":{}}')
-log.info 'json: ' + json
-def options = header1+ " " +header2 +  " " + header3 + " " + header4
-log.info 'options: ' + options
-def curl = "curl -k -E " + cert + " -d " + json + " " + url + " " + options 
-log.info 'Curl for access-external: ' + curl
-proc = curl.execute();
+def certPass = context.certPass
 
-Thread.start { System.err &lt;&lt; proc.err } 
-proc.waitFor()
+def trust = context.truststore
+def trustPass = context.trustPass
 
-def slup = new JsonSlurper()// $.result[*]
-// def procText = proc.text
-// log.info 'Proc Error: ' + proc.err.text
-// log.info 'Proc text: ' + procText
-def result =slup.parseText(proc.text)
-log.info 'Results events: ' + result['$results'].size
+def file = context.dataDir+context.sipName
 
-// assert  result['$results'].size == 1
-def id = result['$results'][0]._id
-context.ope_id = id </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>
-import com.eviware.soapui.support.XmlHolder
-import groovy.json.JsonSlurper 
-def host = "http://localhost:9002"
+log.info 'Cert: ' + cert
+log.info 'File uploaded: ' + context.dataDir+context.sipName
+
+def ope_id = null
+def http = new HTTPBuilder( url )
+
+if (url.startsWith('https')) {
+	def keyStore = KeyStore.getInstance( "PKCS12" )
+	def trustStore = KeyStore.getInstance("JKS")
+	//def keyStore = KeyStore.getInstance( "TLS" )
+	
+	new File(cert).withInputStream  {
+    		keyStore.load(it, certPass.toCharArray() )
+	}
+	new File(trust).withInputStream {
+		trustStore.load(it, trustPass.toCharArray())
+	}
+	
+	//getClass().getResource( cert ).withInputStream  {
+    		// keyStore.load( it, "password".toCharArray() )
+	//}
+ 
+	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
+	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
+	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+ 
+	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+}
+
+
+http.request(POST){ request ->
+	requestContentType = BINARY
+	body = new File(file).bytes
+
+	response.success = { resp, reader ->;
+		ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
+     }
+ 
+     response.failure = { resp, reader ->;
+     	log.error "Request failed :  Status: ${resp.status}]"
+     	ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
+     }
+
+     // TODO : Early ATR : Add X-Requst-Id (to validate)
+}
+
+context.ope_id = ope_id
+
+</script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>import com.eviware.soapui.support.XmlHolder
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import java.security.KeyStore
+import groovyx.net.http.HTTPBuilder
+import groovy.json.JsonSlurper
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier
+import static groovyx.net.http.Method.GET
+
+def i = context.iteration
 def url  = context.logbook+"access-external/v1/operations/"+context.ope_id
 def options = "" 
 def cert = context.certfile
-def curl  = "curl -k -E " + cert + " " + url + " " +options 
-log.info 'Curl in details: ' + curl
-proc = curl.execute()
-Thread.start { System.err &lt;&lt; proc.err } 
-proc.waitFor()
+def certPass = context.certPass
+def trust = context.truststore
+def trustPass = context.trustPass
 
-def slup = new JsonSlurper()// $.result[*]
-result =slup.parseText(proc.text)
-def size = result.$results[0].events.size
-
-log.info 'Size / Last elem: ' + size + ' / ' + size-1
-log.info 'Item -1: ' + result.$results[0].events[size-1].evType
-log.info 'Outcome: ' + result.$results[0].events[size-1].outcome
-resultat =  result.$results[0].events[size-1].outcome == context.expected
-
-log.info "------------------------------------->resultat observé  "+ result.$results[0].events[size-1].outcome
-
-if (resultat ){
-	context.nbsuccess= 	context.nbsuccess+ 1 
+def http = new HTTPBuilder( url )
+def reponse =  null
+if (url.startsWith('https')) {
+	def keyStore = KeyStore.getInstance( "PKCS12" )
+	def trustStore = KeyStore.getInstance("JKS")
+	//def keyStore = KeyStore.getInstance( "TLS" )
+	new File(cert).withInputStream  {
+    		keyStore.load(it, certPass.toCharArray() )
+	}
+	new File(trust).withInputStream {
+		trustStore.load(it, trustPass.toCharArray())
+	}
+	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
+	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
+	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
 }
-else {
-	context.nbFail = context.nbFail +1
+http.request(GET){ request ->
+	response.success = { resp, reader ->;
+	reponse=  reader
+     }
+     response.failure = { resp, reader ->;
+     log.err resp.getStatus()
+     }
+}
+if (reponse !=null )
+{
+	def slup = new JsonSlurper() // $.result[*]
+	result= reponse
+	def size = result.$results[0].events.size
+
+	log.info 'Size / Last elem: ' + size + ' / ' + size-1
+	log.info 'Item -1: ' + result.$results[0].events[size-1].evType
+	log.info 'Outcome: ' + result.$results[0].events[size-1].outcome
+
+	// Operation result
+	resultat =  result.$results[0].events[size-1].outcome == context.expected
+
+	if (context.inputJSON.params[i].actions != null) {
+
+		// boucler sur les actions
+		def actionsSize = context.inputJSON.params[i].actions.size
+		for (a = 0; a &lt; actionsSize; a++) {
+			currentAction = context.inputJSON.params[i].actions[a].name
+			context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
+			context.outputJson.params[context.outIteration].ope_id = context.ope_id
+			context.outputJson.params[context.outIteration].currentAction = currentAction
+
+			// Copy parameters
+			context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+			context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
+			context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
+			context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
+			context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
+			for (j = 0; j &lt; size; j++) {
+				currentEventType = result.$results[0].events[j].evType
+				currentEventOutCome = result.$results[0].events[j].outcome
+				if (currentAction == currentEventType &amp;&amp; currentEventOutCome != 'STARTED') {
+					log.info 'outIteration : ' + context.outIteration
+					context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].actions[a].expected
+					context.outputJson.params[context.outIteration].observed = result.$results[0].events[j].outcome
+					context.outputJson.params[context.outIteration].result = context.outputJson.params[context.outIteration].expected == context.outputJson.params[context.outIteration].observed
+					break;
+				}
+			}
+			log.info 'outputJson : ' + context.outputJson
+			context.outIteration = context.outIteration + 1
+		}
+	}
+	else {
+		//maintain compatibility
+		context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
+
+		// Copy parameters
+		context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+		context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
+		context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
+		context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
+		context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
+		context.outputJson.params[context.outIteration].ope_id = context.ope_id
+		context.outputJson.params[context.outIteration].expected = context.expected
+		context.outputJson.params[context.outIteration].observed = result.$results[0].events[size-1].outcome
+		context.outputJson.params[context.outIteration].result = resultat
+		context.outIteration = context.outIteration + 1
+	}
+	log.info 'OUTPUT JSON : '+context.outputJson.params.text
+	log.info "------------------------------------->resultat observé : "+ result.$results[0].events[size-1].outcome
 }
 
-def i = context.iteration 
-
-context.inputJSON.params[i].result = resultat
-context.inputJSON.params[i].expected = context.expected
-context.inputJSON.params[i].observed = result.$results[0].events[size-1].outcome
-// assert resultat
 </script></con:config></con:testStep><con:testStep type="groovy" name="while" id="80a3a8e4-bc73-41e7-a411-48982e666a01"><con:settings/><con:config><script>
+
 def inputJSON = context.inputJSON 
-//log.info("ddd"+ inputJSON)
 def i = context.iteration 
 
 if ( context.inputJSON!= null &amp;&amp; i &lt; inputJSON.params.size -1 ) {
@@ -223,24 +294,26 @@ else {
 	
 }
 log.info '### Fin du test'
-</script></con:config></con:testStep><con:testStep type="groovy" name="report" id="666d2252-2a14-4ffc-95bb-817708297ebd"><con:settings/><con:config><script><![CDATA[
+</script></con:config></con:testStep><con:testStep type="groovy" name="report" id="666d2252-2a14-4ffc-95bb-817708297ebd"><con:settings/><con:config><script>
 import groovy.json.JsonOutput
-def  inputJSON = context.inputJSON 
+def  inputJSON = context.outputJson 
 	log.info '#### GENERATION DU RAPPORT'
-	log.info ' json'+context.inputJSON
-	log.info ' Nombre de tests '+context.inputJSON.params.size
+	log.info ' json'+context.outputJson
+	log.info ' Nombre de tests '+context.outputJson.params.size
 	
-if ( context.inputJSON!= null && 0 < context.inputJSON.params.size  ) {
+if ( context.outputJson!= null &amp;&amp; 0 &lt; context.outputJson.params.size  ) {
 	def jsonOut = context.expand('${#Project#reportingDir}') + 'reporting.json'
+	log.info jsonOut
 	File jsonFile = new File(jsonOut)
-	jsonFile.text= JsonOutput.toJson(context.inputJSON)
+	jsonFile.text= JsonOutput.toJson(context.outputJson)
 	log.info 'Fin de tests'
-}]]></script></con:config></con:testStep><con:setupScript>def configD =context.expand('${#Project#configDir}')
+}</script></con:config></con:testStep><con:setupScript>def configD =context.expand('${#Project#configDir}')
 log.info ("\ncongig  directory :" + configD)
 import groovy.json.JsonSlurper
 def i = 0 ; 
 def inputFile = new File(configD+"data.json")
 def inputJSON = new JsonSlurper().parseText(inputFile.text)
+def outputJson  = new JsonSlurper().parseText('{"params":[]}')
 
 //define contexts
 
@@ -248,9 +321,16 @@ context.dataDir = context.expand('${#Project#dataDir}')
 context.ingest = context.expand('${#Project#ingestHost}')
 context.logbook = context.expand('${#Project#logbookHost}')
 context.certfile = context.expand('${#Project#certfile}')
-context.inputJSON = inputJSON 
+context.certPass = context.expand('${#Project#certPass}')
+
+context.truststore = context.expand('${#Project#truststore}')
+context.trustPass = context.expand('${#Project#trustPass}')
+
+context.inputJSON = inputJSON
+context.outputJson = outputJson 
 context.inputFile =inputFile
 context.iteration  = 0 ; 
+context.outIteration  = 0 ; 
 context.nbFail = 0 
 context.nbsuccess= 0 
 
@@ -258,9 +338,9 @@ def items = []
 context.items = items</con:setupScript>
 <con:tearDownScript>//context.inputFile.close()</con:tearDownScript><con:properties/></con:testCase><con:properties/></con:testSuite>
 <con:endpointStrategy xsi:type="con:DefaultEndpointStrategy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:endpoint mode="COMPLEMENT" username="ykouki" password="">https://int.env.programmevitam.fr</con:endpoint></con:endpointStrategy>
-<con:wssContainer>
+<con:properties/><con:wssContainer>
 <con:crypto>
-	<con:source>/home/lubla/testSoapUI/keystore_ihm-demo.p12</con:source>
+	<con:source>/vitam/conf/tsa.p12</con:source>
 	<con:password>vitam1234</con:password>
 	<con:type>KEYSTORE</con:type>
 </con:crypto>

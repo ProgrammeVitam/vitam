@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Metadata api package
+ * Provides API classes for the Metadata module
  *
  */
 package fr.gouv.vitam.metadata.api;

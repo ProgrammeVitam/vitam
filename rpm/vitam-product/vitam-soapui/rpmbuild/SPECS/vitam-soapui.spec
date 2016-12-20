@@ -24,7 +24,10 @@ SoapUI is the world's most widely-used open source API testing tool for SOAP and
 mkdir -p %{buildroot}/vitam/app/soapui
 # On pousse les fichiers 
 cp -rp SoapUI-5.2.1/* %{buildroot}/vitam/app/soapui
-
+# OMA: add-ons for HTTPBuilder
+# FIXME : find a better solution later !
+curl -k -L http://central.maven.org/maven2/org/codehaus/groovy/modules/http-builder/http-builder/0.6/http-builder-0.6.jar -o %{buildroot}/vitam/app/soapui/bin/ext/http-builder-0.6.jar
+curl -k -L http://central.maven.org/maven2/xml-resolver/xml-resolver/1.1/xml-resolver-1.1.jar -o %{buildroot}/vitam/app/soapui/bin/ext/xml-resolver-1.1.jar
 %pre
 
 %post

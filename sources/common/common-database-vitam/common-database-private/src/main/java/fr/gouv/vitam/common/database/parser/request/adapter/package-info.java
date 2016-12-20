@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database parser adapter for request
+ * Provides database parser adapters for request
  */
 package fr.gouv.vitam.common.database.parser.request.adapter;

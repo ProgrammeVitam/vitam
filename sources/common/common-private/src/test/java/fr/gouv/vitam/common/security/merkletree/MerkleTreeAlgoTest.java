@@ -26,38 +26,83 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.security.merkletree;
 
+import static fr.gouv.vitam.common.digest.DigestType.SHA512;
+import static org.apache.commons.codec.binary.Base64.decodeBase64;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.commons.codec.binary.Base64;
+import org.junit.Before;
 import org.junit.Test;
-
-import fr.gouv.vitam.common.digest.DigestType;
 
 public class MerkleTreeAlgoTest {
 
+    private MerkleTreeAlgo merkleTreeAlgo;
+
+    @Before
+    public void init() {
+        merkleTreeAlgo = new MerkleTreeAlgo(SHA512);
+    }
+
     @Test
     public void shoud_compute_merkle_tree() throws IOException, NoSuchAlgorithmException {
-        final MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
-        mta.addSheet("a");
-        mta.addSheet("b");
-        mta.addSheet("c");
-        final MerkleTree mt = mta.generateMerkle();
+        // Given
+        merkleTreeAlgo.addLeaf("a");
+        merkleTreeAlgo.addLeaf("b");
+        merkleTreeAlgo.addLeaf("c");
+
+        // When
+        final MerkleTree mt = merkleTreeAlgo.generateMerkle();
+
+        // Then
         assertThat(mt.getRoot()).isEqualTo(
-            Base64.decodeBase64(
-                "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
+            decodeBase64("QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
     }
 
     @Test
     public void shoud_compute_merkle_tree_for_one_element() throws IOException, NoSuchAlgorithmException {
-        final MerkleTreeAlgo mta = new MerkleTreeAlgo(DigestType.SHA512);
-        mta.addSheet("a");
-        final MerkleTree mt = mta.generateMerkle();
+        // Given
+        merkleTreeAlgo.addLeaf("a");
+
+        // When
+        final MerkleTree mt = merkleTreeAlgo.generateMerkle();
+
+        // Then
         assertThat(mt.getRoot()).isEqualTo(
-            Base64.decodeBase64(
-                "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
+            decodeBase64("H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
+    }
+
+    @Test
+    public void should_add_thre_element_when_five_leafs() throws Exception {
+        // Given
+        merkleTreeAlgo.addLeaf("a");
+        merkleTreeAlgo.addLeaf("b");
+        merkleTreeAlgo.addLeaf("c");
+        merkleTreeAlgo.addLeaf("d");
+        merkleTreeAlgo.addLeaf("e");
+
+        // When
+        merkleTreeAlgo.addPadding();
+
+        // Then
+        assertThat(merkleTreeAlgo.numberOfLeaves()).isEqualTo(8);
+
+    }
+
+    @Test
+    public void should_not_add_element_when_four_leafs() throws Exception {
+        // Given
+        merkleTreeAlgo.addLeaf("a");
+        merkleTreeAlgo.addLeaf("b");
+        merkleTreeAlgo.addLeaf("c");
+        merkleTreeAlgo.addLeaf("d");
+
+        // When
+        merkleTreeAlgo.addPadding();
+
+        // Then
+        assertThat(merkleTreeAlgo.numberOfLeaves()).isEqualTo(4);
     }
 
 }

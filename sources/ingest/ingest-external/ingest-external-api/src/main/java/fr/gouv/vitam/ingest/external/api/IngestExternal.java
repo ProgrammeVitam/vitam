@@ -31,6 +31,8 @@ import java.io.InputStream;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
 /**
  * IngestExtern interface
  */

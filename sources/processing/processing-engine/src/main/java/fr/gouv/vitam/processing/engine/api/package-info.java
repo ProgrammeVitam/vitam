@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Processing Engine API Package
+ * Provides API classes for the Process Distributor module
+ *
  */
 package fr.gouv.vitam.processing.engine.api;

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Worker Client Exception package
+ * Provides exception classes used for the Worker Client module
  */
 package fr.gouv.vitam.worker.client.exception;

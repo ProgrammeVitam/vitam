@@ -32,10 +32,7 @@ angular.module('accession.register.details')
     $scope.accessionRegisterId = $routeParams.accessionRegisterId;
     $scope.summaryData = null;
     $scope.operationArray = [];
-    $scope.noop = angular.noop;
     $scope.isEditMode = false;
-
-
 
     /**
      * Init the successCallback for the http accession-register getSummary function.
@@ -43,7 +40,6 @@ angular.module('accession.register.details')
      * @param response The http response
      */
     var summarySuccessCallback = function(response) {
-      console.log('Summary: ', response);
       $scope.summaryData = response;
     };
 
@@ -53,7 +49,6 @@ angular.module('accession.register.details')
      * @param response The http response
      */
     var detailSuccessCallback = function(response) {
-      console.log('Detail: ', response);
       $scope.operationArray = response;
     };
 

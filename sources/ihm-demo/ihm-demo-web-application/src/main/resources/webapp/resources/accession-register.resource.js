@@ -40,7 +40,6 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call containing accession register details
      */
     accessionRegisterResource.getDetails = function (id, criteria) {
-      console.log('Options: ', criteria);
       return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + id + ACCESSION_REGISTER_DETAIL, criteria);
     };
 
@@ -51,7 +50,6 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call containing accession register summary
      */
     accessionRegisterResource.getSummary = function (criteria) {
-      console.log('Options: ', criteria);
       return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT, criteria);
     };
 

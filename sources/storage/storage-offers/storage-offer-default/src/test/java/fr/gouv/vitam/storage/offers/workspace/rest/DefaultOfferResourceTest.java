@@ -214,7 +214,6 @@ public class DefaultOfferResourceTest {
     }
 
     @Test
-    @Ignore
     public void getObjectChunkTestOK() throws Exception {
 
         final ObjectInit objectInit = new ObjectInit();
@@ -249,7 +248,7 @@ public class DefaultOfferResourceTest {
                         // assertNotNull(inChunk);
                         with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
                             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
-                            .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                            .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
                     }
                 }
@@ -374,6 +373,7 @@ public class DefaultOfferResourceTest {
         assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
     }
 
+    // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
     @Test
     @Ignore
     public void putObjectChunkTest() throws Exception {

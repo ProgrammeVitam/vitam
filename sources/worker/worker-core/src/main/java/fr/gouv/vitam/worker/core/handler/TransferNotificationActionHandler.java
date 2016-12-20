@@ -276,7 +276,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 NAMESPACE_URI + XSD_VERSION);
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_DATE, sdfDate.format(new Date()));
-            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getProcessId());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getContainerName());
             writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                 infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue());
 
@@ -414,7 +414,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 NAMESPACE_URI + XSD_VERSION);
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_DATE, sdfDate.format(new Date()));
-            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getProcessId());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getContainerName());
 
             if (infoATR != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,

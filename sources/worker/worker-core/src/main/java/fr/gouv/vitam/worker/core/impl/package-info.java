@@ -27,4 +27,13 @@
 /**
  * Worker Core Package : Implementations
  */
+/**
+ * Provides 
+ * <p>
+ * <ul>
+ * <li>A HandlerIO implementation dealing with the different input / output for handlers
+ * <li>A Worker implementation (and its factory) dealing with the execution of different actions  
+ * </ul>
+ * </p> 
+ */
 package fr.gouv.vitam.worker.core.impl;

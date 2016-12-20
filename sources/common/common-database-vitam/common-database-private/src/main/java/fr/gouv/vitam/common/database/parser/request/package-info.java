@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database parser for request
+ * Provides a global and an abstract parser in order to parse requests
  */
 package fr.gouv.vitam.common.database.parser.request;

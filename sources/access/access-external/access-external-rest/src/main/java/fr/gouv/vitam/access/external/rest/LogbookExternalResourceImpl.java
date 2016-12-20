@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -79,6 +78,7 @@ public class LogbookExternalResourceImpl {
      * @param operationId the operation id
      * @return the response with a specific HTTP status
      */
+    
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -89,7 +89,8 @@ public class LogbookExternalResourceImpl {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectOperationbyId(operationId);
-            return Response.status(Status.OK).entity(result).build();
+                return Response.status(Status.OK)
+                    .entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -100,31 +101,31 @@ public class LogbookExternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
-
+    
     /**
-     *
-     * @param operationId path param, the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
-     * @param xhttpOverride header param as String indicate the use of POST method as GET
-     * @return the response with a specific HTTP status
-     */
-    @POST
-    @Path("/operations/{id_op}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationByPost(@PathParam("id_op") String operationId,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+    *
+    * @param operationId path param, the operation id
+    * @param operation the json serialized as a LogbookOperationParameters.
+    * @param xhttpOverride header param as String indicate the use of POST method as GET
+    * @return the response with a specific HTTP status
+    */
+   @POST
+   @Path("/operations/{id_op}")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response selectOperationByPost(@PathParam("id_op") String operationId,
+       @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+       VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        Status status;
-        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
-            ParametersChecker.checkParameter("Operation id is required", operationId);
-            return getOperationById(operationId);
-        } else {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-    }
+       Status status;
+       if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
+           ParametersChecker.checkParameter("Operation id is required", operationId);
+           return getOperationById(operationId);
+       } else {
+           status = Status.PRECONDITION_FAILED;
+           return Response.status(status).entity(getErrorEntity(status)).build();
+       }
+   }
 
     /**
      * GET with request in body
@@ -139,13 +140,6 @@ public class LogbookExternalResourceImpl {
     public Response selectOperation(JsonNode query) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        try {
-            SanityChecker.checkJsonAll(query);
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final JsonNode result = client.selectOperation(query);
@@ -183,14 +177,7 @@ public class LogbookExternalResourceImpl {
         }
 
     }
-
-    /*****
-     * OPERATION - END *****
-     *
-     *
-     * /***** LOGBOOK LIFE CYCLES
-     *****/
-
+    
     /**
      * gets the unit life cycle based on its id
      *

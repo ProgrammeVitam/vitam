@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * IHM core package
+ * Provides IHM core classes
  */
 package fr.gouv.vitam.ihmdemo.core;

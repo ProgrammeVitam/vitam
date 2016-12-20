@@ -55,6 +55,7 @@ import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -148,10 +149,10 @@ public class WorkspaceResourceTest {
         with().contentType(ContentType.JSON).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).then()
+        with().contentType(ContentType.JSON).header(GlobalDataRest.X_RECURSIVE, true).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
 
-        given().contentType(ContentType.JSON).then()
+        given().contentType(ContentType.JSON).header(GlobalDataRest.X_RECURSIVE, true).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
 
     }

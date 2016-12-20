@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Access core package
+ * Provides core implementation for the Access Internal module. 
  *
  */
 package fr.gouv.vitam.access.internal.core;

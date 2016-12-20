@@ -25,9 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Logbook Common Server package <br>
- * <br>
- * Includes in particular all MongoDB utils
+ * Provides Common Server classes for the Logbook module
  *
  */
 package fr.gouv.vitam.logbook.common.server;

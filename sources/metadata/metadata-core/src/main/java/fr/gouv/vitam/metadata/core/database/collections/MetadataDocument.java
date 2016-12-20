@@ -65,7 +65,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
-    public static final String TYPE = "_type";
+    public static final String TYPE = "_profil";
     /**
      * TenantId
      */

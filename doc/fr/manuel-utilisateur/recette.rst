@@ -154,12 +154,16 @@ Le fichier de configuration contient un champ "params" dont la valeur est un tab
 Configuration d'un jeux de test
 -------------------------------
 
-Chaque jeux de test est composé des cinq élements suivants :
+Chaque jeux de test est composé des huits élements suivants :
   * sipName
   * expected
   * httpStatusCode
   * testName
   * category
+  * action [
+    * name
+    * expected
+
 
 **"sipName"**
 
@@ -198,7 +202,9 @@ on entrera alors :
 
 **"expected"**
 
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP. La valeur de ce champs n'est utilisée que si les valeurs du tableau action détaillé plus bas n'est pas renseigné. Ceci permet de garder une compatibilité avec les anciens tests de non régression qui ne contenaient pas de tableau action.
+
+Les valeurs contenus dans ces champs sont en revanche ignorées si le tableau action contient des valeurs.
 
 Par exemple :
 
@@ -234,6 +240,12 @@ Par exemple :
 
   "category":"Tests sur les arborescences"
 
+**Action** : ce champs contient un tableau de n objets ayant pour but de tester des actions précises du workflow. Cet objet est structuré de la façon suivantes :
+
+      **name** : contient le nom de l'action à tester
+
+      **expected** : contient l'état de
+
 voici l'exemple d'une configuration pour *un jeu de test*
 
 *NB :* l'exemple de configuration d'un jeu de test ci-dessous a été indenté pour une meilleure compréhension. Par défaut, dans le fichier de configuration global, la configuration d'un test est placée sur une ligne seulement.
@@ -241,12 +253,21 @@ voici l'exemple d'une configuration pour *un jeu de test*
 ::
 
   {
-    "sipName":"SIP_OK/OK_SIP_2_GO.zip",
-    "expected":"OK",
-    "httpStatusCode":200,
-    "testName":"Succès du processus de téléchargement du SIP",
-    "category":"Tests sur les arborescences"
-  }
+      "sipName": "SIP_OK/ZIP/OK_SIP_2_GO.zip",
+      "expected": "OK",
+      "httpStatusCode": 200,
+      "testName": "Test des différentes étapes OK",
+      "category": "Test global",
+      "actions": [
+        {
+          "name": "UPLOAD_SIP",
+          "expected": "OK"
+        },
+        {
+          "name": "STP_SANITY_CHECK_SIP",
+          "expected": "OK"
+        },
+    }
 
 Exemple de configuration
 ------------------------
@@ -255,14 +276,48 @@ Ci-après une configuration exemple contenant 4 jeux de tests
 
 ::
 
-  {"params":[
-
-	  {"sipName":"SIP_OK/OK_SIP_2_GO.zip","expected":"OK","httpStatusCode":200,"testName":"Succès du processus de téléchargement du SIP","category":"EVT_UPLOAD_SIP"},
-	  {"sipName":"SIP_KO/KO_SIP_mauvais_format.pdf","expected":"KO","httpStatusCode":200,"testName":"Échec du processus de téléchargement du SIP : fichier au format non conforme","category":"EVT_UPLOAD_SIP"},
-	  {"sipName":"SIP_OK/OK_ARBO_desunitsdeclare_1unitfilsavantpere.zip","expected":"WARNING","httpStatusCode":200,"testName":"Succès du processus du contrôle sanitaire : aucun virus détecté","category":"EVT_SANITY_CHECK_SIP"},
-	  {"sipName":"SIP_KO/KO_VIRUS_code2.zip","expected":"KO","httpStatusCode":200,"testName":"Échec du processus du contrôle sanitaire du SIP : fichier détecté comme infecté","category":"EVT_SANITY_CHECK_SIP"},
-
-  ]}
+    {
+        "params": [
+            {
+             "sipName": "SIP_OK/ZIP/OK_SIP_2_GO.zip",
+             "expected": "OK",
+             "httpStatusCode": 200,
+             "testName": "Test des différentes étapes OK",
+             "category": "Test global",
+             "actions": [
+                {
+                "name": "UPLOAD_SIP",
+                "expected": "OK"
+                },
+                {
+                "name": "STP_SANITY_CHECK_SIP",
+                "expected": "OK"
+                },
+                {
+                "name": "CHECK_SEDA",
+                "expected": "OK"
+                },
+                {
+                "name": "CHECK_MANIFEST_DATAOBJECT_VERSION",
+                "expected": "OK"
+                }
+                        ]
+                },
+            {
+            "sipName": "SIP_KO/ZIP/KO_SIP_Mauvais_Format.pdf",
+            "expected": "KO",
+            "httpStatusCode": 200,
+            "testName": "SIP au mauvais format",
+            "category": "Test sur le Conteneur",
+            "actions": [
+                {
+                "name": "UPLOAD_SIP",
+                "expected": "KO"
+                }
+                ]
+            }
+        ]
+    }
 
 Lancement des tests
 -------------------
@@ -293,9 +348,11 @@ Détail des colonnes du rapport
 ------------------------------
 
 Les colonnes du rapport sont les suivantes :
+  * ID Opération
   * Nom du test
   * Nom du SIP
   * Catégorie
+  * Action
   * Résultat attendu
   * Résultat constaté
 
@@ -376,3 +433,9 @@ S'il y en a plus, ils sont répartis sur différentes pages et sont accessibles 
 Chaque ligne représente un journal de type sécurisation. Au clic sur cette ligne, l'IHM affiche le détail du journal dans une nouvelle fenêtre.
 
 .. image:: images/RECETTE_consultation_journal.png
+
+**Télechargement d'un journal**
+
+Chaque ligne représentant un journal comporte un symbole de télechargement. Au clic sur ce symbole, le journal au format zip est télechargé. Le nom de ce fichier correspond à la valeur du champs FileName du dernier event du journal de l'opération.
+
+.. image:: images/RECETTE_telecharger_journal_traceability.png

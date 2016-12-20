@@ -46,7 +46,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.waf.WafFilter;
+import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
+import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
@@ -109,7 +110,9 @@ public class AccessExternalApplication
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())
-            .register(new AdminStatusResource(serviceRegistry));
+            .register(new AdminStatusResource(serviceRegistry))
+            .register(SanityCheckerCommonFilter.class)
+            .register(SanityDynamicFeature.class);
     }
 
 
@@ -129,10 +132,6 @@ public class AccessExternalApplication
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
-        context.addFilter(WafFilter.class, "/*", EnumSet.of(
-            DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-
     }
 
 
