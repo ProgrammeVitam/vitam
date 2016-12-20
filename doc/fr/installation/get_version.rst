@@ -1,4 +1,12 @@
 Récupération de la version
 ##########################
 
-Au moment de la rédaction du document, aucun formalisme n'a été défini pour ce point.
+Se connecter sur l'URL `support <https://support.programmevitam.fr/releases/0.1.0/>`_ et récupérer :
+
+* le package de livraison
+* la release notes
+* les empreintes de contrôle
+
+Sur la machine "ansible" dévouée au déploiement de :term:`VITAM`, décompacter le package (au format ``tar.gz``).
+
+Sur le repository "VITAM", récupérer également depuis le tar.gz les rpm et les faire prendre en compte par le repository.

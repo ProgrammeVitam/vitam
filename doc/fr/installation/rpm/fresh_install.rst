@@ -1,5 +1,5 @@
-Première installation
-#####################
+Procédure de première installation
+##################################
 
 
 .. |repertoire_deploiement| replace:: ``deployment``

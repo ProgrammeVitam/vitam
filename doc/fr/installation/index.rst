@@ -14,7 +14,6 @@
    architecture
    prerequis
    10-it-services.rst
-   get_vitam
    fiche_type
    get_version
    rpm/_toc
