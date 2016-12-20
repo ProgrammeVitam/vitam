@@ -7,6 +7,11 @@ Validation de la procédure
 
 La procédure de validation est commune aux différentes méthodes d'installation.
 
+Sécurisation du fichier ``vault_pass.txt``
+==========================================
+
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments-rpm/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
+
 Validation par ansible
 =======================
 
@@ -26,6 +31,8 @@ Cette URL doit retourner une réponse HTTP 200 (sans body) sur une requête HTTP
 
 Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
 
+.. warning:: les composants VITAM "ihm" n'intègrent pas /admin/v1/status".
+
 Validation via Consul
 ======================
 
@@ -37,10 +44,12 @@ Pour chaque service, la couleur à gauche du composant doit être verte (corresp
 
 Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test qui ne fonctionne pas.
 
+.. warning:: les composants :term:`VITAM` "ihm" (ihm-demo, ihm-recette) n'intègrent pas /admin/v1/status" et donc sont indiqués "KO" sous Consul ; il ne faut pas en tenir compte, sachant que si l'IHM s'affiche en appel "classique", le composant fonctionne.
+
 Validation via SoapUI
 =====================
 
-Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface (menu > tests SOAP-UI).
+Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du composant IHM-recette (menu > tests SOAP-UI).
 
 .. Validation via IHM technique
 .. ============================
