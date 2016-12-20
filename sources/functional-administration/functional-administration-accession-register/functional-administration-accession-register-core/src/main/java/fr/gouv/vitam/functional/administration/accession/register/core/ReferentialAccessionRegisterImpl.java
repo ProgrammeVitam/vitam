@@ -47,6 +47,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
@@ -180,7 +181,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             final List<AccessionRegisterSummary> result = new ArrayList<>();
             if (registers == null || !registers.hasNext()) {
-                throw new ReferentialException("Register Summary not found");
+                throw new ReferentialNotFoundException("Register Summary not found");
             }
             while (registers.hasNext()) {
                 result.add(registers.next());
@@ -188,7 +189,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             return result;
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            throw new ReferentialException(e);
+            throw e;
         }
     }
 
@@ -207,7 +208,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             final List<AccessionRegisterDetail> result = new ArrayList<>();
             if (registers == null || !registers.hasNext()) {
-                throw new ReferentialException("Register Detail not found");
+                throw new ReferentialNotFoundException("Register Detail not found");
             }
             while (registers.hasNext()) {
                 result.add(registers.next());
@@ -216,7 +217,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            throw new ReferentialException(e);
+            throw e;
         }
     }
 

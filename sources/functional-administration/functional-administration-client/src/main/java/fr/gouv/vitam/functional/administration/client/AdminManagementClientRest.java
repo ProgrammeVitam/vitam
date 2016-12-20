@@ -48,6 +48,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * AdminManagement client
@@ -353,7 +354,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("AccessionRegister Not found ");
+                    throw new ReferentialNotFoundException("AccessionRegister Not found ");
                 default:
                     break;
             }
@@ -382,7 +383,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("AccessionRegister Detail Not found ");
+                    throw new ReferentialNotFoundException("AccessionRegister Detail Not found ");
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }

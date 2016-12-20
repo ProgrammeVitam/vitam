@@ -69,6 +69,7 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
@@ -497,13 +498,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialException e) {
+        } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(new RequestResponseOK()
-                    .setHits(fileFundRegisters.size(), 0, fileFundRegisters.size())
-                    .addResult(JsonHandler.toJsonNode(fileFundRegisters)))
-                .build();
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
@@ -546,9 +544,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ReferentialException e) {
+        } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(status).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
