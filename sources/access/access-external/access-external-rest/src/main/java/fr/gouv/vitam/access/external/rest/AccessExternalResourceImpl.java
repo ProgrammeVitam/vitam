@@ -64,7 +64,6 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -76,8 +75,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -506,13 +505,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final JsonNode result = client.getAccessionRegister(select);
             return Response.status(Status.OK).entity(result).build();
-        } catch (final ReferentialException e) {
+        } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -562,14 +565,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
             final JsonNode result = client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
             return Response.status(Status.OK).entity(result).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
+        } catch (final ReferentialNotFoundException e) {
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status)).build();
         } catch (InvalidParseOperationException | UnsupportedEncodingException |
             InvalidCreateOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }

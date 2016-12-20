@@ -78,7 +78,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 
 @RunWith(PowerMockRunner.class)
@@ -771,8 +771,8 @@ public class AccessExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getAccessionRegister(anyObject());
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getAccessionRegisterDetail(anyObject());
+        PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient).getAccessionRegister(anyObject());
+        PowerMockito.doThrow(new ReferentialNotFoundException("")).when(adminCLient).getAccessionRegisterDetail(anyObject());
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 
@@ -781,14 +781,14 @@ public class AccessExternalResourceImplTest {
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
 
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient)
@@ -809,6 +809,25 @@ public class AccessExternalResourceImplTest {
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        
+        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        .getAccessionRegister(anyObject());
+        PowerMockito.doThrow(new IllegalArgumentException("")).when(adminCLient)
+        .getAccessionRegisterDetail(anyObject());
+        
+        given()
+        .contentType(ContentType.JSON)
+        .header(X_HTTP_METHOD_OVERRIDE, "GET")
+        .body(select.getFinalSelect())
+        .when().post(ACCESSION_REGISTER_URI)
+        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        
+        given()
+        .contentType(ContentType.JSON)
+        .header(X_HTTP_METHOD_OVERRIDE, "GET")
+        .body(select.getFinalSelect())
+        .when().post(ACCESSION_REGISTER_DETAIL_URI)
+        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
 
