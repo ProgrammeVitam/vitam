@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-offers</artifactId>
-		<version>0.11.1-SNAPSHOT</version>
+		<version>0.11.1-RC1</version>
 	</parent>
 	<artifactId>storage-offer-mock</artifactId>
 	<name>Storage Offer Mock</name>

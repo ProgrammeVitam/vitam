@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>functional-administration-accession-register</artifactId>
-    <version>0.11.1-SNAPSHOT</version>
+    <version>0.11.1-RC1</version>
   </parent>
   <artifactId>functional-administration-accession-register-core</artifactId>
   
