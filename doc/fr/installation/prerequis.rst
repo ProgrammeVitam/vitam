@@ -6,7 +6,7 @@ Description
 
 Les pré-requis logiciels suivants sont nécessaires :
 
-* Disposer d'une plate-forme Linux CentOS 7 installée selon la répartition des services souhaitée . En particulier, ces serveurs doivent avoir :
+* Disposer d'une plate-forme Linux CentOS 7 installée selon la répartition des services souhaitées . En particulier, ces serveurs doivent avoir :
 
   + une configuration de temps synchronisée (ex: en récupérant le temps à un serveur centralisé)
   + Des autorisations de flux conformément aux besoins décrits dans le :term:`DAT`
@@ -32,7 +32,7 @@ Matériel
 
 Les prérequis matériel sont définis dans le :term:`DAT` ; à l'heure actuelle, le minimum recommandé pour la solution Vitam est 2 CPUs et 512Mo de RAM disponible par composant applicatif installé sur chaque machine.
 
-Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été défini ; cependant, sont à prévoir par la suite des espace de stockage conséquents pour les composant suivants :
+Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été défini ; cependant, sont à prévoir par la suite des espaces de stockage conséquents pour les composants suivants :
 
 * default-offer
 * solution de centralisation des logs (elasticsearch)
