@@ -7,11 +7,11 @@
 #########################################################################################
 
 # Set the base image to Centos 7
-FROM docker.programmevitam.fr/centos:7.2.1511
+FROM centos:7.3.1611
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
-RUN yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
+RUN yum erase -y yum-plugin-ovl && yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
 
 ################################  Configure systemd  ###############################
 
@@ -96,7 +96,7 @@ COPY fastestmirror.conf /etc/yum/pluginconf.d
 ENV TERM xterm
 
 # FIX to solve problems with glibc-common update (locales are missing)
-RUN localedef -i en_US -f UTF-8 en_US.UTF-8
+# RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 ##################################  CONTAINER SETTINGS  #################################
 
