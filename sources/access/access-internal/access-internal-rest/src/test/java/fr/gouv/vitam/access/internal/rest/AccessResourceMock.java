@@ -64,10 +64,9 @@ public class AccessResourceMock implements AccessInternalResource {
      * get units list
      */
     @Override
-    @POST
+    @GET
     @Path("/units")
-    public Response getUnits(JsonNode dslQuery,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String headerParam) {
+    public Response getUnits(JsonNode dslQuery) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
@@ -75,10 +74,9 @@ public class AccessResourceMock implements AccessInternalResource {
      * get unit list by unit id
      */
     @Override
-    @POST
+    @GET
     @Path("/units/{id_unit}")
-    public Response getUnitById(JsonNode dslQuery,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String headerParam, @PathParam("id_unit") String id_unit) {
+    public Response getUnitById(JsonNode dslQuery, @PathParam("id_unit") String id_unit) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 

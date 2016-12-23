@@ -330,7 +330,6 @@ public class StorageResource extends ApplicationStatusResource {
     }
 
 
-
     /**
      * Post a new object
      *
@@ -369,36 +368,7 @@ public class StorageResource extends ApplicationStatusResource {
             return responsePost;
         }
     }
-
-    /**
-     * Retrieve an object data (equivalent to GET with body)
-     *
-     * @param headers http headers
-     * @param objectId the object identifier to retrieve
-     * @param asyncResponse
-     * @throws IOException in case of any i/o exception
-     */
-    @Path("/objects/{id_object}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM + "; qs=0.3", CommonMediaType.ZIP + "; qs=0.3"})
-    public void getObjectWithPost(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        @Suspended final AsyncResponse asyncResponse)
-        throws IOException {
-        final Response responsePost = checkPostHeader(headers);
-        if (responsePost == null) {
-            getObject(headers, objectId, asyncResponse);
-        } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED).build());
-        } else {
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, responsePost);
-            final ResponseBuilder responseBuilder = Response.status(responsePost.getStatus());
-            helper.writeResponse(responseBuilder);
-
-        }
-    }
-
+    
     /**
      * Delete an object
      *
