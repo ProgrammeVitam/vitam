@@ -125,11 +125,11 @@ documentation:
    API qui définit les requêtes pour accéder aux Objets d'archives.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
   get:
-    description: Request that will return results composed of Objects
+    description: **UNSUPPORTED** Request that will return results composed of Objects
     is: [AccessTraits.AccessObjectResponse]
   post:
     description: |
-      Request that will return results composed of Objects. The request is using POST with X-Http-Method-Override: GET
+      **UNSUPPORTED** Request that will return results composed of Objects. The request is using POST with X-Http-Method-Override: GET
     is: [AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
