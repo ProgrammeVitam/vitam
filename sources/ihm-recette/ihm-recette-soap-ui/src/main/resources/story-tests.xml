@@ -104,15 +104,18 @@ if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
  * Upload File 
  **/
 import java.security.KeyStore
-import groovyx.net.http.HTTPBuilder
-import groovy.json.JsonSlurper 
 import org.apache.http.conn.scheme.Scheme
 import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier
-
-import static groovyx.net.http.Method.POST
-import static groovyx.net.http.ContentType.BINARY
-
+import java.io.File;
+import java.io.FileInputStream;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 def url  = context.ingest+"ingest-external/v1/ingests/"
 log.info 'Url for ingest' + url
@@ -127,10 +130,10 @@ def file = context.dataDir+context.sipName
 
 log.info 'Cert: ' + cert
 log.info 'File uploaded: ' + context.dataDir+context.sipName
-
 def ope_id = null
-def http = new HTTPBuilder( url )
 
+
+def http = new DefaultHttpClient();
 if (url.startsWith('https')) {
 	def keyStore = KeyStore.getInstance( "PKCS12" )
 	def trustStore = KeyStore.getInstance("JKS")
@@ -142,62 +145,56 @@ if (url.startsWith('https')) {
 	new File(trust).withInputStream {
 		trustStore.load(it, trustPass.toCharArray())
 	}
-	
-	//getClass().getResource( cert ).withInputStream  {
-    		// keyStore.load( it, "password".toCharArray() )
-	//}
- 
 	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
 	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
 	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
- 
-	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+	http.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
 }
+HttpPost httppost = new HttpPost(url);
+            def reqEntity = new InputStreamEntity(
+                    new FileInputStream(file), -1);
+            reqEntity.setContentType("application/octet-stream");
+            reqEntity.setChunked(true);
+httppost.setEntity(reqEntity);
+log.info "executing request " + httppost.getRequestLine();
+ def response = http.execute(httppost);
 
-
-http.request(POST){ request ->
-	requestContentType = BINARY
-	body = new File(file).bytes
-
-	response.success = { resp, reader ->;
-		ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
-     }
- 
-     response.failure = { resp, reader ->;
-     	log.error "Request failed :  Status: ${resp.status}]"
-     	ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
-     }
-
-     // TODO : Early ATR : Add X-Requst-Id (to validate)
-}
-
-context.ope_id = ope_id
-
-</script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>import com.eviware.soapui.support.XmlHolder
+context.ope_id =response.getFirstHeader('X-REQUEST-ID').getValue()
+ </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>import com.eviware.soapui.support.XmlHolder
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import java.security.KeyStore
-import groovyx.net.http.HTTPBuilder
+
 import groovy.json.JsonSlurper
 import org.apache.http.conn.scheme.Scheme
 import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier
-import static groovyx.net.http.Method.GET
-
+import org.apache.http.client.methods.HttpGet;
+import java.io.File;
+import java.io.FileInputStream;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 def i = context.iteration
 def url  = context.logbook+"access-external/v1/operations/"+context.ope_id
+
 def options = "" 
 def cert = context.certfile
 def certPass = context.certPass
 def trust = context.truststore
 def trustPass = context.trustPass
-
-def http = new HTTPBuilder( url )
 def reponse =  null
+
+def http = new DefaultHttpClient();
 if (url.startsWith('https')) {
 	def keyStore = KeyStore.getInstance( "PKCS12" )
 	def trustStore = KeyStore.getInstance("JKS")
 	//def keyStore = KeyStore.getInstance( "TLS" )
+	
 	new File(cert).withInputStream  {
     		keyStore.load(it, certPass.toCharArray() )
 	}
@@ -207,20 +204,17 @@ if (url.startsWith('https')) {
 	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
 	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
 	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+	http.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
 }
-http.request(GET){ request ->
-	response.success = { resp, reader ->;
-	reponse=  reader
-     }
-     response.failure = { resp, reader ->;
-     log.err resp.getStatus()
-     }
-}
-if (reponse !=null )
+HttpGet httpGet = new HttpGet(url);
+def response = http.execute(httpGet);
+
+if (response !=null )
 {
-	def slup = new JsonSlurper() // $.result[*]
-	result= reponse
+	
+	def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity))  // $.result[*]
+	log.error result 
+	//result = reponse
 	def size = result.$results[0].events.size
 
 	log.info 'Size / Last elem: ' + size + ' / ' + size-1
