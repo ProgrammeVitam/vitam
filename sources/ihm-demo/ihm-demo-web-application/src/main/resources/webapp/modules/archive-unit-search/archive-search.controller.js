@@ -34,6 +34,7 @@
 
 angular
  .module('archiveSearch')
+  .constant('ITEM_PER_PAGE', 25)
  .constant(
   'ARCHIVE_SEARCH_MODULE_CONST', {
    'ARCHIVE_FORM_ALREADY_OPENED': 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.',
@@ -50,7 +51,7 @@ angular
   })
  .controller(
   'ArchiveUnitSearchController',
-   function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,
+   function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog, ITEM_PER_PAGE,
     ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult) {
 
     // ******************************* Alert diplayed
@@ -216,7 +217,7 @@ angular
 
     // ************************************Pagination
     // **************************** //
-    $scope.viewby = 10;
+    $scope.viewby = ITEM_PER_PAGE;
     $scope.currentPage = 1;
     $scope.itemsPerPage = $scope.viewby;
     $scope.maxSize = 5;
