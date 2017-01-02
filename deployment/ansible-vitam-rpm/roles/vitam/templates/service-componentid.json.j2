@@ -20,6 +20,32 @@
 {% endif %}
         "interval": "1s"
       }
+{% if vitam_component == 'worker'  %}
+      ,
+      {
+        "id": "siegfried check",
+        "notes": "Is siegfried running ?",
+        "tcp": "localhost:{{ vitam_siegfried_port }}",
+        "interval": "1s"
+      }
+{% elif vitam_component =='ingest-external' %}
+      ,
+      {
+        "id": "siegfried check",
+        "notes": "Is siegfried running ?",
+        "tcp": "localhost:{{ vitam_siegfried_port }}",
+        "interval": "1s"
+      }
+{% if installation_clamav == "true" %}
+      ,
+      {
+        "id": "ClamAV check",
+        "notes": "Is ClamAV daemon running ?",
+        "tcp": "localhost:{{ clamav_port }}",
+        "interval": "1s"
+      }
+{% endif %}
+{% endif %}
     ]
   }
 }
