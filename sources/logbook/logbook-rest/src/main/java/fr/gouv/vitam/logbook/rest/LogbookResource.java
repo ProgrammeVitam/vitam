@@ -311,21 +311,16 @@ public class LogbookResource extends ApplicationStatusResource {
     }
     
     /**
-     * select Operation With Post Override Or Bulk Create
+     * Bulk Create Operation
      *
      * @param query as JsonNode or Operations Logbooks as ArrayNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
-     * @return Response of SELECT query with POST method or CREATED for not GET Overriden method
+     * @return Response of SELECT query with POST method or CREATED 
      */
     @POST
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationWithPostOverrideOrBulkCreate(JsonNode query,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        if (xhttpOverride != null && HttpMethod.GET.equals(xhttpOverride)) {
-            return selectOperation(query);
-        } else {
+    public Response bulkCreateOperation(JsonNode query) {
             // query is in fact a bulk LogbookOperationsParameter
             try {
                 ParametersChecker.checkParameter("Logbook parameters", query);
@@ -355,8 +350,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .build();
             }
             return Response.status(Response.Status.CREATED).build();
-        }
-
+       
     }
 
 

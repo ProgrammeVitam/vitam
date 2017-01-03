@@ -204,7 +204,7 @@ public class SelectObjectGroupResourceTest {
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        given().header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET).contentType(ContentType.JSON)
+        given().contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.OK.getStatusCode());
     }

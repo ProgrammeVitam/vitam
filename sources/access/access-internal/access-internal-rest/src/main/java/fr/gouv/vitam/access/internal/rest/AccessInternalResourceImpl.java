@@ -78,8 +78,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     private static final String GET = HttpMethod.GET;
-    private static final String THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER =
-        "There is no 'X-Http-Method-Override:GET' as a header";
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
         "Execution of DSL Vitam from Access ongoing...";
@@ -111,63 +109,64 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
     }
 
-    /**
-     * get units list by query
-     */
-    @Override
-    @POST
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnits(JsonNode queryDsl,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
-        Status status;
-        JsonNode result = null;
-        try {
-            if (xhttpOverride != null && GET.equalsIgnoreCase(xhttpOverride)) {
-                SanityChecker.checkJsonAll(queryDsl);
-                result = accessModule.selectUnit(queryDsl);
-            } else {
-                throw new AccessInternalExecutionException(THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER);
-            }
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
-        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-        return Response.status(Status.OK).entity(result).build();
-    }
 
     /**
-     * get units list by query based on identifier
+     * get Archive Unit  list by query based on identifier
+     * 
+     * @param queryDsl as JsonNode
+     * @return an archive unit result list
      */
+	@Override
+	@GET
+	@Path("/units")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getUnits(JsonNode queryDsl) {
+		LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
+		Status status;
+		JsonNode result = null;
+		try {
+			SanityChecker.checkJsonAll(queryDsl);
+			result = accessModule.selectUnit(queryDsl);
+		} catch (final InvalidParseOperationException e) {
+			LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+			// Unprocessable Entity not implemented by Jersey
+			status = Status.BAD_REQUEST;
+			return Response.status(status).entity(getErrorEntity(status)).build();
+		} catch (final AccessInternalExecutionException e) {
+			LOGGER.error(e.getMessage(), e);
+			status = Status.METHOD_NOT_ALLOWED;
+			return Response.status(status).entity(getErrorEntity(status)).build();
+		}
+		LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+		return Response.status(Status.OK).entity(result).build();
+	}
+
+    /**
+     * get Archive Unit  list by query based on identifier
+     * 
+     * @param queryDsl as JsonNode
+     * @param idUnit identifier 
+     * @return an archive unit result list
+     */
+	
+
     @Override
-    @POST
+    @GET
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitById(JsonNode queryDsl,
-        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @PathParam("id_unit") String idUnit) {
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
         Status status;
         JsonNode result = null;
         try {
-            if (xhttpOverride != null && GET.equalsIgnoreCase(xhttpOverride)) {
+            
                 SanityChecker.checkJsonAll(queryDsl);
                 SanityChecker.checkParameter(idUnit);
                 result = accessModule.selectUnitbyId(queryDsl, idUnit);
-            } else {
-                throw new AccessInternalExecutionException(THERE_IS_NO_X_HTTP_METHOD_OVERRIDE_GET_AS_A_HEADER);
-            }
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey

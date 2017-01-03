@@ -378,9 +378,8 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_QUERY))
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when()
-            .post(OPERATIONS_URI)
+            .get(OPERATIONS_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }

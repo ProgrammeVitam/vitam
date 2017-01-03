@@ -47,20 +47,18 @@ public interface AccessInternalResource extends VitamResource {
      * gets archive units with Json query
      *
      * @param dslQuery null not allowed
-     * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
-    public Response getUnits(JsonNode dslQuery, String headerParam);
+    public Response getUnits(JsonNode dslQuery);
 
     /**
      * gets archive units by Id with Json query
      *
      * @param dslQuery DSL, null not allowed
-     * @param headerParam X-Http-Method-Override header
      * @param unitId units identifier
      * @return a archive unit result list
      */
-    public Response getUnitById(JsonNode dslQuery, String headerParam, String unitId);
+    public Response getUnitById(JsonNode dslQuery, String unitId);
 
     /**
      * update archive units by Id with Json query
