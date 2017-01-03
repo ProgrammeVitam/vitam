@@ -136,6 +136,7 @@ public class VitamCollection {
 
         // See
         // http://stackoverflow.com/questions/6520439/how-to-configure-mongodb-java-driver-mongooptions-for-production-use
+	// FIXME : reflexion on readPreference must be made (load repartition between primary and secondary nodes) 
         return MongoClientOptions.builder().codecRegistry(codecRegistry)
             .connectTimeout(VitamConfiguration.getConnectTimeout())
             .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getMaxClientPerHost())
@@ -144,7 +145,7 @@ public class VitamCollection {
                 VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
             .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
             .writeConcern(WriteConcern.ACKNOWLEDGED).readConcern(ReadConcern.DEFAULT)
-            .readPreference(ReadPreference.secondaryPreferred())
+            .readPreference(ReadPreference.primaryPreferred())
             .build();
     }
 
