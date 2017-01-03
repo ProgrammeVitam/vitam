@@ -51,6 +51,10 @@ public class ValidationXsdUtilsTest {
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID = "ATR_example_notvalid.xml";
     private static final String WRONG_SEDA_MISSING_TITLE = "manifestKoOnTitleMissing.xml";
 
+    private static final String SEDA_UPDATE_VALID = "manifestOK_Update.xml";
+    private static final String SEDA_UPDATE_NOT_VALID = "manifestKO_UpdateMissingSystemId.xml";
+    private static final String SEDA_UPDATE_NOT_VALID_2 = "manifestKO_UpdateUnreferencedAU.xml";
+
     @Test
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
@@ -98,4 +102,26 @@ public class ValidationXsdUtilsTest {
             SEDA_VITAM_VALIDATION_FILE));
     }
 
+    @Test
+    public void givenXmlCorrectWithUpdateWhenCheckXsdThenReturnTrue()
+        throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        assertTrue(
+            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_VALID), SEDA_VITAM_VALIDATION_FILE));
+    }
+
+    @Test(expected = SAXException.class)
+    public void givenXmlUpdateWithoutSystemIdWhenCheckXsdThenThrowException()
+        throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID), SEDA_VITAM_VALIDATION_FILE);
+    }
+    
+    @Test(expected = SAXException.class)
+    public void givenXmlUpdateDeleteRefUnknownArchiveUnitWhenCheckXsdThenThrowException()
+        throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_UPDATE_NOT_VALID_2), SEDA_VITAM_VALIDATION_FILE);
+    }
+    
 }
