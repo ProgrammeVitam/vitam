@@ -40,6 +40,7 @@ public class AdminStatusMessage {
     private JsonNode serverIdentity;
     private boolean status;
     private ObjectNode detail;
+    private JsonNode componentsVersions;
 
     /**
      * Empty constructor
@@ -52,13 +53,15 @@ public class AdminStatusMessage {
      * Constructor from ServerIdentity
      *
      * @param serverIdentity containing ServerName, ServerRole, Global PlatformId
-     * @param status True if the status is OK, else False
-     * @param detail the detailed status if any
+     * @param status         True if the status is OK, else False
+     * @param detail         the detailed status if any
+     * @param componentsVersions
      */
-    public AdminStatusMessage(JsonNode serverIdentity, boolean status, ObjectNode detail) {
+    public AdminStatusMessage(JsonNode serverIdentity, boolean status, ObjectNode detail, JsonNode componentsVersions) {
         setServerIdentity(serverIdentity);
         setStatus(status);
         setDetail(detail);
+        setComponentsVersions(componentsVersions);
     }
 
     /**
@@ -112,6 +115,22 @@ public class AdminStatusMessage {
         return this;
     }
 
+    /**
+     *
+     * @return
+     */
+    public JsonNode getComponentsVersions() {
+        return componentsVersions;
+    }
+
+    /**
+     *
+     * @param componentsVersions
+     */
+    public void setComponentsVersions(JsonNode componentsVersions) {
+        this.componentsVersions = componentsVersions;
+    }
+
     @Override
     public String toString() {
         try {
@@ -121,4 +140,5 @@ public class AdminStatusMessage {
             return "unknownStatusMessage";
         }
     }
+
 }
