@@ -1,7 +1,14 @@
+[
+{% for i in vitam_storageofferdefault_list %}
+{% if i.name is defined %}
 {
-  "id" : "default",
-  "baseUrl" : "{{ vitam_storageofferdefault_baseurl }}",
-  "parameters" : {
-    "user" : "bob"
-  }
+    "id" : "{{i.name}}",
+    "baseUrl" : "{{i.protocol}}://{{i.host}}:{{i.port}}",
+    "parameters" : {
+    }
 }
+{% if not loop.last %},
+{% endif %}
+{% endif %}
+{% endfor %}
+]

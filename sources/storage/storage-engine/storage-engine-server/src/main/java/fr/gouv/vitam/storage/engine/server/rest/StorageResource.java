@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -138,7 +139,7 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -316,7 +317,7 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -879,12 +880,12 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-            } catch (final StorageObjectAlreadyExistsException exc) {
+            }  catch (final StorageObjectAlreadyExistsException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
+            } catch (final StorageException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
             // If here, an error occurred
             return buildErrorResponse(vitamCode);

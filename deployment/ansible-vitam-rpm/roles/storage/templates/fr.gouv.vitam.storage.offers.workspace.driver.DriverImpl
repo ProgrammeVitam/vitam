@@ -1,0 +1,5 @@
+{% for i in vitam_storageofferdefault_list %}
+{% if i.name is defined %}
+{{i.name}}{% if not loop.last %};{% endif %}
+{% endif %}
+{% endfor %}

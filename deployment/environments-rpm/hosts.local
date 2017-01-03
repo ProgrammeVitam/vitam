@@ -177,3 +177,6 @@ days_to_delete_metrics=30
 
 installation_clamav=true
 http_proxy_environnement=
+
+vitam_storageofferdefault_host_1=localhost
+# vitam_storageofferdefault_host_2=localhost

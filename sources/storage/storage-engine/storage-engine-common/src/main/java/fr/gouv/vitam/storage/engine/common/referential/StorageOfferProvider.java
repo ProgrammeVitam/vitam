@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -40,7 +41,7 @@ public interface StorageOfferProvider {
      *
      * @param idOffer the id of the storage offer to retrieve
      * @return an object representation of a storage offer
-     * @throws StorageTechnicalException if any unwanted technical issue happens
+     * @throws StorageException if any unwanted technical issue happens
      */
-    StorageOffer getStorageOffer(String idOffer) throws StorageTechnicalException;
+    StorageOffer getStorageOffer(String idOffer) throws StorageException;
 }
