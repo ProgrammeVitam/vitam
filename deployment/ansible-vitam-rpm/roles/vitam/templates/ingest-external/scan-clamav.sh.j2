@@ -30,7 +30,7 @@ else # one argument, let's go
 	if [ ! -f  "$1" ];then # if the file wich will be scan is existing, keep going
 		echo "ERROR : \"$1\" doesn't exit"
 	else
-		clamscan -z --detect-pua=yes --block-encrypted=yes "$1" 1> ${OUTPUT_DIR}/stdout 2> ${OUTPUT_DIR}/stderr # scanning the file and store the output OUTPUT
+		clamdscan -z --config-file=/etc/clamd.d/scan.conf "$1" 1> ${OUTPUT_DIR}/stdout 2> ${OUTPUT_DIR}/stderr # scanning the file and store the output OUTPUT
 		RET=$? # return code of clamscan
 		
 		# Always output clamscan outputs to our own stderr

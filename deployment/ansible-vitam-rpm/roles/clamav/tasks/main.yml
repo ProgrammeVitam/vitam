@@ -12,3 +12,28 @@
   yum:
     name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
     state: latest
+
+- name: ensure clam.d directory exists
+  file:
+    path: /etc/clamd.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: apply custom config file for clamAV
+  template:
+    src: scan.conf.j2
+    dest: /etc/clamd.d/scan.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart clamav   
+
+- name: ensure clamAV daemon is started at boot
+  service:
+    name: "clamd@scan"
+    enabled: true
+  notify:
+      - restart clamav

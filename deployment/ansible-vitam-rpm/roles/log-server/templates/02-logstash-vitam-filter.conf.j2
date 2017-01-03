@@ -112,6 +112,21 @@ filter
             target => [ "@timestamp" ]
         }
     }
+    else if [program] =~ "clamd" {
+        grok {
+            break_on_match => false
+            match => [
+                "message",
+                "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:err_level}\])?%{SPACE}(?<module_name>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:msg_info})"
+            ]
+            overwrite => [ "timestamp" ]
+        }
+        mutate { add_field => { "type" => "clamd" } }
+        date {
+            match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+            target => [ "@timestamp" ]
+        }
+    }
 
     # Now we should have only the vitam components
     # todo: change this by else if (vitam-*) and else {generic processing}

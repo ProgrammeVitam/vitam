@@ -4,7 +4,7 @@ output
     # todo: check if drop exists (which module set it, etc...)
     if "_grokparsefailure" not in [tags] and "drop" not in [tags]
     {
-        if [type] =~ "logback" or [type] =~ "mongo" or [program] =~ "elasticsearch-data" or [type] =~ "consul"
+        if [type] =~ "logback" or [type] =~ "mongo" or [program] =~ "elasticsearch-data" or [type] =~ "consul"  or [program] =~ "clamd"
         {
             elasticsearch
             {
