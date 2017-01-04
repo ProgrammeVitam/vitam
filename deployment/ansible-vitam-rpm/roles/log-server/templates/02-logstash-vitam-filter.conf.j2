@@ -34,7 +34,6 @@ filter
     # --------------------------------------------------
 
     if [input] == "curator" {
-        mutate { add_field => [ "type", "curator" ] }
         grok {
             break_on_match => false
             keep_empty_captures => true
