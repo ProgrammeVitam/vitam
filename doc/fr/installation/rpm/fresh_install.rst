@@ -73,7 +73,7 @@ Le fichier ``vault.yml`` est également présent sous |repertoire_inventory| ``/
    :language: ini
    :linenos:
 
-.. note:: Si le mot de passe du fichier ``vault.yml`` est changé, ne pas oublier de le répercuter dans le fichier ``vault_pass.txt`` (et le séuriser à l'issue de l'installation).
+.. note:: Si le mot de passe du fichier ``vault.yml`` est changé, ne pas oublier de le répercuter dans le fichier ``vault_pass.txt`` (et le sécuriser à l'issue de l'installation).
 
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
@@ -81,7 +81,7 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 .. warning:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
 
 
-Paramétrage de mongoclient (aministration mongoclient)
+Paramétrage de mongoclient (administration mongoclient)
 ======================================================
 
 Le package rpm vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
@@ -114,7 +114,7 @@ Procédure pour configurer la connexion aux bases vitam::
 
 Si les identifiants utilisés disposent de droit suffisants, Mongoclient vas afficher les métriques du service mongoDB.
 
-Mongoclient ne permet de gerer qu'une seule base à la fois, il est toutefois possible de changer de base de donnée rapidement en ouvrant le menu "More" => "Switch Database" qui affichera la liste des bases de données accessibles (suivant les identifiants renseignés).
+Mongoclient ne permet de gérer qu'une seule base à la fois, il est toutefois possible de changer de base de donnée rapidement en ouvrant le menu "More" => "Switch Database" qui affichera la liste des bases de données accessibles (suivant les identifiants renseignés).
 
 
 Paramétrage de l'antivirus (ingest-externe)
@@ -226,7 +226,7 @@ Ce playbook permet d'installer :
   - mongo-express (en docker  ; une connexion internet est alors nécessaire)
   - le composant :term:`VITAM` library, hébergeant les documentations du projet
   - le composant :term:`VITAM` ihm-recette (nécessite un accès à un répertoire "partagé" pour récupérer les jeux de tests)
-  - un reverse proxy, afin de siplifier les appels aux composants
+  - un reverse proxy, afin de simplifier les appels aux composants
 
 
 .. code-block:: bash
@@ -250,5 +250,5 @@ Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Se
 1. Faire une requête GET sur l'url suivante ``http://<ip-elasticsearch-log>/.kibana/index-pattern/_search``.
 2. Récupérer le contenu au format JSON et extraire le contenu de la clé **hits.hits** (qui doit être un tableau).
 3. Copier ce tableau dans un fichier.
-4. Copier le fichier crée à l'étape 3 dans l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
+4. Copier le fichier créé à l'étape 3 dans l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
 5. Les index-pattern sont prêts à être importés.
