@@ -25,35 +25,14 @@
  * accept its terms.
  */
 
-'use strict';
+// Define service in order to process the resource promise for operation's details
+angular.module('core')
+  .service('detailOperationService', function(detailOperationResource) {
 
-angular.module('search.operation')
-  .controller('DetailOperationController', function($scope, $mdDialog, ihmDemoCLient, idOperationService, $routeParams , detailOperationService) {
-    var operationId = $routeParams.entryId;
+    var detailOperationService = this;
 
-    detailOperationService.getOperation(operationId,
-			function(response) {
-			      $scope.detail = response.data.$results[0];
-			      $scope.detailId = operationId;
+    detailOperationService.getOperation = function(operationId,success ) {
+    	detailOperationResource.result(operationId).then(success);
+    };
 
-			});
-
-  })
-  .factory('idOperationService', function() {
-	    var getIdFromResult = function(result) {
-	      var id;
-	      result.events.forEach(function(element) {
-	        if (element.obIdIn !== null && element.obIdIn !== '') {
-	          id = element.obIdIn;
-	        }
-	      });
-	      return id;
-	    };
-
-
-	    return {
-	      getIdFromResult: getIdFromResult
-	    };
-
-	  });
-
+  });

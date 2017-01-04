@@ -24,6 +24,12 @@
 			<artifactId>ihm-recette-soap-ui</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+			<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>

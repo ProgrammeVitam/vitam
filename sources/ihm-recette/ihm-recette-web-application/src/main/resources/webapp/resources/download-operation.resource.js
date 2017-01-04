@@ -32,23 +32,24 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-// Define resources in order to call WebApp http endpoints for search operation
+// Define resources in order to call WebApp http endpoints for download
+// Logbook
 angular.module('core').factory(
-		'searchOperationResource',
+		'downloadOperationResource',
 		function($http, IHM_URLS) {
 
-			var Search_operation_ROOT = '/logbooks';
-			var searchOperationResource = {};
+			var Download_operation_ROOT = '/logbooks';
+			var downloadOperationResource = {};
 
 			/**
-			 * launch search-operations  (POST method)
+			 * launch search-operations (GET method)
 			 * 
 			 * @returns {HttpPromise} The promise returned by the http call
 			 */
-			searchOperationResource.result = function(options) {
-				return $http.post(IHM_URLS.IHM_BASE_URL
-					+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET'}});
+			downloadOperationResource.result = function(idOperation) {
+				return IHM_URLS.IHM_BASE_URL + Download_operation_ROOT + '/'
+						+ idOperation + "/content";
 			};
-			return searchOperationResource;
+			return downloadOperationResource;
 
 		});
