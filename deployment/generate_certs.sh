@@ -12,17 +12,14 @@ check_password_file
 echo "Sourcer les informations nécessaires dans vault.yml"
 eval $(ansible-vault view $(dirname $0)/environments-rpm/group_vars/all/vault.yml ${ANSIBLE_VAULT_PASSWD}| sed -e 's/: /=/')
 
+
 echo "Generation du certificat client de ihm-demo"
 generateclientcertificate ihm-demo ihmdemoclientkeypassword caintermediatekeypassword
 echo "	Conversion en p12..."
 crtkey2p12 ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo ihmdemoclientkeypassword ihm-demo ${p12_ihm_demo_password}
 echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ !"
-
 echo "Fin de génération du certificat client de ihm-demo"
 echo "--------------------------------------------------"
-
-
-
 
 
 echo "Generation du certificat client de ihm-recette"
@@ -30,10 +27,17 @@ generateclientcertificate ihm-recette ihmrecetteclientkeypassword caintermediate
 echo "	Conversion en p12..."
 crtkey2p12 ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ihm-recette ihmrecetteclientkeypassword ihm-recette ${p12_ihm_recette_password}
 echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ !"
-
 echo "Fin de génération du certificat client de ihm-recette"
 echo "--------------------------------------------------"
 
+
+echo "Generation du certificat client du reverse proxy"
+generateclientcertificate reverse reverseclientkeypassword caintermediatekeypassword
+echo "	Conversion en p12..."
+crtkey2p12 ${REPERTOIRE_CERTIFICAT}/client/reverse/reverse reverseclientkeypassword reverse ${p12_reverse_password}
+echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/client/reverse/ !"
+echo "Fin de génération du certificat client du reverse proxy"
+echo "--------------------------------------------------"
 
 
 for j in ingest access; do

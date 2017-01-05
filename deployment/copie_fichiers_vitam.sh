@@ -22,6 +22,7 @@ for j in access ingest; do
 	echo "------------------------"
 done
 
+
 echo "	Recopie pour ihm-demo..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/ihm-demo
 cp -f ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/*p12 ansible-vitam-rpm/roles/vitam/files/ihm-demo/keystore_ihm-demo.p12
@@ -47,9 +48,6 @@ echo "	Fichiers recopiés"
 echo "------------------------"
 
 
-
-
-
 echo "	Recopie pour logbook..."
 mkdir -p ansible-vitam-rpm/roles/vitam/files/logbook
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-logbook ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
@@ -59,6 +57,14 @@ done
 echo "	Fichiers recopiés"
 echo "------------------------"
 
+
+echo "	Recopie pour reverse..."
+cp -f ${REPERTOIRE_CERTIFICAT}/client/reverse/*p12 ${REPERTOIRE_ROOT}/ansible-vitam-rpm-extra/roles/reverse/files/keystore_client.p12
+cat ${REPERTOIRE_CA}/client/ca.crt              >  ${REPERTOIRE_ROOT}/ansible-vitam-rpm-extra/roles/reverse/files/ca_client.crt
+cat ${REPERTOIRE_CA}/client_intermediate/ca.crt >> ${REPERTOIRE_ROOT}/ansible-vitam-rpm-extra/roles/reverse/files/ca_client.crt
+echo "	Fichiers recopiés"
+echo "------------------------"
+
+
 echo "============================================================================================="
 echo "Fin de procédure ; vous pouvez déployer l'ansiblerie."
-
