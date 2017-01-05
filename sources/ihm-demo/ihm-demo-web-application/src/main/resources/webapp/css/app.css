@@ -963,6 +963,10 @@ label{
 .boxSearchWrapper .boxSimpleSearchInput .input-group-addon {
   padding: 0;
 }
+.boxSearchWrapper .boxArchiveSimpleSearchInput {
+  margin-left: 25%;
+  width: 50%;
+}
 .boxSearchWrapper .boxSimpleSearchInput .input-group-addon button {
   height: 100%;
   border: none;
@@ -1036,4 +1040,17 @@ label{
 }
 .panel-footer {
   background-color: white;
+}
+
+.md-tab {
+  text-transform: none !important;
+}
+md-ink-bar {
+  color: #8A6EFF !important;
+  background: #8A6EFF !important;
+}
+.md-stretch-tabs {
+    width: 50%;
+    margin-left: 25%;
+    padding-bottom: 20px;
 }

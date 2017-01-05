@@ -6,66 +6,71 @@
 
   <div class="boxSearchWrapper panel panel-default col-md-12">
     <a class="panel-header"  data-target="#boxSearch" data-toggle="collapse">
-      <h2>Recherche</h2>
+      <h2>Recherche d'archives</h2>
     </a>
 
     <div id="boxSearch" class="panel-body panel-collapse collapse in">
       <!-- <div class="tab-content"> -->
-      <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult($event, titleCriteria)">
-        <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
-          <div class="input-group">
-            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" onfocus="this.placeholder = ''"/>
-            <div class="input-group-addon"><button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i></button></div>
-          </div>
-        </div>
-      </form>
-
-      <!--
-      *
-      *    RECHERCHE SIMPLE
-      *
-    -->
-
-    <div role="tabpanel" class="tab-pane active" id="complexeSearch">
-      <div class="clearfix"></div>
-      <div class="container col-md-12">
-        <div class="panel panel-default col-md-12 ">
-          <a class="panel-header" data-target="#boxAdvanced" data-toggle="collapse" >
-            <i>Avancée</i>
-          </a>
-          <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
-            <div class="form-group col-md-4">
-              <label>Titre</label>
-              <input ng-model="titleCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
-            </div>
-            <div class="form-group col-md-6">
-              <label>Description</label>
-              <input ng-model="descriptionCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
-            </div>
-            <div class="form-group col-md-2">
-              <label>ID</label>
-              <input ng-model="idCriteria2" type="text" class="form-control input-sm"/>
-            </div>
-            <div class="form-group col-md-2">
-              <label>Dates Extrêmes</label>
-              <div class="input-group">
-                <input ng-model="startDate" id="startDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
-                <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+      <md-tabs role="tablist" md-stretch-tabs="always" md-dynamic-height>
+        <md-tab label="Recherche simple" role="presentation" class="active">
+          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult($event, titleCriteria)">
+            <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
+              <div class="input-group m-b-25">
+                <input ng-model="titleCriteria" type="text" class="form-control input-lg"/>
+                <div class="input-group-addon"><button class="btn btn-primary center-block" type="reset"><i class="material-icons pull-left">clear</i></button></div>
               </div>
+              <div class="clearfix"></div>
+              <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
             </div>
-            <div class="form-group col-md-2">
-              <label>&nbsp;</label>
-              <div class="input-group">
-                <input ng-model="endDate" id="endDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
-                <div class="input-group-addon"><i class="material-icons">date_range</i></div>
-              </div>
-            </div>
+          </form>
+
+          <!--
+          *
+          *    RECHERCHE SIMPLE
+          *
+        -->
+        </md-tab>
+        <md-tab label="Recherche avancée" role="presentation" class="col-md-6">
+          <form role="tabpanel" class="tab-pane active" id="complexeSearch" ng-submit="getElasticSearchUnitsResult($event,idCriteria2,titleCriteria2,descriptionCriteria2,startDate,endDate)">
             <div class="clearfix"></div>
-            <button class="btn btn-primary center-block" ng-click="getElasticSearchUnitsResult($event,idCriteria2,titleCriteria2,descriptionCriteria2,startDate,endDate)"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-          </div>
-        </div>
-      </div>
-    </div>
+            <div class="container col-md-12">
+              <div class="panel panel-default col-md-12">
+                <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
+                  <div class="form-group col-md-4">
+                    <label>Titre</label>
+                    <input ng-model="titleCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label>Description</label>
+                    <input ng-model="descriptionCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label>ID</label>
+                    <input ng-model="idCriteria2" type="text" class="form-control input-sm"/>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label>Dates Extrêmes</label>
+                    <div class="input-group">
+                      <input ng-model="startDate" date-picker="" id="startDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
+                      <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+                    </div>
+                  </div>
+                  <div class="form-group col-md-2">
+                    <label>&nbsp;</label>
+                    <div class="input-group">
+                      <input ng-model="endDate" date-picker="" id="endDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
+                      <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+                    </div>
+                  </div>
+                  <div class="clearfix"></div>
+                  <button class="btn btn-default pull-left" type="reset"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+                  <button class="btn btn-primary pull-right" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </md-tab>
+      </md-tabs>
 
     <!--  Nbre d'archives trouvées -->
     <div class="text-center" style="padding-bottom: 20px">
@@ -108,14 +113,13 @@
     <div class="table-responsive ">
       <table class="table">
         <tr>
+          <th><a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
+            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
           <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
             <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
             <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-          </th>
-          <th>
-            <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
-            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
           <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Date</a>
             <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
@@ -130,8 +134,8 @@
 
         <tbody ng-if="showResult && totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult.slice(((currentPage-1)*itemsPerPage), ((currentPage)*itemsPerPage)) | orderBy:orderByField:reverseSort">
-            <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
+            <td>{{result._id}}</td>
             <td>{{result.TransactedDate}}</td>
             <td>
               <i ng-if = "!isObjectExist(result._og)" class="material-icons" style="color:#ccc">close</i>
@@ -152,11 +156,9 @@ Stéphane Nahmani (sholby@sholby.net),
 Stéphane Raimbault <stephane.raimbault@gmail.com> */
 (function( factory ) {
   if ( typeof define === "function" && define.amd ) {
-
     // AMD. Register as an anonymous module.
     define([ "../jquery.ui.datepicker" ], factory );
   } else {
-
     // Browser globals
     factory( jQuery.datepicker );
   }
@@ -182,11 +184,5 @@ Stéphane Raimbault <stephane.raimbault@gmail.com> */
     datepicker.setDefaults(datepicker.regional['fr']);
     return datepicker.regional['fr'];
   }));
-
-  $(function(){
-    $("#startDate").datepicker($.datepicker.regional['fr']);
-    $("#endDate").datepicker($.datepicker.regional['fr']);
-    $(".datepicker").datepicker();
-  });
 
   </script>
