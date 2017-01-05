@@ -476,20 +476,44 @@ angular.module('archive.unit')
             if (key === ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_FIELD) {
               var mustBeAdded = [ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_IDENTIFIER_FIELD,
                 ARCHIVE_UNIT_MODULE_CONST.ORIGINATING_AGENCY_DESCRIPTION_FIELD];
-              angular.forEach(self.mainFields[key].content, function(item, index) {
-                if (mustBeAdded.indexOf(item.fieldId) >= 0) {
-                  mustBeAdded.splice(index, 1);
+
+              var essentialFinalContent = [];
+              var extraFinalContent = [];
+
+              // Start by adding the essential fields
+              angular.forEach(mustBeAdded, function(childKey) {
+                var found = false;
+                angular.forEach(self.mainFields[key].content, function(item, index) {
+                  if(!found){
+                    var currentField = item.fieldId;
+                    if (currentField === childKey) {
+                      essentialFinalContent.push(item);
+                      found = true;
+                    }
+                  }
+                });
+
+                if(!found){
+                  // Add mandatory field
+                  self.fieldSet = buildSingleField('', childKey, key, []);
+                  self.fieldSet.isModificationAllowed = true;
+                  essentialFinalContent.push(self.fieldSet);
                 }
               });
 
-              angular.forEach(mustBeAdded, function(childKey) {
-                self.fieldSet = buildSingleField('', childKey, key, []);
-                self.fieldSet.isModificationAllowed = true;
-                if (!self.mainFields[key].content) {
-                  self.mainFields[key].content = [];
+              // Add extra fields
+              angular.forEach(self.mainFields[key].content, function(item, index) {
+                var itemIndex = mustBeAdded.indexOf(item.fieldId);
+                if (itemIndex < 0) {
+                  // Extra field
+                  extraFinalContent.push(item);
                 }
-                self.mainFields[key].content.push(self.fieldSet);
               });
+
+              // Reorder elements
+              self.mainFields[key].content = [];
+              self.mainFields[key].content.push.apply(self.mainFields[key].content, essentialFinalContent);
+              self.mainFields[key].content.push.apply(self.mainFields[key].content, extraFinalContent);
             }
           });
 
