@@ -37,7 +37,8 @@ angular.module('ihm.demo')
   .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, $timeout) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
+    ctrl.currentPage = 1;
+    ctrl.maxSize = 5;
     ctrl.searchOptions = {};
     ctrl.fileFormatList = [];
     ctrl.client = ihmDemoCLient.getClient('admin');
@@ -64,17 +65,19 @@ angular.module('ihm.demo')
       ctrl.searchOptions.orderby = "Name";
       ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
         if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          ctrl.results = 0;
           displayError("Il n'y a aucun résultat pour votre recherche");
           return;
         }
         ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
+         });
+         ctrl.currentPage = 1;
+         ctrl.results = response.data.$hits.total;
+         $scope.totalItems = ctrl.results;
+        }, function(response) {
+         displayError("Il n'y a aucun résultat pour votre recherche");
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
     };
 
     ctrl.clearSearchOptions = function() {
@@ -83,12 +86,12 @@ angular.module('ihm.demo')
       ctrl.client.all('formats').post({FORMAT: "all", orderby: "Name"}).then(function(response) {
         ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
+         });
+         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
+         ctrl.results = ctrl.fileFormatList.length;
+        }, function(response) {
+         displayError("Il n'y a aucun résultat pour votre recherche");
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
     };
 
     ctrl.openDialog = function($event, id) {
